@@ -166,6 +166,7 @@ window.STATION_MEDIC_PC_TUTORIAL_STEPS = [
   function init() {
     initSupplyTray();
     ensureChartNotesStrip();
+    initChartWindow();
     document.addEventListener("mouseover", onHover);
     document.addEventListener("mouseout", onLeave);
     document.addEventListener("click", function(e) {
@@ -223,6 +224,62 @@ window.STATION_MEDIC_PC_TUTORIAL_STEPS = [
     var notes = document.getElementById("bedside-notes");
     if (notes) {
       strip.appendChild(notes);
+    }
+  }
+
+  function ensurePinButton() {
+    var bedside = document.getElementById("bedside");
+    if (!bedside) return;
+    if (document.getElementById("pin-chart-btn")) return;
+    
+    var btn = document.createElement("button");
+    btn.id = "pin-chart-btn";
+    btn.type = "button";
+    btn.className = "secondary";
+    btn.textContent = "Pin chart";
+    btn.setAttribute("aria-label", "Pin patient chart to a floating window");
+    bedside.querySelector(".bedside-head").appendChild(btn);
+    btn.addEventListener("click", toggleChartWindow);
+  }
+
+  function initChartWindow() {
+    ensurePinButton();
+    
+    if (!document.getElementById("chart-window")) {
+      var win = document.createElement("section");
+      win.id = "chart-window";
+      win.className = "panel";
+      win.setAttribute("role", "dialog");
+      win.setAttribute("aria-label", "Pinned patient chart");
+      win.innerHTML = '<button id="close-chart-btn" type="button" aria-label="Close chart window">&times;</button><div id="chart-window-content"></div>';
+      document.body.appendChild(win);
+      document.getElementById("close-chart-btn").addEventListener("click", function() {
+        win.hidden = true;
+      });
+    }
+
+    // Observe bedside for redraws by app.js
+    var observer = new MutationObserver(function() { ensurePinButton(); });
+    var bedside = document.getElementById("bedside");
+    if (bedside) observer.observe(bedside, { childList: true, subtree: true });
+  }
+
+  function toggleChartWindow() {
+    var win = document.getElementById("chart-window");
+    if (!win) return;
+    if (win.hidden) {
+      var content = document.getElementById("chart-window-content");
+      content.innerHTML = "";
+      var bedside = document.getElementById("bedside");
+      if (bedside && bedside.children.length > 0) {
+        var clone = bedside.cloneNode(true);
+        var pinBtn = clone.querySelector("#pin-chart-btn");
+        if (pinBtn) pinBtn.remove();
+        content.appendChild(clone);
+      }
+      win.hidden = false;
+    } else {
+      win.hidden = true;
     }
   }
 
