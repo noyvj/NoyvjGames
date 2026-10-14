@@ -318,13 +318,6 @@ html[data-effects="off"] *, html[data-effects="off"] *::before, html[data-effect
 @media (max-width: 600px) {
   .draft-indicator { display: flex; align-items: center; gap: 0.4rem; margin-bottom: 0.5rem; padding: 0.4rem 0.6rem; background: var(--surface); border: 1px solid var(--line); border-radius: 8px; font-size: 0.85rem; color: var(--muted); }
   .draft-indicator button { margin-left: auto; padding: 0.2rem 0.5rem; font-size: 0.8rem; }
-
-  /* Offline saved charts panel */
-  .offline-panel { margin-top: 0.5rem; border-top: 1px solid var(--line); padding-top: 0.5rem; }
-  .offline-panel h3 { font-size: 0.9rem; margin: 0 0 0.3rem; color: var(--accent); }
-  .saved-list { list-style: none; padding: 0; margin: 0 0 0.5rem; display: flex; flex-direction: column; gap: 0.3rem; }
-  .saved-item { display: flex; justify-content: space-between; align-items: center; padding: 0.4rem; background: var(--surface); border: 1px solid var(--line); border-radius: 6px; font-size: 0.85rem; }
-  .saved-item button { padding: 0.2rem 0.5rem; font-size: 0.8rem; }
 }
 
 /* Watch-by-watch */
