@@ -257,6 +257,17 @@ function Get-WorkState {
     $files = @(git -C $work status --porcelain --untracked-files=all | ForEach-Object { $_.Substring(3).Trim('"') } | Where-Object { $_ -notlike ".aider*" } | Sort-Object)
     ($files | ForEach-Object { $p = Join-Path $work $_; if (Test-Path $p -PathType Leaf) { $_ + ":" + (Get-FileHash $p -Algorithm MD5).Hash } else { $_ + ":gone" } }) -join "|"
 }
+# static_check.py findings that main does not already have (main's own are known issues, e.g. Heist's
+# brief-toggle-button, and must not cost every task in that game its repair rounds). Line numbers are
+# ignored when comparing, since an edit above a known finding moves it.
+function Get-NewFindings {
+    $strip = { param($l) ($l -replace '^.*?(games[\\/])', '$1' -replace ':\d+ ', ' ').Trim() }
+    $known = @(python (Join-Path $aiDir "static_check.py") $Game 2>$null | ForEach-Object { & $strip $_ })
+    $env:NOYVJ_ROOT = $work
+    $now = @(python (Join-Path $aiDir "static_check.py") $Game --changed 2>$null)
+    Remove-Item Env:NOYVJ_ROOT -ErrorAction SilentlyContinue
+    (@($now | Where-Object { $_ -and $_ -notlike "static_check: no findings*" -and $known -notcontains (& $strip $_) }) -join "`n")
+}
 $verifiedState = $null
 $verifiedLine = ""
 $repairs = 0
@@ -299,11 +310,8 @@ while (-not $timedOut -and $repairs -lt 2) {
     # gets a repair round to add it, like a failing test.
     $checkLines = ""
     if ($passing -and $isFeature) {
-        $env:NOYVJ_ROOT = $work
-        $checkLines = ((python (Join-Path $aiDir "static_check.py") $Game --changed 2>&1) -join "`n")
-        $checkFailed = ($LASTEXITCODE -ne 0)
-        Remove-Item Env:NOYVJ_ROOT -ErrorAction SilentlyContinue
-        if ($checkFailed) { $passing = $false; $verifiedState = $null } else { $checkLines = "" }
+        $checkLines = Get-NewFindings
+        if ($checkLines) { $passing = $false; $verifiedState = $null }
     }
     if ($passing) { break }
     $repairs++
@@ -453,10 +461,8 @@ if (@($inside | Where-Object { $_ -match '\.(js|html|css)$' -and $_ -notlike "*/
 # The same checker as in the repair rounds, as a final gate (findings go in the report for the reviewer).
 $staticOut = ""
 if ($isFeature -and -not $testOnly -and $inside.Count -gt 0) {
-    $env:NOYVJ_ROOT = $work
-    $staticOut = ((python (Join-Path $aiDir "static_check.py") $Game --changed 2>&1) -join "`n")
-    if ($LASTEXITCODE -ne 0) { $problems += "static_check.py found problems (see below)" } else { $staticOut = "" }
-    Remove-Item Env:NOYVJ_ROOT -ErrorAction SilentlyContinue
+    $staticOut = Get-NewFindings
+    if ($staticOut) { $problems += "static_check.py found problems (see below)" }
 }
 $diffStat = ($changed | ForEach-Object { "- $_" }) -join "`n"
 # keep the change itself in the report: a failed run's working copy is deleted below
