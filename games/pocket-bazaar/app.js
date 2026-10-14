@@ -901,8 +901,9 @@
     $("board").addEventListener("pb-action", function (e) {
       var action = e.detail.action;
       var cellIdx = Number(e.detail.cell);
+      if (!view || view.phase !== "open" || !cellAt(cellIdx)) return;
       if (action === "pick-up") {
-        onCell(cellIdx);
+        select(cellIdx);
       } else if (action === "sell") {
         sellAt(cellIdx);
       } else if (action === "hand-over") {

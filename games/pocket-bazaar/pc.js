@@ -101,3 +101,79 @@ window.pocketBazaarAfterRender = function () {
     });
   });
 })();
+
+/* R4-PBPC-2: right-click a piece for Pick up, Sell and Hand over at the cursor. app.js does the work (pb-action). */
+(function () {
+  "use strict";
+  var menu = null;
+  var board = null;
+  var forCell = null;
+  var handBtn = null;
+
+  function hideMenu() {
+    if (menu) menu.hidden = true;
+    forCell = null;
+  }
+
+  // Escape closes this menu first. Registered at once (before the shell's own capture listener) and marking the event
+  // as handled with the shell's flag, so the same Escape does not also open the shell's Menu window.
+  document.addEventListener("keydown", function (e) {
+    if (e.key !== "Escape" || !menu || menu.hidden) return;
+    e.preventDefault();
+    e.__pcMenuOpened = true;
+    hideMenu();
+  }, true);
+
+  function build() {
+    menu = document.createElement("div");
+    menu.id = "pc-context-menu";
+    menu.setAttribute("role", "menu");
+    menu.setAttribute("aria-label", "Piece actions");
+    menu.hidden = true;
+    [["pick-up", "Pick up"], ["sell", "Sell"], ["hand-over", "Hand over"]].forEach(function (pair) {
+      var btn = document.createElement("button");
+      btn.type = "button";
+      btn.textContent = pair[1];
+      btn.dataset.action = pair[0];
+      btn.setAttribute("role", "menuitem");
+      btn.addEventListener("click", function () {
+        var cell = forCell;
+        hideMenu();
+        if (cell !== null) board.dispatchEvent(new CustomEvent("pb-action", { detail: { action: pair[0], cell: cell } }));
+      });
+      if (pair[0] === "hand-over") handBtn = btn;
+      menu.appendChild(btn);
+    });
+    menu.addEventListener("keydown", function (e) {
+      var items = Array.prototype.slice.call(menu.querySelectorAll("button"));
+      var at = items.indexOf(document.activeElement);
+      if (e.key === "ArrowDown") { e.preventDefault(); items[(at + 1) % items.length].focus(); }
+      else if (e.key === "ArrowUp") { e.preventDefault(); items[(at + items.length - 1) % items.length].focus(); }
+    });
+    document.body.appendChild(menu);
+  }
+
+  document.addEventListener("DOMContentLoaded", function () {
+    board = document.getElementById("board");
+    if (!board) return;
+    build();
+    board.addEventListener("contextmenu", function (e) {
+      var cell = e.target.closest(".cell.has-good");
+      var view = pbPcView();
+      if (!cell || !view || view.phase !== "open") return;
+      e.preventDefault();
+      forCell = Number(cell.dataset.cell);
+      var takers = view.deliverable[String(forCell)] || [];
+      var who = takers.length && view.customers[takers[0]] ? view.customers[takers[0]].name : "";
+      handBtn.textContent = who ? "Hand over to " + who : "Hand over";
+      menu.hidden = false;
+      var rect = menu.getBoundingClientRect();
+      menu.style.left = Math.max(0, Math.min(e.clientX, window.innerWidth - rect.width - 8)) + "px";
+      menu.style.top = Math.max(0, Math.min(e.clientY, window.innerHeight - rect.height - 8)) + "px";
+      menu.querySelector("button").focus();
+    });
+    document.addEventListener("click", function (e) { if (menu && !menu.contains(e.target)) hideMenu(); });
+    window.addEventListener("resize", hideMenu);
+    window.addEventListener("scroll", hideMenu, true);
+  });
+})();

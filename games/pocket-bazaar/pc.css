@@ -72,3 +72,12 @@ html[data-layout="pc"] .cell[data-hover-target]::before {
   background: var(--panel); color: var(--text); border: 1px solid var(--line); border-radius: 4px;
   font-size: 0.7rem; line-height: 1.2; text-align: center; pointer-events: none;
 }
+
+/* R4-PBPC-2: right-click menu on a piece. Placed at the cursor by pc.js (the only inline style). */
+#pc-context-menu {
+  position: fixed; z-index: 1000; display: flex; flex-direction: column; min-width: 9rem; padding: 0.25rem;
+  background: var(--panel); color: var(--text); border: 1px solid var(--edge); border-radius: 8px; box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
+}
+#pc-context-menu[hidden] { display: none; }
+#pc-context-menu button { min-height: 2.75rem; text-align: left; border-color: transparent; background: transparent; }
+#pc-context-menu button:hover, #pc-context-menu button:focus-visible { background: var(--btn); border-color: var(--hover-edge); }
