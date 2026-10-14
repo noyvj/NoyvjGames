@@ -157,7 +157,7 @@ html[data-reduced-motion="true"] .stat-value.bump, html[data-effects="off"] .sta
 .shelf .uses { display: block; font-size: 0.68rem; color: var(--muted); }
 .borrow { margin-top: 0.4rem; font-size: 0.9rem; color: var(--muted); }
 .sheet { list-style: none; margin: 0.3rem 0; padding: 0; display: grid; gap: 0.35rem; }
-.sheet-tab, .sheet-close { display: none; }
+.sheet-tab, .sheet-close, .notes-banner, .notes-tab { display: none; }
 .sheet li { border: 1px solid var(--line); border-radius: 10px; padding: 0.3rem 0.6rem; background: var(--surface); }
 .sheet li.ruled-out { opacity: 0.55; border-style: dashed; }
 html[data-narrow="on"] .sheet li.ruled-out .cname { text-decoration: line-through; }
@@ -231,24 +231,15 @@ html[data-narrow="off"] .sheet li.ruled-out { opacity: 1; border-style: solid; }
   html[data-dim-night="on"] button, html[data-dim-night="on"] select { min-height: 48px; padding: 0.6rem 1rem; font-size: 1.05rem; }
   html[data-dim-night="on"] .act-row button { padding: 0.5rem 0.8rem; }
 
-  /* R4-SMMO-10: Chart notes banner */
-  .notes-banner {
-    position: fixed; top: 0; left: 0; right: 0; z-index: 80;
-    background: var(--panel-fill); border-bottom: 2px solid var(--accent);
-    padding: 0.5rem 0.7rem; display: flex; align-items: center; gap: 0.5rem;
-    transform: translateY(-100%); transition: transform 0.2s ease-out;
+  /* R4-SMMO-10: chart notes banner, phone layout only */
+  html:not([data-layout="pc"]) .notes-banner {
+    display: flex; align-items: center; gap: 0.5rem; position: sticky; top: 0; z-index: 80; margin: 0 0 0.5rem; padding: 0.4rem 0.6rem;
+    background: var(--panel-fill); border: 2px dashed var(--accent); border-radius: 10px; touch-action: pan-x;
   }
-  .notes-banner.show { transform: translateY(0); }
-  html[data-reduced-motion="true"] .notes-banner, html[data-effects="off"] .notes-banner { transition: none; }
-  #notes-close-btn { background: var(--btn); border: 1px solid var(--edge); border-radius: 6px; padding: 0.2rem 0.5rem; cursor: pointer; font-size: 1.1rem; color: var(--text); }
-  .notes-list { list-style: none; margin: 0; padding: 0; flex: 1; font-size: 0.85rem; color: var(--muted); }
+  html:not([data-layout="pc"]) .notes-tab { display: block; min-height: 44px; margin: 0 0 0.5rem; }
+  .notes-list { list-style: none; margin: 0; padding: 0; flex: 1; font-size: 0.9rem; }
   .notes-list li { margin: 0.1rem 0; }
-  #notes-tab {
-    position: fixed; top: 0.5rem; right: 0.5rem; z-index: 81;
-    background: var(--accent); color: var(--ink); border: none; border-radius: 6px;
-    padding: 0.3rem 0.6rem; font-size: 0.8rem; cursor: pointer; display: none;
-  }
-  #notes-tab.show { display: block; }
+  .notes-banner button { min-height: 44px; }
 }
 
 /* Goals: three at a time, always in view. */

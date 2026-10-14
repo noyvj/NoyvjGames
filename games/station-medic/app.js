@@ -221,20 +221,7 @@
     notes.textContent = "";
     p.notes.forEach(function (n) { notes.appendChild(el("li", null, n)); });
 
-    // R4-SMMO-10: Chart notes banner
-    var bannerList = $("notes-list");
-    if (bannerList) {
-      bannerList.textContent = "";
-      p.notes.forEach(function (n) { bannerList.appendChild(el("li", null, n)); });
-      var banner = $("notes-banner");
-      var tab = $("notes-tab");
-      if (p.notes.length > 0 && !banner.classList.contains("show")) {
-        tab.classList.add("show");
-      } else if (p.notes.length === 0) {
-        tab.classList.remove("show");
-        banner.classList.remove("show");
-      }
-    }
+    renderNotesBanner(p);
     var readings = $("bedside-readings");
     readings.textContent = "";
     if (!p.readings.length) readings.appendChild(el("li", "unknown", "No scans on this shift."));
@@ -718,38 +705,33 @@
     $("sheet-close-button").addEventListener("click", function () { setSheetOpen(false); });
   }
 
-  // R4-SMMO-10: Chart notes banner
+  // R4-SMMO-10: on a phone the chart notes of the patient being looked at show as a banner that sticks to the top. A swipe
+  // upward or the Hide button puts it away, and a "Chart notes" tab brings it back. Wide screens and the Desktop layout
+  // never show it (the notes are already on the chart there); the notes stay on the chart on a phone as well.
+  var notesDismissed = false;
+  function renderNotesBanner(p) {
+    var list = $("notes-list");
+    list.textContent = "";
+    p.notes.forEach(function (n) { list.appendChild(el("li", null, n)); });
+    $("notes-banner").hidden = !p.notes.length || notesDismissed;
+    $("notes-tab").hidden = !p.notes.length || !notesDismissed;
+  }
   function _initNotesBanner() {
-    var banner = $("notes-banner");
-    var tab = $("notes-tab");
-    var closeBtn = $("notes-close-btn");
-    if (!banner || !tab) return;
-
-    function showBanner() {
-      banner.classList.add("show");
-      tab.classList.remove("show");
+    var banner = $("notes-banner"), y0 = null;
+    function setDismissed(value) {
+      notesDismissed = value;
+      if (view && view.patients[sel]) renderNotesBanner(view.patients[sel]);
+      var target = value ? $("notes-tab") : $("notes-close-btn");
+      if (!target.hidden) target.focus();
     }
-    function hideBanner() {
-      banner.classList.remove("show");
-      tab.classList.add("show");
-    }
-
-    closeBtn.addEventListener("click", hideBanner);
-    tab.addEventListener("click", showBanner);
-
-    var startY = 0;
-    function onPointerDown(e) {
-      if (e.target.closest("#notes-banner")) startY = e.clientY || e.touches[0].clientY;
-    }
-    function onPointerMove(e) {
-      if (!banner.classList.contains("show")) return;
-      var y = e.clientY || e.touches[0].clientY;
-      if (y - startY > 60) hideBanner();
-    }
-    document.addEventListener("touchstart", onPointerDown, { passive: true });
-    document.addEventListener("touchmove", onPointerMove, { passive: false });
-    document.addEventListener("mousedown", onPointerDown);
-    document.addEventListener("mousemove", onPointerMove);
+    $("notes-close-btn").addEventListener("click", function () { setDismissed(true); });
+    $("notes-tab").addEventListener("click", function () { setDismissed(false); });
+    banner.addEventListener("pointerdown", function (e) { y0 = e.clientY; });
+    banner.addEventListener("pointerup", function (e) {
+      if (y0 !== null && e.clientY - y0 < -30) setDismissed(true);
+      y0 = null;
+    });
+    banner.addEventListener("pointercancel", function () { y0 = null; });
   }
 
   // R4-SMMO-5: hold the shift title to restore the shift, behind the same confirm as the Restore button (which stays the
