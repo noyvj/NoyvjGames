@@ -231,6 +231,25 @@ html[data-effects="off"] .hr-room.s2 .hr-window { opacity: 0.9; }
   .edit-buttons[data-hand="left"] { justify-content: flex-start; }
   .edit-buttons[data-hand="right"] { justify-content: flex-end; }
 
+  /* One more board button */
+  .one-more-btn {
+    display: block;
+    width: 100%;
+    margin-top: 0.5rem;
+    padding: 0.6rem;
+    font-size: 1rem;
+    font-weight: 700;
+    background: var(--btn-primary);
+    color: var(--on-primary);
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+  }
+  html[data-reduced-motion="true"] .one-more-btn,
+  html[data-effects="off"] .one-more-btn {
+    transition: none;
+  }
+
   /* Big-shape mode for ports on mobile */
   #board-holder.hr-big-ports .hr-src,
   #board-holder.hr-big-ports .hr-dst {
