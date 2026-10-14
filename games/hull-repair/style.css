@@ -263,9 +263,7 @@ html[data-effects="off"] .hr-room.s2 .hr-window { opacity: 0.9; }
   }
   #board-holder.hr-big-ports .hr-port-letter { font-weight: 800; }
 
-  #board-holder.hr-dragging #hr-lines {
-    transform: translateY(-35px);
-  }
+  .hr-finger-ghost { opacity: 0.35; pointer-events: none; }
   /* Prevent layout shift during haptic feedback on mobile */
   .board-holder { transform: translateZ(0); }
   .home-progress {

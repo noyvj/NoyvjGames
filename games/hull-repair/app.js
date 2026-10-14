@@ -434,6 +434,33 @@
     }
     return out;
   }
+  // R4-HRMO-1: while a finger drags a line, a faint copy of that line floats just above the finger so the thumb never hides it.
+  function clearFingerGhost() {
+    var svg = boardSvg();
+    var old = svg && svg.querySelector("#hr-finger-ghost");
+    if (old) old.remove();
+  }
+  function updateFingerGhost() {
+    var svg = boardSvg();
+    clearFingerGhost();
+    if (!svg || !view || !drag || document.documentElement.getAttribute("data-effects") === "off") return;
+    var letter = "";
+    var paths = view.board.paths || {};
+    Object.keys(paths).forEach(function (c) {
+      var p = paths[c];
+      if (p.length > 1 && p[p.length - 1][0] === drag.last[0] && p[p.length - 1][1] === drag.last[1]) letter = c;
+    });
+    var line = letter && svg.querySelector('#hr-lines g.hr-line[data-line="' + letter + '"]');
+    if (!line) return;
+    var copy = line.cloneNode(true);
+    copy.removeAttribute("data-line");
+    var ghost = document.createElementNS("http://www.w3.org/2000/svg", "g");
+    ghost.id = "hr-finger-ghost";
+    ghost.setAttribute("class", "hr-finger-ghost");
+    ghost.setAttribute("transform", "translate(0," + (-0.9 * view.board.cell) + ")");
+    ghost.appendChild(copy);
+    svg.appendChild(ghost);
+  }
   function onPointerDown(e) {
     if (e.button !== undefined && e.button !== 0) return;
     if (drag && drag.id !== e.pointerId) return;
@@ -442,9 +469,8 @@
     e.preventDefault();
     var holder = $("board-holder");
     if (holder.setPointerCapture) { try { holder.setPointerCapture(e.pointerId); } catch (err) { /* synthetic events */ } }
-    if (!window.matchMedia("(prefers-reduced-motion: reduce)").matches) holder.classList.add("hr-dragging");
     var res = send({ action: "begin", x: cell[0], y: cell[1] }, true);
-    drag = { last: cell, active: Boolean(res && res.ok), id: e.pointerId };
+    drag = { last: cell, active: Boolean(res && res.ok), id: e.pointerId, touch: e.pointerType === "touch" };
     kbd.x = cell[0];
     kbd.y = cell[1];
     placeCursor(false);
@@ -459,6 +485,7 @@
     var res = send({ action: "move", cells: steps }, true);
     if (res && res.ok === false) setText($("board-line"), res.message);
     HR_Haptics.tick();
+    if (drag.touch) updateFingerGhost();
   }
   function onPointerUp(e) {
     if (!drag) return;
@@ -466,7 +493,7 @@
     drag = null;
     var holder = $("board-holder");
     if (holder.releasePointerCapture) { try { holder.releasePointerCapture(was.id); } catch (err) { /* ignore */ } }
-    holder.classList.remove("hr-dragging");
+    clearFingerGhost();
     if (was.active) send({ action: "end" });
     else if (view && view.message && view.ok === false) showToast(view.message);
   }
