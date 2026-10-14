@@ -98,29 +98,6 @@ html[data-theme="dark"] #chart-tooltip {
 }
 #chart-tooltip.visible { display: block; }
 
-/* Parallel rules measurement (R + drag) ------------------------------------- */
-.dr-measure-line {
-  stroke: #ffcc00;
-  stroke-width: 2;
-  stroke-dasharray: 4, 4;
-  pointer-events: none;
-}
-#dr-measure-result {
-  position: absolute;
-  background: var(--panel-bg, #fffaf0);
-  border: 1px solid var(--muted);
-  padding: 2px 6px;
-  font-size: 0.85rem;
-  white-space: nowrap;
-  z-index: 30;
-  pointer-events: none;
-  display: none;
-}
-html[data-theme="dark"] #dr-measure-result {
-  background: var(--panel-bg, #1a1a1a);
-}
-#dr-measure-result.visible { display: block; }
-
 /* Chart right-click tools menu (PC only) ---------------------------------------- */
 #chart-tools-menu {
   position: absolute;
