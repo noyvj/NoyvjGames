@@ -76,6 +76,14 @@ html[data-layout="pc"] .cell[data-hover-target]::before {
   font-size: 0.7rem; line-height: 1.2; text-align: center; pointer-events: none;
 }
 
+/* R4-PBPC-8: hold Alt to show the key on every crate and tool (a static label, so nothing to animate). */
+#pc-side [data-hotkey] { position: relative; }
+html.pc-show-keys #pc-side [data-hotkey]::after {
+  content: attr(data-hotkey); position: absolute; top: 0.2rem; right: 0.3rem; min-width: 1.5rem; padding: 0 0.3rem;
+  background: var(--btn-primary); color: var(--on-primary); border: 2px solid var(--edge); border-radius: 6px;
+  font-weight: 800; font-size: 0.95rem; line-height: 1.4; text-align: center; pointer-events: none; z-index: 3;
+}
+
 /* R4-PBPC-6: large combo counter (static: it grows by step, not by animation). */
 #combo-display { display: none; text-align: center; margin: 0; padding: 0.3rem 0.5rem; border: 2px solid var(--line); border-radius: 12px; background: var(--panel-fill); }
 #combo-display.active { display: block; }

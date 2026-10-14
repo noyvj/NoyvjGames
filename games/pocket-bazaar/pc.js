@@ -102,6 +102,47 @@ window.pocketBazaarAfterRender = function () {
   });
 })();
 
+/* The keys in use: the defaults, or the ones the player set in Settings, Controls (R4-PBPC-9, window.NOYVJ_PC_CUSTOM_KEYS).
+   crates is null until the player sets one: the number keys always open crates, a set key opens the highlighted one. */
+function pbPcKeys() {
+  var c = window.NOYVJ_PC_CUSTOM_KEYS || {};
+  return {
+    handover: (c.handover || "d").toUpperCase(),
+    sell: (c.sell || "s").toUpperCase(),
+    broom: (c.broom || "b").toUpperCase(),
+    crates: c.crates ? c.crates.toUpperCase() : null,
+  };
+}
+
+/* R4-PBPC-8: hold Alt to see the key for every crate and tool. Labels come from data-hotkey on the buttons (set after
+   every redraw, since the crates are rebuilt) and are drawn by CSS only while html has pc-show-keys. */
+(function () {
+  "use strict";
+
+  function mark() {
+    var keys = pbPcKeys();
+    document.querySelectorAll("#crates .crate-btn").forEach(function (btn, n) {
+      btn.setAttribute("data-hotkey", String(n + 1));
+    });
+    var sell = document.getElementById("sell-button");
+    var broom = document.getElementById("broom-button");
+    if (sell) sell.setAttribute("data-hotkey", keys.sell);
+    if (broom) broom.setAttribute("data-hotkey", keys.broom);
+  }
+  function show() {
+    mark();
+    document.documentElement.classList.add("pc-show-keys");
+  }
+  function hide() {
+    document.documentElement.classList.remove("pc-show-keys");
+  }
+
+  window.pbPcAfterRender.push(mark);
+  document.addEventListener("keydown", function (e) { if (e.key === "Alt") show(); });
+  document.addEventListener("keyup", function (e) { if (e.key === "Alt") hide(); });
+  window.addEventListener("blur", hide);
+})();
+
 /* R4-PBPC-7: board size slider (80 to 160 percent) in Settings. A per-device display choice: localStorage, never the save. */
 (function () {
   "use strict";
