@@ -17,6 +17,7 @@
 #     GitHub when that is a plain fast-forward
 param([switch]$Pr)
 $aiDir = $PSScriptRoot
+$env:PYTHONUTF8 = "1"   # every python this starts reads files as UTF-8, like on a Mac (Tide and Grid tests read style.css without an encoding and crash under Windows' cp1252)
 $root = Split-Path -Parent $aiDir
 $queue = Join-Path $aiDir "queue.txt"
 $done = Join-Path $aiDir "queue-done.txt"

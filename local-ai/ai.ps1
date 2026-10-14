@@ -36,6 +36,7 @@ if ($Chain) { $Item = "$Chain-$Step" }
 # "Continue": git prints harmless notes on stderr, which "Stop" would turn into crashes in
 # Windows PowerShell 5.1. Every step checks its own result ($LASTEXITCODE / Fail) instead.
 $ErrorActionPreference = "Continue"
+$env:PYTHONUTF8 = "1"   # every python this starts reads files as UTF-8, like on a Mac (Tide and Grid tests read style.css without an encoding and crash under Windows' cp1252)
 $root = Split-Path -Parent $PSScriptRoot
 $aiDir = Join-Path $root "local-ai"
 $reports = Join-Path $aiDir ".history\reports"
