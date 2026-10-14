@@ -100,7 +100,71 @@ window.STATION_MEDIC_PC_TUTORIAL_STEPS = [
     }
   }
 
+  function initSupplyTray() {
+    if (document.getElementById("supply-tray")) return;
+    var tray = document.createElement("div");
+    tray.id = "supply-tray";
+    tray.setAttribute("role", "toolbar");
+    tray.setAttribute("aria-label", "Supply tray");
+    var stage = document.getElementById("pc-stage");
+    if (stage) stage.appendChild(tray);
+    updateTray();
+
+    new MutationObserver(function() { updateTray(); }).observe(stage || document.body, { childList: true, subtree: true });
+  }
+
+  function updateTray() {
+    var tray = document.getElementById("supply-tray");
+    if (!tray) return;
+    tray.innerHTML = "";
+    var cabinetItems = document.querySelectorAll("#cabinet-list li");
+    var itemConditions = {};
+    document.querySelectorAll("#sheet-list li").forEach(function(li) {
+      var treats = (li.getAttribute("data-treats") || "").split(",").map(s => s.trim()).filter(Boolean);
+      treats.forEach(function(t) {
+        if (!itemConditions[t]) itemConditions[t] = [];
+        itemConditions[t].push(li);
+      });
+    });
+
+    cabinetItems.forEach(function(li) {
+      var letterEl = li.querySelector(".letter");
+      var id = letterEl ? letterEl.textContent.trim() : "";
+      var countEl = li.querySelector(".count, .stock");
+      var count = countEl ? countEl.textContent : "0";
+      var btn = document.createElement("button");
+      btn.className = "tray-item";
+      btn.setAttribute("data-item", id);
+      btn.innerHTML = '<span class="tray-letter">' + (id.charAt(0).toUpperCase()) + '</span> <span class="tray-count">' + count + '</span>';
+      
+      btn.addEventListener("mouseenter", function() { highlightPatientsForItem(id, itemConditions[id]); });
+      btn.addEventListener("mouseleave", clearPatientHighlights);
+      tray.appendChild(btn);
+    });
+  }
+
+  function highlightPatientsForItem(itemId, conditions) {
+    if (!conditions || !conditions.length) return;
+    var signs = new Set();
+    conditions.forEach(function(li) {
+      (li.getAttribute("data-signs") || "").split(",").forEach(s => signs.add(s.trim()));
+    });
+    document.querySelectorAll("#patients .scene").forEach(function(p) {
+      var pSigns = (p.getAttribute("data-signs") || "").split(",");
+      if (pSigns.some(s => signs.has(s.trim()))) {
+        p.classList.add("tray-highlight");
+      }
+    });
+  }
+
+  function clearPatientHighlights() {
+    document.querySelectorAll("#patients .scene.tray-highlight").forEach(function(p) {
+      p.classList.remove("tray-highlight");
+    });
+  }
+
   function init() {
+    initSupplyTray();
     ensureChartNotesStrip();
     document.addEventListener("mouseover", onHover);
     document.addEventListener("mouseout", onLeave);

@@ -47,7 +47,7 @@ html[data-layout="pc"] html[data-reduced-motion="true"] #treat-row:focus-within 
 
 /* Permanent chart notes strip on wide screens */
 @media (min-width: 1024px) {
-  #chart-notes-strip {
+  html[data-layout="pc"] #chart-notes-strip {
     background: var(--bg-panel, #f8f9fa);
     border: 1px solid var(--border, #ccc);
     border-radius: 4px;
@@ -55,7 +55,7 @@ html[data-layout="pc"] html[data-reduced-motion="true"] #treat-row:focus-within 
     max-height: 60vh;
     overflow-y: auto;
   }
-  #chart-notes-strip .log {
+  html[data-layout="pc"] #chart-notes-strip .log {
     list-style: none;
     padding: 0;
     margin: 0;
@@ -86,4 +86,44 @@ html[data-layout="pc"] #patient-context-menu button {
 }
 html[data-layout="pc"] #patient-context-menu button:hover {
   background-color: var(--highlight-bg, #e8f0ff);
+}
+
+/* Supply tray at the bottom of the stage */
+html[data-layout="pc"] #supply-tray {
+  position: sticky;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  gap: 0.5rem;
+  padding: 0.4rem 0.6rem;
+  margin-top: auto;
+  background: var(--bg-panel, #f8f9fa);
+  border-top: 1px solid var(--border, #ccc);
+  border-radius: 4px 4px 0 0;
+  align-items: center;
+  z-index: 5;
+}
+html[data-layout="pc"] .tray-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.25rem 0.6rem;
+  background: var(--bg, #fff);
+  border: 1px solid var(--border, #ccc);
+  border-radius: 3px;
+  cursor: pointer;
+  font: inherit;
+  color: var(--text, #000);
+}
+html[data-layout="pc"] .tray-item:hover { background-color: var(--highlight-bg, #e8f0ff); }
+html[data-layout="pc"] .tray-letter { font-weight: bold; font-size: 1.1rem; }
+html[data-layout="pc"] .tray-count { opacity: 0.7; }
+
+html[data-layout="pc"] .scene.tray-highlight {
+  border-color: var(--focus-color, #4a90d9);
+  box-shadow: 0 0 0 2px var(--highlight-bg, #e8f0ff);
+}
+html[data-layout="pc"] html[data-reduced-motion="true"] .scene.tray-highlight {
+  transition: none;
 }

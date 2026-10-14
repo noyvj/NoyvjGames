@@ -257,6 +257,7 @@
       var li = el("li", fits.indexOf(c.id) === -1 ? "ruled-out" : "");
       li.setAttribute("data-signs", c.signs.join(","));
       li.setAttribute("data-scans", c.scans.join(","));
+      li.setAttribute("data-treats", c.cures.join(","));
       var head = el("span", "cname", c.name);
       if (c.spreads) head.appendChild(el("span", "tag", "spreads"));
       li.appendChild(head);
