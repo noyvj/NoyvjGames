@@ -141,7 +141,7 @@ window.ROBOT_SCRIPT_PC_TUTORIAL_STEPS = [
       if (e.ctrlKey || e.metaKey || e.altKey) return;
       var tag = e.target && e.target.tagName;
       if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return;
-      if (document.querySelector("dialog[open], .confirm-dialog, [role='dialog']")) return;
+      if (document.querySelector("dialog[open], .confirm-dialog, [role='dialog']:not([hidden])")) return;
       if (e.key === "[") { apply(parseInt(slider.value, 10) - 10, true); e.preventDefault(); }
       else if (e.key === "]") { apply(parseInt(slider.value, 10) + 10, true); e.preventDefault(); }
       else if (e.key === "ArrowLeft" || e.key === "ArrowRight") {

@@ -56,7 +56,7 @@
     sheet = document.createElement("div");
     sheet.id = "hint-sheet";
     sheet.className = "hint-sheet";
-    sheet.setAttribute("role", "dialog");
+    sheet.setAttribute("role", "region");   // not "dialog": app.js stops the F/L/R shortcuts while a dialog exists
     sheet.setAttribute("aria-label", "Hints");
     sheet.hidden = true;
     var head = document.createElement("div");

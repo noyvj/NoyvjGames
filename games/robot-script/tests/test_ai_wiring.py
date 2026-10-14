@@ -93,3 +93,17 @@ def test_zoom_is_a_css_variable_so_a_redrawn_svg_keeps_it():
     assert "--room-zoom" in READ("zoom.js") and "var(--room-zoom" in READ("style.css")
     assert 'style.setProperty("--room-zoom"' in READ("zoom.js")
     assert "SVG.style" not in READ("zoom.js")
+
+
+def test_a_hidden_dialog_never_blocks_the_keyboard_shortcuts():
+    """The Desktop shell keeps every window frame in the page as a hidden role=dialog and the hint sheet is always built, so the
+    shortcut guard must only count dialogs that are showing."""
+    assert "[role='dialog']:not([hidden])" in APP and "[role='dialog']\")" not in APP
+    assert 'setAttribute("role", "dialog")' not in READ("hint-sheet.js")
+    assert "[role='dialog']:not([hidden])" in READ("pc.js")
+
+
+def test_resume_keeps_the_breakpoint_it_stopped_at_and_the_robot_where_it_is():
+    start = APP[APP.index("function startPlay("):APP.index("function onRun()")]
+    assert "if (i === undefined) play.bpAt = -1;" in start
+    assert "applyFrame(play.frames[play.i], true);" in start

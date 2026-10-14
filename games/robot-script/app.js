@@ -331,9 +331,9 @@
     play.trace = trace;
     play.frames = trace.frames;
     play.i = i !== undefined ? i : 0;
-    play.bpAt = -1;
+    if (i === undefined) play.bpAt = -1;      // resuming keeps the breakpoint it just stopped at, so it is passed once
     hideResult();
-    applyFrame(play.frames[0], true);
+    applyFrame(play.frames[play.i], true);
     syncPlayButtons();
     var ms = speedMs();
     if (!autoplay) return;
@@ -844,7 +844,7 @@
     if (!view || e.ctrlKey || e.metaKey || e.altKey) return;
     var tag = e.target && e.target.tagName;
     if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return;
-    if (document.querySelector("dialog[open], .confirm-dialog, [role='dialog']")) return;
+    if (document.querySelector("dialog[open], .confirm-dialog, [role='dialog']:not([hidden])")) return;
     var key = e.key;
     var map = { f: "F", l: "L", r: "R", g: "G", p: "P", s: "S" };
     if (map[key.toLowerCase()] && key.length === 1) {
