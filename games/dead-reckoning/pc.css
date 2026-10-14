@@ -78,26 +78,6 @@ html[data-layout="pc"] .quick-leg-input {
 #chart-holder.grabbing { cursor: grabbing; }
 #chart-holder svg.dr-chart { transform-box: fill-box; }
 
-/* Chart hover tooltip (PC only) ------------------------------------------------ */
-#chart-tooltip {
-  position: absolute;
-  pointer-events: none;
-  background: var(--panel-bg, #fffaf0);
-  border: 1px solid var(--muted);
-  border-radius: 4px;
-  padding: 0.3rem 0.5rem;
-  font-size: 0.85rem;
-  color: var(--text);
-  white-space: nowrap;
-  z-index: 10;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
-  display: none;
-}
-html[data-theme="dark"] #chart-tooltip {
-  background: var(--panel-bg, #1a1a1a);
-}
-#chart-tooltip.visible { display: block; }
-
 /* Print layout (Ctrl+P) ------------------------------------------------------ */
 @media print {
   html[data-layout="pc"] body,
