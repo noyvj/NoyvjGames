@@ -321,3 +321,38 @@ window.STATION_MEDIC_PC_TUTORIAL_STEPS = [
   }
   pc.ready(function () { pc.onRendered(draw); window.addEventListener("load", draw); draw(); });
 })();
+
+(function () {
+  "use strict";
+  var pc = window.StationMedicPc;
+
+  // R4-SMPC-9: Ctrl+P prints a clean record of the shift: the shift, its seal (or the cost so far), every patient with their
+  // signs, chart notes, scan readings and outcome, and the log. The report is built from the drawn view just before printing
+  // and is hidden on screen; the print CSS hides everything else.
+  function add(parent, tag, text) { var n = document.createElement(tag); n.textContent = text; parent.appendChild(n); return n; }
+  function build() {
+    var v = pc.view();
+    if (!v) return;
+    var box = document.getElementById("print-report");
+    if (!box) {
+      box = document.createElement("div");
+      box.id = "print-report";
+      document.body.appendChild(box);
+    }
+    box.textContent = "";
+    add(box, "h1", "Station Medic: shift report");
+    add(box, "h2", v.shift.title + " (" + v.shift.chapter + ", shift " + v.shift.number + " of " + v.shift.of + ")");
+    add(box, "p", v.result ? "Seal: " + v.result.grade_name + ". Cost " + v.result.cost + ". " + v.result.line : "Shift in progress. Cost so far " + v.shift.cost + " (" + (v.shift.grade_now_name || "") + ").");
+    v.patients.forEach(function (p) {
+      add(box, "h3", p.name + ", " + p.role);
+      add(box, "p", "Signs: " + (p.signs.map(function (s) { return s.name; }).join(", ") || "none"));
+      add(box, "p", "Chart notes: " + (p.notes.join("; ") || "none"));
+      add(box, "p", "Scans: " + (p.readings.map(function (r) { return r.test + " " + (r.state === "unknown" ? "not run" : r.state === "positive" ? r.positive : "nothing"); }).join("; ") || "none on this shift"));
+      add(box, "p", "Outcome: " + (p.closed ? p.outcome : "not yet settled"));
+    });
+    add(box, "h3", "Shift log");
+    var ol = add(box, "ol", "");
+    v.log.forEach(function (l) { add(ol, "li", l.msg); });
+  }
+  window.addEventListener("beforeprint", build);
+})();

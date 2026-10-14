@@ -54,3 +54,17 @@ html[data-layout="pc"] .patient.tray-highlight { outline: 3px solid var(--accent
 #chart-notes-strip .strip-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.25rem; font-size: 0.85rem; }
 #chart-notes-strip .strip-list li { border: 2px dashed var(--accent); border-radius: 8px; padding: 0.1rem 0.5rem; }
 #chart-notes-strip .strip-list li.current { border-style: solid; }
+
+/* R4-SMPC-9: the printed shift report */
+#print-report { display: none; }
+@media print {
+  html[data-layout="pc"], html[data-layout="pc"] body { height: auto !important; overflow: visible !important; background: #fff !important; }
+  html[data-layout="pc"] body > *:not(#print-report) { display: none !important; }
+  html[data-layout="pc"] #print-report { display: block !important; color: #000; background: #fff; font: 11pt/1.4 system-ui, sans-serif; padding: 0; }
+  #print-report h1 { font-size: 18pt; margin: 0 0 4pt; }
+  #print-report h2 { font-size: 14pt; margin: 0 0 6pt; }
+  #print-report h3 { font-size: 12pt; margin: 10pt 0 2pt; break-after: avoid; }
+  #print-report p { margin: 2pt 0; }
+  #print-report li { break-inside: avoid; }
+  @page { size: A4; margin: 1.5cm; }
+}
