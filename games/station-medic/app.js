@@ -271,75 +271,76 @@
     var found = view.cabinet.items.filter(function (i) { return i.name === itemName; })[0];
     return found ? found.count : 0;
   }
+  // R4-SMMO-7: on a phone the shelves split into a Scans tab and a Treatments tab, each with the supplies left on it.
+  // Wide screens and the Desktop layout keep one list of every shelf (the tabs are hidden there).
+  var cabinetTab = "scan";
+  function isPc() { return window.NOYVJ_LAYOUT === "pc" || document.documentElement.getAttribute("data-layout") === "pc"; }
+  function isPhone() { return !isPc() && Boolean(window.matchMedia && window.matchMedia("(max-width: 600px)").matches); }
+  function shelfKinds(cab) {
+    var scanItems = {}, treatItems = {};
+    cab.tests.forEach(function (t) { scanItems[t.item] = true; });
+    cab.tx.forEach(function (x) { treatItems[x.item] = true; });
+    return function (item) {
+      var scan = Boolean(scanItems[item.name]), treat = Boolean(treatItems[item.name]);
+      if (!scan && !treat) treat = true;      // a shelf only the steadying band uses sits with the treatments
+      return { scan: scan, treat: treat };
+    };
+  }
+  function ensureCabinetTabs() {
+    var tabs = $("cabinet-tabs");
+    if (tabs.dataset.built) return tabs;
+    tabs.dataset.built = "1";
+    tabs.setAttribute("role", "tablist");
+    tabs.setAttribute("aria-label", "Supply cabinet");
+    [["scan", "Scans"], ["treat", "Treatments"]].forEach(function (pair) {
+      var b = el("button", "cabinet-tab", pair[1]);
+      b.type = "button";
+      b.id = "cabinet-tab-" + pair[0];
+      b.dataset.tab = pair[0];
+      b.setAttribute("role", "tab");
+      b.setAttribute("aria-controls", "cabinet-list");
+      b.addEventListener("click", function () { cabinetTab = pair[0]; renderCabinet(); });
+      tabs.appendChild(b);
+    });
+    return tabs;
+  }
+  function shelfNode(i) {
+    var li = el("li", "shelf" + (i.count === 0 ? " empty" : ""));
+    li.dataset.supply = i.glyph;
+    li.appendChild(el("span", "letter", i.glyph));
+    var body = el("span", "sname", i.name);
+    body.appendChild(el("span", "uses", i.uses.join(", ")));
+    li.appendChild(body);
+    li.appendChild(el("span", "count", String(i.count)));
+    li.setAttribute("aria-label", i.name + ": " + plural(i.count, "left", "left") + " of " + i.start + ". Used for " + i.uses.join(", "));
+    return li;
+  }
   function renderCabinet() {
     var cab = view.cabinet;
     var list = $("cabinet-list");
-
-    // R4-SMMO-7: Tabs container
-    var tabsDiv = $("cabinet-tabs");
-    if (!tabsDiv) {
-      tabsDiv = el("div", "cabinet-tabs");
-      tabsDiv.id = "cabinet-tabs";
-      var scanBtn = el("button", "active", "Scans (0)");
-      scanBtn.dataset.tab = "scan";
-      var treatBtn = el("button", "", "Treatments (0)");
-      treatBtn.dataset.tab = "treat";
-      tabsDiv.appendChild(scanBtn);
-      tabsDiv.appendChild(treatBtn);
-      if (list.parentNode) {
-        list.parentNode.insertBefore(tabsDiv, list);
-      } else {
-        $("cabinet-panel").appendChild(tabsDiv);
-      }
-    }
-
-    // Count supplies per tab
-    var scanCount = 0, treatCount = 0;
-    // Fallback to cabinet structure if engine hasn't tagged items yet
-    var scanItems = new Set((cab.tests || []).map(function(t) { return t.item; }));
-    var treatItems = new Set((cab.tx || []).map(function(x) { return x.item; }));
-    cab.items.forEach(function(i) {
-      var t = i.type || (scanItems.has(i.i) ? "scan" : (treatItems.has(i.i) ? "treat" : "shared"));
-      if (t === "scan" || t === "shared") scanCount += i.count;
-      if (t === "treat" || t === "shared") treatCount += i.count;
-    });
-    tabsDiv.querySelector('[data-tab="scan"]').textContent = "Scans (" + scanCount + ")";
-    tabsDiv.querySelector('[data-tab="treat"]').textContent = "Treatments (" + treatCount + ")";
-
-    list.textContent = "";
-
-    var activeTab = tabsDiv.querySelector("button.active").dataset.tab;
-
+    var tabs = ensureCabinetTabs();
+    var phone = isPhone();
+    tabs.hidden = !phone;
+    var kindOf = shelfKinds(cab);
+    var left = { scan: 0, treat: 0 };
     cab.items.forEach(function (i) {
-      var t = i.type || (scanItems.has(i.i) ? "scan" : (treatItems.has(i.i) ? "treat" : "shared"));
-      var show = false;
-      if (activeTab === "scan" && (t === "scan" || t === "shared")) show = true;
-      if (activeTab === "treat" && (t === "treat" || t === "shared")) show = true;
-      if (!show) return;
-
-      var li = el("li", "shelf" + (i.count === 0 ? " empty" : ""));
-      li.setAttribute("draggable", "true");
-      li.dataset.supply = i.glyph;
-      li.appendChild(el("span", "letter", i.glyph));
-      var body = el("span", "sname", i.name);
-      body.appendChild(el("span", "uses", i.uses.join(", ")));
-      li.appendChild(body);
-      li.appendChild(el("span", "count", String(i.count)));
-      li.setAttribute("aria-label", i.name + ": " + plural(i.count, "left", "left") + " of " + i.start + ". Used for " + i.uses.join(", "));
-      list.appendChild(li);
+      var k = kindOf(i);
+      if (k.scan) left.scan += i.count;
+      if (k.treat) left.treat += i.count;
     });
-
-    // Wire tabs once
-    if (!tabsDiv.dataset.wired) {
-      tabsDiv.dataset.wired = "1";
-      tabsDiv.addEventListener("click", function(e) {
-        var btn = e.target.closest("button");
-        if (!btn) return;
-        tabsDiv.querySelectorAll("button").forEach(function(b) { b.classList.remove("active"); });
-        btn.classList.add("active");
-        renderCabinet();
-      });
-    }
+    ["scan", "treat"].forEach(function (name) {
+      var b = $("cabinet-tab-" + name);
+      setText(b, (name === "scan" ? "Scans" : "Treatments") + " (" + left[name] + " left)");
+      b.setAttribute("aria-selected", String(cabinetTab === name));
+      b.classList.toggle("active", cabinetTab === name);
+    });
+    if (phone) list.setAttribute("aria-labelledby", "cabinet-tab-" + cabinetTab);
+    else list.removeAttribute("aria-labelledby");
+    list.textContent = "";
+    cab.items.forEach(function (i) {
+      if (phone && !kindOf(i)[cabinetTab]) return;
+      list.appendChild(shelfNode(i));
+    });
 
     var extra = [];
     if (cab.beds) extra.push("Cold room: " + cab.beds_used + " of " + plural(cab.beds, "bed", "beds") + " in use.");
@@ -752,6 +753,10 @@
     _initSheetGesture();
     _initHoldToRestore();
     _initNotesBanner();
+    if (window.matchMedia) {
+      var phoneQuery = window.matchMedia("(max-width: 600px)");
+      if (phoneQuery.addEventListener) phoneQuery.addEventListener("change", function () { if (view) { renderCabinet(); } });
+    }
   }
 
   var TUTORIAL_STEPS = [

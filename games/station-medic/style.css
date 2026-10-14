@@ -206,25 +206,11 @@ html[data-narrow="off"] .sheet li.ruled-out { opacity: 1; border-style: solid; }
   html[data-reduced-motion="true"] .restore-confirm, html[data-effects="off"] .restore-confirm { transition: none; }
   .btn-row { display: flex; gap: 0.5rem; justify-content: center; margin-top: 0.6rem; }
 
-  /* R4-SMMO-7: Cabinet tabs */
-  #cabinet-tabs { display: flex; gap: 0.4rem; margin-bottom: 0.5rem; }
-  #cabinet-tabs button { flex: 1; padding: 0.4rem; border-radius: 8px; font-weight: 600; background: var(--btn); color: var(--text); border: 1px solid var(--edge); cursor: pointer; }
-  #cabinet-tabs button.active { background: var(--accent); color: var(--ink); border-color: var(--accent); }
-
-  #cabinet-panel .shelf {
-    display: inline-flex; flex-direction: row; align-items: center; gap: 0.4rem;
-    padding: 0.5rem 0.8rem; margin: 0.2rem; border-radius: 999px; cursor: pointer;
-    user-select: none; -webkit-user-select: none; touch-action: manipulation;
-    transition: background 0.15s ease, border-color 0.15s ease;
-  }
-  #cabinet-panel .shelf.selected {
-    background: var(--accent); color: var(--ink); border-color: var(--accent);
-  }
-  #cabinet-panel .shelf.empty { opacity: 0.4; cursor: default; }
-  #cabinet-panel .shelf .letter { font-size: 1rem; border-width: 2px; }
-  #cabinet-panel .shelf .count { font-size: 1rem; }
-  #cabinet-panel .shelf .sname { display: none; }
-  html[data-reduced-motion="true"] #cabinet-panel .shelf { transition: none; }
+  /* R4-SMMO-7: the cabinet splits into Scans and Treatments tabs on a phone (app.js hides the tabs elsewhere) */
+  #cabinet-tabs { display: flex; gap: 0.4rem; margin: 0.4rem 0; }
+  .cabinet-tab { flex: 1; min-height: 44px; font-weight: 600; }
+  .cabinet-tab.active { background: var(--btn-primary); border-color: var(--hover-edge); color: var(--on-primary); }
+  #cabinet-panel .cabinet { grid-template-columns: 1fr; }
 
   /* R4-SMMO-3: Mobile pulses for result and cost */
   @keyframes pulse-clean {
