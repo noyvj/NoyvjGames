@@ -44,15 +44,31 @@ left, and stop.
   the same result as loading it once.
 
 ## Page code (.js) in the browser
-- pc.js is loaded in the page's <head>, before the board or any game element exists. Never look up
-  elements or use document.body at the top level of pc.js: do it inside
-  document.addEventListener("DOMContentLoaded", ...), or inside a function the game calls later.
+- pc.js is loaded in the page's <head>, before the board or any game element exists, and the Desktop
+  shell (shared/pc-shell.js) builds #pc-stage and its windows only after that. Never look up elements or
+  use document.body at the top level of pc.js, and DOMContentLoaded is still too early: do it inside
+  window.addEventListener("load", ...), or inside a function the game calls later.
 - The game redraws its board after every move, which throws away classes or children you added to
   cells. Anything you show on a cell must be reapplied after each redraw (find the game's render or
   refresh function and hook in there), not added once.
 - "At the bottom edge" or "always visible" means position: fixed (or sticky), not just a bigger button.
 - Put styling in the game's CSS file (style.css or pc.css) with a class name. Do not set element.style
   properties from JavaScript except for positions that change while the player moves the mouse.
+
+## Mistakes the reviewer keeps fixing (Noy2's audits, 2026-10-12/13): do not repeat them
+- A new panel, window or toggle button on the page must also be added to pc-config.json (its "windows"
+  list and the right menu group), or the Desktop page hides or misplaces it. Remove entries for things you
+  removed or moved. If the game has a test that lists the windows, update that test too.
+- Never guess the shape of saved data. Read get_state() and load_state() in game.py (and the view the page
+  receives) before using it; for example Signal stores days as days["2026-10-13:easy"], not days[date][mode].
+- Streaks: show one only when the game's own show-streaks setting is on (it is off by default), and never in
+  a game whose pledge bans streaks (Evidence Hunt). Prefer counts that never go down.
+- Pointer code: keep one coordinate system (compare getBoundingClientRect values with each other, not with
+  offsets inside an element); start a drag only when the press is inside the element it belongs to; never
+  shrink touch targets below 44 px on phones.
+- Colour is never the only signal: a bar or mark also gets a word (title, label or text).
+- Tests: a comment says what the test really checks, a test name matches what it asserts, and every
+  assert checks a specific value (no "is not None" alone, no assert True).
 
 ## Tests
 - Paths in the chat are relative to the repo root, not the game folder. A new test file is
