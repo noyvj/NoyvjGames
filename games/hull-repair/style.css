@@ -54,6 +54,7 @@ button[disabled], button[aria-disabled="true"] { opacity: 0.55; cursor: default;
 .game-toolbar { display: flex; flex-wrap: wrap; gap: 0.4rem; margin: 0.4rem 0; }
 .toast { min-height: 1.3rem; font-weight: 600; }
 .toast:empty { min-height: 0; margin: 0; }
+.toast.on { background: var(--surface); border: 1px solid var(--ok); border-radius: 8px; padding: 0.25rem 0.6rem; }
 .settings-row { display: flex; gap: 0.6rem; align-items: center; flex-wrap: wrap; margin: 0.5rem 0; }
 .settings-row input[type="checkbox"] { width: 1.25rem; height: 1.25rem; accent-color: var(--btn-primary); vertical-align: middle; }
 .text-size-control { display: inline-flex; gap: 0.3rem; }
@@ -243,21 +244,12 @@ html[data-effects="off"] .hr-room.s2 .hr-window { opacity: 0.9; }
   }
 
   /* Big-shape mode for ports on mobile */
-  #board-holder.hr-big-ports .hr-src,
-  #board-holder.hr-big-ports .hr-dst {
+  #board-holder.hr-big-ports .hr-port {
     transform-box: fill-box;
     transform-origin: center;
     transform: scale(1.4);
-    transition: transform 0.2s ease-out;
   }
-  html[data-reduced-motion="true"] #board-holder.hr-big-ports .hr-src,
-  html[data-reduced-motion="true"] #board-holder.hr-big-ports .hr-dst {
-    transition: none;
-  }
-  #board-holder.hr-big-ports .hr-port-letter {
-    font-size: 1.2em;
-    font-weight: 800;
-  }
+  #board-holder.hr-big-ports .hr-port-letter { font-weight: 800; }
 
   #board-holder.hr-dragging #hr-lines {
     transform: translateY(-35px);
