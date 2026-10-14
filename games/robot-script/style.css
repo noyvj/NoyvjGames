@@ -253,15 +253,6 @@ html[data-sandbox="true"] .room-holder svg { cursor: crosshair; }
   .speed-chip { display: flex; gap: 0.2rem; margin-left: 0.3rem; align-items: center; }
   .speed-chip button { padding: 0.25rem 0.4rem; font-size: 0.8rem; background: var(--btn); border: 1px solid var(--edge); border-radius: 6px; color: var(--text); min-width: 2rem; }
   .speed-chip button[aria-pressed="true"] { background: var(--btn-primary); color: var(--on-primary); border-color: var(--hover-edge); }
-  #game { display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
-  #room-panel { flex: 0 0 auto; min-height: 20vh; overflow-y: auto; position: relative; }
-  #editor-panel { flex: 1 1 auto; min-height: 20vh; overflow-y: auto; position: relative; }
-  #split-divider {
-    height: 1.5rem; width: 100%; background: var(--line); cursor: row-resize;
-    display: flex; align-items: center; justify-content: center; user-select: none; touch-action: none;
-  }
-  #split-divider::after { content: "⋮"; color: var(--muted); font-size: 1.2rem; }
-  html[data-reduced-motion="true"] #split-divider, html[data-effects="off"] #split-divider { cursor: default; }
 }
 @media (max-width: 600px) {
   .node { transition: transform 0.2s ease-out; will-change: transform; }
