@@ -182,6 +182,19 @@
     b.addEventListener("click", handler);
     return b;
   }
+  // R4-SMMO-6: each sign is a large tappable chip; pressing it lists the conditions on today's sheet that carry it
+  var openSign = null;
+  function renderSignInfo() {
+    var info = $("sign-conditions");
+    var p = view.patients[sel];
+    var has = openSign !== null && p && p.signs.some(function (sg) { return sg.name === openSign; });
+    if (!has) openSign = null;
+    document.querySelectorAll("#bedside-signs .sign-chip").forEach(function (chip) { chip.setAttribute("aria-pressed", String(chip.textContent === openSign)); });
+    info.hidden = !has;
+    if (!has) { info.textContent = ""; return; }
+    var names = view.sheet.filter(function (c) { return c.signs.indexOf(openSign) !== -1; }).map(function (c) { return c.name; });
+    setText(info, openSign + " is carried by: " + (names.length ? names.join(", ") : "nothing on today's sheet") + ".");
+  }
   function renderBedside() {
     var p = view.patients[sel];
     if (!p) return;
@@ -191,32 +204,17 @@
     setText($("bedside-say"), "“" + p.say + "”");
     var signs = $("bedside-signs");
     signs.textContent = "";
-    signs.classList.add("patient-signs");
-    var condContainer = el("div", "sign-conditions");
-    condContainer.id = "sign-conditions-" + p.i;
-    signs.appendChild(condContainer);
-    p.signs.forEach(function (s) {
-      var chip = el("div", "sign-chip");
-      chip.textContent = s.glyph || s.name[0].toUpperCase();
-      chip.setAttribute("role", "button");
-      chip.setAttribute("aria-label", s.name + ". Tap to see conditions.");
-      chip.addEventListener("click", function () {
-        var wasActive = chip.classList.contains("active");
-        signs.querySelectorAll(".sign-chip").forEach(function (c) { c.classList.remove("active"); });
-        if (!wasActive) {
-          chip.classList.add("active");
-          condContainer.style.display = "block";
-          condContainer.innerHTML = "";
-          view.sheet.forEach(function (c) {
-            if (c.signs.indexOf(s.name) !== -1) condContainer.appendChild(el("div", null, "• " + c.name));
-          });
-        } else {
-          condContainer.style.display = "none";
-          condContainer.innerHTML = "";
-        }
-      });
-      signs.appendChild(chip);
+    p.signs.forEach(function (sg) {
+      var li = el("li");
+      var chip = el("button", "sign-chip", sg.name);
+      chip.type = "button";
+      chip.setAttribute("aria-pressed", String(openSign === sg.name));
+      chip.setAttribute("aria-label", sg.name + ". Press to list the conditions that carry this sign.");
+      chip.addEventListener("click", function () { openSign = openSign === sg.name ? null : sg.name; renderSignInfo(); });
+      li.appendChild(chip);
+      signs.appendChild(li);
     });
+    renderSignInfo();
     var notes = $("bedside-notes");
     notes.textContent = "";
     p.notes.forEach(function (n) { notes.appendChild(el("li", null, n)); });
