@@ -34,3 +34,9 @@ html[data-layout="pc"] .sheet li { cursor: pointer; }
 html[data-layout="pc"] .sheet li.struck-out { opacity: 0.6; }
 html[data-layout="pc"] .sheet li.struck-out .cname { text-decoration: line-through double; }
 html[data-layout="pc"] .strike-btn { margin-top: 0.25rem; font-size: 0.8rem; padding: 0.15rem 0.6rem; }
+
+/* R4-SMPC-4: the right-click ward menu */
+#patient-context-menu { position: fixed; z-index: 400; display: flex; flex-direction: column; min-width: 9rem; padding: 0.25rem; background: var(--panel); border: 2px solid var(--edge); border-radius: 10px; box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35); }
+#patient-context-menu button { text-align: left; border: 0; background: none; border-radius: 6px; min-height: 36px; }
+#patient-context-menu button:hover, #patient-context-menu button:focus-visible { background: var(--btn); }
+#patient-context-menu button[aria-disabled="true"] { opacity: 0.55; border-style: dashed; }

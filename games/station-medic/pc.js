@@ -121,3 +121,93 @@ window.STATION_MEDIC_PC_TUTORIAL_STEPS = [
     decorate();
   });
 })();
+
+(function () {
+  "use strict";
+  var pc = window.StationMedicPc;
+
+  // R4-SMPC-4: right-click a patient for Scan, Treat, Isolate and Comfort at the cursor (Shift+F10 or the menu key on a focused
+  // patient does the same). It picks the patient, then uses the bedside's own buttons: Scan and Treat move to the first scan or
+  // treatment button, Isolate presses Move to the cold room (or Back to the ward), Comfort opens its usual confirm.
+  var menu = null, openerIndex = -1;
+  var ITEMS = [
+    ["Scan", function () { return focusFirst("scan-row"); }],
+    ["Treat", function () { return focusFirst("treat-row"); }],
+    ["Isolate", function () { return press("station-medic-isolate") || press("station-medic-release"); }],
+    ["Comfort", function () { return press("station-medic-comfort"); }],
+  ];
+  function bedsideButton(testid) { return document.querySelector('#bedside-actions [data-testid="' + testid + '"]'); }
+  function press(testid) { var b = bedsideButton(testid); if (b) b.click(); return Boolean(b); }
+  function focusFirst(rowId) { var b = document.querySelector("#" + rowId + " button"); if (b) b.focus(); return Boolean(b); }
+  function canDo(label) {
+    var bedside = document.getElementById("bedside-actions");
+    if (!bedside || bedside.hidden) return false;
+    if (label === "Scan") return Boolean(document.querySelector("#scan-row button"));
+    if (label === "Treat") return Boolean(document.querySelector("#treat-row button"));
+    if (label === "Isolate") return Boolean(bedsideButton("station-medic-isolate") || bedsideButton("station-medic-release"));
+    return Boolean(bedsideButton("station-medic-comfort"));
+  }
+  function build() {
+    menu = document.createElement("div");
+    menu.id = "patient-context-menu";
+    menu.setAttribute("role", "menu");
+    menu.setAttribute("aria-label", "Ward jobs");
+    menu.hidden = true;
+    ITEMS.forEach(function (item) {
+      var b = document.createElement("button");
+      b.type = "button";
+      b.setAttribute("role", "menuitem");
+      b.textContent = item[0];
+      b.addEventListener("click", function () {
+        if (b.getAttribute("aria-disabled") === "true") return;
+        close(false);
+        item[1]();
+      });
+      menu.appendChild(b);
+    });
+    menu.addEventListener("keydown", function (e) {
+      var buttons = Array.prototype.slice.call(menu.querySelectorAll("button"));
+      var i = buttons.indexOf(document.activeElement);
+      if (e.key === "ArrowDown") { buttons[(i + 1) % buttons.length].focus(); e.preventDefault(); }
+      else if (e.key === "ArrowUp") { buttons[(i + buttons.length - 1) % buttons.length].focus(); e.preventDefault(); }
+      else if (e.key === "Escape") { e.stopPropagation(); close(true); }
+      else if (e.key === "Tab") close(false);
+    });
+    document.body.appendChild(menu);
+  }
+  function close(refocus) {
+    if (!menu || menu.hidden) return;
+    menu.hidden = true;
+    var back = document.querySelector('#patients .patient[data-patient-id="' + openerIndex + '"]');
+    if (refocus && back) back.focus();
+  }
+  function open(patientButton, x, y) {
+    if (!menu) build();
+    openerIndex = Number(patientButton.dataset.patientId);
+    window.stationMedicSelect(openerIndex);                  // look at them first, so the bedside shows their buttons
+    menu.querySelectorAll("button").forEach(function (b, i) {
+      var ok = canDo(ITEMS[i][0]);
+      b.setAttribute("aria-disabled", String(!ok));
+      b.title = ok ? "" : "Not available for this patient on this shift";
+    });
+    menu.hidden = false;
+    var w = menu.offsetWidth, h = menu.offsetHeight;
+    menu.style.left = Math.max(4, Math.min(x, window.innerWidth - w - 4)) + "px";
+    menu.style.top = Math.max(4, Math.min(y, window.innerHeight - h - 4)) + "px";
+    var first = menu.querySelector('button[aria-disabled="false"]') || menu.querySelector("button");
+    first.focus();
+  }
+  pc.ready(function () {
+    document.addEventListener("contextmenu", function (e) {
+      var b = e.target.closest && e.target.closest("#patients .patient");
+      if (!b) { close(false); return; }
+      e.preventDefault();
+      var r = b.getBoundingClientRect();
+      var fromKeyboard = e.clientX === 0 && e.clientY === 0;
+      open(b, fromKeyboard ? r.left + r.width / 2 : e.clientX, fromKeyboard ? r.top + r.height / 2 : e.clientY);
+    });
+    document.addEventListener("click", function (e) { if (menu && !menu.hidden && !e.target.closest("#patient-context-menu")) close(false); });
+    window.addEventListener("blur", function () { close(false); });
+    window.addEventListener("resize", function () { close(false); });
+  });
+})();
