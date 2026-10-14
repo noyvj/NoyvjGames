@@ -150,6 +150,14 @@
     view.cabinet.tx.forEach(function (x) { var a = p.actions.treat[x.x]; if (a && a.ok && out.indexOf(x.glyph) === -1) out.push(x.glyph); });
     return out;
   }
+  // looking at a patient redraws the bedside, the cards and the sheet (the sheet dims what cannot fit them); the Desktop extras
+  // (pc.js) listen for the event to redraw their own parts
+  function selectPatient(i) {
+    sel = i;
+    renderBedside(); renderPatients(); renderSheet();
+    document.dispatchEvent(new CustomEvent("station-medic-rendered"));
+  }
+  window.stationMedicSelect = function (i) { if (view && view.patients[i]) selectPatient(i); };
   function renderPatients() {
     var holder = $("patients");
     if (sel >= view.patients.length) sel = 0;
@@ -170,12 +178,12 @@
       b.appendChild(el("span", "pname", p.first));
       b.appendChild(el("span", "pstatus", statusOf(p)));
       b.setAttribute("aria-label", p.name + ", " + p.role + ". " + statusOf(p) + (p.i === sel ? ". Looking at them now." : ""));
-      b.addEventListener("click", function () { sel = p.i; renderBedside(); renderPatients(); renderSheet(); applyPicked(p.i); });
+      b.addEventListener("click", function () { selectPatient(p.i); applyPicked(p.i); });
       b.addEventListener("dragover", function (e) { if (pickedItem !== null) e.preventDefault(); });
       b.addEventListener("drop", function (e) {
         if (pickedItem === null) return;
         e.preventDefault();
-        sel = p.i; renderBedside(); renderPatients(); renderSheet();
+        selectPatient(p.i);
         applyPicked(p.i);
       });
       holder.appendChild(b);
@@ -801,7 +809,7 @@
       askThen("station-medic-reset", "Start the whole station over? Your seals, records and tally will be erased.", "Erase it", function () { shiftId = null; send({ action: "reset" }); });
     });
     document.addEventListener("keydown", onKey);
-    document.addEventListener("station-medic-narrow-change", function () { if (view) renderSheet(); });
+    document.addEventListener("station-medic-narrow-change", function () { if (view) { renderSheet(); document.dispatchEvent(new CustomEvent("station-medic-rendered")); } });
     // The save widget loads a save straight into the engine; this redraws afterwards.
     window.stationMedicRefresh = function () { if (engine) { shiftId = null; send({ action: "open" }); } };
     _initSheetGesture();

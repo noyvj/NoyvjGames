@@ -42,222 +42,41 @@ window.STATION_MEDIC_PC_TUTORIAL_STEPS = [
   },
 ];
 
+/* Desktop-only extras (Round 4). They read the view that app.js already drew (window.stationMedicView) and redraw after every
+   "station-medic-rendered" event, because app.js rebuilds the lists they decorate. Nothing here talks to the engine. */
 (function () {
   "use strict";
-  var contextMenu = null;
+  var pc = window.StationMedicPc = {
+    ready: function (fn) { if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", fn); else fn(); },
+    view: function () { return typeof window.stationMedicView === "function" ? window.stationMedicView() : null; },
+    onRendered: function (fn) { document.addEventListener("station-medic-rendered", fn); },
+  };
 
-  function showContextMenu(e) {
-    if (!contextMenu) {
-      contextMenu = document.createElement("div");
-      contextMenu.id = "patient-context-menu";
-      contextMenu.setAttribute("role", "menu");
-      ["Scan", "Treat", "Isolate", "Comfort"].forEach(function(action) {
-        var btn = document.createElement("button");
-        btn.textContent = action;
-        btn.setAttribute("role", "menuitem");
-        btn.addEventListener("click", function() {
-          contextMenu.hidden = true;
-          // Placeholder for future ward job logic
-        });
-        contextMenu.appendChild(btn);
-      });
-      document.body.appendChild(contextMenu);
-    }
-    contextMenu.hidden = false;
-    var x = e.clientX;
-    var y = e.clientY;
-    var rect = contextMenu.getBoundingClientRect();
-    if (x + rect.width > window.innerWidth) x = window.innerWidth - rect.width - 10;
-    if (y + rect.height > window.innerHeight) y = window.innerHeight - rect.height - 10;
-    contextMenu.style.left = x + "px";
-    contextMenu.style.top = y + "px";
+  // R4-SMPC-2: hover (or keyboard focus) a sign or a scan result to light the conditions on the sheet that carry it.
+  function conditionsFor(item) {
+    var v = pc.view();
+    if (!v) return [];
+    var chip = item.querySelector(".sign-chip");
+    var sign = chip ? chip.textContent : null;
+    var scan = item.dataset.scan || null;
+    return v.sheet.filter(function (c) {
+      return (sign !== null && c.signs.indexOf(sign) !== -1) || (scan !== null && c.scans.indexOf(scan) !== -1);
+    }).map(function (c) { return String(c.id); });
   }
-
-  function initSupplyTray() {
-    if (document.getElementById("supply-tray")) return;
-    var tray = document.createElement("div");
-    tray.id = "supply-tray";
-    tray.setAttribute("role", "toolbar");
-    tray.setAttribute("aria-label", "Supply tray");
-    var stage = document.getElementById("pc-stage");
-    if (stage) stage.appendChild(tray);
-    updateTray();
-
-    new MutationObserver(function() { updateTray(); }).observe(stage || document.body, { childList: true, subtree: true });
+  function light(ids) {
+    document.querySelectorAll("#sheet-list li").forEach(function (li) { li.classList.toggle("highlighted", ids.indexOf(li.dataset.cond) !== -1); });
   }
-
-  function updateTray() {
-    var tray = document.getElementById("supply-tray");
-    if (!tray) return;
-    tray.innerHTML = "";
-    var cabinetItems = document.querySelectorAll("#cabinet-list li");
-    var itemConditions = {};
-    document.querySelectorAll("#sheet-list li").forEach(function(li) {
-      var treats = (li.getAttribute("data-treats") || "").split(",").map(s => s.trim()).filter(Boolean);
-      treats.forEach(function(t) {
-        if (!itemConditions[t]) itemConditions[t] = [];
-        itemConditions[t].push(li);
-      });
-    });
-
-    cabinetItems.forEach(function(li) {
-      var letterEl = li.querySelector(".letter");
-      var id = letterEl ? letterEl.textContent.trim() : "";
-      var countEl = li.querySelector(".count, .stock");
-      var count = countEl ? countEl.textContent : "0";
-      var btn = document.createElement("button");
-      btn.className = "tray-item";
-      btn.setAttribute("data-item", id);
-      btn.innerHTML = '<span class="tray-letter">' + (id.charAt(0).toUpperCase()) + '</span> <span class="tray-count">' + count + '</span>';
-      
-      btn.addEventListener("mouseenter", function() { highlightPatientsForItem(id, itemConditions[id]); });
-      btn.addEventListener("mouseleave", clearPatientHighlights);
-      tray.appendChild(btn);
-    });
+  function enter(e) {
+    var item = e.target.closest && e.target.closest("#bedside-signs li, #bedside-readings li");
+    if (item) light(conditionsFor(item));
   }
-
-  function highlightPatientsForItem(itemId, conditions) {
-    if (!conditions || !conditions.length) return;
-    var signs = new Set();
-    conditions.forEach(function(li) {
-      (li.getAttribute("data-signs") || "").split(",").forEach(s => signs.add(s.trim()));
-    });
-    document.querySelectorAll("#patients .scene").forEach(function(p) {
-      var pSigns = (p.getAttribute("data-signs") || "").split(",");
-      if (pSigns.some(s => signs.has(s.trim()))) {
-        p.classList.add("tray-highlight");
-      }
-    });
+  function leave(e) {
+    if (e.target.closest && e.target.closest("#bedside-signs li, #bedside-readings li")) light([]);
   }
-
-  function clearPatientHighlights() {
-    document.querySelectorAll("#patients .scene.tray-highlight").forEach(function(p) {
-      p.classList.remove("tray-highlight");
-    });
-  }
-
-  function init() {
-    initSupplyTray();
-    ensureChartNotesStrip();
-    initChartWindow();
-    document.addEventListener("mouseover", onHover);
-    document.addEventListener("mouseout", onLeave);
-    document.addEventListener("click", function(e) {
-      var li = e.target.closest("#sheet-list li");
-      if (li) {
-        li.classList.toggle("struck-out");
-      }
-    });
-    // Right-click menu on patients (Desktop only)
-    document.addEventListener("contextmenu", function(e) {
-      if (document.documentElement.getAttribute("data-layout") !== "pc") return;
-      var patientCard = e.target.closest(".scene");
-      if (patientCard && document.getElementById("patients").contains(patientCard)) {
-        e.preventDefault();
-        showContextMenu(e);
-      }
-    });
-    document.addEventListener("click", function(e) {
-      if (contextMenu && !contextMenu.hidden && !e.target.closest("#patient-context-menu")) {
-        contextMenu.hidden = true;
-      }
-    });
-  }
-  function onHover(e) {
-    var el = e.target.closest(".bedside-signs li, .bedside-readings li");
-    if (!el) return;
-    var val = el.textContent.trim();
-    if (!val) return;
-    var conditions = document.querySelectorAll("#sheet-list li");
-    for (var i = 0; i < conditions.length; i++) {
-      var c = conditions[i];
-      var signs = c.getAttribute("data-signs") || "";
-      var scans = c.getAttribute("data-scans") || "";
-      if (signs.split(",").indexOf(val) !== -1 || scans.split(",").indexOf(val) !== -1) {
-        c.classList.add("highlighted");
-      }
-    }
-  }
-  function onLeave(e) {
-    var conditions = document.querySelectorAll("#sheet-list li");
-    for (var i = 0; i < conditions.length; i++) {
-      conditions[i].classList.remove("highlighted");
-    }
-  }
-  function ensureChartNotesStrip() {
-    if (document.getElementById("chart-notes-strip")) return;
-    var strip = document.createElement("section");
-    strip.id = "chart-notes-strip";
-    strip.className = "panel";
-    strip.innerHTML = '<h2>Chart Notes</h2><ul id="pc-chart-notes-list" class="log"></ul>';
-    document.body.appendChild(strip);
-
-    // Move bedside-notes into the permanent strip so app.js updates it directly.
-    var notes = document.getElementById("bedside-notes");
-    if (notes) {
-      strip.appendChild(notes);
-    }
-  }
-
-  function ensurePinButton() {
-    var bedside = document.getElementById("bedside");
-    if (!bedside) return;
-    if (document.getElementById("pin-chart-btn")) return;
-    
-    var btn = document.createElement("button");
-    btn.id = "pin-chart-btn";
-    btn.type = "button";
-    btn.className = "secondary";
-    btn.textContent = "Pin chart";
-    btn.setAttribute("aria-label", "Pin patient chart to a floating window");
-    bedside.querySelector(".bedside-head").appendChild(btn);
-    btn.addEventListener("click", toggleChartWindow);
-  }
-
-  function initChartWindow() {
-    ensurePinButton();
-    
-    if (!document.getElementById("chart-window")) {
-      var win = document.createElement("section");
-      win.id = "chart-window";
-      win.className = "panel";
-      win.setAttribute("role", "dialog");
-      win.setAttribute("aria-label", "Pinned patient chart");
-      win.innerHTML = '<button id="close-chart-btn" type="button" aria-label="Close chart window">&times;</button><div id="chart-window-content"></div>';
-      document.body.appendChild(win);
-      document.getElementById("close-chart-btn").addEventListener("click", function() {
-        win.hidden = true;
-      });
-    }
-
-    // Observe bedside for redraws by app.js
-    var observer = new MutationObserver(function() { ensurePinButton(); });
-    var bedside = document.getElementById("bedside");
-    if (bedside) observer.observe(bedside, { childList: true, subtree: true });
-  }
-
-  function toggleChartWindow() {
-    var win = document.getElementById("chart-window");
-    if (!win) return;
-    if (win.hidden) {
-      var content = document.getElementById("chart-window-content");
-      content.innerHTML = "";
-      var bedside = document.getElementById("bedside");
-      if (bedside && bedside.children.length > 0) {
-        var clone = bedside.cloneNode(true);
-        var pinBtn = clone.querySelector("#pin-chart-btn");
-        if (pinBtn) pinBtn.remove();
-        content.appendChild(clone);
-      }
-      win.hidden = false;
-    } else {
-      win.hidden = true;
-    }
-  }
-
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", init);
-  } else {
-    init();
-  }
+  pc.ready(function () {
+    document.addEventListener("mouseover", enter);
+    document.addEventListener("mouseout", leave);
+    document.addEventListener("focusin", enter);
+    document.addEventListener("focusout", leave);
+  });
 })();
