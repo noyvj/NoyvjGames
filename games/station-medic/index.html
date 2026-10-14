@@ -188,7 +188,9 @@
       <div id="borrow-row" class="act-row" role="group" aria-label="Borrow a spare"></div>
     </details>
   </section>
-  <section id="sheet-panel" class="panel" aria-labelledby="sheet-heading">
+  <button id="sheet-tab" class="sheet-tab" type="button" aria-controls="sheet-panel" aria-expanded="false">Condition Sheet</button>
+  <section id="sheet-panel" class="panel" aria-labelledby="sheet-heading" data-open="false">
+    <button id="sheet-close-button" class="sheet-close" type="button">Close the sheet</button>
     <h2 id="sheet-heading">Today's sheet</h2>
     <p class="note">Conditions going round the ring this week. A patient shows all the signs of what they have. Scans read yes or no.</p>
     <ul id="sheet-list" class="sheet"></ul>

@@ -664,6 +664,7 @@
     var tag = e.target && e.target.tagName;
     if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return;
     if (document.querySelector("dialog[open], .confirm-dialog, [role='dialog']")) return;
+    if (e.key === "Escape" && isPhone() && $("sheet-panel").dataset.open === "true") { setSheetOpen(false); return; }
     if (e.key === "Escape" && pickedItem !== null) { pickedItem = null; renderCabinet(); return; }
     var n = parseInt(e.key, 10);
     if (n >= 1 && n <= view.patients.length && e.key.length === 1) {
@@ -689,28 +690,33 @@
     window.NoyvjDifficulty.onChange(function (d) { if (d.game === DIFF_GAME) sendDifficulty(); });
   }
 
-  // R4-SMMO-4: Bottom sheet gesture for Condition Sheet
-  var _sheetDrag = { active: false, y0: 0 };
+  // R4-SMMO-4: on a phone the Condition Sheet is a bottom sheet. A fixed "Condition Sheet" tab opens it (a tap, or a drag
+  // upward); dragging its heading down, the Close button or Esc closes it. Wide screens and the Desktop layout keep the
+  // ordinary panel, and the tab and Close button are hidden there by CSS.
+  function setSheetOpen(open) {
+    var panel = $("sheet-panel"), tab = $("sheet-tab");
+    panel.dataset.open = String(open);
+    tab.setAttribute("aria-expanded", String(open));
+    if (isPhone()) (open ? $("sheet-close-button") : tab).focus();
+  }
   function _initSheetGesture() {
-    document.addEventListener("touchstart", _sheetDragStart, { passive: true });
-    document.addEventListener("touchmove", _sheetDragMove, { passive: false });
-    document.addEventListener("touchend", _sheetDragEnd);
-    document.addEventListener("mousedown", _sheetDragStart);
-    document.addEventListener("mousemove", _sheetDragMove);
-    document.addEventListener("mouseup", _sheetDragEnd);
+    var tab = $("sheet-tab"), head = $("sheet-heading");
+    var y0 = null;
+    function down(e) { y0 = e.clientY; }
+    function up(e, delta) {
+      if (y0 === null) return;
+      var dy = e.clientY - y0;
+      y0 = null;
+      if (delta(dy)) setSheetOpen(tab.getAttribute("aria-expanded") !== "true");
+    }
+    tab.addEventListener("click", function () { setSheetOpen(true); });
+    tab.addEventListener("pointerdown", down);
+    tab.addEventListener("pointerup", function (e) { up(e, function (dy) { return dy < -30 && tab.getAttribute("aria-expanded") !== "true"; }); });
+    head.addEventListener("pointerdown", down);
+    head.addEventListener("pointerup", function (e) { up(e, function (dy) { return dy > 50 && tab.getAttribute("aria-expanded") === "true"; }); });
+    ["pointercancel"].forEach(function (name) { tab.addEventListener(name, function () { y0 = null; }); head.addEventListener(name, function () { y0 = null; }); });
+    $("sheet-close-button").addEventListener("click", function () { setSheetOpen(false); });
   }
-  function _sheetDragStart(e) { if (e.target.closest("#sheet-panel")) { _sheetDrag.active = true; _sheetDrag.y0 = e.clientY || e.touches[0].clientY; } }
-  function _sheetDragMove(e) {
-    if (!_sheetDrag.active) return;
-    var y = e.clientY || e.touches[0].clientY;
-    var dy = y - _sheetDrag.y0;
-    if (Math.abs(dy) > 5) e.preventDefault();
-    var panel = $("sheet-panel");
-    if (!panel) return;
-    if (panel.dataset.open === "true" && dy > 60) { panel.dataset.open = "false"; _sheetDrag.active = false; }
-    else if (panel.dataset.open !== "true" && dy < -60) { panel.dataset.open = "true"; _sheetDrag.active = false; }
-  }
-  function _sheetDragEnd() { _sheetDrag.active = false; }
 
   // R4-SMMO-10: Chart notes banner
   function _initNotesBanner() {
@@ -830,6 +836,7 @@
     $("engine-status").textContent = "";
     sendDifficulty();
     await changelog;
+    if (isPhone()) TUTORIAL_STEPS.forEach(function (step) { if (step.selector === "#sheet-panel") step.selector = "#sheet-tab"; });   // the sheet itself sits off screen until opened
     if (window.GameTutorial) window.GameTutorial.init(window.stationMedicTutorialSteps ? window.stationMedicTutorialSteps(TUTORIAL_STEPS) : TUTORIAL_STEPS, { gameId: "station-medic" });
   }
 

@@ -148,6 +148,7 @@ html[data-reduced-motion="true"] .stat-value.bump, html[data-effects="off"] .sta
 .shelf .uses { display: block; font-size: 0.68rem; color: var(--muted); }
 .borrow { margin-top: 0.4rem; font-size: 0.9rem; color: var(--muted); }
 .sheet { list-style: none; margin: 0.3rem 0; padding: 0; display: grid; gap: 0.35rem; }
+.sheet-tab, .sheet-close { display: none; }
 .sheet li { border: 1px solid var(--line); border-radius: 10px; padding: 0.3rem 0.6rem; background: var(--surface); }
 .sheet li.ruled-out { opacity: 0.55; border-style: dashed; }
 html[data-narrow="on"] .sheet li.ruled-out .cname { text-decoration: line-through; }
@@ -200,14 +201,22 @@ html[data-narrow="off"] .sheet li.ruled-out { opacity: 1; border-style: solid; }
   .cabinet-tab.active { background: var(--btn-primary); border-color: var(--hover-edge); color: var(--on-primary); }
   #cabinet-panel .cabinet { grid-template-columns: 1fr; }
 
-  /* R4-SMMO-4: Condition Sheet as bottom sheet */
-  #sheet-panel {
-    position: fixed; bottom: 0; left: 0; right: 0; max-height: 75vh; overflow-y: auto;
-    transform: translateY(100%); transition: transform 0.2s ease-out; z-index: 90;
-    border-radius: 16px 16px 0 0; box-shadow: 0 -4px 12px rgba(0,0,0,0.3);
+  /* R4-SMMO-4: Condition Sheet as a bottom sheet (phone layout only; the Desktop layout keeps the ordinary panel) */
+  html:not([data-layout="pc"]) #game { padding-bottom: 5rem; }
+  html:not([data-layout="pc"]) .sheet-tab {
+    display: block; position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); z-index: 89; min-height: 44px; padding: 0.4rem 1.4rem;
+    border-radius: 14px 14px 0 0; border-bottom: 0; background: var(--btn-primary); color: var(--on-primary); font-weight: 700; touch-action: none;
   }
-  #sheet-panel[data-open="true"] { transform: translateY(0); }
-  html[data-reduced-motion="true"] #sheet-panel, html[data-effects="off"] #sheet-panel { transition: none; }
+  html:not([data-layout="pc"]) .sheet-tab[aria-expanded="true"] { display: none; }
+  html:not([data-layout="pc"]) .sheet-close { display: block; width: 100%; min-height: 44px; margin-bottom: 0.4rem; }
+  html:not([data-layout="pc"]) #sheet-heading { touch-action: none; }
+  html:not([data-layout="pc"]) #sheet-panel {
+    position: fixed; bottom: 0; left: 0; right: 0; max-height: 75vh; overflow-y: auto; margin: 0;
+    transform: translateY(105%); visibility: hidden; transition: transform 0.2s ease-out, visibility 0s linear 0.2s; z-index: 90;
+    border-radius: 16px 16px 0 0; box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.3);
+  }
+  html:not([data-layout="pc"]) #sheet-panel[data-open="true"] { transform: translateY(0); visibility: visible; transition: transform 0.2s ease-out; }
+  html[data-reduced-motion="true"]:not([data-layout="pc"]) #sheet-panel, html[data-effects="off"]:not([data-layout="pc"]) #sheet-panel { transition: none; }
 
   /* R4-SMMO-9: Dim infirmary night mode */
   body.night-mode { --bg: #05080b; --bg-top: #0a1016; --panel: #0d141c; --surface: #121a23; --btn: #1a2530; --edge: #2a3a46; --text: #cfe6ef; --muted: #7e98a8; }
