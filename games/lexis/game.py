@@ -350,6 +350,9 @@ def get_state():
     disc = getattr(state, "discovered_stars", None)
     if disc:
         data["discovered_stars"] = list(disc)
+    ev = getattr(state, "evidence_pins", None)
+    if ev:
+        data["evidence_pins"] = dict(ev)
     return data
 
 
@@ -411,6 +414,9 @@ def load_state(data):
         state.discovered_stars = set(raw)
     elif not hasattr(state, "discovered_stars"):
         state.discovered_stars = set()
+    raw_ev = (data.get("evidence_pins") if isinstance(data, dict) else None)
+    if isinstance(raw_ev, dict):
+        state.evidence_pins = {**getattr(state, "evidence_pins", {}), **raw_ev}
     _refresh_view()
 
 

@@ -374,3 +374,11 @@ html[data-reduced-motion="true"] .scene-card.fresh, html[data-effects="off"] .sc
 
   .transmit-pad, .resume-btn { display: none !important; }
 }
+
+/* Evidence board */
+.evidence-pins { display: grid; gap: 0.8rem; margin-top: 0.5rem; }
+.evidence-pin { border: 1px solid var(--line); border-radius: 8px; padding: 0.6rem; background: var(--surface); position: relative; }
+.evidence-pin::before { content: "📌"; position: absolute; top: -0.5rem; left: 0.5rem; font-size: 1.2rem; background: var(--panel); padding: 0 0.3rem; }
+.evidence-fragment { font-style: italic; color: var(--muted); margin-bottom: 0.4rem; font-size: 0.9rem; }
+.evidence-input { width: 100%; padding: 0.35rem 0.5rem; border-radius: 6px; border: 1px solid var(--edge); background: var(--panel); color: var(--text); font: inherit; box-sizing: border-box; }
+html[data-reduced-motion="true"] .evidence-pin { transition: none; }

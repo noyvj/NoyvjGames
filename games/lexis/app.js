@@ -715,6 +715,39 @@
     });
   }
 
+  var evidenceData = {};
+
+  function renderEvidenceBoard() {
+    var pins = $("evidence-pins");
+    if (!pins) return;
+    var fragments = [
+      "Signal repeats every 7 pulses...",
+      "Origin coordinates unknown...",
+      "Sender identifies as..."
+    ];
+    fillOnce(pins, "evidence-board", function () {
+      fragments.forEach(function (frag, i) {
+        var pin = document.createElement("div");
+        pin.className = "evidence-pin";
+        var fragEl = document.createElement("div");
+        fragEl.className = "evidence-fragment";
+        fragEl.textContent = frag;
+        var input = document.createElement("input");
+        input.type = "text";
+        input.className = "evidence-input";
+        input.placeholder = "Name the sender...";
+        input.dataset.pin = String(i);
+        input.value = evidenceData["pin" + i] || "";
+        input.addEventListener("input", function () {
+          evidenceData["pin" + i] = input.value;
+        });
+        pin.appendChild(fragEl);
+        pin.appendChild(input);
+        pins.appendChild(pin);
+      });
+    });
+  }
+
   var knownEarned = null;
   function renderAchievements() {
     var list = $("achievements-list");
@@ -1055,6 +1088,68 @@
     });
   }
 
+  function renderEvidenceBoard() {
+    var pins = $("evidence-pins");
+    if (!pins) return;
+    var fragments = [
+      "Signal repeats every 7 pulses...",
+      "Origin coordinates unknown...",
+      "Sender identifies as..."
+    ];
+    fillOnce(pins, JSON.stringify(fragments), function () {
+      fragments.forEach(function (frag, i) {
+        var pin = document.createElement("div");
+        pin.className = "evidence-pin";
+        var fragEl = document.createElement("div");
+        fragEl.className = "evidence-fragment";
+        fragEl.textContent = frag;
+        var input = document.createElement("input");
+        input.type = "text";
+        input.className = "evidence-input";
+        input.placeholder = "Name the sender...";
+        input.dataset.pin = i;
+        input.value = evidenceData["pin" + i] || "";
+        input.addEventListener("input", function () {
+          evidenceData["pin" + i] = input.value;
+        });
+        pin.appendChild(fragEl);
+        pin.appendChild(input);
+        pins.appendChild(pin);
+      });
+    });
+  }
+
+  function renderEvidenceBoard() {
+    var pins = $("evidence-pins");
+    if (!pins) return;
+    var fragments = [
+      "Signal repeats every 7 pulses...",
+      "Origin coordinates unknown...",
+      "Sender identifies as..."
+    ];
+    fillOnce(pins, "evidence-board", function () {
+      fragments.forEach(function (frag, i) {
+        var pin = document.createElement("div");
+        pin.className = "evidence-pin";
+        var fragEl = document.createElement("div");
+        fragEl.className = "evidence-fragment";
+        fragEl.textContent = frag;
+        var input = document.createElement("input");
+        input.type = "text";
+        input.className = "evidence-input";
+        input.placeholder = "Name the sender...";
+        input.dataset.pin = String(i);
+        input.value = evidenceData["pin" + i] || "";
+        input.addEventListener("input", function () {
+          evidenceData["pin" + i] = input.value;
+        });
+        pin.appendChild(fragEl);
+        pin.appendChild(input);
+        pins.appendChild(pin);
+      });
+    });
+  }
+
   function render() {
     renderGlobe();
     renderAchievements();
@@ -1064,6 +1159,7 @@
     renderTabs();
     renderStarMap();
     renderMuseum();
+    renderEvidenceBoard();
     
     // Render scene cards if available and toggled on (simplified: always render if scenes exist)
     if (view.scenes && view.scenes.length > 0) {
@@ -1259,6 +1355,7 @@
     wirePanelToggle("changelog-toggle-button", "changelog-panel");
     wirePanelToggle("star-map-toggle-button", "star-map-panel");
     wirePanelToggle("museum-toggle-button", "museum-panel");
+    wirePanelToggle("evidence-toggle-button", "evidence-board-panel");
     
     // Wire up scene card toggle
     guard("scene-card-toggle-button", function () {
