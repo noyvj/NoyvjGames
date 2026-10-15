@@ -118,15 +118,31 @@ left, and stop.
             server.shutdown()
 
 
+        # The game is ready when its #engine-status line is empty (the Python engine loads first, which can take
+        # a minute). "#play" in the address skips the opening screen, which otherwise covers the page and makes
+        # every click time out.
+        READY = "document.querySelector('#engine-status') && document.querySelector('#engine-status').textContent === ''"
+
+
+        def open_game(p, base, width=1280, height=800):
+            browser = p.chromium.launch()
+            ctx = browser.new_context(viewport={"width": width, "height": height}, service_workers="block")
+            ctx.route("**/*fastapicloud*/**", lambda route: route.abort())
+            page = ctx.new_page()
+            page.goto(base + "index.html#play")
+            page.wait_for_function(READY, timeout=90000)
+            return browser, page
+
+
         def test_the_new_button_opens_its_panel(base):
             with sync_playwright() as p:
-                browser = p.chromium.launch()
-                page = browser.new_page(viewport={"width": 1280, "height": 800})
-                page.goto(base + "index.html")
-                page.wait_for_function("!!document.querySelector('#the-new-button')", timeout=60000)
+                browser, page = open_game(p, base)
                 page.click("#the-new-button")
                 assert page.is_visible("#the-new-panel")
                 browser.close()
+
+    Before you click something, make sure it is visible at that window size (a panel may be closed, or a phone
+    layout may hide it); open what contains it first. For a phone layout, call open_game(p, base, 360, 740).
   - If the game has no browser tests yet, at least a test that reads the changed file and checks the
     new element, class or handler is there and wired up (weaker, but required).
 - The tests and flake8 run automatically after your edits. Fix any failure

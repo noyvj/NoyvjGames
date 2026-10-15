@@ -291,7 +291,7 @@ $timedOut = Invoke-Aider $taskFile $fileArgs
 Update-PcPages
 
 # Repair rounds: real changes but failing tests (a feature task, not a test-writing one). The model gets a
-# fresh session with the failing output and the files it changed, up to twice. This is the step that most
+# fresh session with the failing output and the files it changed, up to three times (two until 2026-10-15). This is the step that most
 # often turns a near miss (for example one save-format test) into a pass.
 # What the work looks like (each changed file and its content hash), so a full test pass can be reused when
 # nothing changed afterwards instead of running the slow browser tests twice.
@@ -313,7 +313,7 @@ function Get-NewFindings {
 $verifiedState = $null
 $verifiedLine = ""
 $repairs = 0
-while (-not $timedOut -and $repairs -lt 2) {
+while (-not $timedOut -and $repairs -lt 3) {
     $touched = @(git -C $work status --porcelain --untracked-files=all | ForEach-Object { $_.Substring(3).Trim('"') } |
         Where-Object { $_ -like "games/$Game/*" -and $_ -notlike "*/pc.html" })
     if ($touched.Count -eq 0 -or ($touched | Where-Object { $_ -notmatch "/tests/test_ai_[^/]+\.py$" }).Count -eq 0) { break }
@@ -360,7 +360,7 @@ while (-not $timedOut -and $repairs -lt 2) {
     if ($checkLines) {
         $repairFile = Join-Path $work ".aider-repair.md"
         @"
-# Finish the feature (repair round $repairs of 2)
+# Finish the feature (repair round $repairs of 3)
 
 You were building this in games/${Game}:
 
@@ -388,7 +388,7 @@ $checkLines
     $tail = (($firstTry.Trim() -split "`n") | Select-Object -Last 60) -join "`n"
     $repairFile = Join-Path $work ".aider-repair.md"
     @"
-# Fix the failing checks (repair round $repairs of 2)
+# Fix the failing checks (repair round $repairs of 3)
 
 You were building this in games/${Game}:
 
@@ -397,6 +397,10 @@ $Task
 Your changes are in the files listed below and already in this chat. The game's tests or flake8 now fail. Fix the
 cause with small edits; do not delete or weaken existing tests. Remember the save rules in RULES.md: old
 saves must load unchanged, and a new key appears in get_state() only when its value is not the default.
+If the failing test is one YOU wrote in this task, the test itself may be the mistake: a browser test must open
+index.html#play and wait for READY exactly as the template in RULES.md does, and must make an element visible
+(open its panel, use the right window size) before clicking it. A "Timeout ... exceeded" on a click or a wait
+almost always means one of those. Fix the test or the code, whichever is wrong; never just delete the test.
 
 Test output (end):
 ~~~
