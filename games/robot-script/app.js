@@ -889,6 +889,37 @@
     wireDifficulty();
     $("toast").addEventListener("click", function () { showToast(""); });
 
+    // R4-RSMO-1: Mobile keypad wiring
+    var keypad = $("keypad");
+    if (keypad) {
+      var longPressStart = null;
+      Array.prototype.forEach.call(keypad.querySelectorAll("button"), function(btn) {
+        btn.addEventListener("click", function(e) {
+          e.preventDefault();
+          send({ action: "insert", kind: btn.dataset.key }, true);
+        });
+        
+        // Long press to reorder (move up/down) using timeStamp instead of timer
+        var startLongPress = function(e) {
+          longPressStart = e.timeStamp;
+        };
+        
+        var endLongPress = function(e) {
+          if (longPressStart && e.timeStamp - longPressStart >= 600) {
+            var cur = view.program.cursor;
+            if (cur && cur.list) {
+              send({ action: "move", at: cur.list + "/" + (cur.index - 1), delta: 1 }, true);
+            }
+          }
+          longPressStart = null;
+        };
+        
+        btn.addEventListener("touchstart", startLongPress, { passive: true });
+        btn.addEventListener("touchend", endLongPress);
+        btn.addEventListener("touchcancel", function() { longPressStart = null; });
+      });
+    }
+
     // Speed chip (mobile)
     var speedChip = $("speed-chip");
     if (speedChip) {
