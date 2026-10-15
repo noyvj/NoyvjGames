@@ -161,6 +161,25 @@ if ($behind -gt 0) { Write-Host "Note: your own folder's $Base is $behind commit
 $gameDir = Join-Path $work "games\$Game"
 $report = Join-Path $reports (($branch -replace '/', '_') + ".md")
 
+# Tests that already fail before the AI starts are not its fault and must not fail its task (2026-10-15: a Dead
+# Reckoning browser test from the Mac audit fails on this laptop on main itself, so every Dead Reckoning task
+# failed). Run the whole suite once on the starting point, keep the failures (cached per game and commit), and
+# leave them out of every later run: --deselect for a failing test, --ignore for a file that cannot even load.
+$baseHead = (git -C $work rev-parse --short HEAD).Trim()
+$baseFile = Join-Path $reports "testbase-$Game-$baseHead.txt"
+if (-not (Test-Path $baseFile)) {
+    Write-Host "Checking which of $Game's tests already fail before the AI starts (once per commit)..."
+    Push-Location $gameDir
+    $baseOut = (python -m pytest -q -p no:warnings -rfE 2>&1 | Out-String)
+    Pop-Location
+    @("# tests failing on $baseHead before any AI change (written by ai.ps1)") +
+        @($baseOut -split "`r?`n" | Where-Object { $_ -match '^(FAILED|ERROR) \S' } | ForEach-Object { ($_ -split ' ')[1] } | Sort-Object -Unique) |
+        Set-Content -Encoding utf8 $baseFile
+}
+$knownFail = @(Get-Content $baseFile -Encoding utf8 | Where-Object { $_.Trim() -and -not $_.StartsWith("#") })
+$skipKnown = @($knownFail | ForEach-Object { if ($_ -like "*::*") { "--deselect"; $_ } else { "--ignore=$_" } })
+$skipKnownText = ($skipKnown | ForEach-Object { if ($_ -eq "--deselect") { $_ } else { '"' + $_ + '"' } }) -join " "
+
 $itemText = python (Join-Path $aiDir "todo_item.py") show $Item 2>$null
 if ($LASTEXITCODE -ne 0) { $itemText = "(not a TODO item id; free task)" }
 $taskFile = Join-Path $work ".aider-task.md"
@@ -208,7 +227,7 @@ $aiderArgs = @("--model", $Model,
     "--model-settings-file", (Join-Path $aiDir "aider.model.settings.yml"),
     "--subtree-only", "--map-tokens", "1024",
     "--no-auto-commits", "--no-dirty-commits", "--no-gitignore",
-    "--test-cmd", "python ../../scripts/generate-pc-pages.py >NUL && python -m pytest -q -x --tb=line -p no:warnings --ignore-glob=*browser*", "--auto-test",   # browser tests only run in the final check: they are slow and Aider reruns tests after every edit
+    "--test-cmd", "python ../../scripts/generate-pc-pages.py >NUL && python -m pytest -q -x --tb=line -p no:warnings --ignore-glob=*browser* $skipKnownText", "--auto-test",   # browser tests only run in the final check: they are slow and Aider reruns tests after every edit
     "--lint-cmd", "python: python -m flake8 --select=E9,F63,F7,F82", "--auto-lint",   # only real errors here: layout is fixed automatically afterwards, so the model keeps its retries for failing tests
     "--yes-always", "--no-pretty", "--no-stream", "--analytics-disable", "--no-check-update", "--timeout", "1800",   # a big multi-file request can take a long time on this laptop: wait up to 30 min per reply
     "--chat-history-file", $log, "--input-history-file", "NUL") + $readArgs
@@ -305,7 +324,7 @@ while (-not $timedOut -and $repairs -lt 2) {
         ForEach-Object { $_.Substring(3).Trim('"') } | Where-Object { $_ -match "^games/$([regex]::Escape($Game))/tests/[^/]+\.py$" } | ForEach-Object { Join-Path $work $_ })
     if ($freshTests.Count -gt 0) { python (Join-Path $aiDir "tidy_new_tests.py") @freshTests 2>$null | Out-Null }
     Push-Location $gameDir
-    $firstTry = (python -m pytest -q -x --tb=short -p no:warnings --ignore-glob=*browser* 2>&1 | Out-String)
+    $firstTry = (python -m pytest -q -x --tb=short -p no:warnings --ignore-glob=*browser* @skipKnown 2>&1 | Out-String)
     $passing = ($LASTEXITCODE -eq 0)
     # flake8 counts as a failing check too (2026-10-14: two Lexis features passed every test and then failed the
     # final flake8 on an unused variable and a redefined fixture, with no round to fix them).
@@ -320,7 +339,7 @@ while (-not $timedOut -and $repairs -lt 2) {
         $browserFiles = @(Get-ChildItem (Join-Path $gameDir "tests") -Filter "*browser*.py" -File -ErrorAction SilentlyContinue | ForEach-Object { "tests/" + $_.Name })
         $browserLine = "no browser tests"
         if ($browserFiles.Count -gt 0) {
-            $browserTry = (python -m pytest -q -x --tb=short -p no:warnings @browserFiles 2>&1 | Out-String)
+            $browserTry = (python -m pytest -q -x --tb=short -p no:warnings @browserFiles @skipKnown 2>&1 | Out-String)
             $browserLine = ($browserTry.Trim() -split "`n")[-1]
             if ($LASTEXITCODE -ne 0) { $passing = $false; $firstTry = $browserTry }
         }
@@ -431,7 +450,7 @@ if ($verifiedState -and $verifiedState -eq (Get-WorkState)) {
     $testOut = "$verifiedLine (whole suite, before the final tidy-up changed nothing)"
     $testsOk = $true
 } else {
-    $testOut = (python -m pytest -q 2>&1 | Out-String)
+    $testOut = (python -m pytest -q @skipKnown 2>&1 | Out-String)
     $testsOk = ($LASTEXITCODE -eq 0)
 }
 $salvageNote = ""
@@ -440,7 +459,7 @@ if (-not $testsOk -and $testOnly) {
     $rels = @($newTests | ForEach-Object { $_.Substring("games/$Game/".Length) })
     $salvageNote = ((python (Join-Path $aiDir "salvage_tests.py") $gameDir @rels 2>&1) -join " ")
     if ($LASTEXITCODE -eq 0) {
-        $testOut = (python -m pytest -q 2>&1 | Out-String)
+        $testOut = (python -m pytest -q @skipKnown 2>&1 | Out-String)
         $testsOk = ($LASTEXITCODE -eq 0)
     }
 }
@@ -520,6 +539,7 @@ if ($ok) {
 - Tests: $testLine
 $(if ($salvageNote) { "- Salvage: $salvageNote" })
 - Thinking: $thinkMode
+$(if ($knownFail.Count) { "- Already failing before the AI started (left out of every check): " + ($knownFail -join ", ") })
 $(if ($pageNote) { "- $pageNote" })
 $(if ($repairs) { "- Repair rounds: $repairs (the model was shown failing tests or checker findings and asked to fix them)" })
 $(if ($problems.Count) { "- Problems: " + ($problems -join "; ") })
