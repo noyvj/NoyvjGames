@@ -288,7 +288,7 @@ while (-not $timedOut -and $repairs -lt 2) {
     # Tidy layout and the model's new test files first, so flake8 below only reports real mistakes.
     $chgPy = @($touched | Where-Object { $_ -like "*.py" } | ForEach-Object { Join-Path $work $_ } | Where-Object { Test-Path $_ })
     if ($chgPy.Count -gt 0) { python -m autopep8 --in-place --select=E1,E2,E3,W2,W3 @chgPy 2>$null | Out-Null }
-    $freshTests = @(git -C $work status --porcelain --untracked-files=all | Where-Object { $_ -match '^(\?\?|A )' } |
+    $freshTests = @(git -C $work status --porcelain --untracked-files=all | Where-Object { $_ -match '^(\?\?|A)' } |
         ForEach-Object { $_.Substring(3).Trim('"') } | Where-Object { $_ -match "^games/$([regex]::Escape($Game))/tests/[^/]+\.py$" } | ForEach-Object { Join-Path $work $_ })
     if ($freshTests.Count -gt 0) { python (Join-Path $aiDir "tidy_new_tests.py") @freshTests 2>$null | Out-Null }
     Push-Location $gameDir
@@ -404,7 +404,7 @@ if ($py.Count -gt 0) { python -m autopep8 --in-place --select=E1,E2,E3,W2,W3 @py
 # name, also loses unused imports and variables.
 $newTests = @($inside | Where-Object { $_ -match "^games/$([regex]::Escape($Game))/tests/test_ai_[^/]+\.py$" })
 $testOnly = ($inside.Count -gt 0 -and $newTests.Count -eq $inside.Count)
-$untracked = @(git -C $work status --porcelain --untracked-files=all | Where-Object { $_.StartsWith("??") -or $_.StartsWith("A ") } |   # Aider stages the files it creates ("A "), so they count as new too
+$untracked = @(git -C $work status --porcelain --untracked-files=all | Where-Object { $_.StartsWith("??") -or $_.StartsWith("A") } |   # Aider stages the files it creates ("A ", or "AM" once edited again), so they count as new too
     ForEach-Object { $_.Substring(3).Trim('"') })
 $newTestFiles = @($untracked | Where-Object { $_ -match "^games/$([regex]::Escape($Game))/tests/[^/]+\.py$" })
 if ($newTestFiles.Count -gt 0) {
