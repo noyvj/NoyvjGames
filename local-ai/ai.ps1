@@ -54,7 +54,17 @@ if ($Model -like "ollama_chat/qwen3.6*") {
     if ($biggest -gt 100000 -and $Task -match 'view idea') { $Model = "ollama_chat/qwen3.6-128k"; $maxTokens = 110000 }
     elseif ($biggest -gt 100000) { $Model = "ollama_chat/qwen3.6-192k"; $maxTokens = 165000 }
     elseif ($biggest -gt 40000) { $Model = "ollama_chat/qwen3.6-128k"; $maxTokens = 110000 }
-    else { $maxTokens = 50000 }
+    else {
+        $maxTokens = 50000
+        # The model also has to hold the page files it asks for, and room to answer. Chronicle's four biggest
+        # files (app.js and three engine modules after the split) are ~70k tokens: at 64k every reply was cut
+        # off mid-edit (2026-10-14, R4-CLP-1..4). So the four biggest game files together decide too.
+        $working = 0
+        Get-ChildItem (Join-Path $root "games\$Game") -File -ErrorAction SilentlyContinue |
+            Where-Object { $_.Extension -in ".py", ".js", ".html", ".css", ".json" -and $_.Name -ne "pc.html" } |
+            Sort-Object Length -Descending | Select-Object -First 4 | ForEach-Object { $working += [math]::Round($_.Length / 3.0) }
+        if ($working -gt 40000) { $Model = "ollama_chat/qwen3.6-128k" }
+    }
 }
 
 function Fail($msg) { Write-Host "STOPPED: $msg" -ForegroundColor Red; exit 1 }
