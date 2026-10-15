@@ -111,6 +111,7 @@
     <button id="info-page-toggle-button" type="button" aria-expanded="false" aria-controls="info-page-panel">About Lexis</button>
     <button id="museum-toggle-button" type="button" aria-expanded="false" aria-controls="museum-panel">Glyph museum</button>
     <button id="star-map-toggle-button" type="button" aria-expanded="false" aria-controls="star-map-panel">Star map</button>
+    <button id="scene-card-toggle-button" type="button" style="display:none;">Play scenes</button>
   </div>
   <section id="crew-log-panel" class="panel" hidden aria-labelledby="crew-log-heading">
     <h2 id="crew-log-heading">Crew log</h2>
@@ -191,6 +192,7 @@
   <section id="transmissions-panel" class="panel" aria-labelledby="tx-heading">
     <h2 id="tx-heading">Received transmissions</h2>
     <p class="note">Each signal is a row of marks: a short tick or a long bar. Watch what the station does when one arrives.</p>
+    <div id="scene-card-container" hidden></div>
     <ol id="scene-list" class="scene-list"></ol>
     <button id="next-scene-button" type="button" class="primary">Receive next transmission</button>
     <p id="scene-status" class="note" aria-live="polite"></p>

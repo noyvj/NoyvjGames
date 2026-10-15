@@ -236,6 +236,91 @@
     setText($("station-text"), view.station_text);
   }
 
+  var cardState = { index: -1, startX: 0, currentX: 0, isDragging: false };
+
+  function renderSceneCards() {
+    var container = $("scene-card-container");
+    if (!container || !view.scenes.length) return;
+    
+    // Clear existing cards
+    while (container.firstChild) {
+      container.removeChild(container.firstChild);
+    }
+
+    view.scenes.forEach(function (scene, index) {
+      var card = document.createElement("div");
+      card.className = "scene-card" + (index === view.scenes.length - 1 ? " fresh" : "");
+      card.dataset.index = index;
+      
+      // Content similar to renderScenes but for a single card
+      var head = document.createElement("div");
+      var label = document.createElement("strong");
+      label.textContent = "Transmission " + (index + 1) + " ";
+      head.appendChild(label);
+      var sig = signalNode(scene.marks);
+      head.appendChild(sig);
+      
+      var what = document.createElement("div");
+      what.className = "what";
+      var changes = [];
+      if (scene.before.lamps !== scene.after.lamps) changes.push("lamps: " + scene.before.lamps + " → " + scene.after.lamps);
+      if (scene.before.door !== scene.after.door) changes.push("door: " + scene.before.door + " → " + scene.after.door);
+      what.innerHTML = "The station: <b></b>";
+      what.querySelector("b").textContent = changes.length ? changes.join("; ") : "no change";
+
+      card.appendChild(head);
+      card.appendChild(what);
+      
+      // Touch events for swipe
+      card.addEventListener("touchstart", function(e) {
+        if (document.documentElement.getAttribute("data-reduced-motion") === "true" || document.documentElement.getAttribute("data-effects") === "off") return;
+        cardState.isDragging = true;
+        cardState.startX = e.touches[0].clientX;
+        cardState.currentX = cardState.startX;
+      }, { passive: true });
+
+      card.addEventListener("touchmove", function(e) {
+        if (!cardState.isDragging) return;
+        cardState.currentX = e.touches[0].clientX;
+        var diff = cardState.currentX - cardState.startX;
+        card.style.transform = "translateX(" + diff + "px)";
+      }, { passive: true });
+
+      card.addEventListener("touchend", function(e) {
+        if (!cardState.isDragging) return;
+        cardState.isDragging = false;
+        var diff = cardState.currentX - cardState.startX;
+        if (Math.abs(diff) > 50) {
+          if (diff > 0) {
+            card.classList.add("swipe-right");
+            setTimeout(function() { nextScene(); }, 300);
+          } else {
+            card.classList.add("swipe-left");
+            setTimeout(function() { prevScene(); }, 300);
+          }
+        } else {
+          card.style.transform = "";
+        }
+      });
+
+      // Tap to pause/advance logic could be added here if needed, 
+      // but for now swipe is the primary interaction.
+      
+      container.appendChild(card);
+    });
+  }
+
+  function nextScene() {
+    if (view.scenes.length < view.scenes_total) {
+      send({ action: "next_scene" });
+    }
+  }
+
+  function prevScene() {
+    // For now, just reset the card state. Full history might be complex.
+    renderSceneCards();
+  }
+
   function renderScenes() {
     var list = $("scene-list");
     list.textContent = "";
@@ -261,6 +346,13 @@
       list.appendChild(li);
     });
     noteScenes("pulse", list);
+    
+    // Update card toggle button visibility
+    var toggleBtn = $("scene-card-toggle-button");
+    if (toggleBtn) {
+      toggleBtn.style.display = view.scenes.length > 0 ? "inline-block" : "none";
+    }
+
     var left = view.scenes_total - view.scenes.length;
     setEnabled("next-scene-button", left !== 0);
     var status = view.scenes.length + " of " + view.scenes_total + " received.";
@@ -972,6 +1064,11 @@
     renderTabs();
     renderStarMap();
     renderMuseum();
+    
+    // Render scene cards if available and toggled on (simplified: always render if scenes exist)
+    if (view.scenes && view.scenes.length > 0) {
+      renderSceneCards();
+    }
     if (currentPlanet === "bridge") { renderBridge(); return; }
     if (currentPlanet === "compound") { renderCompound(); return; }
     if (currentPlanet === "pulse") renderBench();
@@ -1162,6 +1259,20 @@
     wirePanelToggle("changelog-toggle-button", "changelog-panel");
     wirePanelToggle("star-map-toggle-button", "star-map-panel");
     wirePanelToggle("museum-toggle-button", "museum-panel");
+    
+    // Wire up scene card toggle
+    guard("scene-card-toggle-button", function () {
+      var container = $("scene-card-container");
+      var list = $("scene-list");
+      if (container.hidden) {
+        container.hidden = false;
+        list.hidden = true;
+        renderSceneCards(); // Ensure cards are rendered when shown
+      } else {
+        container.hidden = true;
+        list.hidden = false;
+      }
+    });
     var notebookOpen = false;
     guard("notebook-toggle-button", function () {
       notebookOpen = !notebookOpen;
