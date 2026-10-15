@@ -327,5 +327,21 @@ html[data-reduced-motion="true"] .stamp, html[data-effects="off"] .stamp { anima
   #notebook-panel.sheet-open {
     transform: none;
   }
+  /* Portrait sign keyboard */
+  #sign-keyboard {
+    position: fixed; bottom: 0; left: 0; right: 0;
+    background: var(--panel-fill); border-top: 1px solid var(--line);
+    padding: 0.5rem; z-index: 90;
+  }
+  #sign-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(3.5rem, 1fr)); gap: 0.4rem; justify-content: center; }
+  .sign-btn {
+    display: flex; align-items: center; justify-content: center;
+    height: 3rem; border-radius: 8px; background: var(--btn); border: 1px solid var(--edge);
+    color: var(--text); font-size: 0.9rem; cursor: pointer;
+  }
+  .sign-btn svg { width: 1.5rem; height: 1.5rem; stroke: var(--text); fill: none; stroke-width: 2; }
+  html[data-reduced-motion="true"] .sign-btn, html[data-effects="off"] .sign-btn { transition: none; }
+  .sign-btn:active { background: var(--btn-primary); border-color: var(--hover-edge); transform: scale(0.95); }
+
   .transmit-pad, .resume-btn { display: none !important; }
 }

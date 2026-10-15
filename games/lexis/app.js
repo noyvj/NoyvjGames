@@ -921,6 +921,48 @@
     } catch (e) { /* fallback to empty */ }
   }
 
+  function renderSignKeyboard() {
+    if (!view) return;
+    var kb = $("sign-keyboard");
+    if (!kb) return;
+    var grid = $("sign-grid");
+    if (!grid) {
+      grid = document.createElement("div");
+      grid.id = "sign-grid";
+      grid.className = "sign-grid";
+      kb.appendChild(grid);
+    }
+    grid.textContent = "";
+    var items = [];
+    if (currentPlanet === "pulse") items = seenTokens();
+    else if (currentPlanet === "compound") items = view.letters || [];
+    else if (currentPlanet === "bridge") items = Array.from(new Set((view.nouns || []).concat(view.markers || [], view.numbers || [])));
+
+    items.forEach(function(item) {
+      var btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "sign-btn";
+      btn.setAttribute("aria-label", "Add sign: " + item);
+      
+      if (currentPlanet === "pulse") {
+        btn.appendChild(tokenNode(item));
+      } else if (currentPlanet === "compound") {
+        btn.appendChild(partSvg(item));
+      } else if (currentPlanet === "bridge") {
+        if ("pnq".indexOf(item) !== -1) btn.appendChild(markerNode(item));
+        else if ((view.components || {})[item[0]] !== undefined) btn.appendChild(glyphNode(item));
+        else btn.appendChild(tokenNode(item));
+      }
+      
+      btn.addEventListener("click", function() {
+        if (currentPlanet === "pulse") addMarks(item);
+        else if (currentPlanet === "compound") addPart(item);
+        else if (currentPlanet === "bridge") addToMessage(item);
+      });
+      grid.appendChild(btn);
+    });
+  }
+
   function render() {
     renderGlobe();
     renderAchievements();
@@ -937,6 +979,7 @@
     renderScenes();
     renderNotebook();
     renderTransmit();
+    renderSignKeyboard();
     saveResumeFrame();
   }
 
