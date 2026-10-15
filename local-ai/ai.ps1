@@ -67,7 +67,9 @@ if ($Model -like "ollama_chat/qwen3.6*") {
     }
 }
 
-function Fail($msg) { Write-Host "STOPPED: $msg" -ForegroundColor Red; exit 1 }
+# exit 2 = the task could not even start (setup: git, Ollama, a missing file); exit 1 = the AI tried and failed.
+# ai-queue.ps1 stops on a run of setup failures but only pauses on ordinary ones (see there).
+function Fail($msg) { Write-Host "STOPPED: $msg" -ForegroundColor Red; exit 2 }
 
 # A running tally after every task, in the Terminal and in its window title (visible from the taskbar).
 # Counted from queue-done.txt plus this task, which the queue only writes there after this script ends.
@@ -219,7 +221,18 @@ if ($thinkMode -eq "ab") {
     $doneRows = @(Get-Content (Join-Path $aiDir "queue-done.txt") -Encoding utf8 -ErrorAction SilentlyContinue | Where-Object { $_ -match '(PASSED|FAILED)  ' }).Count
     $thinkMode = if ($doneRows % 2 -eq 0) { "off" } else { "on" }
 }
-if ($thinkMode -eq "off") { $aiderArgs += @("--reasoning-effort", "none", "--no-check-model-accepts-settings") }
+if ($thinkMode -eq "off") {
+    # Aider's --reasoning-effort puts the setting in extra_body, which Ollama ignores: from 2026-10-14 until this
+    # fix every "off" task still thought (up to 34k tokens per reply, often filling the context before any answer,
+    # so the A/B compared on with on). A top-level reasoning_effort in the model's extra_params is what litellm
+    # turns into Ollama's think: false (checked by direct calls: reasoning 0 chars). So each task gets its own copy
+    # of the settings with that line added.
+    $settingsOff = Join-Path $work ".aider-model-settings.yml"
+    ((Get-Content (Join-Path $aiDir "aider.model.settings.yml") -Raw) -replace '(?m)^(\s*)extra_params:\s*$', "`$1extra_params:`n`$1  reasoning_effort: none") |
+        Set-Content -Encoding utf8 $settingsOff
+    $i = [array]::IndexOf($aiderArgs, "--model-settings-file")
+    $aiderArgs[$i + 1] = $settingsOff
+}
 
 # Run Aider as a background job so a stuck run can be stopped when the task's time is up
 # instead of blocking the whole queue for days. Returns $true if it was stopped for time.

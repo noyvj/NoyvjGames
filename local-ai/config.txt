@@ -6,7 +6,8 @@ model = ollama_chat/qwen3.6:35b
 
 # think = on (the model reasons before answering), off (much faster), or ab (alternate task by task to compare;
 # run python local-ai/ab_report.py after ~30 tasks and set the winner).
-# 2026-10-14 A/B over 108 runs: off passed 62%, on 55%, same speed; "on" sometimes spent the whole reply reasoning and wrote no edit.
+# 2026-10-15: "off" never reached the model until ai.ps1 was fixed (Aider sent it where Ollama ignores it), so every
+# run so far thought, and the earlier A/B compared on with on. Off is now real: a reply with no thinking at all.
 think = off
 
 # push = on lets ai-queue push finished local-ai/... branches to GitHub every sync_every tasks

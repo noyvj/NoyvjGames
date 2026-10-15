@@ -11,7 +11,7 @@
 #
 # Built to run unattended for days:
 #   - waits (up to 6 hours) for Ollama instead of failing every task while it is down
-#   - stops after 10 failures in a row, since that means something is broken, not one bad task
+#   - stops after 5 tasks in a row that could not even start, or 25 failures in a row of any kind
 #   - every sync_every tasks (config.txt, default 50) and at the end: pushes the finished
 #     local-ai/... branches to GitHub (push = on; never main) and catches your own main up with
 #     GitHub when that is a plain fast-forward
@@ -76,6 +76,7 @@ $syncEvery = [int](Setting "sync_every" "50")
 $results = @()
 $sinceSync = 0
 $failStreak = 0
+$setupStreak = 0
 while ($true) {
     $lines = @(Get-Content $queue -Encoding utf8)
     $index = -1
@@ -124,13 +125,23 @@ while ($true) {
     $aiArgs = @{ Game = $parts[0]; Item = $parts[1]; Task = $parts[3]; Files = $files }
     if ($Pr) { $aiArgs.Pr = $true }
     & (Join-Path $aiDir "ai.ps1") @aiArgs
-    $status = if ($LASTEXITCODE -eq 0) { "PASSED" } else { "FAILED" }
+    $code = $LASTEXITCODE
+    $status = if ($code -eq 0) { "PASSED" } else { "FAILED" }
     Add-Content -Encoding utf8 $done "$status  $(Get-Date -Format 'yyyy-MM-dd HH:mm')  $line"
     $results += "$status  $line"
 
+    # Two kinds of failure (2026-10-14: hard tasks failing one after another stopped the whole run for the night,
+    # though nothing was broken). Setup failures (ai.ps1 exit 2: git, Ollama, a working copy) mean something IS
+    # broken: stop after 5 in a row. Ordinary failures (the AI tried) only stop the run after 25 in a row, which
+    # still catches a silent problem like the model never writing an answer.
+    $setupStreak = if ($code -eq 2) { $setupStreak + 1 } else { 0 }
     $failStreak = if ($status -eq "FAILED") { $failStreak + 1 } else { 0 }
-    if ($failStreak -ge 10) {
-        Write-Host "10 tasks failed in a row, so something is probably broken (Ollama, disk, git). Stopping; the rest stay in queue.txt." -ForegroundColor Red
+    if ($setupStreak -ge 5) {
+        Write-Host "5 tasks in a row could not even start (git, Ollama or the disk). Stopping; the rest stay in queue.txt. See the STOPPED lines above." -ForegroundColor Red
+        break
+    }
+    if ($failStreak -ge 25) {
+        Write-Host "25 tasks failed in a row, so something is probably wrong with the setup. Stopping; the rest stay in queue.txt." -ForegroundColor Red
         break
     }
     $sinceSync++

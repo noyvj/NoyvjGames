@@ -82,14 +82,60 @@ left, and stop.
   - Page behaviour (app.js, pc.js, index.html, CSS): a browser test copying the pattern of the game's
     existing tests/test_*_browser.py (it starts a local server and drives the page with Playwright):
     open the page, do what a player would do, assert what they should see.
-    The test must START ITS OWN SERVER: copy the `base` fixture from games/evidence-hunt/tests/test_today_browser.py
-    (a free port from socket.bind(("127.0.0.1", 0)), http.server.ThreadingHTTPServer on the repo root, stopped after).
-    Never write a fixed address like http://localhost:8073: nothing is listening there and the test fails.
-    Name the file test_<name>_browser.py.
+    The test must START ITS OWN SERVER. Never write a fixed address like http://localhost:8073 (nothing listens
+    there), and there is no pytest.playwright: use playwright.sync_api. Name the file test_<name>_browser.py and
+    start it with exactly this (change GAME to the folder name), then write tests that take `base`:
+
+        import contextlib
+        import functools
+        import http.server
+        import socket
+        import threading
+        from pathlib import Path
+
+        import pytest
+
+        pytest.importorskip("playwright.sync_api")
+        from playwright.sync_api import sync_playwright  # noqa: E402
+
+        ROOT = Path(__file__).resolve().parents[3]
+        GAME = "slingshot"
+
+
+        @pytest.fixture(scope="module")
+        def base():
+            class Quiet(http.server.SimpleHTTPRequestHandler):
+                def log_message(self, *args):
+                    pass
+
+            handler = functools.partial(Quiet, directory=str(ROOT))
+            with contextlib.closing(socket.socket()) as s:
+                s.bind(("127.0.0.1", 0))
+                port = s.getsockname()[1]
+            server = http.server.ThreadingHTTPServer(("127.0.0.1", port), handler)
+            threading.Thread(target=server.serve_forever, daemon=True).start()
+            yield "http://localhost:%d/games/%s/" % (port, GAME)
+            server.shutdown()
+
+
+        def test_the_new_button_opens_its_panel(base):
+            with sync_playwright() as p:
+                browser = p.chromium.launch()
+                page = browser.new_page(viewport={"width": 1280, "height": 800})
+                page.goto(base + "index.html")
+                page.wait_for_function("!!document.querySelector('#the-new-button')", timeout=60000)
+                page.click("#the-new-button")
+                assert page.is_visible("#the-new-panel")
+                browser.close()
   - If the game has no browser tests yet, at least a test that reads the changed file and checks the
     new element, class or handler is there and wired up (weaker, but required).
 - The tests and flake8 run automatically after your edits. Fix any failure
   before saying you are done.
+- Edit an existing test file with small SEARCH/REPLACE blocks. Never paste a second copy of its imports or tests
+  into it (flake8 F811 "redefinition"): add only the new test functions.
+- Finishing a milestone: set its Status to Done in the game's CLAUDE.md milestone table. Some games have a test
+  that pins that table (for example tests/test_assets_and_shell.py, test_the_claude_md_milestone_table_...):
+  update that test's expected statuses in the same change, or it fails.
 
 ## Style
 - Match the code around you: same naming, same comment density, same idioms.
