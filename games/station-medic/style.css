@@ -274,3 +274,60 @@ html[data-theme="light"] ul.shift-grid, html[data-theme="light"] ul.result-beats
 .ach-list .tick { display: inline-block; min-width: 4rem; text-align: center; font-weight: 700; font-size: 0.78rem; border: 1px solid var(--edge); border-radius: 999px; padding: 0 0.4rem; font-variant-numeric: tabular-nums; }
 .ach-list li.earned .tick { border-style: double; border-width: 3px; }
 html[data-theme="light"] ul.ach-list { list-style: none; padding-left: 0; margin-left: 0; }
+
+/* R4-SMMO-8: Borrow confirm sheet for mobile */
+@media (max-width: 600px) {
+  .borrow-confirm-sheet {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: var(--panel-fill);
+    border-top: 2px solid var(--accent);
+    padding: 1rem;
+    z-index: 100;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transform: translateY(100%);
+    transition: transform 0.3s ease-out;
+  }
+  .borrow-confirm-sheet[hidden] {
+    display: none;
+  }
+  .borrow-confirm-sheet.visible {
+    transform: translateY(0);
+  }
+  .borrow-confirm-content {
+    background: var(--panel);
+    border-radius: 12px;
+    padding: 1rem;
+    width: 90%;
+    max-width: 400px;
+    box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.3);
+  }
+  .borrow-confirm-content h3 {
+    margin: 0 0 0.5rem;
+    font-size: 1.1rem;
+    color: var(--accent);
+  }
+  .borrow-confirm-content p {
+    margin: 0 0 1rem;
+    font-size: 0.95rem;
+  }
+  .borrow-confirm-buttons {
+    display: flex;
+    gap: 0.5rem;
+    justify-content: flex-end;
+  }
+  .borrow-confirm-buttons button {
+    min-height: 44px;
+    padding: 0.5rem 1rem;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .borrow-confirm-sheet {
+      transition: none;
+    }
+  }
+}

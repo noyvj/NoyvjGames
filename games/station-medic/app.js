@@ -789,6 +789,81 @@
     heading.addEventListener("contextmenu", function (e) { e.preventDefault(); });   // a phone's long press would open its own menu
   }
 
+  // R4-SMMO-8: Long-press on supply shelf to borrow it via confirm sheet
+  var borrowItemIndex = null;
+  var borrowDownTime = null;
+  function _initBorrowConfirm() {
+    var list = $("cabinet-list");
+    if (!list) return;
+
+    list.addEventListener("pointerdown", function (e) {
+      var shelf = e.target.closest(".shelf-pick");
+      if (!shelf || !shelf.draggable) return; // Only draggable shelves can be long-pressed to borrow
+      
+      var itemIndex = parseInt(shelf.parentElement.dataset.item, 10);
+      borrowItemIndex = itemIndex;
+      borrowDownTime = e.timeStamp;
+    });
+
+    list.addEventListener("pointermove", function (e) {
+      if (borrowItemIndex === null) return;
+      
+      // If user moves significantly, cancel the hold
+      var shelf = e.target.closest(".shelf-pick");
+      if (!shelf) return;
+      
+      var itemIndex = parseInt(shelf.parentElement.dataset.item, 10);
+      if (itemIndex !== borrowItemIndex) {
+        borrowItemIndex = null;
+        borrowDownTime = null;
+        return;
+      }
+    });
+
+    list.addEventListener("pointerup", function (e) {
+      if (borrowItemIndex !== null && borrowDownTime !== null && e.timeStamp - borrowDownTime >= HOLD_MS) {
+        showBorrowConfirm(borrowItemIndex);
+      }
+      borrowItemIndex = null;
+      borrowDownTime = null;
+    });
+
+    list.addEventListener("pointercancel", function () {
+      borrowItemIndex = null;
+      borrowDownTime = null;
+    });
+
+    $("borrow-confirm-yes").addEventListener("click", function () {
+      hideBorrowConfirm();
+      if (borrowItemIndex !== null) {
+        act({ action: "borrow", item: borrowItemIndex });
+        borrowItemIndex = null;
+      }
+    });
+
+    $("borrow-confirm-no").addEventListener("click", hideBorrowConfirm);
+  }
+
+  function showBorrowConfirm(itemIndex) {
+    var item = view.cabinet.items.filter(function (i) { return i.i === itemIndex; })[0];
+    if (!item) return;
+    
+    var text = "Borrow one " + item.name + "? It will cost 1 seal on this shift.";
+    setText($("borrow-confirm-text"), text);
+    
+    var sheet = $("borrow-confirm-sheet");
+    sheet.hidden = false;
+    // Force reflow for transition
+    void sheet.offsetWidth;
+    sheet.classList.add("visible");
+  }
+
+  function hideBorrowConfirm() {
+    var sheet = $("borrow-confirm-sheet");
+    sheet.classList.remove("visible");
+    sheet.hidden = true;
+  }
+
   function wire() {
     wireDifficulty();
     $("toast").addEventListener("click", function () { showToast(""); });
@@ -815,6 +890,7 @@
     _initSheetGesture();
     _initHoldToRestore();
     _initNotesBanner();
+    _initBorrowConfirm();
     if (window.matchMedia) {
       var phoneQuery = window.matchMedia("(max-width: 600px)");
       if (phoneQuery.addEventListener) phoneQuery.addEventListener("change", function () { if (view) { renderCabinet(); } });

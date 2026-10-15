@@ -193,6 +193,18 @@
       <div id="borrow-row" class="act-row" role="group" aria-label="Borrow a spare"></div>
     </details>
   </section>
+
+  <!-- R4-SMMO-8: Borrow confirm sheet for mobile -->
+  <div id="borrow-confirm-sheet" class="borrow-confirm-sheet" hidden>
+    <div class="borrow-confirm-content">
+      <h3>Borrow supply?</h3>
+      <p id="borrow-confirm-text"></p>
+      <div class="borrow-confirm-buttons">
+        <button id="borrow-confirm-yes" class="primary">Borrow (cost 1)</button>
+        <button id="borrow-confirm-no">Cancel</button>
+      </div>
+    </div>
+  </div>
   <button id="sheet-tab" class="sheet-tab" type="button" aria-controls="sheet-panel" aria-expanded="false">Condition Sheet</button>
   <section id="sheet-panel" class="panel" aria-labelledby="sheet-heading" data-open="false">
     <button id="sheet-close-button" class="sheet-close" type="button">Close the sheet</button>
