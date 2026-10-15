@@ -8,7 +8,8 @@ model = ollama_chat/qwen3.6:35b
 # run python local-ai/ab_report.py after ~30 tasks and set the winner).
 # 2026-10-15: "off" never reached the model until ai.ps1 was fixed (Aider sent it where Ollama ignores it), so every
 # run so far thought, and the earlier A/B compared on with on. Off is now real: a reply with no thinking at all.
-think = off
+# 2026-10-15: back to ab for the first real comparison (thinking tasks now get the 128k context).
+think = ab
 
 # push = on lets ai-queue push finished local-ai/... branches to GitHub every sync_every tasks
 # and at the end, so other sessions can see them. main is never pushed. Safe: the website

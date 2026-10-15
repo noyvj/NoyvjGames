@@ -240,6 +240,12 @@ if ($thinkMode -eq "ab") {
     $doneRows = @(Get-Content (Join-Path $aiDir "queue-done.txt") -Encoding utf8 -ErrorAction SilentlyContinue | Where-Object { $_ -match '(PASSED|FAILED)  ' }).Count
     $thinkMode = if ($doneRows % 2 -eq 0) { "off" } else { "on" }
 }
+# Thinking needs room: with 64k, a reply's reasoning (5k-34k tokens) filled the context before any answer
+# (2026-10-14). So a thinking task uses at least the 128k name of the same model (2026-10-15, real A/B).
+if ($thinkMode -eq "on" -and $Model -eq "ollama_chat/qwen3.6:35b") {
+    $Model = "ollama_chat/qwen3.6-128k"
+    $aiderArgs[[array]::IndexOf($aiderArgs, "--model") + 1] = $Model
+}
 if ($thinkMode -eq "off") {
     # Aider's --reasoning-effort puts the setting in extra_body, which Ollama ignores: from 2026-10-14 until this
     # fix every "off" task still thought (up to 34k tokens per reply, often filling the context before any answer,

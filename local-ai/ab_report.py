@@ -11,11 +11,17 @@ from collections import defaultdict
 from pathlib import Path
 
 REPORTS = Path(__file__).resolve().parent / ".history" / "reports"
+# Only runs from here on count: before 2026-10-15 10:30 "off" never reached the model (every run thought) and
+# "on" had a 64k context its own reasoning could fill, so older reports compare on with on.
+SINCE = "261015-103000"   # yymmdd-HHMMSS, as in the report file names
 
 
 def main():
     rows = defaultdict(lambda: {"runs": 0, "passed": 0, "minutes": 0.0})
     for path in REPORTS.glob("*.md"):
+        stamp = re.search(r"-(\d{6}-\d{6})\.md$", path.name)
+        if not stamp or stamp.group(1) < SINCE:
+            continue
         text = path.read_text(encoding="utf-8-sig", errors="replace")
         mode = re.search(r"^- Thinking: (on|off)", text, re.M)
         if not mode:
