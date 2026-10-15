@@ -412,6 +412,71 @@ document.addEventListener("DOMContentLoaded", function () {
 });
 
 document.addEventListener("DOMContentLoaded", function () {
+  /* Hover any sign to light up every place it appears (PC only) */
+  var highlightTimeout = null;
+
+  function clearHighlights() {
+    document.querySelectorAll(".sign-match").forEach(function(el) {
+      el.classList.remove("sign-match");
+    });
+  }
+
+  function highlightSigns(query) {
+    if (!query) return;
+    var lowerQuery = query.toLowerCase();
+    
+    // Highlight in scenes
+    document.querySelectorAll(".scene-list li").forEach(function(li) {
+      if (li.textContent.toLowerCase().includes(lowerQuery)) {
+        li.classList.add("sign-match");
+      }
+    });
+
+    // Highlight in notebook
+    document.querySelectorAll(".notebook-list li").forEach(function(li) {
+      if (li.textContent.toLowerCase().includes(lowerQuery)) {
+        li.classList.add("sign-match");
+      }
+    });
+
+    // Highlight in crew log
+    document.querySelectorAll("#crew-log-entries > *").forEach(function(el) {
+      if (el.textContent.toLowerCase().includes(lowerQuery)) {
+        el.classList.add("sign-match");
+      }
+    });
+  }
+
+  function handleHover(e) {
+    var target = e.target.closest(".scene-list li, .notebook-list li, #crew-log-entries > *");
+    if (!target) return;
+
+    // Get the text content of the hovered element (the sign)
+    var signText = target.textContent.trim();
+    if (!signText) return;
+
+    // Clear existing highlights
+    clearHighlights();
+
+    // Highlight all occurrences of this sign
+    highlightSigns(signText);
+  }
+
+  document.addEventListener("mouseover", function(e) {
+    clearTimeout(highlightTimeout);
+    handleHover(e);
+  });
+
+  document.addEventListener("mouseout", function(e) {
+    var relatedTarget = e.relatedTarget;
+    // If we moved out of the hovered element and not into another relevant element
+    if (!relatedTarget || !relatedTarget.closest(".scene-list li, .notebook-list li, #crew-log-entries > *")) {
+      highlightTimeout = setTimeout(clearHighlights, 100);
+    }
+  });
+});
+
+document.addEventListener("DOMContentLoaded", function () {
   /* Double-click a scene to jump to its notebook entry (PC only) */
   var reducedMotion = false;
   function checkReducedMotion() {

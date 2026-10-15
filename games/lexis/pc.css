@@ -159,6 +159,20 @@ html[data-reduced-motion="true"] .lexis-pinned-scene { transition: none; }
   pointer-events: none;
 }
 
+/* Sign hover highlighting (PC only) */
+.scene-list li.sign-match,
+.notebook-list li.sign-match,
+#crew-log-entries > *.sign-match {
+  background: var(--accent);
+  color: #fff;
+  border-radius: 4px;
+}
+html[data-reduced-motion="true"] .scene-list li.sign-match,
+html[data-reduced-motion="true"] .notebook-list li.sign-match,
+html[data-reduced-motion="true"] #crew-log-entries > *.sign-match {
+  transition: none;
+}
+
 /* Wide-screen docked panes with draggable dividers */
 @media (min-width: 1200px) {
   #pc-stage .planet-cols {
