@@ -85,3 +85,7 @@ To do on the Windows side (Claude on the Alienware):
   work, or split them so the engine part comes first.
 - Task types that worked: one panel with one button and one setting, a CSS-only layout change, a keyboard key
   that calls an existing engine action.
+
+## Prep work for Noy2 (2026-10-16)
+`local-ai/FOR-NOY2.md` lists the audits and file changes that should raise the local AI's pass rate most (splitting
+big tasks, a per-game map in CLAUDE.md, a shared browser-test helper, smaller big-game files, reviewing the stacks).
