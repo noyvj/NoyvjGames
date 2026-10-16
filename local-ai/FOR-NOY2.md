@@ -34,8 +34,9 @@ should raise the pass rate. Tick an item here when it's done, and leave a short 
   - Too big: "Decks 2-4: 24 more bays, posts, pads, hatches".
 - Format: queue.txt lines, `game | ITEM-ID | files | what to do`. Use chain items (`chain:NAME:N`, see
   ai.ps1's -Chain/-Step) so each step starts from the previous step's branch.
-- Replace the whole-milestone lines in local-ai/queue.txt with the steps, then run
-  `python local-ai/sort_queue.py --write`.
+- local-ai/queue.txt is not in git (it exists only on the Windows laptop), so don't edit it. Commit the steps
+  as `local-ai/incoming-tasks.txt` (same line format; a `# replaces: <ITEM-ID>, ...` comment line above each
+  group). The Windows session moves them into the queue and removes the whole-milestone lines they replace.
 - There is a proposed session card in the Windows session for exactly this ("Split new-game milestones into
   local-AI-sized steps"); this item replaces it if Noy2 does it.
 
