@@ -1711,3 +1711,40 @@ html[data-lite="true"] .mascot .mascot-face { animation: none; }
 
 html[data-lite="true"] .crate-visual.crate-waiting,
 html[data-lite="true"] .crate-visual.crate-opening { animation: none; }
+
+/* R4-THMO-8: swipeable cards for The Real Story on mobile */
+@media (max-width: 600px) {
+  #info-page-panel {
+    display: flex;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 1.5rem;
+  }
+  #info-page-panel > *:not(.info-page-dots) {
+    flex: 0 0 100%;
+    scroll-snap-align: center;
+    padding: 0 1rem;
+    box-sizing: border-box;
+  }
+  .info-page-dots {
+    display: flex;
+    justify-content: center;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+  }
+  .info-page-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.3);
+    transition: background 0.2s ease;
+  }
+  .info-page-dot.active {
+    background: #8fd8ff;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .info-page-dot { transition: none; }
+}
