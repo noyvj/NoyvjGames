@@ -933,10 +933,52 @@
       ],
     });
   </script>
+  <!-- R4-HEMO-2: sticky mobile top strip for round, funds, methane -->
+  <div id="mobile-top-strip" class="mobile-top-strip" hidden>
+    <span id="mobile-round">Round 1</span>
+    <span id="mobile-funds">Funds: 300</span>
+    <span id="mobile-methane">Methane: 0</span>
+    <span id="mobile-strip-label" class="mobile-strip-label">Stable</span>
+  </div>
+
+  <!-- R4-HEMO-2: Mobile sticky top strip sync & band label -->
   <script>
-    if ("serviceWorker" in navigator) {
-      navigator.serviceWorker.register("../../sw.js");
-    }
+    (function() {
+      const strip = document.getElementById("mobile-top-strip");
+      if (!strip) return;
+      const roundEl = document.getElementById("mobile-round");
+      const fundsEl = document.getElementById("mobile-funds");
+      const methaneEl = document.getElementById("mobile-methane");
+      const labelEl = document.getElementById("mobile-strip-label");
+
+      function updateStrip() {
+        if (!roundEl || !fundsEl || !methaneEl) return;
+        roundEl.textContent = document.getElementById("round-display")?.textContent || "Round 1";
+        fundsEl.textContent = document.getElementById("funds-display")?.textContent || "Funds: 300";
+        methaneEl.textContent = document.getElementById("methane-display")?.textContent || "Methane: 0";
+
+        const methaneText = methaneEl.textContent;
+        const num = parseFloat(methaneText.replace(/[^0-9.-]/g, ""));
+        if (isNaN(num)) return;
+
+        let band = "band-low";
+        let text = "Stable";
+        if (num > 50) { band = "band-mid"; text = "Rising"; }
+        if (num > 150) { band = "band-high"; text = "High"; }
+
+        labelEl.textContent = text;
+        labelEl.className = "mobile-strip-label " + band;
+      }
+
+      updateStrip();
+      strip.hidden = false;
+
+      const observer = new MutationObserver(updateStrip);
+      ["round-display", "funds-display", "methane-display"].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) observer.observe(el, { childList: true, characterData: true, subtree: true });
+      });
+    })();
   </script>
   <!--
     Milestone 6 feedback prompt: plain JS, not Pyodide/game.py — same

@@ -1865,6 +1865,37 @@ html[data-reduced-motion="true"] #pasture-visual.labels-on [data-label]::before 
 /* R4-HEMO-3: Mobile sideways lever shelf */
 .lever-shelf { display: none; }
 @media (max-width: 600px) {
+  /* R4-HEMO-2: sticky mobile top strip */
+  .mobile-top-strip {
+    position: sticky;
+    top: 0;
+    z-index: 40;
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    padding: 0.4rem 0.5rem;
+    background: rgba(20, 22, 36, 0.95);
+    border-bottom: 1px solid rgba(140, 160, 255, 0.2);
+    backdrop-filter: blur(8px);
+    font-size: 0.8rem;
+    gap: 0.3rem;
+  }
+  .mobile-strip-label {
+    font-size: 0.7rem;
+    padding: 0.15rem 0.4rem;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.1);
+    opacity: 0.8;
+    transition: background-color 0.3s ease, color 0.3s ease;
+  }
+  .mobile-strip-label.band-low { background: rgba(76, 156, 110, 0.3); color: #7fd6a3; }
+  .mobile-strip-label.band-mid { background: rgba(224, 162, 76, 0.3); color: #f0d36a; }
+  .mobile-strip-label.band-high { background: rgba(224, 103, 76, 0.3); color: #e0674c; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .mobile-strip-label { transition: none; }
+  }
+
   .lever-shelf {
     display: flex;
     flex-direction: row;
