@@ -1748,3 +1748,44 @@ html[data-lite="true"] .crate-visual.crate-opening { animation: none; }
 @media (prefers-reduced-motion: reduce) {
   .info-page-dot { transition: none; }
 }
+
+/* R4-THMO-5: Landscape comparison board — show all four regions as a compact 2x2 grid of mini graphs. */
+@media (max-width: 600px) and (orientation: landscape) {
+  #focus-mode-dots { display: none; }
+
+  /* Hide verbose status text to make room for graphs */
+  #game[data-landscape="true"] .status-line,
+  #game[data-landscape="true"] .comparison-message { display: none; }
+  #game[data-landscape="true"] .meter { height: 4px; }
+
+  /* Lay out the main sections into a compact grid */
+  #game[data-landscape="true"] {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    padding: 0.5rem;
+  }
+  #game[data-landscape="true"] #status,
+  #game[data-landscape="true"] #region-comparison,
+  #game[data-landscape="true"] #worst-case-section {
+    flex: 1 1 48%;
+    min-width: 0;
+    margin-bottom: 0;
+  }
+
+  /* Ensure region cards sit side-by-side in landscape */
+  #game[data-landscape="true"] .region-comparison-row {
+    display: flex;
+    gap: 0.4rem;
+  }
+  #game[data-landscape="true"] .region-card {
+    flex: 1 1 48%;
+    margin-bottom: 0;
+  }
+
+  /* Size graphs for landscape */
+  #game[data-landscape="true"] .mini-temp-graph-svg {
+    height: auto;
+    max-height: 5rem;
+  }
+}
