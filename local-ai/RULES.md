@@ -118,10 +118,13 @@ left, and stop.
             server.shutdown()
 
 
-        # The game is ready when its #engine-status line is empty (the Python engine loads first, which can take
-        # a minute). "#play" in the address skips the opening screen, which otherwise covers the page and makes
-        # every click time out.
-        READY = "document.querySelector('#engine-status') && document.querySelector('#engine-status').textContent === ''"
+        # The game is ready when the Python engine has loaded (it can take a minute): newer games empty their
+        # #engine-status line, older ones (no such line) have window.pyodide with get_state. This one check works
+        # in every game; do not write your own wait for a button or panel instead. "#play" in the address skips
+        # the opening screen, which otherwise covers the page and makes every click time out.
+        READY = ("(() => { const s = document.querySelector('#engine-status');"
+                 " if (s) return s.textContent === '' || s.hidden;"
+                 " return !!window.pyodide && !!window.pyodide.globals.get('get_state'); })()")
 
 
         def open_game(p, base, width=1280, height=800):
