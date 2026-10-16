@@ -521,6 +521,32 @@
         <button id="monitor-invest-button" class="secondary" disabled>Loading...</button>
         <span class="invest-forecast" id="monitor-forecast"></span>
       </div>
+
+      <!-- R4-THMO-2: Mobile investment bar for splitting funds on small screens -->
+      <div id="mobile-invest-bar" class="mobile-invest-bar">
+        <div class="mobile-invest-track" id="mobile-invest-track">
+          <div class="mobile-invest-fill"></div>
+          <div class="mobile-invest-handle handle-a" data-index="0"></div>
+          <div class="mobile-invest-handle handle-b" data-index="1"></div>
+        </div>
+        <div class="mobile-invest-segments">
+          <div class="mobile-invest-seg" data-cat="output">
+            <span class="mobile-invest-count">0</span>
+            <button class="mobile-invest-step" data-dir="-1">−</button>
+            <button class="mobile-invest-step" data-dir="1">+</button>
+          </div>
+          <div class="mobile-invest-seg" data-cat="preserve">
+            <span class="mobile-invest-count">0</span>
+            <button class="mobile-invest-step" data-dir="-1">−</button>
+            <button class="mobile-invest-step" data-dir="1">+</button>
+          </div>
+          <div class="mobile-invest-seg" data-cat="monitor">
+            <span class="mobile-invest-count">0</span>
+            <button class="mobile-invest-step" data-dir="-1">−</button>
+            <button class="mobile-invest-step" data-dir="1">+</button>
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- R4-THMO-7: one-region focus mode dots for mobile -->
@@ -1131,6 +1157,7 @@
       ],
     });
   </script>
+  <script src="mobile-invest.js"></script>
   <script src="haptic-feedback.js"></script>
   <script src="focus-mode.js"></script>
   <script src="landscape-grid.js"></script>
