@@ -1862,7 +1862,25 @@ html[data-reduced-motion="true"] #pasture-visual.labels-on [data-label]::before 
 }
 
 /* R4-HEMO-8: Mobile herd-size projection slider */
+/* R4-HEMO-3: Mobile sideways lever shelf */
+.lever-shelf { display: none; }
 @media (max-width: 600px) {
+  .lever-shelf {
+    display: flex;
+    flex-direction: row;
+    gap: 0.5rem;
+    overflow-x: auto;
+    padding-bottom: 0.5rem;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+  }
+  .lever-shelf > .section {
+    flex: 0 0 80%;
+    min-width: 240px;
+    max-width: 320px;
+    scroll-snap-align: start;
+  }
+
   .herd-slider-container {
     margin: 1rem 0;
     padding: 1rem;

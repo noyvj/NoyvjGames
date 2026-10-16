@@ -365,57 +365,60 @@
       <details class="info-toggle"><summary>i</summary><p>This tracks a second, imaginary farm that grew its herd exactly like yours but never invested a single unit in decoupling or the plant-based pivot — and never spent the funds on it either. It's the fairest "what if" comparison: same herd size, only the decoupling choices differ.</p></details>
     </div>
 
-    <div id="actions" class="section">
-      <p id="rules-badge" class="rules-badge" hidden></p>
-      <div id="bulk-stepper" class="bulk-stepper" role="group" aria-label="How many units each purchase button buys">
-        <span class="bulk-stepper-label">Buy</span>
-        <button id="bulk-1-button" class="secondary bulk-step selected" type="button" aria-pressed="true">x1</button>
-        <button id="bulk-5-button" class="secondary bulk-step" type="button" aria-pressed="false">x5</button>
-        <button id="bulk-max-button" class="secondary bulk-step" type="button" aria-pressed="false">Max</button>
+    <!-- R4-HEMO-3: Mobile sideways shelf for levers -->
+    <div id="mobile-lever-shelf" class="lever-shelf">
+      <div id="actions" class="section">
+        <p id="rules-badge" class="rules-badge" hidden></p>
+        <div id="bulk-stepper" class="bulk-stepper" role="group" aria-label="How many units each purchase button buys">
+          <span class="bulk-stepper-label">Buy</span>
+          <button id="bulk-1-button" class="secondary bulk-step selected" type="button" aria-pressed="true">x1</button>
+          <button id="bulk-5-button" class="secondary bulk-step" type="button" aria-pressed="false">x5</button>
+          <button id="bulk-max-button" class="secondary bulk-step" type="button" aria-pressed="false">Max</button>
+        </div>
+        <button id="grow-herd-button" class="secondary" disabled aria-describedby="lever-keys-hint">Loading...</button>
+        <span id="lever-keys-hint" class="sr-only">Keyboard tip: the Up and Down arrow keys move between the buy buttons.</span>
+        <p id="grow-consequence-preview" class="grow-consequence-preview">Loading...</p>
+        <p id="bulk-note" class="bulk-note"></p>
+        <p id="next-lever-hint" class="next-lever-hint" role="status" aria-live="polite" hidden></p>
       </div>
-      <button id="grow-herd-button" class="secondary" disabled aria-describedby="lever-keys-hint">Loading...</button>
-      <span id="lever-keys-hint" class="sr-only">Keyboard tip: the Up and Down arrow keys move between the buy buttons.</span>
-      <p id="grow-consequence-preview" class="grow-consequence-preview">Loading...</p>
-      <p id="bulk-note" class="bulk-note"></p>
-      <p id="next-lever-hint" class="next-lever-hint" role="status" aria-live="polite" hidden></p>
-    </div>
 
-    <div id="decoupling" class="section">
-      <p id="decoupling-summary-display" class="comparison-message">Decoupled: 0% below baseline emissions per herd unit</p>
-      <details class="info-toggle"><summary>i</summary><p>Feed Additives, Herd Caps, and Capture Systems all reduce the same underlying emissions ratio, and their effects stack additively — investing in several compounds rather than duplicating effort. The ratio has a floor, though: past a certain point, further investment stops helping.</p></details>
-      <p id="certification-display" class="comparison-message">Sustainable certification</p>
-      <p id="rating-display" class="comparison-message"></p>
-      <p id="streak-display" class="comparison-message" hidden></p>
-      <div class="invest-row" data-measure="feed">
-        <span class="invest-name" id="feed-name">Feed Additives</span>
-        <span class="invest-count" id="feed-count">0</span>
-        <button id="feed-invest-button" class="secondary" disabled>Loading...</button>
-        <span id="feed-efficiency" class="invest-efficiency"></span>
+      <div id="decoupling" class="section">
+        <p id="decoupling-summary-display" class="comparison-message">Decoupled: 0% below baseline emissions per herd unit</p>
+        <details class="info-toggle"><summary>i</summary><p>Feed Additives, Herd Caps, and Capture Systems all reduce the same underlying emissions ratio, and their effects stack additively — investing in several compounds rather than duplicating effort. The ratio has a floor, though: past a certain point, further investment stops helping.</p></details>
+        <p id="certification-display" class="comparison-message">Sustainable certification</p>
+        <p id="rating-display" class="comparison-message"></p>
+        <p id="streak-display" class="comparison-message" hidden></p>
+        <div class="invest-row" data-measure="feed">
+          <span class="invest-name" id="feed-name">Feed Additives</span>
+          <span class="invest-count" id="feed-count">0</span>
+          <button id="feed-invest-button" class="secondary" disabled>Loading...</button>
+          <span id="feed-efficiency" class="invest-efficiency"></span>
+        </div>
+        <div class="invest-row" data-measure="caps">
+          <span class="invest-name" id="caps-name">Herd Caps</span>
+          <span class="invest-count" id="caps-count">0</span>
+          <button id="caps-invest-button" class="secondary" disabled>Loading...</button>
+          <span id="caps-efficiency" class="invest-efficiency"></span>
+        </div>
+        <div class="invest-row" data-measure="capture">
+          <span class="invest-name" id="capture-name">Capture Systems</span>
+          <span class="invest-count" id="capture-count">0</span>
+          <button id="capture-invest-button" class="secondary" disabled>Loading...</button>
+          <span id="capture-efficiency" class="invest-efficiency"></span>
+        </div>
       </div>
-      <div class="invest-row" data-measure="caps">
-        <span class="invest-name" id="caps-name">Herd Caps</span>
-        <span class="invest-count" id="caps-count">0</span>
-        <button id="caps-invest-button" class="secondary" disabled>Loading...</button>
-        <span id="caps-efficiency" class="invest-efficiency"></span>
-      </div>
-      <div class="invest-row" data-measure="capture">
-        <span class="invest-name" id="capture-name">Capture Systems</span>
-        <span class="invest-count" id="capture-count">0</span>
-        <button id="capture-invest-button" class="secondary" disabled>Loading...</button>
-        <span id="capture-efficiency" class="invest-efficiency"></span>
-      </div>
-    </div>
 
-    <div id="plant-pivot" class="section">
-      <p class="meter-label">Alternative protein pivot<details class="info-toggle"><summary>i</summary><p>This is a separate lever from Feed/Caps/Capture — it changes what fraction of output is plant-based instead of making animal production more efficient, and cuts methane per unit much further. The tradeoff: plant-based output earns slightly less income per unit, and it can only replace up to 60% of production.</p></details></p>
-      <p id="plant-pivot-display" class="comparison-message">0% of output shifted to plant-based production</p>
-      <div class="invest-row" data-measure="plant-pivot">
-        <span class="invest-name">🌿 Plant-Based Pivot</span>
-        <span class="invest-count" id="plant-pivot-count">0</span>
-        <button id="plant-pivot-invest-button" class="secondary" disabled>Loading...</button>
-        <span id="pivot-efficiency" class="invest-efficiency"></span>
+      <div id="plant-pivot" class="section">
+        <p class="meter-label">Alternative protein pivot<details class="info-toggle"><summary>i</summary><p>This is a separate lever from Feed/Caps/Capture — it changes what fraction of output is plant-based instead of making animal production more efficient, and cuts methane per unit much further. The tradeoff: plant-based output earns slightly less income per unit, and it can only replace up to 60% of production.</p></details></p>
+        <p id="plant-pivot-display" class="comparison-message">0% of output shifted to plant-based production</p>
+        <div class="invest-row" data-measure="plant-pivot">
+          <span class="invest-name">🌿 Plant-Based Pivot</span>
+          <span class="invest-count" id="plant-pivot-count">0</span>
+          <button id="plant-pivot-invest-button" class="secondary" disabled>Loading...</button>
+          <span id="pivot-efficiency" class="invest-efficiency"></span>
+        </div>
+        <p id="combined-decoupling-display" class="comparison-message">Efficiency measures alone bring you to 1.00 methane/herd/round — the plant-based pivot isn't active yet.</p>
       </div>
-      <p id="combined-decoupling-display" class="comparison-message">Efficiency measures alone bring you to 1.00 methane/herd/round — the plant-based pivot isn't active yet.</p>
     </div>
 
     <details id="explain-panel" class="section farm-extras explain-panel">
@@ -1127,6 +1130,17 @@
         if (e.key.toLowerCase() === "i") hideLabels();
       });
     });
+  </script>
+  <!-- R4-HEMO-3: Mobile lever shelf behavior -->
+  <script>
+    (function () {
+      function initMobileLeverShelf() {
+        const shelf = document.getElementById("mobile-lever-shelf");
+        if (!shelf) return;
+        shelf.style.scrollBehavior = "smooth";
+      }
+      window.addEventListener("load", initMobileLeverShelf);
+    })();
   </script>
 <button type="button" class="secondary" id="noyvj-report-menu-button" onclick="window.NoyvjReport &amp;&amp; window.NoyvjReport.open()">Report a problem</button>
 <script src="../../shared/pc-shell.js"></script>
