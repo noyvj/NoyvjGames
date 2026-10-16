@@ -1697,7 +1697,17 @@ html[data-lite="true"] .mascot .mascot-face { animation: none; }
 @media (prefers-reduced-motion: reduce) {
   .crate-visual.crate-waiting, .crate-visual.crate-opening { animation: none; }
 }
-:root[data-reduced-motion="true"] .crate-visual.crate-waiting,
-:root[data-reduced-motion="true"] .crate-visual.crate-opening,
+/* R4-THMO-4: escalating haptic feedback visual cue on mobile. */
+@media (max-width: 600px) {
+  .threshold-crossed-pulse {
+    animation: haptic-pulse 0.9s ease;
+  }
+  @keyframes haptic-pulse {
+    0% { background-color: transparent; }
+    20% { background-color: rgba(224, 103, 76, 0.25); }
+    100% { background-color: transparent; }
+  }
+}
+
 html[data-lite="true"] .crate-visual.crate-waiting,
 html[data-lite="true"] .crate-visual.crate-opening { animation: none; }
