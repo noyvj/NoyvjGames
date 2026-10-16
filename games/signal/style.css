@@ -339,8 +339,23 @@ html[data-theme="light"][data-high-contrast="true"] { --ink: #000; --ink-dim: #1
 html[data-theme="light"][data-high-contrast="true"] .cell.pinged { background: #fff; }
 html[data-theme="light"][data-high-contrast="true"] .cell-num { color: #000; text-shadow: none; }
 
-/* ---- resume banner (mobile) ----------------------------------------------- */
+/* ---- magnifier bubble (mobile) ---------------------------------------------- */
+.magnifier-bubble {
+  position: fixed; z-index: 900; pointer-events: none;
+  background: rgba(13, 21, 18, 0.95); color: var(--amber);
+  border: 1px solid var(--panel-edge); border-radius: 8px;
+  padding: 0.4rem 0.6rem; font-size: 0.85rem; text-align: center;
+  transform: translate(-50%, -120%);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+  white-space: nowrap;
+}
+.magnifier-bubble .coord { font-weight: bold; display: block; }
+.magnifier-bubble .preview { font-size: 0.75rem; color: var(--ink-dim); margin-top: 2px; }
+.magnifier-bubble.visible { display: block; }
+.magnifier-bubble:not(.visible) { display: none; }
+
 @media (max-width: 600px) {
+  /* ---- resume banner (mobile) ----------------------------------------------- */
   .resume-banner {
     position: fixed; top: 0; left: 0; right: 0; z-index: 800;
     background: rgba(13, 21, 18, 0.95); color: var(--amber);
@@ -354,4 +369,8 @@ html[data-theme="light"][data-high-contrast="true"] .cell-num { color: #000; tex
     background: transparent; border: 1px solid var(--amber); color: var(--amber);
     padding: 0.2rem 0.6rem; font-size: 0.8rem; cursor: pointer; border-radius: 4px;
   }
+}
+
+html[data-reduced-motion="true"] .magnifier-bubble {
+  transition: none !important;
 }

@@ -46,6 +46,7 @@
   var catalog = { ach: [], log: [] };
   var toastQueue = [];
   var pendingSettings = {};
+  var magnifier = null;
   var timings = { paint: null, pyodide: null, game: null, ready: null, firstPing: null, firstPingQueued: false };
   var lastShareText = "";
 
@@ -967,6 +968,62 @@
     var kick = function () { startEngine(); };
     document.addEventListener("pointerdown", kick, { once: true });
     document.addEventListener("keydown", kick, { once: true });
+
+    // Magnifier bubble logic for mobile
+    if (magnifier) {
+      boardEl.addEventListener("pointerdown", function (ev) {
+        var btn = ev.target.closest(".cell");
+        if (!btn || view.status !== "inprogress") return;
+        showMagnifier(btn, ev.clientX, ev.clientY);
+      });
+      boardEl.addEventListener("pointermove", function (ev) {
+        if (!magnifier.classList.contains("visible")) return;
+        var btn = ev.target.closest(".cell");
+        if (btn) {
+          updateMagnifier(btn, ev.clientX, ev.clientY);
+        } else {
+          hideMagnifier();
+        }
+      });
+      boardEl.addEventListener("pointerup", function () { hideMagnifier(); });
+      document.addEventListener("pointerdown", function (ev) {
+        if (!boardEl.contains(ev.target)) hideMagnifier();
+      });
+    }
+  }
+
+  function showMagnifier(btn, x, y) {
+    if (!magnifier) return;
+    var r = parseInt(btn.getAttribute("data-r"), 10);
+    var c = parseInt(btn.getAttribute("data-c"), 10);
+    magnifier.querySelector(".coord").textContent = label(r, c);
+    magnifier.querySelector(".preview").textContent = "Tap to ping";
+    updateMagnifierPosition(x, y);
+    magnifier.classList.add("visible");
+  }
+
+  function updateMagnifier(btn, x, y) {
+    if (!magnifier) return;
+    var r = parseInt(btn.getAttribute("data-r"), 10);
+    var c = parseInt(btn.getAttribute("data-c"), 10);
+    magnifier.querySelector(".coord").textContent = label(r, c);
+    updateMagnifierPosition(x, y);
+  }
+
+  function updateMagnifierPosition(x, y) {
+    if (!magnifier) return;
+    // Position above the finger
+    var bubbleWidth = magnifier.offsetWidth || 60;
+    var left = x - bubbleWidth / 2;
+    // Clamp to screen edges
+    if (left < 10) left = 10;
+    if (left + bubbleWidth > window.innerWidth - 10) left = window.innerWidth - bubbleWidth - 10;
+    magnifier.style.left = left + "px";
+    magnifier.style.top = (y - 20) + "px";
+  }
+
+  function hideMagnifier() {
+    if (magnifier) magnifier.classList.remove("visible");
   }
 
   function init() {
@@ -989,6 +1046,14 @@
     renderAchievements();
     var d = new Date();
     cal = { y: d.getUTCFullYear(), m: d.getUTCMonth() };
+
+    // Initialize magnifier bubble for mobile
+    if (window.innerWidth <= 600) {
+      magnifier = document.createElement("div");
+      magnifier.className = "magnifier-bubble";
+      magnifier.innerHTML = '<span class="coord"></span><span class="preview"></span>';
+      document.body.appendChild(magnifier);
+    }
     // Start the engine right after the shell is painted into the DOM. A timer
     // (not requestAnimationFrame) so a tab opened in the background still warms up.
     setTimeout(startEngine, 0);
