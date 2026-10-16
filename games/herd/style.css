@@ -2009,3 +2009,73 @@ html[data-reduced-motion="true"] #pasture-visual.labels-on [data-label]::before 
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
   }
 }
+
+@media (max-width: 600px) {
+  /* R4-HEMO-4: Mobile methane thermometer */
+  .methane-thermo {
+    position: fixed;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 24px;
+    height: 160px;
+    background: rgba(20, 22, 36, 0.7);
+    border-radius: 12px;
+    border: 1px solid rgba(140, 160, 255, 0.2);
+    display: flex;
+    flex-direction: column-reverse;
+    overflow: hidden;
+    z-index: 30;
+    cursor: pointer;
+    transition: width 0.2s ease, height 0.2s ease, background 0.2s ease;
+  }
+  .methane-thermo-track {
+    flex: 1;
+    margin: 4px;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 8px;
+    overflow: hidden;
+    position: relative;
+  }
+  .methane-thermo-fill {
+    width: 100%;
+    height: 0%;
+    background: linear-gradient(180deg, #b06fd6, #8a4fb0);
+    transition: height 0.3s ease;
+  }
+  .methane-thermo-label {
+    position: absolute;
+    right: -28px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 0.7rem;
+    color: #e8e9f0;
+    white-space: nowrap;
+    opacity: 0.7;
+    pointer-events: none;
+  }
+  .methane-thermo.open {
+    width: 140px;
+    height: 200px;
+    right: 8px;
+    top: auto;
+    bottom: 8px;
+    transform: none;
+    background: rgba(20, 22, 36, 0.95);
+    border-color: rgba(140, 160, 255, 0.4);
+  }
+  .methane-thermo.open .methane-thermo-label { display: none; }
+  .methane-thermo.open .methane-thermo-track { margin: 8px; flex: 1; }
+  .methane-thermo-breakdown {
+    padding: 0.5rem;
+    font-size: 0.75rem;
+    color: #e8e9f0;
+    display: none;
+  }
+  .methane-thermo.open .methane-thermo-breakdown { display: block; }
+  .methane-thermo-breakdown p { margin: 0.2rem 0; opacity: 0.8; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .methane-thermo, .methane-thermo-fill { transition: none !important; }
+  }
+}

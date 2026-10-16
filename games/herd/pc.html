@@ -104,6 +104,17 @@
 <body>
   <div class="ambient-bg ambient-bg--pastoral" aria-hidden="true"><div class="ambient-bg-blobs"></div><div class="ambient-bg-accent"></div></div>
   <div id="game">
+    <!-- R4-HEMO-4: Mobile methane thermometer -->
+    <div id="methane-thermometer" class="methane-thermo" hidden>
+      <div class="methane-thermo-track">
+        <div id="methane-thermo-fill" class="methane-thermo-fill"></div>
+      </div>
+      <span id="methane-thermo-label" class="methane-thermo-label">0</span>
+      <div id="methane-thermo-breakdown" class="methane-thermo-breakdown">
+        <p id="methane-thermo-detail">Methane: 0</p>
+        <p id="methane-thermo-pressure">Pressure: 0%</p>
+      </div>
+    </div>
     <div id="haze-overlay" class="haze-overlay"></div>
     <div id="pinned-strip" class="pinned-strip" role="group" aria-label="Pinned stats" hidden></div>
     <a href="../../index.html" class="hub-back-link">&larr; All games</a>
