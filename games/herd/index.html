@@ -119,6 +119,7 @@
            accessibility.js/Aftermath's settings.js this pattern is modeled on. -->
       <button id="sandbox-toggle-button" class="secondary" type="button" data-sandbox-toggle title="Set the herd, methane and levers freely and watch the gauge react: unlimited funds, nothing scored or saved. Your real farm is untouched.">🧪 Practice sandbox</button>
       <button id="settings-toggle-button" class="secondary" type="button">⚙️ Settings</button>
+      <button id="calm-barn-toggle" class="secondary" type="button">🌙 Calm Barn</button>
     </div>
     <div id="howto-panel" class="section" hidden></div>
     <div id="achievements-panel" class="section achievements-panel" hidden></div>
@@ -245,6 +246,7 @@
     </div>
 
     <p id="tagline-display" class="tagline">Grow a farm. Herd size and methane emissions are coupled by default — decoupling them takes deliberate investment.</p>
+    <p id="calm-barn-word" class="tagline" hidden>Healthy Farm</p>
     <p class="context-blurb">Methane is a far more potent greenhouse gas than CO2 over the short term — roughly 80x stronger over 20 years — which makes industrial agriculture's methane output an outsized lever for near-term warming, even though it fades from the atmosphere faster than CO2 does.</p>
     <p id="community-stat-display" class="comparison-message community-stat" hidden></p>
 
@@ -842,6 +844,7 @@
     integration. game.py exposes get_state()/load_state(); the widget
     itself is untouched per-game.
   -->
+  <script src="app.js"></script>
   <script src="../../shared/hub-auth.js"></script>
   <script src="../../shared/save-widget.js" data-game-id="herd"></script>
   <!-- GF-24: the practice sandbox toggle and its banner (the rules live in game.py: sandbox_enter / sandbox_leave / sandbox_is_active). -->

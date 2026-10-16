@@ -9,6 +9,52 @@
   --text-scale: 1;
 }
 
+/* R4-HEMO-7: Calm barn mode (bedtime play) */
+@media (max-width: 600px) {
+  #game.calm-barn-mode .pasture-visual {
+    opacity: 0.35;
+    filter: brightness(0.45) saturate(0.6);
+  }
+
+  #game.calm-barn-mode .pasture-visual-cow,
+  #game.calm-barn-mode .pasture-visual-wisp,
+  #game.calm-barn-mode .pasture-visual-cloud {
+    animation-duration: calc(var(--calm-barn-slowdown, 4) * 1s);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    #game.calm-barn-mode .pasture-visual-cow,
+    #game.calm-barn-mode .pasture-visual-wisp,
+    #game.calm-barn-mode .pasture-visual-cloud {
+      animation-duration: 0s !important;
+    }
+  }
+
+  #game.calm-barn-mode .section:not(#actions),
+  #game.calm-barn-mode #gauge-section,
+  #game.calm-barn-mode #status,
+  #game.calm-barn-mode #decoupling,
+  #game.calm-barn-mode #plant-pivot,
+  #game.calm-barn-mode .mobile-top-strip,
+  #game.calm-barn-mode #calm-barn-toggle {
+    display: none !important;
+  }
+
+  #calm-barn-word {
+    display: none !important;
+    font-size: 1.4rem;
+    font-weight: 600;
+    text-align: center;
+    margin: 1rem 0;
+    color: #7fd6a3;
+    letter-spacing: 0.05em;
+  }
+
+  #game.calm-barn-mode #calm-barn-word {
+    display: block !important;
+  }
+}
+
 html {
   font-size: calc(16px * var(--text-scale, 1));
 }
