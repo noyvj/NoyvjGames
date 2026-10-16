@@ -1817,3 +1817,46 @@ html[data-reduced-motion="true"] .golden-cow-glider, html[data-lite="true"] .gol
 html[data-reduced-motion="true"] #pasture-visual.labels-on [data-label]::before {
   transition: none;
 }
+
+/* R4-HEPC-3: Right-click context menu on levers */
+.lever-context-menu {
+  position: fixed;
+  z-index: 1000;
+  background: var(--pc-window-bg, #16151d);
+  border: 1px solid rgba(140, 160, 255, 0.3);
+  border-radius: 8px;
+  padding: 0.4rem 0;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  min-width: 160px;
+}
+.lever-context-menu button {
+  background: none;
+  border: none;
+  padding: 0.5rem 1rem;
+  text-align: left;
+  cursor: pointer;
+  font: inherit;
+  color: inherit;
+  white-space: nowrap;
+}
+.lever-context-menu button:hover {
+  background: rgba(140, 160, 255, 0.1);
+}
+
+.invest-row.goal-pinned {
+  border-color: #e0c24c;
+  box-shadow: 0 0 8px rgba(224, 194, 76, 0.3);
+}
+
+#baseline-farm-card.highlighted {
+  border-color: #6fae70;
+  box-shadow: 0 0 12px rgba(111, 174, 112, 0.5);
+  transition: border-color 0.3s, box-shadow 0.3s;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lever-context-menu, #baseline-farm-card.highlighted { animation: none; }
+}

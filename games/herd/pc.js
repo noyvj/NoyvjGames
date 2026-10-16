@@ -93,3 +93,107 @@ document.addEventListener("keydown", (e) => {
     });
   });
 })();
+
+// R4-HEPC-3: Right-click context menu on levers (Desktop only)
+window.addEventListener("load", () => {
+  // Only for Desktop layout (pc.html)
+  if (!document.getElementById("pc-body")) return;
+
+  let menu = null;
+  let currentLeverRow = null;
+
+  function createMenu() {
+    menu = document.createElement("div");
+    menu.id = "lever-context-menu";
+    menu.className = "lever-context-menu";
+    menu.hidden = true;
+    ["buy", "pin-goal", "cost-over-time", "compare-baseline"].forEach(action => {
+      const btn = document.createElement("button");
+      btn.dataset.action = action;
+      btn.textContent = action.replace(/-/g, " ").replace(/\b\w/g, c => c.toUpperCase());
+      menu.appendChild(btn);
+    });
+    document.body.appendChild(menu);
+
+    menu.addEventListener("click", (e) => {
+      const btn = e.target.closest("button");
+      if (!btn) return;
+      handleAction(btn.dataset.action);
+      hideMenu();
+    });
+
+    document.addEventListener("click", function closeHandler(e) {
+      if (menu && !menu.contains(e.target)) {
+        hideMenu();
+        document.removeEventListener("click", closeHandler);
+      }
+    });
+  }
+
+  function showMenu(x, y, row) {
+    if (!menu) createMenu();
+    currentLeverRow = row;
+    menu.hidden = false;
+    const rect = menu.getBoundingClientRect();
+    const vw = window.innerWidth;
+    const vh = window.innerHeight;
+    let left = x;
+    let top = y;
+    if (left + rect.width > vw) left = vw - rect.width - 10;
+    if (top + rect.height > vh) top = vh - rect.height - 10;
+    menu.style.left = left + "px";
+    menu.style.top = top + "px";
+  }
+
+  function hideMenu() {
+    if (menu) menu.hidden = true;
+    currentLeverRow = null;
+  }
+
+  function handleAction(action) {
+    if (!currentLeverRow) return;
+    const btn = currentLeverRow.querySelector("button");
+    if (!btn) return;
+    const name = btn.textContent || "Lever";
+
+    switch (action) {
+      case "buy":
+        btn.click();
+        break;
+      case "pin-goal":
+        currentLeverRow.classList.toggle("goal-pinned");
+        showToast(`Goal pinned: ${name}`);
+        break;
+      case "cost-over-time":
+        showToast(`Cost over time for ${name}: 1 round = X funds (simulated)`);
+        break;
+      case "compare-baseline":
+        const card = document.getElementById("baseline-farm-card");
+        if (card) {
+          card.scrollIntoView({ behavior: "smooth" });
+          card.classList.add("highlighted");
+          setTimeout(() => card.classList.remove("highlighted"), 2000);
+        }
+        break;
+    }
+  }
+
+  function showToast(msg) {
+    const t = document.createElement("div");
+    t.className = "context-menu-toast";
+    t.textContent = msg;
+    t.style.cssText = "position:fixed;bottom:1rem;left:50%;transform:translateX(-50%);background:#2a2f48;color:#e8e9f0;padding:0.5rem 1rem;border-radius:6px;z-index:2000;opacity:0;transition:opacity 0.3s;";
+    document.body.appendChild(t);
+    requestAnimationFrame(() => t.style.opacity = "1");
+    setTimeout(() => { t.style.opacity = "0"; setTimeout(() => t.remove(), 300); }, 2000);
+  }
+
+  document.addEventListener("contextmenu", (e) => {
+    const row = e.target.closest(".invest-row, #actions");
+    if (!row) return;
+    const btn = e.target.closest("#grow-herd-button, .invest-row button");
+    if (!btn) return;
+    e.preventDefault();
+    showMenu(e.clientX, e.clientY, row);
+  });
+});
