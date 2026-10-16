@@ -56,3 +56,40 @@ document.addEventListener("keydown", (e) => {
   const help = document.getElementById("kb-shortcuts-panel");
   if (help && !help.hidden) e.__pcMenuOpened = true;
 }, true);
+
+// R4-HEPC-4: Hold I to label pasture parts
+(function() {
+  const parts = [
+    { sel: ".pasture-visual-sky", txt: "Sky & Sun\nWeather / Season swings (F9)" },
+    { sel: ".pasture-visual-cloud", txt: "Clouds\nPlant-based demand surges (F9)" },
+    { sel: ".pasture-visual-hill", txt: "Hills\nPasture land (affects welfare, F15)" },
+    { sel: "#pasture-barn", txt: "Barn\nRetrofits & cosmetic styles (GF-17)" },
+    { sel: ".pasture-fence", txt: "Fence\nHerd Caps limit pasture size" },
+    { sel: ".pasture-visual-cow", txt: "Cows\nFeed Additives, Welfare, Breeding" },
+    { sel: "#golden-cow-glider", txt: "Golden Cow\nVisits & bonus funds (GF-21)" },
+    { sel: "#pasture-herd-count", txt: "Herd size\nGrow Herd button" },
+  ];
+
+  window.addEventListener("load", () => {
+    const pasture = document.getElementById("pasture-visual");
+    if (!pasture) return;
+    parts.forEach(p => {
+      const el = pasture.querySelector(p.sel);
+      if (el) el.setAttribute("data-label", p.txt);
+    });
+
+    let labelTimeout = null;
+    function showLabels() { pasture.classList.add("labels-on"); }
+    function hideLabels() { 
+      if (labelTimeout) clearTimeout(labelTimeout);
+      labelTimeout = setTimeout(() => pasture.classList.remove("labels-on"), 150);
+    }
+
+    window.addEventListener("keydown", (e) => {
+      if (e.key.toLowerCase() === "i" && !e.ctrlKey && !e.altKey && !e.metaKey) showLabels();
+    });
+    window.addEventListener("keyup", (e) => {
+      if (e.key.toLowerCase() === "i") hideLabels();
+    });
+  });
+})();

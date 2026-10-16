@@ -254,14 +254,14 @@
     <p id="community-stat-display" class="comparison-message community-stat" hidden></p>
 
     <div id="pasture-visual" class="pasture-visual" data-barn="red" aria-hidden="true">
-      <div class="pasture-visual-sky"></div>
-      <div class="pasture-visual-sun"></div>
-      <div class="pasture-visual-cloud pasture-visual-cloud--a"></div>
-      <div class="pasture-visual-cloud pasture-visual-cloud--b"></div>
-      <div class="pasture-visual-hill pasture-visual-hill--back"></div>
-      <div class="pasture-visual-hill pasture-visual-hill--front"></div>
-      <div id="pasture-barn" class="pasture-barn"><span class="pasture-barn-roof"></span><span class="pasture-barn-door"></span></div>
-      <div class="pasture-fence"></div>
+      <div class="pasture-visual-sky" data-label="Sky &amp; Sun&#10;Weather / Season swings (F9)"></div>
+      <div class="pasture-visual-sun" data-label="Sun&#10;Season swings"></div>
+      <div class="pasture-visual-cloud pasture-visual-cloud--a" data-label="Clouds&#10;Plant-based demand surges (F9)"></div>
+      <div class="pasture-visual-cloud pasture-visual-cloud--b" data-label="Clouds&#10;Demand surges"></div>
+      <div class="pasture-visual-hill pasture-visual-hill--back" data-label="Hills&#10;Pasture land (affects welfare, F15)"></div>
+      <div class="pasture-visual-hill pasture-visual-hill--front" data-label="Hills&#10;Pasture land"></div>
+      <div id="pasture-barn" class="pasture-barn" data-label="Barn&#10;Retrofits &amp; cosmetic styles (GF-17)"><span class="pasture-barn-roof"></span><span class="pasture-barn-door"></span></div>
+      <div class="pasture-fence" data-label="Fence&#10;Herd Caps limit pasture size"></div>
       <div id="golden-cow-glider" class="golden-cow-glider" hidden>&#128004;&#10024;</div>
       <span id="pasture-herd-count" class="pasture-herd-count" hidden>Herd: 0</span>
       <div class="pasture-visual-herd">
@@ -1098,6 +1098,25 @@
           .catch(() => { cache.set(key, { at: Date.now(), text: null, title: "" }); });
       };
     })();
+  </script>
+  <!-- R4-HEPC-4: Hold I to label pasture parts (works on both Classic and Desktop pages) -->
+  <script>
+    window.addEventListener("load", () => {
+      const pasture = document.getElementById("pasture-visual");
+      if (!pasture) return;
+      let labelTimeout = null;
+      function showLabels() { pasture.classList.add("labels-on"); }
+      function hideLabels() { 
+        if (labelTimeout) clearTimeout(labelTimeout);
+        labelTimeout = setTimeout(() => pasture.classList.remove("labels-on"), 150);
+      }
+      window.addEventListener("keydown", (e) => {
+        if (e.key.toLowerCase() === "i" && !e.ctrlKey && !e.altKey && !e.metaKey) showLabels();
+      });
+      window.addEventListener("keyup", (e) => {
+        if (e.key.toLowerCase() === "i") hideLabels();
+      });
+    });
   </script>
 <button type="button" class="secondary" id="noyvj-report-menu-button" onclick="window.NoyvjReport &amp;&amp; window.NoyvjReport.open()">Report a problem</button>
 <script src="../../shared/pc-shell.js"></script>

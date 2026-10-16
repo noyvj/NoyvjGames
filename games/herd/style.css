@@ -1792,3 +1792,28 @@ html[data-reduced-motion="true"] .golden-cow-glider, html[data-lite="true"] .gol
 .sandbox-panel .rule-row { display: flex; justify-content: space-between; gap: 0.5rem; margin-top: 0.5rem; font-size: 0.85rem; }
 .sandbox-panel output { font-variant-numeric: tabular-nums; font-weight: 700; }
 .sandbox-panel button { margin-top: 0.5rem; }
+
+/* R4-HEPC-4: Hold I to label pasture parts */
+[data-label]::before {
+  content: attr(data-label);
+  position: absolute;
+  top: -1.5rem; left: 50%; transform: translateX(-50%) translateY(0) scale(0.9);
+  background: rgba(20, 22, 36, 0.9);
+  color: #f1f2f8;
+  font-size: 0.75rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  white-space: pre-line;
+  pointer-events: none;
+  z-index: 20;
+  text-align: center;
+  opacity: 0;
+  transition: opacity 0.15s ease, transform 0.15s ease;
+}
+#pasture-visual.labels-on [data-label]::before {
+  opacity: 1;
+  transform: translateX(-50%) translateY(-100%) scale(1);
+}
+html[data-reduced-motion="true"] #pasture-visual.labels-on [data-label]::before {
+  transition: none;
+}
