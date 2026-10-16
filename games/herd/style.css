@@ -1860,3 +1860,57 @@ html[data-reduced-motion="true"] #pasture-visual.labels-on [data-label]::before 
 @media (prefers-reduced-motion: reduce) {
   .lever-context-menu, #baseline-farm-card.highlighted { animation: none; }
 }
+
+/* R4-HEMO-8: Mobile herd-size projection slider */
+@media (max-width: 600px) {
+  .herd-slider-container {
+    margin: 1rem 0;
+    padding: 1rem;
+    background: rgba(20, 22, 36, 0.6);
+    border-radius: 12px;
+    border: 1px solid rgba(140, 160, 255, 0.14);
+  }
+  .herd-slider-readouts {
+    display: flex;
+    justify-content: space-around;
+    margin-bottom: 0.75rem;
+    font-size: 0.9rem;
+    font-weight: 600;
+  }
+  .herd-slider-readouts span {
+    padding: 0.3rem 0.6rem;
+    background: rgba(140, 160, 255, 0.1);
+    border-radius: 6px;
+  }
+  .herd-slider-label {
+    display: block;
+    text-align: center;
+    margin-bottom: 0.5rem;
+    font-size: 0.85rem;
+    opacity: 0.8;
+  }
+  .herd-slider-input {
+    width: 100%;
+    height: 24px;
+    appearance: none;
+    background: transparent;
+    cursor: pointer;
+  }
+  .herd-slider-input::-webkit-slider-thumb {
+    appearance: none;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: #e0c24c;
+    border: 2px solid #fff;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+  }
+  .herd-slider-input::-moz-range-thumb {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: #e0c24c;
+    border: 2px solid #fff;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+  }
+}

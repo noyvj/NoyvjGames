@@ -721,6 +721,54 @@
     return false;
   }
 
+  // R4-HEMO-8: Mobile herd-size projection slider. Shows projected methane and income
+  // above a large range input on narrow screens. Purely visual/projection-based; does
+  // not bypass growth costs or game balance. Respects reduced motion by keeping updates
+  // instant and leaving the thumb animation disabled in CSS.
+  function initHerdSlider() {
+    const container = document.getElementById("herd-slider-container");
+    const slider = document.getElementById("herd-size-slider");
+    const methaneEl = document.getElementById("herd-slider-methane");
+    const incomeEl = document.getElementById("herd-slider-income");
+    if (!container || !slider) return;
+
+    function updateProjection() {
+      let herdSize = parseInt(slider.value, 10);
+      // Rough projection: methane scales with coupling ratio, income scales with herd size minus pressure.
+      // Uses current farm state if available, otherwise defaults.
+      let coupling = 1.0;
+      let pressure = 0.0;
+      try {
+        const farm = window.pyodide?.globals?.get("farm");
+        if (farm) {
+          coupling = farm.coupling_ratio() || 1.0;
+          pressure = farm.pressure_fraction() || 0.0;
+        }
+      } catch (e) { /* Pyodide not ready or farm missing */ }
+
+      const projectedMethane = Math.round(herdSize * coupling);
+      const baseIncome = herdSize * 10; // Simplified base income per unit for projection
+      const projectedIncome = Math.round(baseIncome * (1 - pressure));
+
+      methaneEl.textContent = "Methane: " + projectedMethane;
+      incomeEl.textContent = "Income: " + projectedIncome;
+    }
+
+    slider.addEventListener("input", updateProjection);
+    updateProjection();
+
+    // Show on mobile, hide on desktop
+    function checkVisibility() {
+      if (window.innerWidth <= 600) {
+        container.hidden = false;
+      } else {
+        container.hidden = true;
+      }
+    }
+    window.addEventListener("resize", checkVisibility);
+    checkVisibility();
+  }
+
   function init() {
     initDisplayPrefs();
     initConfirmThreshold();
@@ -773,6 +821,8 @@
     }
 
     const settingsResetButton = document.getElementById("settings-reset-button");
+    initHerdSlider();
+
     if (settingsResetButton) {
       settingsResetButton.addEventListener("click", function () {
         scale = applyScale(DEFAULT_SCALE);

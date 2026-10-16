@@ -273,6 +273,16 @@
       <p id="cow-bubble" class="cow-bubble" role="status" aria-live="polite" hidden></p>
     </div>
 
+    <!-- R4-HEMO-8: Mobile herd-size projection slider -->
+    <div id="herd-slider-container" class="herd-slider-container" hidden>
+      <div class="herd-slider-readouts">
+        <span id="herd-slider-methane">Methane: 0</span>
+        <span id="herd-slider-income">Income: 0</span>
+      </div>
+      <label for="herd-size-slider" class="herd-slider-label">Project herd size</label>
+      <input type="range" id="herd-size-slider" class="herd-slider-input" min="0" max="80" value="0">
+    </div>
+
     <button id="info-page-toggle-button" class="secondary info-page-toggle">Loading...</button>
     <div id="info-page-panel" class="section" hidden>
       <p id="info-page-framing" class="info-page-framing"></p>
