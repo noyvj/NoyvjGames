@@ -7,6 +7,7 @@ import re
 from pathlib import Path
 
 import pytest
+from .pagefiles import app_text
 
 GAME_DIR = Path(__file__).resolve().parent.parent
 SLUG = "signal"
@@ -59,7 +60,7 @@ def test_json_ld_is_inlined_and_valid(name):
 
 
 def test_signal_keeps_its_own_share_text_and_does_not_use_copy_result():
-    app = (GAME_DIR / "app.js").read_text(encoding="utf-8")
+    app = app_text()
     assert "lastShareText" in app
     assert "NoyvjCopyResult" not in app
     assert "data-achievement-id" in app

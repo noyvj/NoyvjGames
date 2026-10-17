@@ -11,6 +11,7 @@ import threading
 from pathlib import Path
 
 import pytest
+from .pagefiles import app_text
 
 GAME_DIR = Path(__file__).resolve().parent.parent
 HTML = (GAME_DIR / "index.html").read_text(encoding="utf-8")
@@ -18,7 +19,7 @@ PC_HTML = (GAME_DIR / "pc.html").read_text(encoding="utf-8")
 PC_JS = (GAME_DIR / "pc.js").read_text(encoding="utf-8")
 PC_CSS = (GAME_DIR / "pc.css").read_text(encoding="utf-8")
 CONFIG = json.loads((GAME_DIR / "pc-config.json").read_text(encoding="utf-8"))
-APP = (GAME_DIR / "app.js").read_text(encoding="utf-8")
+APP = app_text()
 
 
 def test_the_section_exists_hidden_in_both_pages_and_is_registered_in_the_side_zone():
