@@ -411,6 +411,33 @@ document.addEventListener("DOMContentLoaded", function () {
   });
 });
 
+/* R4-LEPC-1: hover any sign to light up every copy of it. app.js writes data-sign on each drawn sign (a pulse
+   group, a glyph, a small sign); the story and crew log never show signs, so they have nothing to light. Only
+   document-level listeners here, so it does not matter that this file loads before the page is built. */
+(function () {
+  function outermostSign(node) {
+    var sign = node && node.closest ? node.closest("[data-sign]") : null;
+    while (sign && sign.parentElement && sign.parentElement.closest("[data-sign]")) {
+      sign = sign.parentElement.closest("[data-sign]");
+    }
+    return sign;
+  }
+  function clearMatches() {
+    document.querySelectorAll(".sign-match").forEach(function (el) { el.classList.remove("sign-match"); });
+  }
+  document.addEventListener("mouseover", function (e) {
+    var sign = outermostSign(e.target);
+    clearMatches();
+    if (!sign) return;
+    document.querySelectorAll("[data-sign]").forEach(function (el) {
+      if (el.dataset.sign === sign.dataset.sign && outermostSign(el) === el) el.classList.add("sign-match");
+    });
+  });
+  document.addEventListener("mouseout", function (e) {
+    if (!e.relatedTarget || !outermostSign(e.relatedTarget)) clearMatches();
+  });
+})();
+
 document.addEventListener("DOMContentLoaded", function () {
   /* Double-click a scene to jump to its notebook entry (PC only) */
   var reducedMotion = false;
@@ -483,4 +510,76 @@ document.addEventListener("DOMContentLoaded", function () {
     printGlossary.innerHTML = "";
     printGlossary.hidden = true;
   });
+});
+
+/* R4-LEPC-2: three docked panes (scene player | notebook | transmit) with two draggable dividers, on wide
+   screens only (pc.css lays them out). pc-shell builds #pc-stage after this file runs, so the dividers are
+   added on window load. The widths are CSS custom properties in fr units on #pc-stage, so they scale with the
+   window; the dividers are keyboard operable (Left and Right) and never change the engine or the save. */
+window.addEventListener("load", function () {
+  var stage = document.getElementById("pc-stage");
+  if (!stage) return;
+  var MIN = 220, panes = [1, 1, 1];            // relative widths (fr) of the three panes
+  function apply() { stage.style.setProperty("--lexis-pane-a", panes[0] + "fr"); stage.style.setProperty("--lexis-pane-b", panes[1] + "fr"); stage.style.setProperty("--lexis-pane-c", panes[2] + "fr"); }
+  function shift(i, px, cols) {
+    // Move the divider between pane i and i+1 by px, keeping the sum and both panes above MIN.
+    var widths = paneWidths(cols);
+    if (!widths) return;
+    var total = widths[0] + widths[1] + widths[2];
+    if (!total) return;
+    var a = widths[i] + px, b = widths[i + 1] - px;
+    if (a < MIN) { b -= MIN - a; a = MIN; }
+    if (b < MIN) { a -= MIN - b; b = MIN; }
+    widths[i] = a; widths[i + 1] = b;
+    panes = widths.map(function (w) { return Math.round(w / total * 3000) / 1000; });
+    apply();
+  }
+  function paneWidths(cols) {
+    var first = cols.querySelector(":scope > .planet-col:first-child");
+    var nb = cols.querySelector(".planet-col:last-child > section:first-of-type");
+    var tx = cols.querySelector(".planet-col:last-child > section:nth-of-type(2)");
+    if (!first || !nb || !tx) return null;
+    return [first.getBoundingClientRect().width, nb.getBoundingClientRect().width, tx.getBoundingClientRect().width];
+  }
+  function makeBar(i, cols) {
+    var bar = document.createElement("div");
+    bar.className = "pc-divider pc-divider-" + (i + 1);
+    bar.setAttribute("role", "separator");
+    bar.setAttribute("aria-orientation", "vertical");
+    bar.setAttribute("aria-label", i === 0 ? "Resize scene and notebook panes" : "Resize notebook and transmit panes");
+    bar.tabIndex = 0;
+    bar.addEventListener("pointerdown", function (e) {
+      e.preventDefault();
+      var last = e.clientX;
+      bar.setPointerCapture(e.pointerId);
+      function move(ev) { shift(i, ev.clientX - last, cols); last = ev.clientX; }
+      function up() { bar.removeEventListener("pointermove", move); bar.removeEventListener("pointerup", up); }
+      bar.addEventListener("pointermove", move);
+      bar.addEventListener("pointerup", up);
+    });
+    bar.addEventListener("keydown", function (e) {
+      if (e.key === "ArrowLeft") { e.preventDefault(); shift(i, -32, cols); }
+      else if (e.key === "ArrowRight") { e.preventDefault(); shift(i, 32, cols); }
+    });
+    return bar;
+  }
+  // The dividers exist only while the window is wide: pc.css's existing rules use :last-child on the columns and
+  // their panels, so a divider left in the markup would change them on narrower windows. The first divider sits
+  // between the two columns; the second is the last child of the (display: contents) second column.
+  function build() {
+    stage.querySelectorAll(".planet-cols").forEach(function (cols) {
+      var second = cols.querySelector(":scope > .planet-col:last-child");
+      if (!second || cols.querySelector(".pc-divider")) return;
+      cols.insertBefore(makeBar(0, cols), second);
+      second.appendChild(makeBar(1, cols));
+    });
+  }
+  function teardown() {
+    stage.querySelectorAll(".pc-divider").forEach(function (bar) { bar.remove(); });
+  }
+  var wide = window.matchMedia("(min-width: 1200px)");
+  function sync() { if (wide.matches) build(); else teardown(); }
+  if (wide.addEventListener) wide.addEventListener("change", sync); else wide.addListener(sync);
+  sync();
+  apply();
 });

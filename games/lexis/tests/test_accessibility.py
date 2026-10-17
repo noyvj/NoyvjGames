@@ -288,7 +288,7 @@ def test_the_desktop_layout_keeps_both_columns_and_scrolls_inside_panels_not_the
     config = json.loads((GAME_DIR / "pc-config.json").read_text(encoding="utf-8"))
     assert [w[0] for w in config["windows"]] == ["crew-log-panel", "museum-panel", "star-map-panel",
                                                  "report-panel", "achievements-panel", "changelog-panel",
-                                                 "settings-panel", "info-page-panel"]
+                                                 "settings-panel", "info-page-panel", "evidence-board-panel"]
 
 
 def test_the_planet_columns_wrap_the_four_panels_of_every_planet():

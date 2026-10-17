@@ -7,7 +7,8 @@
     ["achievements-panel", "achievements-toggle-button", "Achievements"],
     ["changelog-panel", "changelog-toggle-button", "What's New"],
     ["settings-panel", "settings-toggle-button", "Settings"],
-    ["info-page-panel", "info-page-toggle-button", "About Lexis"]
+    ["info-page-panel", "info-page-toggle-button", "About Lexis"],
+    ["evidence-board-panel", "evidence-toggle-button", "Evidence board"]
   ],
   "toolbar": {
     "icons": [
@@ -18,7 +19,7 @@
     "menu": [
       {"heading": "Game", "ids": []},
       {"heading": "Help", "ids": ["tutorial-restart-button", "info-page-toggle-button", "credits-link"]},
-      {"heading": "Records", "ids": ["museum-toggle-button", "star-map-toggle-button", "report-toggle-button", "changelog-toggle-button"]}
+      {"heading": "Records", "ids": ["museum-toggle-button", "star-map-toggle-button", "evidence-toggle-button", "report-toggle-button", "changelog-toggle-button"]}
     ]
   },
   "composites": [],
