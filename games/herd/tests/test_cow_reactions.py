@@ -2,6 +2,7 @@
 
 import json
 from pathlib import Path
+from .pagefiles import game_css, page_text
 
 HERE = Path(__file__).resolve().parent.parent
 
@@ -40,7 +41,7 @@ def test_a_strained_herd_naps_with_text_not_only_motion(game_env):
     game_env.module.render()
     assert game_env.module.herd_mood() == "nap"
     assert "cow-mood-nap" in _cow_classes(game_env) and "napping" in game_env.elements["cow-listen-button"].innerText
-    css = (HERE / "style.css").read_text(encoding="utf-8")
+    css = game_css()
     assert 'content: "z z"' in css
 
 
@@ -96,9 +97,9 @@ def test_every_quip_is_short_and_there_are_four_per_mood(game_env):
 
 def test_pages_and_css_gates():
     for page in ("index.html", "pc.html"):
-        html = (HERE / page).read_text(encoding="utf-8")
+        html = page_text(page)
         assert 'id="cow-listen-button"' in html and 'id="cow-bubble"' in html
-    css = (HERE / "style.css").read_text(encoding="utf-8")
+    css = game_css()
     assert 'html[data-reduced-motion="true"] .pasture-visual-cow.cow-mood-hop' in css
     cfg = json.loads((HERE / "pc-config.json").read_text(encoding="utf-8"))
     assert ".cow-chat" in cfg["zones"]["stage"]

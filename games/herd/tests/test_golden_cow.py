@@ -1,6 +1,7 @@
 """GF-21: the golden cow. Deterministic (every 8 rounds), no timer, visits pile up, small real-farm bonus."""
 import json
 from pathlib import Path
+from .pagefiles import game_css, page_text
 
 ROOT = Path(__file__).resolve().parent.parent
 
@@ -123,9 +124,9 @@ def test_a_new_generation_starts_without_visits(game_env):
 
 def test_both_pages_have_the_ids_and_the_css_respects_reduced_motion():
     for page in ("index.html", "pc.html"):
-        text = (ROOT / page).read_text()
+        text = page_text(page)
         for ident in ("golden-cow-panel", "golden-cow-summary", "golden-cow-claim-button", "golden-cow-status", "golden-cow-glider"):
             assert f'id="{ident}"' in text, (page, ident)
-    css = (ROOT / "style.css").read_text()
+    css = game_css()
     assert "prefers-reduced-motion: reduce) { .golden-cow-glider" in css
     assert 'html[data-reduced-motion="true"] .golden-cow-glider' in css

@@ -739,7 +739,9 @@
       let coupling = 1.0;
       let pressure = 0.0;
       try {
-        const farm = window.pyodide?.globals?.get("farm");
+        // game.py's current_farm() hands back the live farm (it lives in herd_runstate and gets replaced during play).
+        const farmGetter = window.pyodide?.globals?.get("current_farm");
+        const farm = farmGetter ? farmGetter() : undefined;
         if (farm) {
           coupling = farm.coupling_ratio() || 1.0;
           pressure = farm.pressure_fraction() || 0.0;

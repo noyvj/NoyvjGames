@@ -1,6 +1,9 @@
 """F-27: every achievement that is not earned shows how far along it is; the card carries a mini
 bar and the exact amount left, revealed on hover or keyboard focus."""
 
+from .pagefiles import game_css
+
+
 
 def _summary(env):
     return {entry["id"]: entry for entry in env.module.achievements_summary()}
@@ -83,6 +86,6 @@ def test_an_earned_card_has_no_bar(game_env):
 
 def test_the_bar_and_text_are_hidden_until_hover_or_focus_in_css():
     from pathlib import Path
-    css = (Path(__file__).resolve().parent.parent / "style.css").read_text(encoding="utf-8")
+    css = game_css()
     assert ".achievement-card-bar { height: 6px;" in css and "opacity: 0;" in css
     assert ".achievement-card:focus-within .achievement-card-bar" in css

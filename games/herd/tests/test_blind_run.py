@@ -2,6 +2,7 @@
 the simulation itself must not change."""
 import json
 from pathlib import Path
+from .pagefiles import page_text
 
 ROOT = Path(__file__).resolve().parent.parent
 
@@ -166,6 +167,6 @@ def test_an_old_save_loads_and_a_hidden_save_stays_hidden(game_env):
 
 def test_both_pages_have_the_ids():
     for page in ("index.html", "pc.html"):
-        text = (ROOT / page).read_text()
+        text = page_text(page)
         for ident in ("blind-run-checkbox", "blind-run-note", "blind-run-panel", "blind-reveal-text", "blind-reveal-button"):
             assert f'id="{ident}"' in text, (page, ident)

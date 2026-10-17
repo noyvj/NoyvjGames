@@ -4,6 +4,7 @@ import json
 from pathlib import Path
 
 import pytest
+from .pagefiles import page_text
 
 HERE = Path(__file__).resolve().parent.parent
 
@@ -119,7 +120,7 @@ def test_the_js_has_a_reduced_motion_path_and_a_keyboard_reachable_stop():
     assert "motionAllowed()" in js and "Use Auto-blend" in js and "stop.focus()" in js
     assert "MIXER_TIME = 5000" in js
     for page in ("index.html", "pc.html"):
-        html = (HERE / page).read_text(encoding="utf-8")
+        html = page_text(page)
         for rid in ("mixer-panel", "mixer-start-button", "mixer-stop-button", "mixer-auto-button", "mixer-result-button", "mixer-stats"):
             assert f'id="{rid}"' in html
         assert "Perfect" in html and "Good" in html  # zone labels are words, not only colours

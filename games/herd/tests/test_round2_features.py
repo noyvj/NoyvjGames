@@ -1,6 +1,7 @@
 """Round-2 Herd items: F2, F4, F6, F11, F12, F14, F16, F18, F22, F24, F26, F30."""
 
 import json
+from .pagefiles import page_text
 
 
 def test_pasture_herd_count_overlay_tracks_herd(game_env):
@@ -152,5 +153,5 @@ def test_wisps_thin_with_decoupling(game_env):
 
 def test_haze_explanation_present_in_page():
     from pathlib import Path
-    html = (Path(__file__).resolve().parent.parent / "index.html").read_text()
+    html = page_text("index.html")
     assert "haze" in html and "market/regulatory pressure" in html

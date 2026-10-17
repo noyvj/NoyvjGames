@@ -3,6 +3,7 @@
 import json
 import re
 from pathlib import Path
+from .pagefiles import game_source, page_text
 
 HERE = Path(__file__).resolve().parent.parent
 
@@ -125,7 +126,7 @@ def test_a_handover_restarts_the_story_but_keeps_the_endings(game_env):
 
 
 def test_passages_are_short_and_state_no_real_world_facts():
-    text = (HERE / "game.py").read_text(encoding="utf-8")
+    text = game_source()
     block = text[text.index("FAMILY_BRANCHES = {"):text.index("FAMILY_BRANCH_ORDER")]
     strings = re.findall(r'"((?:[^"\\]|\\.){40,})"', block)
     assert len(strings) >= 12
@@ -136,7 +137,7 @@ def test_passages_are_short_and_state_no_real_world_facts():
 
 def test_story_panel_hidden_by_the_story_pill_and_reachable_on_desktop():
     for page in ("index.html", "pc.html"):
-        html = (HERE / page).read_text(encoding="utf-8")
+        html = page_text(page)
         assert "#vignette-display, #story-chapters, #family-story" in html
         for rid in ("family-story", "family-story-text", "family-story-retell-button", "family-story-endings"):
             assert f'id="{rid}"' in html

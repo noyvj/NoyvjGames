@@ -4,6 +4,7 @@ import json
 from pathlib import Path
 
 import pytest
+from .pagefiles import game_source, page_text
 
 HERE = Path(__file__).resolve().parent.parent
 
@@ -181,7 +182,7 @@ def test_an_older_save_with_a_pending_offer_still_works(game_env):
 
 def test_every_option_has_a_real_world_tag_and_no_figures():
     import re
-    text = (HERE / "game.py").read_text(encoding="utf-8")
+    text = game_source()
     block = text[text.index("POLICY_OPTIONS = {"):text.index("POLICY_HEDGE_DISCOUNT")]
     for real in re.findall(r'"real": "([^"]+)"', block):
         assert real.startswith("Real-world idea:") and not re.search(r"\d", real)
@@ -189,5 +190,5 @@ def test_every_option_has_a_real_world_tag_and_no_figures():
 
 def test_pages_have_the_history_and_real_world_elements():
     for page in ("index.html", "pc.html"):
-        html = (HERE / page).read_text(encoding="utf-8")
+        html = page_text(page)
         assert 'id="policy-history-list"' in html and 'id="policy-real-display"' in html

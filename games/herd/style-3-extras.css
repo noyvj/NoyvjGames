@@ -1,0 +1,370 @@
+/* F14 — min/max labels behind the coupling gauge. */
+.gauge-range-display {
+  margin: 0.3rem 0 0;
+  font-size: 0.7rem;
+  opacity: 0.55;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+/* F7 — methane-over-rounds trend graph, same shape as Thaw's
+   mini-temp-graph-svg: unlabeled beyond its axis-free shape. */
+.methane-trend-graph {
+  width: 100%;
+}
+
+.methane-trend-graph-svg {
+  width: 100%;
+  height: 48px;
+  display: block;
+}
+
+.methane-trend-line {
+  fill: none;
+  stroke: #b06fd6;
+  stroke-width: 2;
+}
+
+/* F18 — the aggregate community stat pulled from the ratings backend.
+   Starts hidden (see the plain-JS block in index.html) until there's a
+   real sample size. */
+.community-stat {
+  color: #a9c3ff;
+}
+
+/* F19 — lightweight pulse feedback on a successful investment click.
+   Applied to the button/count element by game.py's _pulse() helper and
+   removed automatically after the animation completes. */
+@keyframes invest-pulse-anim {
+  0% { transform: scale(1); }
+  40% { transform: scale(1.12); }
+  100% { transform: scale(1); }
+}
+
+.invest-pulse {
+  animation: invest-pulse-anim 350ms ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .invest-pulse {
+    animation: none;
+  }
+}
+
+/* ============================================================
+   Settings panel (site-wide goal, planning/TODO.md): consolidated
+   text-scale + reduced-motion controls. Reuses .section for the panel
+   shell itself (same hidden-until-opened idiom as #howto-panel/
+   #achievements-panel), so only the internal layout needs its own rules. */
+.settings-panel-heading {
+  margin: 0 0 0.75rem;
+  font-size: 0.95rem;
+  opacity: 0.9;
+}
+
+.settings-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.settings-row:last-child {
+  margin-bottom: 0;
+}
+
+.settings-label {
+  font-size: 0.85rem;
+}
+
+.text-size-control {
+  display: inline-flex;
+  gap: 0.25rem;
+}
+
+.text-size-control button {
+  min-width: 2.2rem;
+  padding: 0.3rem 0.5rem;
+}
+
+.settings-checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+/* Reduced-motion override: a manual, persisted toggle independent of the
+   OS-level `prefers-reduced-motion` media query already gating several
+   animations in this file. Rather than duplicating every individual
+   @keyframes/animation/transition rule with a second selector, this one
+   blanket rule (applied only when settings.js sets the attribute) collapses
+   every animation/transition on the page to effectively instant -- the
+   same standard "force-disable" pattern used site-wide for this kind of
+   manual override, and strictly additive to the existing media-query-gated
+   rules above (an OS-level reduced-motion user gets the same effect either
+   way; this just also covers a player whose OS setting is untouched but
+   who wants motion off in-game). */
+html[data-reduced-motion="true"] *,
+html[data-reduced-motion="true"] *::before,
+html[data-reduced-motion="true"] *::after {
+  animation-duration: 0.001ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.001ms !important;
+  scroll-behavior: auto !important;
+}
+
+/* F2 — herd-size number overlay on the pasture visual. */
+.pasture-herd-count {
+  position: absolute;
+  top: 8px;
+  right: 10px;
+  z-index: 3;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: rgba(20, 30, 20, 0.55);
+  color: #fff;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+/* F30 — wisp opacity is driven inline by game.py (coupling ratio). */
+
+/* Round-3 extras: the collapsible farm-operations panel. */
+.farm-extras > summary { cursor: pointer; font-size: 0.9rem; opacity: 0.9; }
+.farm-extras button { margin: 0.25rem 0.25rem 0.25rem 0; }
+#poultry-panel .invest-row::before { content: "🐔"; }
+
+/* Round-3 Herd batch: screen-reader-only text, lever efficiency lines, the collector shelf, the
+   combo book, the lever history, the highlights reel and the cap headroom bar. */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.invest-efficiency {
+  grid-column: 1 / -1;
+  font-size: 0.74rem;
+  opacity: 0.7;
+}
+
+.collection-block { margin-top: 0.7rem; }
+.collection-block ul, .collection-block ol { margin: 0.3rem 0 0; padding: 0; }
+.collection-block label { display: flex; gap: 0.5rem; align-items: center; margin: 0.3rem 0; }
+.collection-block select { font: inherit; padding: 0.25rem 0.4rem; max-width: 100%; }
+
+.breed-shelf-grid {
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(6.6rem, 1fr));
+  gap: 0.5rem;
+}
+.breed-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.15rem;
+  padding: 0.5rem 0.4rem;
+  text-align: center;
+  border-radius: 10px;
+  border: 1px solid rgba(140, 160, 255, 0.18);
+  background: linear-gradient(165deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.01));
+}
+.breed-glyph { font-size: 1.7rem; line-height: 1.1; }
+.breed-name { font-size: 0.82rem; font-weight: 600; }
+.breed-detail { font-size: 0.7rem; opacity: 0.7; }
+.breed-card--earned { border-color: rgba(76, 156, 110, 0.55); }
+.breed-card--locked { opacity: 0.6; border-style: dashed; }
+/* Locked breeds are a silhouette: the picture is flattened to a dark shape. */
+.breed-card--locked .breed-glyph { filter: grayscale(1) brightness(0.35) contrast(1.2); }
+.breed-card--legend {
+  border-color: #e0c24c;
+  box-shadow: 0 0 14px rgba(224, 194, 76, 0.55);
+  animation: breed-legend-glow 2.4s ease-in-out infinite;
+}
+@keyframes breed-legend-glow {
+  0%, 100% { box-shadow: 0 0 8px rgba(224, 194, 76, 0.35); }
+  50% { box-shadow: 0 0 20px rgba(224, 194, 76, 0.8); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .breed-card--legend { animation: none; }
+}
+html[data-reduced-motion="true"] .breed-card--legend { animation: none; }
+
+.combo-book-list { list-style: none; display: grid; gap: 0.4rem; }
+.combo-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  padding: 0.45rem 0.6rem;
+  border-radius: 8px;
+  border: 1px solid rgba(140, 160, 255, 0.18);
+}
+.combo-name { font-size: 0.85rem; font-weight: 600; }
+.combo-detail { font-size: 0.74rem; opacity: 0.75; }
+.combo-card--found { border-color: rgba(76, 156, 110, 0.55); background: rgba(76, 156, 110, 0.08); }
+.combo-card--locked { opacity: 0.65; border-style: dashed; }
+.combo-card--locked .combo-name { filter: grayscale(1); letter-spacing: 0.15em; }
+
+.lever-history-list { padding-left: 1.2rem !important; font-size: 0.8rem; max-height: 14rem; overflow-y: auto; }
+.lever-history-list li { margin: 0.1rem 0; }
+
+.highlights-reel {
+  margin-top: 0.7rem;
+  padding: 0.6rem 0.8rem;
+  border-radius: 10px;
+  border: 1px solid rgba(224, 194, 76, 0.4);
+  background: rgba(224, 194, 76, 0.07);
+}
+.highlights-reel ul { margin: 0.2rem 0 0; padding-left: 1.1rem; font-size: 0.85rem; }
+
+.cap-headroom-meter { margin-top: 0.3rem; }
+
+/* ---- Round-4 batch: bulk stepper, delta chips, undo, season calendar, breeding rings,
+   poultry comparison, hall of fame, pace note ---- */
+.bulk-stepper { display: flex; align-items: center; gap: 0.4rem; margin-bottom: 0.5rem; }
+.bulk-stepper-label { font-size: 0.8rem; opacity: 0.75; }
+.bulk-step { padding: 0.3rem 0.7rem; min-width: 2.6rem; }
+.bulk-step.selected {
+  border-color: #6fae70;
+  background: linear-gradient(135deg, #2a4a2c, #1a2e1c);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 0 10px rgba(111, 174, 112, 0.25);
+}
+.bulk-note { margin: 0.35rem 0 0; font-size: 0.76rem; opacity: 0.75; }
+
+.round-delta-strip { display: flex; flex-wrap: wrap; gap: 0.35rem; margin: 0.5rem 0 0; }
+.delta-chip {
+  font: inherit;
+  font-size: 0.78rem;
+  padding: 0.2rem 0.6rem;
+  border-radius: 999px;
+  border: 1px solid rgba(140, 160, 255, 0.35);
+  background: rgba(20, 22, 36, 0.7);
+  color: inherit;
+  cursor: pointer;
+  transition: opacity 0.8s ease;
+}
+.delta-chip--good { border-color: #6fae70; }
+.delta-chip--bad { border-color: #e0674c; border-style: dashed; }
+.delta-chip--pinned { box-shadow: 0 0 0 2px rgba(224, 194, 76, 0.7); }
+.delta-chip--pinned::after { content: " \1F4CC"; }
+.delta-chip--faded { opacity: 0.18; }
+.delta-chip:focus-visible { outline: 2px solid #e0c24c; outline-offset: 2px; }
+
+.undo-panel p { margin: 0.4rem 0 0; font-size: 0.78rem; opacity: 0.75; }
+
+.season-calendar {
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 0.3rem;
+  margin: 0.4rem 0;
+  padding: 0;
+}
+.season-cell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.05rem;
+  padding: 0.25rem 0.1rem;
+  border-radius: 6px;
+  border: 1px solid rgba(140, 160, 255, 0.2);
+  font-size: 0.7rem;
+  line-height: 1.15;
+  text-align: center;
+}
+.season-cell--up { border-color: #6fae70; }
+.season-cell--down { border-color: #d9a24a; border-style: dashed; }
+.season-cell--now { box-shadow: 0 0 0 2px rgba(224, 194, 76, 0.75); }
+.season-round { opacity: 0.7; }
+.season-mark { font-size: 0.8rem; }
+.season-pct { font-weight: 600; }
+
+.breed-rings { display: flex; flex-wrap: wrap; align-items: center; gap: 0.4rem; margin: 0.2rem 0 0.5rem; min-height: 30px; }
+.ring-empty { font-size: 0.74rem; opacity: 0.6; }
+.breed-ring-track { stroke: rgba(140, 160, 255, 0.25); }
+.breed-ring-fill { stroke: #6fae70; transition: stroke-dasharray 0.4s ease; }
+.breed-ring-text { fill: currentColor; font-size: 11px; font-weight: 700; }
+
+.compare-table { width: 100%; border-collapse: collapse; font-size: 0.74rem; margin: 0.3rem 0 0.6rem; }
+.compare-table caption { text-align: left; font-size: 0.78rem; opacity: 0.8; padding-bottom: 0.2rem; }
+.compare-table th, .compare-table td { border: 1px solid rgba(140, 160, 255, 0.18); padding: 0.25rem 0.4rem; text-align: left; vertical-align: top; }
+.compare-table thead th { font-weight: 700; }
+
+.hall-of-fame-list { padding-left: 1.2rem !important; font-size: 0.8rem; }
+.pace-note { margin: 0 0 0.3rem; font-size: 0.72rem; opacity: 0.6; }
+
+@media (prefers-reduced-motion: reduce) {
+  .delta-chip, .breed-ring-fill { transition: none; }
+}
+html[data-reduced-motion="true"] .delta-chip,
+html[data-reduced-motion="true"] .breed-ring-fill { transition: none; }
+
+/* ---- Round-5 display preferences (settings.js sets these data attributes on <html>) ---- */
+
+/* F-15 high contrast: a black page, white text, solid panels with strong outlines, and a thick
+   yellow focus ring. It beats the glass panels and the light theme alike. */
+html[data-high-contrast="true"],
+html[data-high-contrast="true"][data-theme="light"] { background: #000 !important; color-scheme: dark; }
+html[data-high-contrast="true"] body,
+html[data-high-contrast="true"][data-theme="light"] body { color: #fff !important; }
+html[data-high-contrast="true"] .ambient-bg { display: none; }
+/* Blanket pass so no glass panel, readout chip or shell window keeps a pale light-theme fill. The
+   pasture picture, the meters and the gauge are left alone because they carry information. */
+html[data-high-contrast="true"][data-high-contrast] #game *:not(.pasture-visual):not(.pasture-visual *):not(.meter-fill):not(svg *):not(button):not(.achievement-toast):not(.milestone-toast):not(.pc-window-frame):not(.pc-window-bar),
+html[data-high-contrast="true"][data-high-contrast] .pc-window-frame *:not(svg *):not(button):not(.meter-fill):not(.pc-window-bar),
+html[data-high-contrast="true"][data-high-contrast] #pc-readouts *,
+html[data-high-contrast="true"][data-high-contrast] #pc-hintbar,
+html[data-high-contrast="true"][data-high-contrast] #pc-hintbar * {
+  background-color: transparent !important; color: #fff !important; text-shadow: none !important;
+}
+html[data-high-contrast="true"][data-high-contrast] #game .pc-window-frame,
+html[data-high-contrast="true"][data-high-contrast] .pc-window-frame { --pc-window-bg: #000; --pc-window-bar-bg: #000; --pc-window-line: #fff; color: #fff; background-color: #000 !important; }
+html[data-high-contrast="true"][data-high-contrast] #game .pc-window-frame .pc-window-bar { background-color: #000 !important; border-bottom: 2px solid #fff; }
+html[data-high-contrast="true"][data-high-contrast] .pc-readout { background: #000; border: 2px solid #fff; }
+html[data-high-contrast="true"][data-high-contrast] .achievement-toast,
+html[data-high-contrast="true"][data-high-contrast] .milestone-toast { background: #000 !important; color: #fff !important; border: 2px solid #ffd400 !important; }
+
+html[data-high-contrast="true"] #game,
+html[data-high-contrast="true"][data-theme="light"] #game {
+  background: #000 !important; border: 2px solid #fff !important; box-shadow: none !important; backdrop-filter: none !important;
+}
+html[data-high-contrast="true"] .section,
+html[data-high-contrast="true"][data-theme="light"] .section,
+html[data-high-contrast="true"] .achievement-card,
+html[data-high-contrast="true"] .changelog-panel,
+html[data-high-contrast="true"] .achievements-panel {
+  background: #000 !important; color: #fff !important; border: 2px solid #fff !important; box-shadow: none !important; backdrop-filter: none !important;
+}
+html[data-high-contrast="true"] button,
+html[data-high-contrast="true"] button.secondary,
+html[data-high-contrast="true"] button.primary,
+html[data-high-contrast="true"][data-theme="light"] button.secondary,
+html[data-high-contrast="true"][data-theme="light"] button.primary {
+  background: #000 !important; color: #fff !important; border: 2px solid #fff !important; box-shadow: none !important; filter: none !important;
+}
+html[data-high-contrast="true"] button:hover:not(:disabled),
+html[data-high-contrast="true"] button.selected { background: #fff !important; color: #000 !important; }
+html[data-high-contrast="true"] button:disabled { color: #bbb !important; border-style: dashed !important; opacity: 1; }
+html[data-high-contrast="true"] .meter { background: #000; border: 2px solid #fff; }
+html[data-high-contrast="true"] .meter-fill--methane { background: #ffd400; box-shadow: none; }
+html[data-high-contrast="true"] .meter-fill--welfare { background: #5fd0ff; }
+html[data-high-contrast="true"] .meter-fill--supply { background: #ffb000; }
+html[data-high-contrast="true"] .methane-trend-line { stroke: #ffd400; stroke-width: 3; }
+html[data-high-contrast="true"] .comparison-message,
+html[data-high-contrast="true"] .meter-label,
+html[data-high-contrast="true"] .achievement-card-description,
+html[data-high-contrast="true"] .achievement-card-progress,
+html[data-high-contrast="true"] .context-blurb,
+html[data-high-contrast="true"] .tagline { color: #fff !important; opacity: 1 !important; }
+html[data-high-contrast="true"] a { color: #8fd0ff; text-decoration: underline; }
+html[data-high-contrast="true"] :focus-visible { outline: 4px solid #ffd400 !important; outline-offset: 2px; }

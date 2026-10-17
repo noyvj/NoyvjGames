@@ -1,5 +1,8 @@
 """R-23: the sentence under the title reacts to how the session is going."""
 
+from .pagefiles import page_text
+
+
 
 def test_default_line_at_the_start(game_env):
     m = game_env.module
@@ -34,6 +37,6 @@ def test_certified_wins_and_it_never_changes_the_farm(game_env):
 
 def test_html_default_matches_the_module_default():
     import pathlib
-    html = (pathlib.Path(__file__).resolve().parent.parent / "index.html").read_text()
+    html = page_text("index.html")
     from_module = "Grow a farm. Herd size and methane emissions are coupled by default"
     assert f'id="tagline-display" class="tagline">{from_module}' in html

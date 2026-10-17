@@ -5,6 +5,7 @@ writes browser storage or is compared with other players."""
 import copy
 import json
 from pathlib import Path
+from .pagefiles import page_text
 
 ROOT = Path(__file__).resolve().parent.parent
 
@@ -275,7 +276,7 @@ def test_the_planner_and_audits_work_on_the_practice_farm(game_env):
 
 def test_both_pages_wire_the_shared_sandbox():
     for page in ("index.html", "pc.html"):
-        text = (ROOT / page).read_text()
+        text = page_text(page)
         assert 'shared/sandbox-mode.js" data-game-id="herd"' in text and "shared/sandbox-mode.css" in text
         assert 'id="sandbox-toggle-button"' in text and "data-sandbox-toggle" in text
         for ident in ("sandbox-panel", "sandbox-note", "sandbox-reset-button"):

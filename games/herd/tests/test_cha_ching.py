@@ -2,6 +2,7 @@
 
 import sys
 from pathlib import Path
+from .pagefiles import game_css, page_text
 
 HERE = Path(__file__).resolve().parent.parent
 
@@ -68,6 +69,6 @@ def test_settings_js_defaults_on_respects_motion_and_has_a_checkbox():
     assert 'setAttribute("aria-hidden", "true")' in js
     assert "window.HerdFx" in js
     for page in ("index.html", "pc.html"):
-        assert 'id="cha-ching-checkbox"' in (HERE / page).read_text(encoding="utf-8")
-    css = (HERE / "style.css").read_text(encoding="utf-8")
+        assert 'id="cha-ching-checkbox"' in page_text(page)
+    css = game_css()
     assert 'html[data-reduced-motion="true"] .cha-confetti' in css

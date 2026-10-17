@@ -7,7 +7,13 @@ import pytest
 
 from .fakes import FakeDocument, FakeElement, FakeLocalStorage, FakeTimers, create_proxy
 
-GAME_PY = Path(__file__).resolve().parent.parent / "game.py"
+GAME_DIR = Path(__file__).resolve().parent.parent
+GAME_PY = GAME_DIR / "game.py"
+
+# game.py is split into herd_*.py modules in the same folder (see "File map" in CLAUDE.md), so the game
+# folder has to be importable, the same way the Pyodide boot script (boot.js) writes them next to game.py.
+if str(GAME_DIR) not in sys.path:
+    sys.path.insert(0, str(GAME_DIR))
 
 # game.py imports the shared info-page widget (shared/info_page.py) the
 # same way the real Pyodide boot script does -- see any game's index.html
@@ -208,6 +214,7 @@ class GameEnv:
         overwrites everything on exec)."""
         for name in ("game", "info_page"):
             sys.modules.pop(name, None)
+        _forget_game_modules()
         module = _load_module(self.elements, self.timers, self.local_storage)
         self.module = module
         return module
@@ -237,12 +244,23 @@ def _remove_pyodide_fakes():
     # document happened to be active on its first import.
     for name in ("js", "pyodide", "pyodide.ffi", "game", "info_page"):
         sys.modules.pop(name, None)
+    _forget_game_modules()
+
+
+def _forget_game_modules():
+    # game.py is split into herd_*.py modules next to it; each binds `document` and `setTimeout` from the
+    # fake `js` at import, so every test needs fresh copies, exactly as it needs a fresh game.py.
+    for name, module in list(sys.modules.items()):
+        path = getattr(module, "__file__", None)
+        if path and Path(path).resolve().parent == GAME_DIR:
+            sys.modules.pop(name, None)
 
 
 def _load_module(elements, timers, local_storage):
     """Execs a fresh game.py module against the given fake DOM/storage.
     Factored out of the game_env fixture so GameEnv.reload() (F8's "fresh
     module load against the same localStorage" test) can reuse it."""
+    _forget_game_modules()
     _install_pyodide_fakes(elements, timers, local_storage)
     spec = importlib.util.spec_from_file_location("game", GAME_PY)
     module = importlib.util.module_from_spec(spec)

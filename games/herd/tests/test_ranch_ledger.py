@@ -2,6 +2,7 @@
 
 import json
 from pathlib import Path
+from .pagefiles import page_text
 
 HERE = Path(__file__).resolve().parent.parent
 
@@ -137,7 +138,7 @@ def test_clear_asks_first_and_empties_only_the_ledger(game_env):
 
 def test_pages_and_desktop_config():
     for page in ("index.html", "pc.html"):
-        html = (HERE / page).read_text(encoding="utf-8")
+        html = page_text(page)
         for rid in ("ledger-panel", "ledger-add-button", "ledger-filter", "ledger-table", "ledger-chart"):
             assert f'id="{rid}"' in html
     cfg = json.loads((HERE / "pc-config.json").read_text(encoding="utf-8"))

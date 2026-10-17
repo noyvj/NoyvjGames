@@ -1,6 +1,7 @@
 """F-31 restyled achievement cards: a glyph per badge, barnyard border, one-off unlock flourish."""
 
 from pathlib import Path
+from .pagefiles import game_css
 
 HERE = Path(__file__).resolve().parent.parent
 
@@ -45,7 +46,7 @@ def test_a_loaded_save_does_not_replay_old_flourishes(game_env):
 
 
 def test_css_has_barnyard_border_and_respects_reduced_motion():
-    css = (HERE / "style.css").read_text(encoding="utf-8")
+    css = game_css()
     assert "#b5483a" in css and ".achievement-card--new" in css
     for gate in ('html[data-reduced-motion="true"] .achievement-card--new', 'html[data-lite="true"] .achievement-card--new', "prefers-reduced-motion: reduce) { .achievement-card--new"):
         assert gate in css
