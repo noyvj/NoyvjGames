@@ -147,3 +147,15 @@ Recommended: yes, later. Say "no" to leave it as the Pulse-planet pin board.
 ### Si1. Signal: the hold-to-aim bubble (R4-SIMO-1) shows the tile name and what is already known there; a real "ping preview" would be a free ping, which Signal never allows. Is the bubble enough?
 
 Recommended: yes. Say "no" if you want a different kind of preview.
+
+### He1. Herd: the Calm barn word (R4-HEMO-7) says "Healthy farm" only while methane pressure on income is under 25 percent, then "Methane is rising". Keep that, or always show "Healthy farm"?
+
+Recommended: keep it, so the word stays honest. Say "always" to show the literal words every time.
+
+### He2. Herd: the new thin top strip (R4-HEMO-2) replaces the shared funds, herd and methane bar on phones, and it leaves out herd size. Is that OK?
+
+Recommended: yes. Say "no" to keep herd size in the strip.
+
+### He3. Herd: "Pin as a goal" on a lever (R4-HEPC-3) only adds a visible Goal badge. Should a pinned goal also feed the pinned-stats strip or the report card?
+
+Recommended: not yet. Say "yes" and name where.
