@@ -9,13 +9,14 @@ import json
 import re
 from html.parser import HTMLParser
 from pathlib import Path
+from .pagefiles import app_text
 
 GAME_DIR = Path(__file__).resolve().parent.parent
 HTML = (GAME_DIR / "index.html").read_text(encoding="utf-8")
 PC_HTML = (GAME_DIR / "pc.html").read_text(encoding="utf-8")
 CSS = (GAME_DIR / "style.css").read_text(encoding="utf-8")
 PC_CSS = (GAME_DIR / "pc.css").read_text(encoding="utf-8")
-APP = (GAME_DIR / "app.js").read_text(encoding="utf-8")
+APP = app_text()
 SETTINGS = (GAME_DIR / "settings.js").read_text(encoding="utf-8")
 PC_JS = (GAME_DIR / "pc.js").read_text(encoding="utf-8")
 
