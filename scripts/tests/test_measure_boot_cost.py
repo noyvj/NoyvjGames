@@ -141,8 +141,7 @@ def test_known_shapes_of_a_few_real_games():
     assert any("three" in u for u in continuum["cdn_scripts"])                      # Three.js is a CDN script, never counted as a Python module
     assert continuum["python_modules"] >= 40 and any(m["name"] == "sim.py" for m in continuum["python_module_list"])
     canopy = mb.measure_game("canopy")
-    assert canopy["game_py_lines"] > 5000 and canopy["python_modules"] == 0
-    assert canopy["game_py_anatomy"]["top_blocks"]
+    assert canopy["python_modules"] >= 40 and canopy["game_py_lines"] < 500   # split into canopy_*.py parts (SP-1k); game.py is the entry point
     champ = mb.measure_game("champ-de-mots")
     assert any(j["name"] == "fren_combined_catalog.json" for j in champ["json_list"])
     heist = mb.measure_game("heist-committee")

@@ -506,18 +506,273 @@
      "precached": false
     },
     {
+     "path": "games/canopy/boot.js",
+     "bytes": 24837,
+     "precached": true
+    },
+    {
+     "path": "games/canopy/canopy_achievements.py",
+     "bytes": 19179,
+     "precached": true
+    },
+    {
+     "path": "games/canopy/canopy_almanac.py",
+     "bytes": 10453,
+     "precached": true
+    },
+    {
+     "path": "games/canopy/canopy_carbon.py",
+     "bytes": 4051,
+     "precached": true
+    },
+    {
+     "path": "games/canopy/canopy_challenge.py",
+     "bytes": 12992,
+     "precached": true
+    },
+    {
+     "path": "games/canopy/canopy_charts.py",
+     "bytes": 11739,
+     "precached": true
+    },
+    {
+     "path": "games/canopy/canopy_clearcut.py",
+     "bytes": 4509,
+     "precached": true
+    },
+    {
+     "path": "games/canopy/canopy_comfort.py",
+     "bytes": 7922,
+     "precached": true
+    },
+    {
+     "path": "games/canopy/canopy_community.py",
+     "bytes": 4123,
+     "precached": true
+    },
+    {
+     "path": "games/canopy/canopy_contracts.py",
+     "bytes": 13142,
+     "precached": true
+    },
+    {
+     "path": "games/canopy/canopy_effects.py",
+     "bytes": 9312,
+     "precached": true
+    },
+    {
+     "path": "games/canopy/canopy_expedition.py",
+     "bytes": 15005,
+     "precached": true
+    },
+    {
+     "path": "games/canopy/canopy_forecast.py",
+     "bytes": 7188,
+     "precached": true
+    },
+    {
+     "path": "games/canopy/canopy_forestlog.py",
+     "bytes": 3514,
+     "precached": true
+    },
+    {
+     "path": "games/canopy/canopy_gbstate.py",
+     "bytes": 5950,
+     "precached": true
+    },
+    {
+     "path": "games/canopy/canopy_ghost.py",
+     "bytes": 6989,
+     "precached": true
+    },
+    {
+     "path": "games/canopy/canopy_gridview.py",
+     "bytes": 6478,
+     "precached": true
+    },
+    {
+     "path": "games/canopy/canopy_handlers_core.py",
+     "bytes": 13440,
+     "precached": true
+    },
+    {
+     "path": "games/canopy/canopy_handlers_modes.py",
+     "bytes": 11487,
+     "precached": true
+    },
+    {
+     "path": "games/canopy/canopy_handlers_panels.py",
+     "bytes": 13953,
+     "precached": true
+    },
+    {
+     "path": "games/canopy/canopy_hazards.py",
+     "bytes": 16597,
+     "precached": true
+    },
+    {
+     "path": "games/canopy/canopy_helpers.py",
+     "bytes": 13747,
+     "precached": true
+    },
+    {
+     "path": "games/canopy/canopy_infopanels.py",
+     "bytes": 11432,
+     "precached": true
+    },
+    {
+     "path": "games/canopy/canopy_labui.py",
+     "bytes": 4883,
+     "precached": true
+    },
+    {
+     "path": "games/canopy/canopy_layout.py",
+     "bytes": 11103,
+     "precached": true
+    },
+    {
+     "path": "games/canopy/canopy_levels.py",
+     "bytes": 28923,
+     "precached": true
+    },
+    {
+     "path": "games/canopy/canopy_lifetime.py",
+     "bytes": 15909,
+     "precached": true
+    },
+    {
+     "path": "games/canopy/canopy_loading.py",
+     "bytes": 15928,
+     "precached": true
+    },
+    {
+     "path": "games/canopy/canopy_plot.py",
+     "bytes": 12538,
+     "precached": true
+    },
+    {
+     "path": "games/canopy/canopy_plotsheet.py",
+     "bytes": 4040,
+     "precached": true
+    },
+    {
+     "path": "games/canopy/canopy_realworld.py",
+     "bytes": 6571,
+     "precached": true
+    },
+    {
+     "path": "games/canopy/canopy_records.py",
+     "bytes": 8824,
+     "precached": true
+    },
+    {
+     "path": "games/canopy/canopy_regions.py",
+     "bytes": 12480,
+     "precached": true
+    },
+    {
+     "path": "games/canopy/canopy_renderer.py",
+     "bytes": 45115,
+     "precached": true
+    },
+    {
+     "path": "games/canopy/canopy_rules.py",
+     "bytes": 17009,
+     "precached": true
+    },
+    {
+     "path": "games/canopy/canopy_runstate.py",
+     "bytes": 11672,
+     "precached": true
+    },
+    {
+     "path": "games/canopy/canopy_savestate.py",
+     "bytes": 15595,
+     "precached": true
+    },
+    {
+     "path": "games/canopy/canopy_session.py",
+     "bytes": 3467,
+     "precached": true
+    },
+    {
+     "path": "games/canopy/canopy_sessionview.py",
+     "bytes": 8480,
+     "precached": true
+    },
+    {
+     "path": "games/canopy/canopy_setup.py",
+     "bytes": 14032,
+     "precached": true
+    },
+    {
+     "path": "games/canopy/canopy_stakeholders.py",
+     "bytes": 20897,
+     "precached": true
+    },
+    {
+     "path": "games/canopy/canopy_summary.py",
+     "bytes": 14881,
+     "precached": true
+    },
+    {
+     "path": "games/canopy/canopy_survey.py",
+     "bytes": 7986,
+     "precached": true
+    },
+    {
+     "path": "games/canopy/canopy_tend.py",
+     "bytes": 9168,
+     "precached": true
+    },
+    {
+     "path": "games/canopy/canopy_tick.py",
+     "bytes": 6490,
+     "precached": true
+    },
+    {
+     "path": "games/canopy/canopy_valuation.py",
+     "bytes": 3702,
+     "precached": true
+    },
+    {
+     "path": "games/canopy/canopy_vault.py",
+     "bytes": 9306,
+     "precached": true
+    },
+    {
+     "path": "games/canopy/canopy_weather.py",
+     "bytes": 4736,
+     "precached": true
+    },
+    {
+     "path": "games/canopy/canopy_worldvars.py",
+     "bytes": 14806,
+     "precached": true
+    },
+    {
      "path": "games/canopy/changelog.json",
      "bytes": 23830,
      "precached": false
     },
     {
+     "path": "games/canopy/copy-wiring.js",
+     "bytes": 2315,
+     "precached": true
+    },
+    {
+     "path": "games/canopy/feedback.js",
+     "bytes": 1837,
+     "precached": true
+    },
+    {
      "path": "games/canopy/game.py",
-     "bytes": 499487,
+     "bytes": 3425,
      "precached": true
     },
     {
      "path": "games/canopy/index.html",
-     "bytes": 94572,
+     "bytes": 58992,
      "precached": true
     },
     {
@@ -537,7 +792,7 @@
     },
     {
      "path": "games/canopy/pc.html",
-     "bytes": 99288,
+     "bytes": 63708,
      "precached": true
     },
     {
@@ -546,9 +801,19 @@
      "precached": true
     },
     {
+     "path": "games/canopy/save-profiles.js",
+     "bytes": 579,
+     "precached": true
+    },
+    {
      "path": "games/canopy/settings.js",
      "bytes": 12367,
-     "precached": false
+     "precached": true
+    },
+    {
+     "path": "games/canopy/shortcuts.js",
+     "bytes": 1674,
+     "precached": true
     },
     {
      "path": "games/canopy/sources.json",
@@ -561,8 +826,33 @@
      "precached": false
     },
     {
+     "path": "games/canopy/style-1-base.css",
+     "bytes": 20374,
+     "precached": true
+    },
+    {
+     "path": "games/canopy/style-2-visuals.css",
+     "bytes": 19660,
+     "precached": true
+    },
+    {
+     "path": "games/canopy/style-3-features.css",
+     "bytes": 23045,
+     "precached": true
+    },
+    {
      "path": "games/canopy/style.css",
-     "bytes": 91820,
+     "bytes": 30162,
+     "precached": true
+    },
+    {
+     "path": "games/canopy/todays-run.js",
+     "bytes": 763,
+     "precached": true
+    },
+    {
+     "path": "games/canopy/tutorial-steps.js",
+     "bytes": 4164,
      "precached": true
     }
    ],
@@ -643,11 +933,6 @@
      "precached": true
     },
     {
-     "path": "shared/ghost.py",
-     "bytes": 13517,
-     "precached": true
-    },
-    {
      "path": "shared/hub-auth.js",
      "bytes": 1356,
      "precached": true
@@ -660,11 +945,6 @@
     {
      "path": "shared/info-page.css",
      "bytes": 1092,
-     "precached": true
-    },
-    {
-     "path": "shared/info_page.py",
-     "bytes": 3410,
      "precached": true
     },
     {
@@ -778,11 +1058,6 @@
      "precached": true
     },
     {
-     "path": "shared/seed.py",
-     "bytes": 9788,
-     "precached": true
-    },
-    {
      "path": "shared/site-settings.js",
      "bytes": 6290,
      "precached": false
@@ -795,11 +1070,6 @@
     {
      "path": "shared/skill-tree.js",
      "bytes": 23289,
-     "precached": true
-    },
-    {
-     "path": "shared/skill_tree.py",
-     "bytes": 10981,
      "precached": true
     },
     {
@@ -875,7 +1145,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 15248074,
+   "bytes": 15232489,
    "bytes_complete": true
   },
   "grid": {
