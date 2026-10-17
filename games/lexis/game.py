@@ -18,6 +18,8 @@ Every request carries `"planet"` (default "pulse"). Actions:
   confirm {forms}            how many of the chosen entries are right, not which
   speak {marks} | {glyph} | {message}   send a signal; the world answers in-world (the bridge language
                              sends a whole message: space-separated tokens such as "ku p 0011")
+  name_pin {pin, text}       name what you think is sending received Pulse transmission `pin` (0-based; free text,
+                             never judged; empty text clears it)
   reset                      start over (everything)
 """
 
@@ -49,6 +51,8 @@ CSCENES = compound_scenes()
 BSCENES = bridge_scenes()
 LANGUAGE = PULSE
 PLANETS = ("pulse", "compound", "bridge")
+
+MAX_PIN_TEXT = 60
 
 state = LexisState()
 station = Station(0, "shut")
@@ -197,6 +201,27 @@ def _extras():
     }
 
 
+def _clean_pins(raw):
+    """Evidence-board names from untrusted data: {"<index>": text}, only for transmissions that exist."""
+    pins = {}
+    if not isinstance(raw, dict):
+        return pins
+    for key, text in raw.items():
+        if not isinstance(text, str) or isinstance(key, bool):
+            continue
+        key = str(key)
+        text = " ".join(text.split())[:MAX_PIN_TEXT]
+        if key.isdigit() and int(key) < len(SCENES) and text:
+            pins[str(int(key))] = text
+    return pins
+
+
+def _evidence_view():
+    """The Evidence board: the Pulse transmissions received so far, and the names given to them."""
+    pins = getattr(state, "evidence_pins", None) or {}
+    return {"fragments": [scene.marks for scene in SCENES[:state.scenes_seen]], "pins": dict(pins)}
+
+
 def _view(planet):
     if planet == "bridge":
         view = _bridge_view()
@@ -204,6 +229,7 @@ def _view(planet):
         view = _compound_view() if planet == "compound" else _pulse_view()
     view.update(_extras())
     view["museum"] = museum.get_museum_data(state)
+    view["evidence"] = _evidence_view()
     discovered = list(getattr(state, "discovered_stars", set()))
     view["star_map"] = star_map.STAR_MAP
     view["discovered_stars"] = discovered
@@ -330,8 +356,19 @@ def handle(request_json):
             view["tuned_star"] = result
             return json.dumps(view)
         return json.dumps({"error": "unknown signal"})
+    elif action == "name_pin":
+        pin, text = request.get("pin"), request.get("text", "")
+        if isinstance(pin, int) and not isinstance(pin, bool) and 0 <= pin < state.scenes_seen and isinstance(text, str):
+            pins = dict(getattr(state, "evidence_pins", None) or {})
+            text = " ".join(text.split())[:MAX_PIN_TEXT]
+            if text:
+                pins[str(pin)] = text
+            else:
+                pins.pop(str(pin), None)
+            state.evidence_pins = pins
     elif action == "reset":
         state.__init__()
+        state.evidence_pins = {}
         station = Station(0, "shut")
         tray = Tray()
         stock = Stock()
@@ -414,9 +451,9 @@ def load_state(data):
         state.discovered_stars = set(raw)
     elif not hasattr(state, "discovered_stars"):
         state.discovered_stars = set()
-    raw_ev = (data.get("evidence_pins") if isinstance(data, dict) else None)
-    if isinstance(raw_ev, dict):
-        state.evidence_pins = {**getattr(state, "evidence_pins", {}), **raw_ev}
+    # Names already on the board win over a saved one for the same fragment (a save never deletes newer work).
+    saved_pins = _clean_pins(data.get("evidence_pins") if isinstance(data, dict) else None)
+    state.evidence_pins = {**saved_pins, **(getattr(state, "evidence_pins", None) or {})}
     _refresh_view()
 
 
