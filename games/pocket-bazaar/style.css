@@ -202,8 +202,12 @@ html[data-effects="off"] *, html[data-effects="off"] *::before, html[data-effect
 .patience-dots { display: none; }
 
 @media (max-width: 600px) {
-  /* The board shrinks to the screen's height so the crates and Sell/Broom stay on screen without scrolling. */
-  .board { max-width: min(22rem, 100%, calc((100vh - 26.6rem) * var(--cols) / 6)); }
+  /* R4-PBMO-4: board fills phone width; queue is a tight row above. Height constrained so the whole stall fits one portrait screen. */
+  .board {
+    width: 100%;
+    max-width: min(100%, calc((100vh - 23rem) * var(--cols) / 6));
+    margin: 0 auto;
+  }
   /* A phone shows the whole counter and the crates without scrolling: the long intro and the panel title step aside. */
   .tagline { display: none; }
   .panel-title { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; }
@@ -211,8 +215,9 @@ html[data-effects="off"] *, html[data-effects="off"] *::before, html[data-effect
   .stat { padding: 0.15rem 0.2rem; }
   .stat-label { font-size: 0.62rem; }
   .stat-value { font-size: 0.95rem; }
-  .queue { gap: 0.25rem; }
-  .customer { min-height: 4.6rem; padding: 0.25rem 0.3rem; font-size: 0.75rem; }
+  /* R4-PBMO-4: the three customers are a tight row of cards across the full phone width. */
+  .queue { gap: 0.2rem; width: 100%; max-width: 100%; box-sizing: border-box; margin: 0 0 0.2rem; }
+  .customer { min-height: 3.8rem; padding: 0.2rem 0.25rem; font-size: 0.75rem; }
   .cust-kind { display: none; }
   /* R4-PBMO-7: five large dots (filled = patience left, hollow = used up) and the beats replace the thin bar on a phone */
   .cust-patience { display: none; }
@@ -271,7 +276,7 @@ html[data-effects="off"] *, html[data-effects="off"] *::before, html[data-effect
   .peek-festival, .peek-regulars { font-size: 0.9rem; margin: 0.15rem 0; }
 }
 @media (max-width: 420px) {
-  #game { padding: 0.6rem 0.6rem 2.5rem; }
+  #game { padding: 0.5rem 0.4rem 2.5rem; }
   h1 { font-size: 1.35rem; }
   .stat-value { font-size: 0.95rem; }
   .stat-label { font-size: 0.56rem; }
