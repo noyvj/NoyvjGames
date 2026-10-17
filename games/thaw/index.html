@@ -207,6 +207,30 @@
           Hide the snow hare and the arctic fox
         </label>
       </div>
+      <div class="settings-row">
+        <label class="settings-checkbox-label" for="no-haptics-checkbox">
+          <input type="checkbox" id="no-haptics-checkbox">
+          No vibration when the temperature crosses a warming milestone (phones that allow it; also off with Reduce motion)
+        </label>
+      </div>
+      <div class="settings-row">
+        <label class="settings-checkbox-label" for="info-list-checkbox">
+          <input type="checkbox" id="info-list-checkbox">
+          The Real Story as one scrolling list instead of swipeable cards (phones)
+        </label>
+      </div>
+      <div class="settings-row">
+        <label class="settings-checkbox-label" for="hide-board-checkbox">
+          <input type="checkbox" id="hide-board-checkbox">
+          Hide the four-region board shown when a phone is turned sideways
+        </label>
+      </div>
+      <div class="settings-row">
+        <label class="settings-checkbox-label" for="no-pull-archive-checkbox">
+          <input type="checkbox" id="no-pull-archive-checkbox">
+          No pull down to open the Climate archive (phones)
+        </label>
+      </div>
       <div class="settings-row settings-code-row">
         <label class="settings-checkbox-label" for="skin-select">
           Map skin
@@ -270,6 +294,35 @@
       <p id="info-page-tie-in" class="info-page-tie-in"></p>
       <ul id="info-page-sources" class="info-page-sources"></ul>
     </div>
+    <!-- R4-THMO-8: position dots for the swipeable cards; phones only, built by info-page-swipe.js. -->
+    <div id="info-page-dots" class="info-page-dots" aria-hidden="true"></div>
+
+    <!-- R4-THMO-5: with the phone turned sideways, the four regions as a 2 by 2 board of mini graphs (copied from the real
+         graphs by landscape-grid.js; shown by style.css only on a short landscape screen; Settings can hide it). -->
+    <div id="landscape-board" class="landscape-board section" role="group" aria-label="All four regions side by side">
+      <div class="landscape-board-grid">
+        <div class="landscape-cell" data-graph="graph" data-stat="temperature-display">
+          <p class="landscape-cell-label">Region A</p>
+          <div class="landscape-cell-graph" aria-hidden="true"></div>
+          <p class="landscape-cell-stat"></p>
+        </div>
+        <div class="landscape-cell" data-graph="b-graph" data-stat="b-temperature-display">
+          <p class="landscape-cell-label">Region B</p>
+          <div class="landscape-cell-graph" aria-hidden="true"></div>
+          <p class="landscape-cell-stat"></p>
+        </div>
+        <div class="landscape-cell" data-graph="c-graph" data-stat="c-temperature-display">
+          <p class="landscape-cell-label">Region C</p>
+          <div class="landscape-cell-graph" aria-hidden="true"></div>
+          <p class="landscape-cell-stat"></p>
+        </div>
+        <div class="landscape-cell" data-graph="d-graph" data-stat="d-temperature-display" data-needs="worst-case-panel">
+          <p class="landscape-cell-label">Region D (worst case)</p>
+          <div class="landscape-cell-graph" aria-hidden="true"></div>
+          <p class="landscape-cell-stat"></p>
+        </div>
+      </div>
+    </div>
 
     <div id="status" class="section">
       <!-- G2: Region A's permanent flavor subtitle, matching the ones on Regions B/C/D below. -->
@@ -331,7 +384,8 @@
       <p id="ghost-sentence" class="sr-only ghost-sentence" role="status" hidden></p>
       <p id="personal-best-display" class="personal-best-display">Personal best: 0.0° saved</p>
       <button id="archive-toggle-button" class="secondary archive-toggle" type="button">Climate archive</button>
-      <div id="archive-panel" class="archive-panel" hidden>
+      <div id="archive-panel" class="archive-panel" role="region" aria-label="Climate archive" hidden>
+        <button type="button" id="archive-sheet-close" class="secondary archive-sheet-close">Close the archive</button>
         <p class="meter-label">Best-ever records on this device, across every session</p>
         <p id="archive-row-a" class="archive-row"></p>
         <p id="archive-row-b" class="archive-row"></p>
@@ -515,6 +569,60 @@
         <button id="monitor-invest-button" class="secondary" disabled>Loading...</button>
         <span class="invest-forecast" id="monitor-forecast"></span>
       </div>
+
+      <!-- R4-THMO-2: phones only (style.css): plan how to split Region A's funds with a draggable bar and big plus and minus
+           buttons, then press one button to make the investments through the normal Invest buttons above. Nothing is spent until then. -->
+      <details id="mobile-invest-details" class="mobile-invest-details">
+        <summary>Plan a split with a bar</summary>
+        <div id="mobile-invest-bar" class="mobile-invest-bar">
+          <p id="mobile-invest-summary" class="comparison-message" role="status" aria-live="polite"></p>
+          <div id="mobile-invest-track" class="mobile-invest-track">
+            <div class="mobile-invest-fill mobile-invest-fill--output"></div>
+            <div class="mobile-invest-fill mobile-invest-fill--preserve"></div>
+            <div class="mobile-invest-fill mobile-invest-fill--monitor"></div>
+            <div id="mobile-invest-handle-a" class="mobile-invest-handle" role="slider" tabindex="0" aria-label="Output spending: drag, or use the arrow keys"></div>
+            <div id="mobile-invest-handle-b" class="mobile-invest-handle" role="slider" tabindex="0" aria-label="Preservation spending: drag, or use the arrow keys"></div>
+          </div>
+          <div class="mobile-invest-segments">
+          <div class="mobile-invest-seg mobile-invest-seg--output" data-cat="output">
+            <span class="mobile-invest-name">Output</span>
+            <span class="mobile-invest-count" aria-hidden="true">0</span>
+            <span class="mobile-invest-stepper">
+              <button type="button" class="secondary mobile-invest-step" data-dir="-1" aria-label="One less Output">&minus;</button>
+              <button type="button" class="secondary mobile-invest-step" data-dir="1" aria-label="One more Output">+</button>
+            </span>
+          </div>
+          <div class="mobile-invest-seg mobile-invest-seg--preserve" data-cat="preserve">
+            <span class="mobile-invest-name">Preservation</span>
+            <span class="mobile-invest-count" aria-hidden="true">0</span>
+            <span class="mobile-invest-stepper">
+              <button type="button" class="secondary mobile-invest-step" data-dir="-1" aria-label="One less Preservation">&minus;</button>
+              <button type="button" class="secondary mobile-invest-step" data-dir="1" aria-label="One more Preservation">+</button>
+            </span>
+          </div>
+          <div class="mobile-invest-seg mobile-invest-seg--monitor" data-cat="monitor">
+            <span class="mobile-invest-name">Monitoring</span>
+            <span class="mobile-invest-count" aria-hidden="true">0</span>
+            <span class="mobile-invest-stepper">
+              <button type="button" class="secondary mobile-invest-step" data-dir="-1" aria-label="One less Monitoring">&minus;</button>
+              <button type="button" class="secondary mobile-invest-step" data-dir="1" aria-label="One more Monitoring">+</button>
+            </span>
+          </div>
+          </div>
+          <div class="mobile-invest-actions">
+            <button type="button" id="mobile-invest-apply" class="secondary" disabled>Invest the plan</button>
+            <button type="button" id="mobile-invest-clear" class="secondary" disabled>Clear plan</button>
+          </div>
+        </div>
+      </details>
+    </div>
+
+    <!-- R4-THMO-7: one-region focus mode for phones (CSS shows the buttons under 600px). "All" is the normal view. -->
+    <div id="focus-mode-dots" class="focus-mode-dots" role="group" aria-label="Show one region at a time">
+      <button type="button" id="focus-dot-all" class="secondary focus-dot focus-dot--active" aria-pressed="true" aria-label="Show every region">All</button>
+      <button type="button" id="focus-dot-a" class="secondary focus-dot" aria-pressed="false" aria-label="Focus on Region A">A</button>
+      <button type="button" id="focus-dot-b" class="secondary focus-dot" aria-pressed="false" aria-label="Focus on Region B">B</button>
+      <button type="button" id="focus-dot-c" class="secondary focus-dot" aria-pressed="false" aria-label="Focus on Region C">C</button>
     </div>
 
     <div id="region-comparison" class="section region-comparison">
@@ -1115,8 +1223,15 @@
         { toggle: "settings-toggle-button", panel: "settings-panel" },
         { toggle: "info-page-toggle-button", panel: "info-page-panel" },
         { toggle: "worst-case-toggle-button", panel: "worst-case-panel" },
+        { toggle: "archive-toggle-button", panel: "archive-panel" },
       ],
     });
   </script>
+  <script src="mobile-invest.js"></script>
+  <script src="haptic-feedback.js"></script>
+  <script src="focus-mode.js"></script>
+  <script src="landscape-grid.js"></script>
+  <script src="info-page-swipe.js"></script>
+  <script src="archive-swipe.js"></script>
 </body>
 </html>

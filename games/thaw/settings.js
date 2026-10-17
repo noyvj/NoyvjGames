@@ -134,6 +134,12 @@
     { key: "thaw-instant-digits", attr: "data-instant-digits", box: "instant-digits-checkbox" },
     { key: "thaw-hide-pace", attr: "data-hide-pace", box: "hide-pace-checkbox" },
     { key: "thaw-hide-mascots", attr: "data-hide-mascots", box: "hide-mascots-checkbox" },
+    // R4-THMO-4 / -8 / -5 / -10 (phone views): the stored "true" means TURN OFF, so a missing value and
+    // Reset to Default leave the feature on. Per device, never part of a save.
+    { key: "thaw-no-haptics", attr: "data-no-haptics", box: "no-haptics-checkbox" },
+    { key: "thaw-info-list", attr: "data-info-list", box: "info-list-checkbox" },
+    { key: "thaw-hide-board", attr: "data-hide-board", box: "hide-board-checkbox" },
+    { key: "thaw-no-pull-archive", attr: "data-no-pull-archive", box: "no-pull-archive-checkbox" },
   ];
 
   function readFlag(flag) {
