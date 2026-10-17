@@ -7,6 +7,7 @@ import re
 import sys
 import types
 from pathlib import Path
+from .pagefiles import game_css, page_text
 
 GAME_DIR = Path(__file__).resolve().parent.parent
 
@@ -519,7 +520,7 @@ def test_every_id_ui_js_presses_exists():
 
 
 def test_ui_js_is_loaded_and_keys_are_listed_in_the_help():
-    html = _html("index.html")
+    html = page_text("index.html")
     assert '<script src="ui.js" defer></script>' in html
     for line in ("1 / 2", "Enter", "U —", "T —", "H —", "C —", "S —"):
         assert line in html
@@ -535,7 +536,7 @@ def test_settings_js_handles_contrast_and_font_including_reset():
 
 
 def test_stylesheet_has_the_contrast_and_font_rules_in_both_themes():
-    css = _html("style.css")
+    css = game_css()
     assert 'html[data-high-contrast="true"] #game' in css
     assert 'html[data-high-contrast="true"][data-theme="light"] #game' in css
     assert 'html[data-readable-font="true"] body' in css

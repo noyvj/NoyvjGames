@@ -3,6 +3,7 @@ GE-23 run timer, E-31 achievements strip, E-7 settlement chronicle, E-26 tap tar
 
 import json
 from pathlib import Path
+from .pagefiles import game_css
 
 GAME_DIR = Path(__file__).resolve().parent.parent
 
@@ -224,7 +225,7 @@ def test_the_strip_carries_the_stage_and_a_hint_in_words(game_env):
 
 
 def test_the_pulse_is_css_only_and_guarded_by_both_switches():
-    css = (GAME_DIR / "style.css").read_text(encoding="utf-8")
+    css = game_css()
     assert 'html[data-effects="false"] .schedule-strip .schedule-chip--next' in css
     block = css[css.index("GE-26: the countdown pulse"):css.index("BATCH3-END")]
     assert "prefers-reduced-motion: reduce" in block and "animation: none" in block
@@ -444,7 +445,7 @@ def test_the_dock_line_repeats_resources_resilience_and_growth_and_follows_click
 
 
 def test_the_dock_line_is_shown_only_while_the_bar_is_docked_and_phone_rules_exist():
-    css = (GAME_DIR / "style.css").read_text(encoding="utf-8")
+    css = game_css()
     assert ".dock-resources { display: none; margin: 0; }" in css
     assert "#actions-dock.mobile-docked .dock-resources" in css
     block = css[css.index("E-26: phone tap targets"):css.index("BATCH3-END")]

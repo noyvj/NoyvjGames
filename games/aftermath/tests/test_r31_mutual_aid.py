@@ -8,6 +8,7 @@ import types
 from pathlib import Path
 
 import pytest
+from .pagefiles import game_source, page_text
 
 GAME_DIR = Path(__file__).resolve().parent.parent
 KEY = "aftermath-neighbour-aid"
@@ -83,7 +84,7 @@ def test_no_randomness_is_used(game_env, monkeypatch):
     _rich(game_env)
     _finish(game_env)
     assert game_env.run.aid_given in m.NEIGHBOUR_AID_AMOUNTS
-    block = (GAME_DIR / "game.py").read_text(encoding="utf-8").split("R-31: mutual aid")[1].split("class RunState")[0]
+    block = (GAME_DIR / "aftermath_bonuses.py").read_text(encoding="utf-8").split("R-31: mutual aid")[1]
     assert "import random" not in block and "random." not in block
 
 
@@ -431,7 +432,7 @@ def test_receiving_the_figure_redraws_the_line(game_env):
 
 @pytest.mark.parametrize("page", ["index.html", "pc.html"])
 def test_both_pages_have_the_switch_the_line_and_the_fetch(page):
-    html = (GAME_DIR / page).read_text(encoding="utf-8")
+    html = page_text(page)
     assert 'id="neighbour-aid-checkbox"' in html and 'id="neighbour-aid-display"' in html
     checkbox = html[html.index('id="neighbour-aid-checkbox"'):][:80]
     assert "checked" not in checkbox  # default OFF
@@ -441,7 +442,7 @@ def test_both_pages_have_the_switch_the_line_and_the_fetch(page):
 
 def test_settings_js_and_game_py_agree_on_the_key_and_reset_turns_it_off():
     js = (GAME_DIR / "settings.js").read_text(encoding="utf-8")
-    py = (GAME_DIR / "game.py").read_text(encoding="utf-8")
+    py = game_source()
     assert f'NEIGHBOUR_AID_KEY = "{KEY}"' in js
     assert f'NEIGHBOUR_AID_STORAGE_KEY = "{KEY}"' in py
     reset = js[js.index("settingsResetButton.addEventListener"):]

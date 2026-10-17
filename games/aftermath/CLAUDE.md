@@ -2,6 +2,42 @@
 
 **Built following the shared conventions in `planning/archive/climate-quartet-plan.md`** (testing, feedback hook, hope-angle requirement, hub integration — moved there 2026-09-22 once all four quartet games shipped; was `climate-quartet-plan.md` at the games root while build order still mattered). This file is Aftermath-specific only. Built last of the four — the meta-progression skill tree was the most complex system, tackled once the other three patterns were proven.
 
+## File map (read this first; every file is small enough to read whole)
+
+`game.py` was one 8,300-line file (368 KB). It is now an entry point plus 20 `aftermath_*.py` modules, and the stylesheet and the page's inline scripts are split too (SP-1g in `planning/TODO.md`; the recipe is in `planning/SHARED-COMPONENTS.md`). Nothing changed in behaviour or in a save. Ask for the one file that holds what you are changing.
+
+**Python (`aftermath_*.py`, listed in dependency order: a module imports only from the ones before it).** The list lives in ONE place that matters, `AFTERMATH_PY_MODULES` in `boot.js` (the page writes those files into Pyodide's file system before it runs `game.py`); `_PART_NAMES` in `game.py` repeats it in the same order, and `tests/test_file_sizes.py` checks both against the files on disk.
+
+| File | Holds (ask for it when you change...) |
+|------|------|
+| `game.py` | Entry point. Imports the parts, re-exports every name (`game.<name>` still works for tests and the page), forwards live state, and `setup()` wires the buttons. Ask for it only to add a button listener. |
+| `aftermath_runstate.py` | The variables that get REPLACED while playing (`run`, `skill_tree`, `meta`, `run_history`, panel-open flags, filters, status texts) and `LIVE_NAMES`. |
+| `aftermath_rules.py` | Fixed numbers and tables: costs, `EVENT_SCHEDULE`, `SCENARIOS`, event labels/icons/damage/categories, severity helpers, `SKILLS`, storage keys. |
+| `aftermath_persist.py` | localStorage helpers and save health, loaders/savers for every saved record (legacy, societal memory, curriculum, run history, `meta` and its sanitizers, Second Founding data), `skill_tree_strength`. |
+| `aftermath_skilltree.py` | `SkillTreeState` (unlock, reset, move, pins) and the first load of the saved records into the live game. |
+| `aftermath_bonuses.py` | What skills and the Second Founding add to a run, societal memory, mutual aid from neighbouring towns (R-31), settlement looks and the run-timer helpers. |
+| `aftermath_achievements.py` | Achievements (catalog, checks, progress, panel, toast), event badges, end-of-run message helpers. |
+| `aftermath_pastruns.py` | Legacy history and scar tiers, the mentor, Past Runs (notes, sort, filter, archive, compare), improvement streaks, expected-damage helpers, ETA, pinned skills. |
+| `aftermath_panels.py` | Info page, What's New changelog, export/import progress code, skill-tree reset, skill unlock toast, callouts, epilogue text, real-world note. |
+| `aftermath_codex.py` | Invest step size, the Disaster Codex and the Lifetime Stats panel. |
+| `aftermath_runview.py` | Announcements, damage popup, run summary and copy text, tab title, skill help text, damage waterfall, epitaph, schedule strip, countdown note and run timer. |
+| `aftermath_tools.py` | Skill search and filter chips, named allocation presets, save health badge, purchase route planner, plain-text schedule. |
+| `aftermath_challenges.py` | The ghost of your best run, shareable run codes, challenge runs, today's run, the schedule builder. |
+| `aftermath_skillmap.py` | Skill states and routes, the skill map (layout, model, SVG, render), skill ranks earned by use, `render_skill_move`. |
+| `aftermath_chronicle.py` | The Second Founding panel and the Settlement Chronicle. |
+| `aftermath_flourish.py` | Mood strip, settlement look, achievements tree strip, docked resources line, damage hit effects. |
+| `aftermath_model_run.py` | `RunState` (one run: resources, events, damage, payout, score) and the creation of the first live `run`. |
+| `aftermath_renderer.py` | `render()`: redraws the whole page, calling every panel's render function. |
+| `aftermath_actions.py` | Actions that replace the running game and redraw: new run, challenge and daily starts, custom run, Second Founding, community resilience. |
+| `aftermath_savestate.py` | `steward_summary()`, `get_state()`, `load_state()`: the save format. |
+| `aftermath_handlers.py` | Every `on_*` click/change handler, plus `_make_*` handler factories. A new handler goes here. |
+
+**State rule.** A module variable that some function REPLACES with `global x` / `x = ...` lives only in `aftermath_runstate.py`; every other module reads and writes it as `runstate.x` (each module that needs one starts with `import aftermath_runstate as runstate`). Never `from aftermath_runstate import x` (that copies the value once and goes stale). Lists, dicts and sets that are only changed in place (`societal_memory`, `run_log_history`, `_storage_state`) stay in the module that owns them. A new rebound variable goes in `aftermath_runstate.py` AND in its `LIVE_NAMES`. Tests use `game.run`, `game.run = ...` and so on: `game.py` forwards reads and writes of the names in `LIVE_NAMES` to `aftermath_runstate`, and a write to any other name is copied into every module that holds that name (so `monkeypatch.setattr(m, "_now", ...)` works). In the browser, `__main__` is the game module, so Pyodide code reads a live name as `__import__("__main__").run`, not as a bare `run`.
+
+**Late-bound names.** `aftermath_tools`, `aftermath_challenges` and `aftermath_skillmap` call `render()` but come before `aftermath_renderer`: each holds `render = None` and the renderer fills it in at the end of its own file. `tests/test_file_sizes.py` checks that wiring. Do not add more of these; put a new function in a module after everything it calls.
+
+**Page files.** `index.html` is markup only (about 57 KB, the one file allowed above 14,000 tokens, capped at 15,000 by `tests/test_file_sizes.py`). Scripts: `tutorial-steps.js` (the walkthrough steps), `boot.js` (loads Pyodide, writes the Python modules, runs `game.py`, starts the tutorial and mobile HUD), `seasonal-event.js` (N-2 Halloween badge), `copy-wiring.js` (Copy result and Credits links), `todays-run.js`, `run-code-boxes.js`, `community-resilience.js` (R-31 fetch), `shortcuts.js` (keys and panels for the `?` help), `feedback.js`, then the older `settings.js`, `ui.js`, `pc.js`. Styles load in this order (the order is the cascade; Desktop's `pc.css` goes after the first `style.css` link): `style-1-base.css`, `style-2-console.css`, `style-3-panels.css`, `style-4-tools.css`, `style.css` (the last part; starts with the blanket `[hidden]` rule that `shared/tests/test_hidden_attribute_rule.py` expects there). Put a new rule in the part for its area. `pc.html` is generated (`scripts/generate-pc-pages.py`), never edited by hand. `tests/pagefiles.py` has `game_css()`, `page_text()` and `game_source()` for tests that need the whole stylesheet, page or Python text.
+
 ## Concept
 
 Unlike the other three (all mitigation-focused), Aftermath treats climate change as a given, not a variable the player controls. Extreme weather events (floods, heatwaves, storms) hit on a schedule within each run. Between events, the player spends resources on resilience infrastructure vs. immediate growth. Runs are short and repeatable; a **skill tree/tech tree persists between runs**, representing accumulated societal adaptation knowledge — each run, the player starts a little more capable than the last, even though the climate events themselves don't get easier.
