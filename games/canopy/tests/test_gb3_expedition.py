@@ -10,6 +10,7 @@ import seed as seed_lib
 import skill_tree
 
 from .gb_helpers import advance_to, make_mature, tile, tile_marks
+from .pagefiles import game_source, page_text
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 SEED = "CANOPY-K7F2Q"
@@ -699,7 +700,7 @@ IDS = [
 
 def test_every_expedition_id_exists_once_on_each_page():
     for page in ("index.html", "pc.html"):
-        html = (ROOT / page).read_text()
+        html = page_text(page)
         for element_id in IDS:
             assert html.count(f'id="{element_id}"') == 1, (page, element_id)
 
@@ -709,19 +710,19 @@ def test_the_desktop_boot_reaches_the_expedition_from_the_menu_and_a_window():
     assert ["expedition-panel", "expedition-toggle-button", "Expedition"] in config["windows"]
     assert ["expedition-toggle-button", "\U0001F9ED"] in config["toolbar"]["icons"]
     assert "#expedition-status" in config["zones"]["stagebar"]
-    pc = (ROOT / "pc.html").read_text()
+    pc = page_text("pc.html")
     assert "expedition-panel" in pc and "NOYVJ_PC_TOOLBAR" in pc and "expedition-toggle-button" in pc
 
 
 def test_the_boot_script_writes_seed_py_into_pyodide_and_lists_the_panel_for_the_shortcuts():
     for page in ("index.html", "pc.html"):
-        html = (ROOT / page).read_text()
+        html = page_text(page)
         assert 'fetch("../../shared/seed.py")' in html and 'writeFile("seed.py"' in html
         assert 'toggle: "expedition-toggle-button", panel: "expedition-panel"' in html
 
 
 def test_the_game_does_not_import_the_random_module_or_use_a_clock_for_the_map():
-    game = (ROOT / "game.py").read_text()
+    game = game_source()
     assert "import random" not in game
     section = game[game.index("# GB-3 (2026-10-10): the Expedition"):game.index("# --- per-tick hook and state ---")]
     assert "time.time" not in section and "Date" not in section

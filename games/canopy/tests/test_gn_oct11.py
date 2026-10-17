@@ -2,10 +2,11 @@
 import json
 import re
 from pathlib import Path
+from .pagefiles import page_text
 
 GAME_DIR = Path(__file__).resolve().parent.parent
-INDEX = (GAME_DIR / "index.html").read_text(encoding="utf-8")
-PC = (GAME_DIR / "pc.html").read_text(encoding="utf-8")
+INDEX = page_text("index.html")
+PC = page_text("pc.html")
 CONFIG = json.loads((GAME_DIR / "pc-config.json").read_text(encoding="utf-8"))
 
 

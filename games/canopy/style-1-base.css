@@ -1,0 +1,717 @@
+/* Canopy styles, part 1 of 4: text scale, plot tiles and states, stats, legend, info toggles and the forest-hero page shell. Loaded in order by index.html: style-1-base.css, style-2-visuals.css, style-3-features.css, then style.css. */
+/* Settings panel: text scaling. settings.js sets --text-scale on the root
+   element and persists it to localStorage; every font-size in this file is
+   already in rem (confirmed by grep before relying on this), so scaling
+   the root font-size scales the whole game uniformly with zero other
+   changes -- same approach Continuum's Phase 5 accessibility.js already
+   established (see games/continuum/CLAUDE.md). Default 1 here means a page
+   that never runs settings.js still renders at exactly today's size. */
+:root {
+  --text-scale: 1;
+}
+
+html {
+  font-size: calc(16px * var(--text-scale, 1));
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  background: transparent;
+  color: #e8e9f0;
+  display: flex;
+  justify-content: center;
+}
+
+#game {
+  width: 100%;
+  max-width: 480px;
+  margin: 2rem 1rem;
+  padding: 1.75rem 1.25rem 2rem;
+  background: linear-gradient(165deg, rgba(24, 27, 43, 0.78), rgba(14, 16, 28, 0.85));
+  border: 1px solid rgba(140, 160, 255, 0.14);
+  border-radius: 18px;
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  box-shadow: 0 10px 36px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+h1 {
+  margin: 0 0 0.25rem;
+  font-size: 1.75rem;
+  font-weight: 600;
+  background: linear-gradient(120deg, #e8e9f0 20%, #9fe0ab 55%, #e8e9f0 80%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  text-shadow: 0 0 30px rgba(140, 210, 160, 0.25);
+}
+
+.tagline {
+  margin: 0 0 1.25rem;
+  opacity: 0.75;
+  font-size: 0.95rem;
+}
+
+.section {
+  background: linear-gradient(165deg, rgba(24, 27, 43, 0.7), rgba(14, 16, 28, 0.78));
+  border: 1px solid rgba(140, 160, 255, 0.14);
+  border-radius: 12px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.03);
+}
+
+.plot-grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 4px;
+  margin-bottom: 1rem;
+}
+
+.plot-tile {
+  position: relative; /* anchors the B9 pattern overlay + B17 value-pop */
+  aspect-ratio: 1;
+  border: 1px solid rgba(140, 160, 255, 0.16);
+  border-radius: 6px;
+  cursor: pointer;
+  padding: 0;
+  font-size: 1.1rem;
+  line-height: 1;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  transition: transform 80ms ease, filter 80ms ease;
+}
+
+.plot-tile:focus-visible {
+  /* B16: keyboard focus needs its own visible ring, distinct from
+     .plot-selected's outline (a tile can be focused without being the
+     selected plot while arrow-keying across the grid). */
+  outline: 2px solid #9fe0ab;
+  outline-offset: 2px;
+}
+
+/* B-7: the grid cursor. A thicker gold ring that wins over .plot-selected's outline, so the plot the
+   arrow keys are on is always visible, even when it is also the selected plot. */
+.plot-grid .plot-tile:focus-visible {
+  outline: 3px solid #ffd54f;
+  outline-offset: 2px;
+  z-index: 2;
+}
+
+.plot-tile:active {
+  transform: scale(0.92);
+  filter: brightness(0.85);
+}
+
+.plot-tile.plot-selected {
+  outline: 2px solid #e8e9f0;
+  outline-offset: 1px;
+}
+
+/* Iteration Pass 2: biodiversity sub-meter — a small wildlife icon with
+   subtle motion on well-established plots, instead of another number. */
+.plot-tile.plot-has-wildlife {
+  position: relative;
+}
+
+.plot-tile.plot-has-wildlife::after {
+  content: "\1F98B";
+  position: absolute;
+  bottom: 2px;
+  right: 2px;
+  font-size: 0.7rem;
+  animation: wildlife-flutter 2.4s ease-in-out infinite;
+}
+
+@keyframes wildlife-flutter {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-2px) rotate(8deg); }
+}
+
+.plot-preserved { background: #2e7d32; }
+.plot-bare { background: #6d4c31; }
+.plot-replanting { background: #9c7a3c; }
+.plot-recovered { background: #4caf50; }
+
+.plot-just-recovered {
+  animation: plot-sparkle 700ms ease;
+}
+
+@keyframes plot-sparkle {
+  0% { box-shadow: 0 0 0 0 rgba(139, 195, 74, 0.9); filter: brightness(1); }
+  40% { box-shadow: 0 0 8px 3px rgba(139, 195, 74, 0.9); filter: brightness(1.5); }
+  100% { box-shadow: 0 0 0 0 rgba(139, 195, 74, 0); filter: brightness(1); }
+}
+
+/* B9 (colorblind-safety, planning/TODO.md's per-game Canopy section): a
+   pattern overlay per plot state, independent of hue, on top of
+   game.py's inline gradient `backgroundColor`. Preserved/Recovered
+   already share the same green gradient function (plot_display_color())
+   at any given maturity, so hue alone can't tell them apart even for
+   full-color vision at a glance -- these patterns plus each state's own
+   icon (STATE_ICON, now including Bare) are the redundant, non-color
+   channel. Not a straight Okabe-Ito hue swap (Continuum's own audit
+   note's method) because there's no discrete red/green confusion *pair*
+   here to re-pick -- these are continuous brown-to-green gradients, so
+   the fix is redundant coding (pattern + icon) rather than a different
+   palette. Kept faint (low opacity) so it reads as texture, not noise,
+   and never obscures the wildlife icon/tooltip/value-pop layered above
+   it (z-index order relies on later-declared rules winning, same stack
+   context via `position: relative`). */
+.plot-tile::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  opacity: 0.5;
+}
+
+.plot-tile.plot-bare::before {
+  /* Cross-hatch -- "nothing growing here". */
+  background-image:
+    repeating-linear-gradient(45deg, rgba(0, 0, 0, 0.35) 0 2px, transparent 2px 8px),
+    repeating-linear-gradient(-45deg, rgba(0, 0, 0, 0.35) 0 2px, transparent 2px 8px);
+}
+
+.plot-tile.plot-replanting::before {
+  /* Dots -- "something small just started". */
+  background-image: radial-gradient(rgba(0, 0, 0, 0.4) 1.5px, transparent 1.6px);
+  background-size: 8px 8px;
+}
+
+.plot-tile.plot-preserved::before {
+  /* Diagonal stripes, one direction. */
+  background-image: repeating-linear-gradient(
+    45deg,
+    rgba(0, 0, 0, 0.28) 0 2px,
+    transparent 2px 9px
+  );
+}
+
+.plot-tile.plot-recovered::before {
+  /* Diagonal stripes, the other direction -- deliberately distinct from
+     Preserved's, since those two states share the same color gradient. */
+  background-image: repeating-linear-gradient(
+    -45deg,
+    rgba(0, 0, 0, 0.22) 0 2px,
+    transparent 2px 9px
+  );
+}
+
+/* B19: a distinct cap-off visual once a Recovered plot's maturity_
+   fraction() reaches 1.0 -- the hope-angle payoff that restoration
+   doesn't just reach parity with a never-cleared plot, it visibly
+   finishes. A soft golden ring + a small sparkle badge, layered above
+   both the wildlife icon and the pattern overlay. */
+.plot-tile.plot-fully-mature {
+  box-shadow: 0 0 0 2px rgba(255, 214, 110, 0.85), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+.plot-tile.plot-fully-mature::after {
+  content: "\2728"; /* sparkle */
+  position: absolute;
+  top: 1px;
+  left: 2px;
+  font-size: 0.6rem;
+  filter: drop-shadow(0 0 2px rgba(255, 214, 110, 0.9));
+}
+
+/* has-wildlife already uses ::after for its own icon (bottom-right) --
+   fully-mature's ::after (top-left) never collides with it, so both can
+   render on the same tile at once without one overwriting the other. */
+
+/* B17: a brief floating "+X" pop, appended as a real child span (not a
+   pseudo-element, since its text is dynamic) the one render right after
+   a plot's standing value actually rises. Removed from the DOM on the
+   very next render_grid() call (which rebuilds every tile from scratch),
+   so no cleanup timer is needed -- the animation duration is kept safely
+   under game.py's 1-tick interval so it always finishes on screen. */
+.value-pop {
+  position: absolute;
+  top: -4px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: #d6ffb8;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.7);
+  pointer-events: none;
+  animation: value-pop-float 900ms ease-out forwards;
+}
+
+@keyframes value-pop-float {
+  0% { opacity: 0; transform: translate(-50%, 4px); }
+  20% { opacity: 1; }
+  100% { opacity: 0; transform: translate(-50%, -14px); }
+}
+
+/* B20: size/motion only, never hue -- see _value_pop_size_class() in game.py. */
+.value-pop--medium { font-size: 0.8rem; }
+.value-pop--large { font-size: 0.95rem; }
+.value-pop--large { animation-name: value-pop-float-far; }
+@keyframes value-pop-float-far {
+  0% { opacity: 0; transform: translate(-50%, 4px); }
+  20% { opacity: 1; }
+  100% { opacity: 0; transform: translate(-50%, -24px); }
+}
+
+.soil-hint {
+  margin: 0.25rem 0 0.5rem;
+  font-size: 0.85rem;
+  opacity: 0.85;
+  cursor: help;
+  text-decoration: underline dotted;
+  width: fit-content;
+}
+
+.highland-unlock-progress {
+  display: block;
+  width: 100%;
+  height: 0.75rem;
+  margin: -0.25rem 0 1rem;
+  accent-color: #6fbf73;
+}
+.highland-unlock-progress[hidden] { display: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  .value-pop {
+    animation: none;
+    opacity: 0.9;
+  }
+}
+
+/* B8: hover/tap tooltip on plot tiles (positioning logic lives in
+   index.html's inline script; this is just its look). Fixed positioning
+   so it can float above any tile regardless of scroll/dock state. */
+/* B12: floating pending-stakeholder-request badge (shown/hidden by
+   index.html's IntersectionObserver/MutationObserver wiring, not
+   game.py -- see that file's comment). Fixed near the top so it's
+   visible regardless of scroll position or mobile-dock state. */
+.stakeholder-badge {
+  position: fixed;
+  top: 12px;
+  right: 12px;
+  z-index: 390; /* just below the achievement toast (400) */
+  padding: 0.5rem 0.85rem;
+  border-radius: 999px;
+  border: 1px solid rgba(201, 154, 60, 0.55);
+  background: linear-gradient(135deg, rgba(90, 62, 18, 0.95), rgba(56, 38, 10, 0.95));
+  color: #ffe3ad;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.4);
+  animation: stakeholder-badge-pulse 1.8s ease-in-out infinite;
+}
+
+@keyframes stakeholder-badge-pulse {
+  0%, 100% { box-shadow: 0 6px 18px rgba(0, 0, 0, 0.4), 0 0 0 0 rgba(201, 154, 60, 0.5); }
+  50% { box-shadow: 0 6px 18px rgba(0, 0, 0, 0.4), 0 0 0 6px rgba(201, 154, 60, 0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .stakeholder-badge {
+    animation: none;
+  }
+}
+
+.plot-tooltip {
+  position: fixed;
+  z-index: 300; /* above panels, below the achievement toast (400) */
+  padding: 0.35rem 0.6rem;
+  border-radius: 6px;
+  background: rgba(10, 12, 20, 0.95);
+  border: 1px solid rgba(140, 160, 255, 0.3);
+  color: #e8e9f0;
+  font-size: 0.72rem;
+  white-space: pre; /* B-16: two lines, state and value above, age / biodiversity / clears below */
+  pointer-events: none;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
+}
+
+.context-blurb {
+  margin: 0 0 1.25rem;
+  padding: 0.6rem 0.75rem;
+  border-left: 2px solid #2e7d32;
+  background: rgba(20, 24, 34, 0.55);
+  border-radius: 0 6px 6px 0;
+  font-size: 0.8rem;
+  opacity: 0.8;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+.selected-plot-state {
+  margin: 0 0 0.75rem;
+  font-size: 0.95rem;
+}
+
+.income-display {
+  margin: 0 0 0.4rem;
+  font-size: 0.95rem;
+}
+
+.comparison-message {
+  margin: 0.6rem 0 0;
+  font-size: 0.85rem;
+  font-style: italic;
+  opacity: 0.85;
+}
+
+/* .info-page-* rules moved to shared/info-page.css (see index.html's
+   <link> in <head>) as part of consolidating the info-page feature. */
+
+.state-breakdown,
+.community-relations {
+  /* Small pill "chip" instead of bare text — echoes the glass-panel
+     chrome used elsewhere on this page (button/section/legend-swatch
+     borders) rather than restructuring these into new elements. */
+  display: inline-block;
+  padding: 0.25rem 0.6rem;
+  border: 1px solid rgba(140, 160, 255, 0.16);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.state-breakdown {
+  margin: 0.6rem 0 0;
+  font-size: 0.78rem;
+  opacity: 0.65;
+}
+
+.community-relations {
+  margin: 0.4rem 0 0;
+  font-size: 0.78rem;
+  opacity: 0.65;
+}
+
+/* Iteration Pass 2: stakeholder-tension requests get a visually distinct
+   panel (amber accent border) so they read as a different kind of
+   decision than routine plot management. */
+.stakeholder-panel {
+  border-color: rgba(201, 154, 60, 0.45);
+  background: linear-gradient(165deg, rgba(45, 34, 14, 0.78), rgba(28, 20, 8, 0.85));
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 200, 120, 0.06);
+}
+
+.stakeholder-message {
+  margin: 0 0 0.75rem;
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.action-buttons {
+  display: flex;
+  gap: 0.5rem;
+}
+
+/* W2-canopy: collapsible "In the real world" note. */
+.real-world-note {
+  margin: 0.75rem 0;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid rgba(140, 160, 255, 0.16);
+  border-radius: 8px;
+  font-size: 0.85rem;
+  line-height: 1.5;
+}
+.real-world-note > summary { cursor: pointer; font-weight: 600; }
+.real-world-text { margin: 0.5rem 0 0.25rem; }
+.real-world-source { font-size: 0.8rem; }
+
+button.secondary {
+  flex: 1;
+  padding: 0.65rem 0.6rem;
+  border: 1px solid rgba(140, 160, 255, 0.16);
+  border-radius: 10px;
+  background: linear-gradient(135deg, #3a4258, #23283a);
+  color: #e8e9f0;
+  font-size: 0.9rem;
+  cursor: pointer;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12);
+  transition: filter 120ms ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+button.secondary:hover:not(:disabled) {
+  filter: brightness(1.1);
+}
+
+button.secondary:active:not(:disabled) {
+  filter: brightness(0.8);
+}
+
+button.secondary:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  font-size: 0.8rem;
+  opacity: 0.85;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.legend-swatch {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+  border: 1px solid rgba(140, 160, 255, 0.18);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+.feedback-question {
+  margin: 0 0 0.75rem;
+  font-size: 0.9rem;
+}
+
+.feedback-buttons {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 0.6rem;
+}
+
+.feedback-buttons .secondary.selected {
+  border-color: rgba(111, 174, 112, 0.6);
+  background: linear-gradient(135deg, #2e4a30, #1a2a1c);
+  box-shadow: 0 0 12px rgba(111, 174, 112, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.feedback-comment {
+  width: 100%;
+  min-height: 2.5rem;
+  margin-bottom: 0.6rem;
+  padding: 0.5rem;
+  border: 1px solid rgba(140, 160, 255, 0.16);
+  border-radius: 8px;
+  background: rgba(9, 10, 18, 0.55);
+  color: #e8e9f0;
+  font-family: inherit;
+  font-size: 0.85rem;
+  resize: vertical;
+}
+
+.feedback-status {
+  margin: 0.5rem 0 0;
+  font-size: 0.8rem;
+  opacity: 0.8;
+}
+
+.hub-back-link {
+  display: inline-block;
+  margin-bottom: 0.6rem;
+  font-size: 0.85rem;
+  color: inherit;
+  opacity: 0.65;
+  text-decoration: none;
+}
+
+.hub-back-link:hover {
+  opacity: 1;
+  text-decoration: underline;
+}
+
+/* Icon labels — pure CSS, no markup/game.py change. Canopy has no
+   repeated-per-instance label pattern the way SOL repeats labels across
+   parallel planet panels (this game has one shared #plot-grid and one
+   set of stat/panel elements, not N copies), so these are plain per-id
+   or per-class rules rather than SOL's [id$="..."] attribute-suffix
+   selectors. Breaks up the plain-text stat/panel rows — income figures,
+   the stakeholder request, the action buttons, the feedback prompt —
+   with a small icon per concept, so "what kind of thing is this row" no
+   longer requires reading the label text first. Deliberately does not
+   touch the plot-tile emoji/colors (STATE_ICON in game.py, and the
+   .plot-preserved/.plot-bare/.plot-replanting/.plot-recovered/
+   .plot-has-wildlife rules above) — those are already this game's core
+   iconographic layer. */
+#income-display::before {
+  content: "💰 ";
+}
+
+#standing-value-display::before {
+  content: "🌲 ";
+}
+
+/* B10: biodiversity surfaced as its own explicit stat line, next to
+   standing value rather than only implied by the wildlife icon. */
+#biodiversity-display::before {
+  content: "🦋 ";
+}
+
+/* B14: a per-browser personal-best stat line (localStorage-backed, see
+   load_personal_best()/_maybe_update_personal_best() in game.py). */
+/* Z6: .personal-best-display + its ::before medal prefix now live in the
+   shared shared/personal-best.css (opt-in <link> in index.html) instead
+   of being redefined per game -- see that file's header comment. */
+
+/* B2/B13: the reset-session control + grid-size <select>, sitting inline
+   alongside the existing toolbar buttons (Tutorial/How to Play/
+   Achievements). No dedicated .game-toolbar flex rule exists for Canopy
+   (unlike e.g. Continuum) -- these inherit the same unstyled inline-block
+   button flow already in place, so only the label/select itself needs
+   rules. */
+.grid-size-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.85rem;
+  opacity: 0.85;
+  margin: 0 0.3rem;
+}
+
+.grid-size-label select {
+  padding: 0.35rem 0.5rem;
+  border-radius: 8px;
+  border: 1px solid rgba(140, 160, 255, 0.16);
+  background: linear-gradient(135deg, #3a4258, #23283a);
+  color: #e8e9f0;
+  font-size: 0.85rem;
+}
+
+#comparison-message::before {
+  content: "📊 ";
+}
+
+#state-breakdown-display::before {
+  content: "📋 ";
+}
+
+#community-relations-display::before {
+  content: "🤝 ";
+}
+
+.selected-plot-state::before {
+  content: "📍 ";
+}
+
+#stakeholder-message::before {
+  content: "🏘️ ";
+}
+
+#stakeholder-grant-button::before {
+  content: "✅ ";
+}
+
+#stakeholder-decline-button::before {
+  content: "❌ ";
+}
+
+#clear-button::before {
+  content: "🪓 ";
+}
+
+#replant-button::before {
+  content: "🌱 ";
+}
+
+.feedback-question::before {
+  content: "💬 ";
+}
+
+#feedback-yes-button::before {
+  content: "👍 ";
+}
+
+#feedback-no-button::before {
+  content: "👎 ";
+}
+
+#feedback-submit-button::before {
+  content: "📨 ";
+}
+
+/* Legend entries mirror the plot-tile state icons (STATE_ICON in
+   game.py: preserved/replanting/recovered already carry an emoji, bare
+   carries none) in their fixed render order — preserved, bare,
+   replanting, recovered — so the legend key itself becomes iconographic
+   instead of just a color swatch plus a word. Bare gets its own icon
+   here (an axe, echoing #clear-button) since the plot tile itself
+   intentionally shows no icon for that state. */
+.legend-item:nth-of-type(1)::before {
+  content: "🌲 ";
+}
+
+.legend-item:nth-of-type(2)::before {
+  content: "🪓 ";
+}
+
+.legend-item:nth-of-type(3)::before {
+  content: "🌱 ";
+}
+
+.legend-item:nth-of-type(4)::before {
+  content: "🌳 ";
+}
+
+/* Info toggles — plain <details>/<summary>, zero JS. For a mechanic that
+   isn't self-explanatory from its label alone (why did clearing get
+   worse over time? what does that wildlife icon mean?), a small "ⓘ"
+   disclosure sits next to the label; clicking it reveals a short plain-
+   language explanation, collapsed by default so it never competes with
+   the numbers for attention. Native <details> handles open/closed state
+   entirely in the browser — no proxy, no event handler, no game.py
+   involvement at all. Verbatim copy of SOL's block (games/sol/style.css)
+   — same violet-tinted glass-panel palette this game already uses. */
+.info-toggle {
+  display: inline-block;
+  margin-left: 0.4rem;
+  vertical-align: middle;
+}
+
+.info-toggle summary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.1rem;
+  height: 1.1rem;
+  border-radius: 50%;
+  background: rgba(140, 160, 255, 0.16);
+  border: 1px solid rgba(140, 160, 255, 0.3);
+  color: #cdd8ff;
+  font-size: 0.68rem;
+  font-weight: 700;
+  cursor: pointer;
+  list-style: none;
+  user-select: none;
+}
+
+.info-toggle summary::-webkit-details-marker {
+  display: none;
+}
+
+.info-toggle summary:hover {
+  background: rgba(140, 160, 255, 0.28);
+}
+
+.info-toggle[open] summary {
+  background: rgba(140, 160, 255, 0.32);
+}
+
+.info-toggle p {
+  text-align: left;
+  font-size: 0.78rem;
+  font-weight: 400;
+  opacity: 0.85;
+  line-height: 1.5;
+  margin: 0.5rem 0 0;
+  padding: 0.6rem 0.75rem;
+  background: rgba(5, 6, 13, 0.5);
+  border: 1px solid rgba(140, 160, 255, 0.14);
+  border-radius: 8px;
+}

@@ -5,14 +5,17 @@ after_forest_switch(), and the page hands the widget its hook before the widget 
 import json
 import re
 from pathlib import Path
+from .pagefiles import page_text
 
 GAME_DIR = Path(__file__).resolve().parent.parent
-INDEX = (GAME_DIR / "index.html").read_text(encoding="utf-8")
-PC = (GAME_DIR / "pc.html").read_text(encoding="utf-8")
+INDEX = page_text("index.html")
+PC = page_text("pc.html")
+# the hook now lives in save-profiles.js; the order the page loads it in is read from the raw page
+RAW_PAGES = [(GAME_DIR / name).read_text(encoding="utf-8") for name in ("index.html", "pc.html")]
 
 
 def _hook(html):
-    m = re.search(r"window\.NoyvjSaveProfiles = \{(.*?)\n    \};", html, re.S)
+    m = re.search(r"window\.NoyvjSaveProfiles = \{(.*?)\n\};", html, re.S)
     assert m, "the page must define window.NoyvjSaveProfiles"
     return m.group(1), m.start()
 
@@ -20,10 +23,10 @@ def _hook(html):
 # ---- the hook on both pages ---------------------------------------------------------------------------------------
 
 def test_both_pages_define_the_hook_before_the_save_widget_loads(game_env):
-    for html in (INDEX, PC):
-        body, start = _hook(html)
-        assert start < html.index('shared/save-widget.js'), "the widget reads the hook as it loads"
-        assert html.count('shared/save-widget.js') == 1
+    for html, raw in zip((INDEX, PC), RAW_PAGES):
+        body, _ = _hook(html)
+        assert raw.index('<script src="save-profiles.js">') < raw.index('shared/save-widget.js'), "the widget reads the hook as it loads"
+        assert raw.count('shared/save-widget.js') == 1
         assert 'noun: "forest"' in body and 'defaultName: "My forest"' in body
         assert 'start_new_forest' in body and 'after_forest_switch' in body
 

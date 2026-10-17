@@ -1,0 +1,744 @@
+/* Canopy styles, part 3 of 4: toasts, the session summary, Highland and Wetland regions, achievements, motion and the first feature batches (golden seedling, tend, Heart Tree, almanac ...). Loaded in order by index.html: style-1-base.css, style-2-visuals.css, style-3-features.css, then style.css. */
+/* ============================================================
+   Mobile docked stats + legend (B15, planning/TODO.md). Same
+   shared/mobile-dock.js mechanism #action-panel already uses, applied to
+   #mobile-info-dock (the wrapper around #stats + .legend in index.html)
+   so both panels move together as one unit. Unlike #action-panel --
+   which a player needs open at all times to act on a selected plot --
+   stats/legend are reference info the player *checks*, not something
+   they act through every click, so this collapses behind one toggle
+   button by default rather than permanently occupying screen space on
+   top of the already-docked action panel. Desktop (`.mobile-info-dock`
+   with no `.mobile-docked` class) is untouched: the toggle is hidden and
+   #stats/.legend render exactly as any other `.section` in normal flow. */
+.mobile-info-dock-toggle {
+  display: none;
+}
+
+@media (max-width: 640px) {
+  #mobile-info-dock.mobile-docked {
+    position: fixed;
+    left: 4.5rem; /* clear of the Story pill in the left corner (UX-1) */
+    right: 0.5rem;
+    /* Stacked directly above the action-panel dock: its real height is
+       published as --action-dock-h by index.html (UX-1; this used to be a fixed
+       138px that sat BEHIND a taller dock, so the toggle could not be tapped). */
+    bottom: calc(var(--action-dock-h, 90px) + 50px + 6px);
+    z-index: 149; /* just below #action-panel's dock (150) */
+    max-width: 480px;
+    margin: 0 0 0 auto;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.5rem;
+  }
+
+  #mobile-info-dock.mobile-docked .mobile-info-dock-toggle {
+    display: block;
+    flex: none;
+    width: auto;
+    padding: 0.3rem 0.7rem;
+    font-size: 0.75rem;
+    text-align: center;
+    box-shadow: 0 -8px 28px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.03);
+  }
+
+  /* Collapsed by default: both panels stay in the DOM (game.py's ids
+     resolve exactly the same whether or not they're visible) but are
+     visually hidden until the toggle is tapped. */
+  #mobile-info-dock.mobile-docked #stats,
+  #mobile-info-dock.mobile-docked .legend {
+    display: none;
+  }
+
+  #mobile-info-dock.mobile-docked.mobile-info-dock--expanded {
+    max-height: 46vh;
+    overflow-y: auto;
+    left: 0.5rem;
+    align-items: stretch;
+  }
+
+  #mobile-info-dock.mobile-docked.mobile-info-dock--expanded #stats,
+  #mobile-info-dock.mobile-docked.mobile-info-dock--expanded .legend {
+    display: block;
+  }
+}
+
+/* ============================================================
+   Achievements (planning/ACHIEVEMENTS-SYSTEM-DESIGN.md). Panel reuses
+   the existing `.section` glass treatment (achievements-panel carries
+   both classes in index.html); this just styles the per-achievement
+   cards, the hub-dashboard link, and the unlock toast. */
+/* :not([hidden]), not a bare class selector -- an author-stylesheet
+   `display` declaration always beats the browser's own `[hidden] {
+   display: none }` UA rule regardless of selector specificity (origin
+   order, not specificity, decides between UA and author rules), so a
+   bare `.achievements-panel { display: flex }` would silently defeat
+   `panel.hidden = true` and leave an empty glass-panel box visible
+   before Python ever populates or re-hides it. Found live in a real
+   browser while verifying the B1 session-summary panel below, which had
+   the identical bug -- fixed both here rather than just the new one. */
+.achievements-panel:not([hidden]) {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+/* B1/B6/B18/B20: session-summary panel (counterfactual line, income-vs-
+   standing sparkline, shareable text snippet). */
+.session-summary-panel:not([hidden]) {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.session-summary-counterfactual {
+  font-style: italic;
+  opacity: 0.9;
+}
+
+.session-summary-sparkline {
+  display: flex;
+  justify-content: center;
+  padding: 0.4rem 0;
+}
+
+.session-sparkline {
+  width: 100%;
+  max-width: 320px;
+  height: 60px;
+}
+
+.session-summary-share-label {
+  margin: 0.3rem 0 0;
+  font-size: 0.8rem;
+  opacity: 0.75;
+}
+
+.session-summary-share-text {
+  padding: 0.5rem 0.65rem;
+  border-radius: 8px;
+  background: rgba(140, 160, 255, 0.08);
+  border: 1px solid rgba(140, 160, 255, 0.16);
+  font-size: 0.85rem;
+}
+
+.session-summary-copy-status {
+  margin: 0;
+  font-size: 0.78rem;
+  opacity: 0.75;
+  min-height: 1em;
+}
+
+/* B7: save/compare two named playstyle runs. */
+.session-summary-playstyle-label {
+  margin: 0.6rem 0 0;
+  font-size: 0.8rem;
+  opacity: 0.75;
+}
+
+.session-summary-playstyle-comparison {
+  font-size: 0.85rem;
+}
+
+.playstyle-comparison-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.playstyle-comparison-table th,
+.playstyle-comparison-table td {
+  text-align: left;
+  padding: 0.3rem 0.5rem;
+  border-bottom: 1px solid rgba(140, 160, 255, 0.14);
+}
+
+.playstyle-comparison-table th:not(:first-child),
+.playstyle-comparison-table td:not(:first-child) {
+  text-align: right;
+}
+
+/* B3: second, unlockable forest region. */
+.highland-lock-banner {
+  font-style: italic;
+  opacity: 0.8;
+  font-size: 0.9rem;
+}
+
+.highland-heading {
+  margin: 0 0 0.4rem;
+  font-size: 1.1rem;
+}
+
+.highland-blurb {
+  margin: 0 0 0.8rem;
+  font-size: 0.85rem;
+  opacity: 0.85;
+}
+
+.highland-plot-grid {
+  margin-bottom: 1rem;
+}
+
+/* B1: third region, Wetland Forest. */
+.wetland-lock-banner {
+  font-style: italic;
+  opacity: 0.8;
+  font-size: 0.9rem;
+}
+
+.wetland-blurb {
+  margin: 0 0 0.6rem;
+  font-size: 0.85rem;
+  opacity: 0.85;
+}
+
+.wetland-flood-status {
+  margin: 0 0 0.8rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.plot-tile.plot-flood-risk {
+  outline: 2px dashed #6ec1ff;
+  outline-offset: -3px;
+}
+
+.achievement-card {
+  padding: 0.6rem 0.75rem;
+  border: 1px solid rgba(140, 160, 255, 0.14);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.achievement-card--earned {
+  border-color: rgba(159, 224, 171, 0.45);
+  background: linear-gradient(135deg, rgba(46, 125, 50, 0.22), rgba(46, 125, 50, 0.06));
+  box-shadow: 0 0 10px rgba(140, 230, 140, 0.15);
+}
+
+.achievement-card-label {
+  margin: 0 0 0.2rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.achievement-card-description {
+  margin: 0;
+  font-size: 0.78rem;
+  opacity: 0.75;
+}
+
+.achievement-card-progress {
+  margin: 0.35rem 0 0;
+  font-size: 0.72rem;
+  opacity: 0.6;
+  font-style: italic;
+}
+
+/* Z27b: cross-player "Earned by N% of players" line, filled in by
+   shared/achievement-stats.js once the aggregate-stats endpoint responds
+   -- same muted small-text treatment as .achievement-card-progress, kept
+   distinct via reduced opacity so the two never look identical if both
+   appear on the same card. */
+.achievement-earn-rate {
+  margin: 0.3rem 0 0;
+  font-size: 0.72rem;
+  opacity: 0.45;
+  font-style: italic;
+}
+
+.achievements-hub-link {
+  display: inline-block;
+  margin-top: 0.3rem;
+  font-size: 0.8rem;
+  color: #9fe0ab;
+  text-decoration: none;
+}
+
+/* ============================================================
+   "What's New" changelog panel (site-wide goal, planning/TODO.md, origin
+   K16). Reuses .section for the panel shell (same hidden-until-opened
+   idiom as #achievements-panel), and the same :not([hidden]) override
+   .achievements-panel needed, since this is also a flex column of cards. */
+.changelog-panel:not([hidden]) {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.changelog-entry {
+  padding: 0.6rem 0.75rem;
+  border: 1px solid rgba(140, 160, 255, 0.14);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.changelog-entry-date {
+  margin: 0 0 0.2rem;
+  font-size: 0.72rem;
+  opacity: 0.55;
+  font-variant-numeric: tabular-nums;
+}
+
+.changelog-entry-text {
+  margin: 0;
+  font-size: 0.85rem;
+  line-height: 1.4;
+}
+
+.achievements-hub-link:hover {
+  text-decoration: underline;
+}
+
+/* Unlock toast: fixed near the top of the viewport so it's visible
+   regardless of scroll position (including while #action-panel is
+   mobile-docked at the bottom), auto-hidden by game.py's own timeout
+   after ACHIEVEMENT_TOAST_DURATION_MS. Hidden by default via the
+   `hidden` attribute in index.html; game.py also explicitly sets
+   `.hidden = True` in setup() since -- unlike every panel here -- it's
+   otherwise only ever touched by the show/hide calls themselves, never
+   re-derived on every render(). */
+.achievement-toast {
+  position: fixed;
+  top: 12px;
+  left: 50%;
+  transform: translateX(-50%) translateY(-12px);
+  z-index: 400; /* above panels/ad-bar, below the save widget (9999) */
+  max-width: 90vw;
+  padding: 0.6rem 1rem;
+  border-radius: 999px;
+  background: linear-gradient(135deg, rgba(46, 125, 50, 0.95), rgba(27, 94, 32, 0.95));
+  border: 1px solid rgba(159, 224, 171, 0.5);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  color: #f2fff2;
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-align: center;
+  opacity: 0;
+  transition: opacity 200ms ease, transform 200ms ease;
+  pointer-events: none;
+}
+
+.achievement-toast--visible {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .achievement-toast {
+    transition: opacity 150ms ease;
+  }
+}
+
+/* ============================================================
+   Settings panel (site-wide goal, planning/TODO.md): consolidated
+   text-scale + reduced-motion controls. Reuses .section for the panel
+   shell itself (same hidden-until-opened idiom as #howto-panel/
+   #achievements-panel), so only the internal layout needs its own rules. */
+.settings-panel-heading {
+  margin: 0 0 0.75rem;
+  font-size: 0.95rem;
+  opacity: 0.9;
+}
+
+.settings-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.settings-row:last-child {
+  margin-bottom: 0;
+}
+
+.settings-label {
+  font-size: 0.85rem;
+}
+
+.text-size-control {
+  display: inline-flex;
+  gap: 0.25rem;
+}
+
+.text-size-control button {
+  min-width: 2.2rem;
+  padding: 0.3rem 0.5rem;
+}
+
+.settings-checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+/* Reduced-motion override: a manual, persisted toggle independent of the
+   OS-level `prefers-reduced-motion` media query already gating several
+   animations in this file (wildlife-flutter, plot-sparkle, value-pop-float,
+   stakeholder-badge-pulse, forest-visual-sway). Rather than duplicating
+   every individual @keyframes/animation/transition rule with a second
+   selector, this one blanket rule (applied only when settings.js sets the
+   attribute) collapses every animation/transition on the page to
+   effectively instant -- the same standard "force-disable" pattern used
+   site-wide for this kind of manual override, and strictly additive to the
+   existing media-query-gated rules elsewhere in this file (an OS-level
+   reduced-motion user gets the same effect either way; this just also
+   covers a player whose OS setting is untouched but who wants motion off
+   in-game). */
+html[data-reduced-motion="true"] *,
+html[data-reduced-motion="true"] *::before,
+html[data-reduced-motion="true"] *::after {
+  animation-duration: 0.001ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.001ms !important;
+  scroll-behavior: auto !important;
+}
+
+
+/* B4: one-shot leaf burst on a plot's first full maturity. Six leaves fly
+   out along fixed angles; the whole set is removed on the next render. */
+.plot-tile { overflow: visible; }
+.leaf-burst {
+  position: absolute;
+  top: 40%;
+  left: 40%;
+  font-size: 0.8rem;
+  pointer-events: none;
+  animation: leaf-burst-fly 900ms ease-out forwards;
+  z-index: 3;
+}
+.leaf-burst--0 { --lx: -26px; --ly: -26px; }
+.leaf-burst--1 { --lx: 0px; --ly: -32px; }
+.leaf-burst--2 { --lx: 26px; --ly: -22px; }
+.leaf-burst--3 { --lx: -28px; --ly: 12px; }
+.leaf-burst--4 { --lx: 4px; --ly: 30px; }
+.leaf-burst--5 { --lx: 28px; --ly: 16px; }
+@keyframes leaf-burst-fly {
+  0% { opacity: 1; transform: translate(0, 0) rotate(0deg) scale(0.6); }
+  100% { opacity: 0; transform: translate(var(--lx), var(--ly)) rotate(200deg) scale(1.1); }
+}
+
+/* B22 / B27: small corner marks (icon, so no color-only meaning). */
+.veteran-mark, .adopted-mark {
+  position: absolute;
+  font-size: 0.65rem;
+  line-height: 1;
+  pointer-events: none;
+}
+.veteran-mark { bottom: 1px; left: 2px; }
+.adopted-mark { top: 1px; right: 2px; }
+.plot-tile.plot-adopted { outline: 1px dashed rgba(255, 224, 130, 0.8); outline-offset: -3px; }
+
+/* B26: subtle glow on the last-hovered plot. */
+.plot-tile.plot-last-hovered {
+  box-shadow: 0 0 0 2px rgba(214, 255, 184, 0.55), 0 0 12px rgba(214, 255, 184, 0.45);
+}
+
+.adopted-plot-panel { margin: 0.5rem 0 0; font-size: 0.85rem; opacity: 0.9; }
+.stakeholder-shortcut-hint { margin: 0.25rem 0; font-size: 0.75rem; opacity: 0.7; }
+.session-summary-badge { font-weight: 700; margin: 0.5rem 0; }
+.summary-details { margin: 0.5rem 0; }
+.summary-details > summary { cursor: pointer; font-weight: 600; }
+.summary-graph-label { margin: 0.4rem 0 0.1rem; font-size: 0.8rem; opacity: 0.85; }
+.forest-log-list {
+  max-height: 11rem;
+  overflow-y: auto;
+  white-space: pre-line;
+  font-size: 0.8rem;
+  padding: 0.4rem 0.5rem;
+  border-radius: 6px;
+  background: rgba(0, 0, 0, 0.2);
+}
+
+/* B30: decorative seasonal tint on the forest backdrop (data-season is set
+   by settings.js from the real calendar month; purely cosmetic). */
+html[data-season="spring"] .ambient-bg { filter: saturate(1.1) brightness(1.05); }
+html[data-season="summer"] .ambient-bg { filter: saturate(1.2); }
+html[data-season="autumn"] .ambient-bg { filter: hue-rotate(-50deg) saturate(1.15); }
+html[data-season="winter"] .ambient-bg { filter: hue-rotate(35deg) saturate(0.55) brightness(1.05); }
+
+.community-forest-result { white-space: pre-line; font-size: 0.85rem; margin-top: 0.5rem; }
+
+/* B29: the guided example playthrough panel. */
+.example-panel[hidden] {
+  display: none;
+}
+
+.example-intro {
+  margin: 0 0 0.6rem;
+  font-size: 0.9rem;
+  opacity: 0.85;
+}
+
+.example-step {
+  margin-bottom: 0.7rem;
+}
+
+.example-step-title {
+  margin: 0 0 0.2rem;
+  font-weight: 600;
+}
+
+.example-step-text {
+  margin: 0;
+  font-size: 0.9rem;
+}
+
+/* ============================================================
+   GB batch 1 (planning/IMPROVEMENT-IDEAS-ROUND-3.md section GB):
+   season indicator with weather and the Perfect Season flame (GB-23/30),
+   golden seedling (GB-2), Tend (GB-4), Heart Tree (GB-8), undo chip
+   (GB-18), ghost stag (GB-20), tier title and forest pulse (GB-22),
+   chain bloom (GB-27), Forest Almanac (GB-28), name fields (GB-14).
+   Every animation has a prefers-reduced-motion rule below, and the
+   manual data-reduced-motion switch already collapses them all. */
+.season-indicator {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem 1rem;
+  margin: 0 0 0.6rem;
+  padding: 0.4rem 0.75rem;
+  font-size: 0.85rem;
+  border-radius: 8px;
+  border: 1px solid rgba(140, 160, 255, 0.16);
+  background: rgba(4, 8, 5, 0.45);
+}
+.season-indicator .weather-text[hidden] { display: none; }
+.weather-text, .perfect-streak-text { font-weight: 600; }
+.perfect-streak-text { cursor: help; }
+.perfect-streak-text.just-improved,
+.forest-title-display.just-improved {
+  color: #e0c24c;
+  animation: gb-pulse 1.8s ease-out;
+}
+@keyframes gb-pulse {
+  0% { transform: scale(1.12); }
+  100% { transform: scale(1); }
+}
+.forest-title-display[hidden] { display: none; }
+.forest-title-display { font-weight: 700; }
+
+/* GB-23: rain shimmers over the grid, drought tints the tiles, and the last
+   ticks of autumn (where the ghost stag walks) are night-tinted. */
+.plot-grid { position: relative; }
+.plot-grid--rain::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  border-radius: 8px;
+  background: repeating-linear-gradient(105deg, rgba(160, 205, 255, 0) 0 9px, rgba(160, 205, 255, 0.22) 9px 11px);
+  background-size: 22px 22px;
+  animation: gb-rain-shimmer 0.9s linear infinite;
+}
+@keyframes gb-rain-shimmer {
+  from { background-position: 0 0; }
+  to { background-position: -22px 22px; }
+}
+.plot-grid--drought .plot-tile,
+.plot-grid--drought .plot-tile:active { filter: sepia(0.55) saturate(0.85) brightness(0.95); }
+.plot-grid--dusk {
+  border-radius: 8px;
+  box-shadow: inset 0 0 40px 8px rgba(18, 20, 70, 0.6);
+}
+.plot-grid--dusk .plot-tile { filter: brightness(0.78) saturate(0.9); }
+
+/* GB-2: the golden seedling: a glowing outline and a sparkle, so it never
+   relies on motion or hue alone. */
+.plot-tile.plot-golden-seedling {
+  outline: 2px solid #ffd54a;
+  outline-offset: -2px;
+  box-shadow: 0 0 10px 3px rgba(255, 213, 74, 0.75);
+}
+.golden-seedling-mark {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.95rem;
+  pointer-events: none;
+  z-index: 4;
+  filter: drop-shadow(0 0 4px #ffd54a) drop-shadow(0 0 8px #ffb300);
+  animation: gb-golden-bob 0.9s ease-in-out infinite;
+}
+@keyframes gb-golden-bob {
+  0%, 100% { transform: translateY(0) scale(1); }
+  50% { transform: translateY(-3px) scale(1.12); }
+}
+
+/* GB-4: a tended plot brightens and carries a small leaf mark. */
+.plot-tile.plot-tended { filter: brightness(1.18) saturate(1.15); }
+.tend-mark {
+  position: absolute;
+  bottom: 1px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 0.62rem;
+  line-height: 1;
+  pointer-events: none;
+}
+.tend-status { margin: 0.4rem 0 0; font-size: 0.8rem; opacity: 0.85; }
+
+/* GB-21: a clear-cut leaves a soil dip that heals. A down arrow on a dark chip marks it (not colour alone), and the
+   status line and the tile's tooltip give the numbers. */
+.soil-dip-mark {
+  position: absolute;
+  top: 1px;
+  right: 1px;
+  min-width: 0.9rem;
+  padding: 0 2px;
+  border-radius: 3px;
+  background: rgba(20, 14, 6, 0.78);
+  color: #ffd9a0;
+  font-size: 0.62rem;
+  font-weight: 700;
+  line-height: 1.1;
+  text-align: center;
+  pointer-events: none;
+}
+
+/* GB-8: the Heart Tree: a glowing ancient tree with a permanent aura. There is
+   no legend entry for it on purpose. */
+.plot-tile.plot-heart-tree {
+  z-index: 2;
+  font-size: 1.35rem;
+  box-shadow: 0 0 0 2px #ffe08a, 0 0 14px 5px rgba(120, 255, 170, 0.85), inset 0 0 12px rgba(255, 255, 200, 0.6);
+}
+.heart-tree-aura {
+  position: absolute;
+  inset: -6px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(170, 255, 190, 0.5) 0, rgba(170, 255, 190, 0) 70%);
+  pointer-events: none;
+  animation: gb-heart-pulse 3s ease-in-out infinite;
+}
+@keyframes gb-heart-pulse {
+  0%, 100% { opacity: 0.55; transform: scale(0.95); }
+  50% { opacity: 1; transform: scale(1.08); }
+}
+.heart-tree-mark {
+  position: absolute;
+  top: 1px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 0.6rem;
+  line-height: 1;
+  pointer-events: none;
+}
+.plot-tile.plot-heart-aura { filter: brightness(1.07); }
+
+/* GB-20: the ghost stag, only in the night-tinted late-autumn ticks. */
+.plot-tile.plot-ghost-stag .ghost-stag-mark {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+  opacity: 0.6;
+  pointer-events: none;
+  filter: grayscale(0.5) drop-shadow(0 0 6px #bcd4ff);
+  animation: gb-ghost-fade 3s ease-in-out infinite;
+}
+@keyframes gb-ghost-fade {
+  0%, 100% { opacity: 0.35; }
+  50% { opacity: 0.75; }
+}
+
+/* GB-18: the undo chip. */
+.undo-chip { border-color: rgba(232, 163, 61, 0.7); }
+.undo-chip[hidden] { display: none; }
+
+/* GB-22: a brief light pulse over the forest backdrop at each tier. */
+.forest-visual.forest-pulse::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(circle at 50% 60%, rgba(255, 244, 190, 0.85), rgba(255, 244, 190, 0) 70%);
+  animation: gb-forest-flush 1.8s ease-out forwards;
+}
+@keyframes gb-forest-flush {
+  0% { opacity: 0; }
+  25% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+/* GB-27: chain bloom: leaf bursts that ripple in rank order, each larger and
+   later than the last. Juice only. */
+.plot-chain-bloom .leaf-burst {
+  animation-name: leaf-burst-fly-late;
+  animation-duration: 1000ms;
+  animation-fill-mode: both;
+  filter: drop-shadow(0 0 3px rgba(255, 244, 150, 0.8));
+}
+@keyframes leaf-burst-fly-late {
+  0% { opacity: 0; transform: translate(0, 0) rotate(0deg) scale(0.6); }
+  15% { opacity: 1; }
+  100% { opacity: 0; transform: translate(var(--lx), var(--ly)) rotate(200deg) scale(1.3); }
+}
+.plot-chain-bloom-0 .leaf-burst { animation-delay: 0ms; font-size: 0.8rem; }
+.plot-chain-bloom-1 .leaf-burst { animation-delay: 110ms; font-size: 0.95rem; }
+.plot-chain-bloom-2 .leaf-burst { animation-delay: 220ms; font-size: 1.1rem; }
+.plot-chain-bloom-3 .leaf-burst { animation-delay: 330ms; font-size: 1.25rem; }
+.plot-chain-bloom-4 .leaf-burst { animation-delay: 440ms; font-size: 1.4rem; }
+.plot-chain-bloom-5 .leaf-burst { animation-delay: 550ms; font-size: 1.55rem; }
+.plot-chain-bloom-6 .leaf-burst { animation-delay: 660ms; font-size: 1.7rem; }
+.plot-chain-bloom-7 .leaf-burst { animation-delay: 770ms; font-size: 1.85rem; }
+
+/* GB-14: the name fields. */
+.names-details { margin-top: 0.6rem; }
+.names-details > summary { cursor: pointer; font-weight: 600; font-size: 0.85rem; }
+.names-label { display: block; margin-top: 0.4rem; font-size: 0.75rem; opacity: 0.85; }
+.names-input {
+  display: block;
+  width: 100%;
+  max-width: 18rem;
+  margin-top: 0.15rem;
+  padding: 0.35rem 0.5rem;
+  border-radius: 6px;
+  border: 1px solid rgba(140, 160, 255, 0.3);
+  background: rgba(0, 0, 0, 0.25);
+  color: inherit;
+  font: inherit;
+  font-size: 0.85rem;
+}
+.names-input:disabled { opacity: 0.55; }
+
+/* GB-28: the Forest Almanac. */
+.almanac-panel[hidden] { display: none; }
+.almanac-title { margin: 0 0 0.6rem; font-size: 1.05rem; }
+.almanac-heading { margin: 0.8rem 0 0.3rem; font-size: 0.9rem; opacity: 0.9; }
+.almanac-list { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 0.4rem; }
+.almanac-item {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.3rem 0.6rem;
+  border-radius: 8px;
+  border: 1px solid rgba(140, 160, 255, 0.16);
+  background: rgba(255, 255, 255, 0.03);
+  font-size: 0.85rem;
+}
+.almanac-item--found {
+  border-color: rgba(159, 224, 171, 0.45);
+  background: linear-gradient(135deg, rgba(46, 125, 50, 0.22), rgba(46, 125, 50, 0.06));
+}
+.almanac-silhouette { filter: brightness(0) opacity(0.55); }
+.almanac-note { margin: 0.6rem 0 0; font-size: 0.8rem; opacity: 0.85; }
+
+@media (prefers-reduced-motion: reduce) {
+  .plot-grid--rain::after,
+  .golden-seedling-mark,
+  .heart-tree-aura,
+  .plot-tile.plot-ghost-stag .ghost-stag-mark,
+  .perfect-streak-text.just-improved,
+  .forest-title-display.just-improved { animation: none; }
+  .forest-visual.forest-pulse::after { animation: none; opacity: 0.35; }
+  .plot-chain-bloom .leaf-burst { animation: none; opacity: 0; }
+}

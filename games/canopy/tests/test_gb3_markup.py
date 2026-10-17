@@ -6,11 +6,12 @@ import importlib.util
 import json
 import re
 from pathlib import Path
+from .pagefiles import page_text
 
 HERE = Path(__file__).resolve().parent.parent
 ROOT = HERE.parent.parent
-HTML = (HERE / "index.html").read_text(encoding="utf-8")
-PC_HTML = (HERE / "pc.html").read_text(encoding="utf-8")
+HTML = page_text("index.html")
+PC_HTML = page_text("pc.html")
 CONFIG = json.loads((HERE / "pc-config.json").read_text(encoding="utf-8"))
 
 NEW_IDS = [
@@ -29,7 +30,7 @@ def test_the_desktop_page_is_not_stale():
     spec = importlib.util.spec_from_file_location("gen", ROOT / "scripts" / "generate-pc-pages.py")
     gen = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(gen)
-    assert gen.build("canopy", CONFIG) == PC_HTML
+    assert gen.build("canopy", CONFIG) == (HERE / "pc.html").read_text(encoding="utf-8")
 
 
 def test_the_shared_components_are_included_on_both_pages():

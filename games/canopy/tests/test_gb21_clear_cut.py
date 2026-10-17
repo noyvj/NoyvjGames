@@ -4,6 +4,7 @@ no dice, a Harvester badge, Undo, saves."""
 import json
 
 from .gb_helpers import advance_to, make_mature, tile, tile_marks
+from .pagefiles import game_css, page_text
 
 
 def _cut(env):
@@ -295,7 +296,7 @@ def test_the_button_hotkey_and_sheet_entry_exist_on_both_pages():
     import pathlib
     root = pathlib.Path(__file__).resolve().parents[1]
     for page in ("index.html", "pc.html"):
-        html = (root / page).read_text()
+        html = page_text(page)
         assert html.count('id="clear-cut-button"') == 1 and html.count('id="clear-cut-status"') == 1
         assert html.count('id="plot-sheet-cut"') == 1
         assert 'key !== "k"' in html and "hotkey_clear_cut_selected" in html
@@ -303,7 +304,7 @@ def test_the_button_hotkey_and_sheet_entry_exist_on_both_pages():
 
 def test_the_phone_dock_scrolls_sideways_and_folds_the_tree_picker():
     import pathlib
-    css = (pathlib.Path(__file__).resolve().parents[1] / "style.css").read_text()
+    css = game_css()
     start = css.index("Mobile condensed action panel")
     block = css[start:css.index("Mobile docked stats + legend")]
     assert "overflow-x: auto" in block

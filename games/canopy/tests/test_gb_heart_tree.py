@@ -5,6 +5,7 @@ import json
 from pathlib import Path
 
 from .gb_helpers import log_kinds, make_mature, ring_around, tile, tile_marks, toast_text
+from .pagefiles import page_text
 
 CENTRE = 14  # row 2, col 2 on the 6x6 grid: all 8 neighbours exist
 
@@ -82,7 +83,7 @@ def test_the_heart_tree_tile_is_distinct_but_does_not_explain_itself(game_env):
 
 
 def test_no_hint_anywhere_in_the_page_markup():
-    html = (Path(__file__).resolve().parent.parent / "index.html").read_text(encoding="utf-8").lower()
+    html = page_text("index.html").lower()
     assert "heart tree" not in html and "heart-tree" not in html
 
 
