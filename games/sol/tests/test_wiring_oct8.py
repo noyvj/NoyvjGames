@@ -10,6 +10,8 @@ from pathlib import Path
 
 import pytest
 
+from .pagefiles import page_text
+
 GAME_DIR = Path(__file__).resolve().parent.parent
 ROOT = GAME_DIR.parent.parent
 SLUG = "sol"
@@ -24,7 +26,7 @@ def page(name):
 
 @pytest.mark.parametrize("name", PAGES)
 def test_copy_result_and_achievement_share_are_loaded(name):
-    html = page(name)
+    html = page_text(name)
     assert f'<script src="../../shared/copy-result.js" data-game-id="{SLUG}"></script>' in html
     assert f'<script src="../../shared/achievement-share.js" data-game-id="{SLUG}" data-game-name="{GAME_NAME}"></script>' in html
     assert html.count("NoyvjCopyResult.mountButton") == 1
@@ -36,7 +38,7 @@ def test_copy_result_and_achievement_share_are_loaded(name):
 @pytest.mark.parametrize("name", PAGES)
 @pytest.mark.parametrize("panel", PANELS)
 def test_copy_result_panel_exists_and_is_mounted(name, panel):
-    html = page(name)
+    html = page_text(name)
     assert html.count(f'id="{panel}"') == 1
     assert f'mountCopy("{panel}"' in html
 
@@ -68,7 +70,7 @@ def test_jsonld_matches_the_generated_file(name):
 
 @pytest.mark.parametrize("name", PAGES)
 def test_credits_link_is_added_to_the_howto_panel(name):
-    html = page(name)
+    html = page_text(name)
     assert 'a.href = "../../credits.html"' in html
     assert 'addCredits("howto-panel")' in html
     assert (ROOT / "credits.html").exists()

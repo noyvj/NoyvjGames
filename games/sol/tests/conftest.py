@@ -1008,6 +1008,16 @@ def _install_pyodide_fakes(elements, timers, local_storage):
 def _remove_pyodide_fakes():
     for name in ("js", "pyodide", "pyodide.ffi", "game"):
         sys.modules.pop(name, None)
+    _forget_game_modules()
+
+
+def _forget_game_modules():
+    # game.py is split into sol_*.py modules next to it (see "File map" in CLAUDE.md); each binds `document` and
+    # `setTimeout` from the fake `js` at import, so every test needs fresh copies, exactly as it needs a fresh game.py.
+    for name, module in list(sys.modules.items()):
+        path = getattr(module, "__file__", None)
+        if name.startswith("sol_") and path and Path(path).resolve().parent == GAME_DIR:
+            sys.modules.pop(name, None)
 
 
 @pytest.fixture
@@ -1030,6 +1040,7 @@ def game_env():
     local_storage.setItem("sol-chain-bonus", "off")
     local_storage.setItem("sol-anomalies", "off")  # round 4: the timed anomalies would change older tests' numbers
     _install_pyodide_fakes(elements, timers, local_storage)
+    _forget_game_modules()
 
     spec = importlib.util.spec_from_file_location("game", GAME_PY)
     module = importlib.util.module_from_spec(spec)

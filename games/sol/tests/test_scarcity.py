@@ -7,6 +7,8 @@ from pathlib import Path
 
 import challenges
 
+from .pagefiles import page_text
+
 GAME_DIR = Path(__file__).resolve().parent.parent
 TODAY = "2026-10-11"
 
@@ -599,7 +601,7 @@ def test_the_three_scarcity_achievements_and_the_catalogue_size(game_env):
 def test_every_new_element_exists_on_both_pages_and_the_new_files_are_fetched():
     ids = ["scarcity-toggle-button", "scarcity-panel", "scarcity-strip", "scarcity-strip-text", "scarcity-leave-button", "ghost-strip"]
     for page in ("index.html", "pc.html"):
-        html = (GAME_DIR / page).read_text()
+        html = page_text(page)
         for element_id in ids:
             assert f'id="{element_id}"' in html, (page, element_id)
         assert 'fetch("challenges.py")' in html and 'fetch("../../shared/seed.py")' in html

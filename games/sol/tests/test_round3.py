@@ -11,6 +11,8 @@ from pathlib import Path
 
 import pytest
 
+from .pagefiles import page_text
+
 GAME_DIR = Path(__file__).resolve().parent.parent
 
 
@@ -767,7 +769,7 @@ def test_new_panels_are_reachable_from_the_desktop_menu():
 
 
 def test_new_panels_close_with_escape():
-    html = (GAME_DIR / "index.html").read_text(encoding="utf-8")
+    html = page_text("index.html")
     assert '{ toggle: "chains-toggle-button", panel: "chains-panel" }' in html
     assert '{ toggle: "splits-toggle-button", panel: "splits-panel" }' in html
 

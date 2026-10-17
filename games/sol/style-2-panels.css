@@ -1,0 +1,932 @@
+/* SOL styles, part 2 of 3: console design pass 2, achievements, reset button, terraform tint, research tree, reports, prestige, settings, toolbar buttons, overview, build plan, prestige tree, epilogue and stats extras, sparks, captain's log. Loaded in order by index.html: style-1 and style-2, then style.css. */
+/* ============================================================
+   Design pass 2 — embed controls & readouts into the console
+   (2026-09-06). The first pass gave every view an illustrated
+   scene and card-style sections, but the buttons and numbers
+   inside those cards still read as generic flat web UI dropped
+   on top. This pass gives labels a mounted "nameplate" look,
+   numeric readouts a recessed digital-screen look, and buttons a
+   physical beveled-switch look with a status LED — so the whole
+   panel reads as one console the player is operating, not a
+   webpage with numbers on it. Pure CSS on existing selectors —
+   no new elements, no id/class changes, nothing game.py touches.
+   ============================================================ */
+
+/* --- Nameplates: labels read as an engraved plate mounted on
+   the console rather than plain floating uppercase text. */
+.resource-label,
+.ecology-label,
+#research-label,
+#governor-label,
+#travel-label,
+.cross-summary-label {
+  display: inline-block;
+  padding: 0.3rem 0.7rem;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(0, 0, 0, 0.25));
+  border: 1px solid rgba(140, 160, 255, 0.16);
+  border-radius: 6px;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06), inset 0 -1px 2px rgba(0, 0, 0, 0.3), 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+/* --- Recessed digital-screen readouts: the big numbers sit in a
+   glass-fronted display cut into the console face instead of
+   floating on the card background. Scanline texture + inner glow
+   reinforce the "screen," not "text" reading. */
+.resource-count,
+.ecology-percent,
+#research-progress {
+  display: inline-block;
+  padding: 0.35rem 1.1rem;
+  background:
+    repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.025) 0, rgba(255, 255, 255, 0.025) 1px, transparent 1px, transparent 3px),
+    radial-gradient(ellipse at 50% 20%, rgba(140, 170, 255, 0.1), transparent 70%),
+    rgba(3, 4, 9, 0.65);
+  border-radius: 10px;
+  border: 1px solid rgba(140, 160, 255, 0.16);
+  box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.6), inset 0 0 20px rgba(80, 110, 200, 0.12);
+}
+
+.resource-count {
+  min-width: 3.5ch;
+}
+
+/* --- Physical console switches: buttons get an outer bezel ring
+   and an inset "face," plus a small status LED that lights up
+   green while the action is available and dims when disabled --
+   a genuinely functional indicator, not just decoration, driven
+   purely by the existing :disabled state. */
+.click-button,
+button.secondary {
+  position: relative;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow:
+    0 4px 16px rgba(0, 0, 0, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.18),
+    inset 0 -3px 6px rgba(0, 0, 0, 0.25),
+    0 0 0 3px rgba(0, 0, 0, 0.25);
+}
+
+.click-button::after,
+button.secondary::after {
+  content: "";
+  position: absolute;
+  top: 0.55rem;
+  right: 0.65rem;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #56e07a;
+  box-shadow: 0 0 6px 1px rgba(86, 224, 122, 0.85);
+}
+
+.click-button:disabled::after,
+button.secondary:disabled::after {
+  background: #4a5266;
+  box-shadow: none;
+}
+
+.click-button.pressed,
+button.secondary.pressed {
+  box-shadow:
+    inset 0 3px 10px rgba(0, 0, 0, 0.5),
+    inset 0 -1px 0 rgba(255, 255, 255, 0.05),
+    0 0 0 3px rgba(0, 0, 0, 0.25);
+}
+
+/* Priority/travel tiles already carry their own bordered look --
+   just add the matching status LED so the whole button family
+   reads as one console. */
+button.priority-option,
+#travel button.secondary {
+  position: relative;
+}
+
+button.priority-option::after {
+  content: "";
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.25);
+}
+
+button.priority-option.selected::after {
+  background: #56e07a;
+  box-shadow: 0 0 6px 1px rgba(86, 224, 122, 0.85);
+}
+
+/* Achievements (ACHIEVEMENTS-SYSTEM-DESIGN.md) — SOL's own reading of the
+   hub's shared achievements pattern. Same glass-panel/card language as the
+   rest of this game (the .section border-top, the win-banner's green glow
+   for something earned) rather than a reskin of any other game's own
+   achievements UI — the hub's rule is that internals are free once you're
+   inside a game. */
+.achievements-panel {
+  text-align: left;
+  display: grid;
+  gap: 0.65rem;
+}
+
+/* Found during this session's live-browser verification pass: the
+   `display: grid` above wins the cascade over the browser's own default
+   `[hidden] { display: none }` UA rule (equal specificity, author rule
+   comes later), so toggling the panel closed left its `hidden` attribute
+   and toggle-button label correct while the card grid stayed visibly on
+   screen the whole time. Every element that both carries a `hidden`
+   attribute AND its own `display` override needs this same explicit
+   override -- .achievements-panel was the only one with this shape. */
+.achievements-panel[hidden] {
+  display: none;
+}
+
+.achievement-card {
+  padding: 0.85rem 1rem;
+  border: 1px solid rgba(140, 160, 255, 0.14);
+  border-radius: 12px;
+  background: rgba(10, 12, 22, 0.4);
+}
+
+.achievement-card--earned {
+  border-color: rgba(127, 214, 163, 0.4);
+  background: rgba(127, 214, 163, 0.08);
+  box-shadow: 0 0 18px rgba(127, 214, 163, 0.12);
+}
+
+.achievement-card-label {
+  margin: 0 0 0.25rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.achievement-card--earned .achievement-card-label {
+  color: #7fd6a3;
+  text-shadow: 0 0 12px rgba(127, 214, 163, 0.35);
+}
+
+.achievement-card-description {
+  margin: 0;
+  font-size: 0.78rem;
+  opacity: 0.7;
+  line-height: 1.4;
+}
+
+.achievement-card-progress {
+  margin: 0.4rem 0 0;
+  font-size: 0.72rem;
+  opacity: 0.55;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Z27b: cross-player "Earned by N% of players" line, filled in by
+   shared/achievement-stats.js once the aggregate-stats endpoint responds
+   -- same muted small-text treatment as .achievement-card-progress, kept
+   distinct via italics so the two never look identical if both appear on
+   the same card. */
+.achievement-earn-rate {
+  margin: 0.3rem 0 0;
+  font-size: 0.72rem;
+  opacity: 0.5;
+  font-style: italic;
+}
+
+/* Retrofit: unlock toast + hub-dashboard link (TODO.md's "roll achievements
+   out everywhere" — the two things every game needs on top of the base
+   panel). Same glass-panel language as .achievement-card, just fixed to
+   the viewport so it's visible regardless of which planet's view is open. */
+.achievement-toast {
+  position: fixed;
+  left: 50%;
+  bottom: 1.25rem;
+  transform: translateX(-50%);
+  z-index: 40;
+  max-width: min(92vw, 420px);
+  padding: 0.75rem 1.1rem;
+  border-radius: 12px;
+  border: 1px solid rgba(127, 214, 163, 0.4);
+  background: rgba(10, 12, 22, 0.92);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.45);
+  text-align: center;
+}
+
+.achievement-toast.visible {
+  box-shadow: 0 0 22px rgba(127, 214, 163, 0.45), 0 4px 24px rgba(0, 0, 0, 0.45);
+}
+
+#achievement-toast-text {
+  margin: 0;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #7fd6a3;
+}
+
+.achievements-hub-link {
+  display: block;
+  margin-top: 0.5rem;
+  font-size: 0.8rem;
+  color: #8ab4ff;
+  text-decoration: none;
+  text-align: center;
+}
+
+.achievements-hub-link:hover {
+  text-decoration: underline;
+}
+
+/* A18: "reset this world" -- a quieter, more cautious secondary button
+   than the rest (a muted red border) since it's a real, confirmed-but-
+   irreversible action, distinct from every other secondary button here. */
+.reset-world-button {
+  margin: 0.5rem 0 1rem;
+  border-color: rgba(224, 90, 90, 0.4) !important;
+  color: #e0a24c;
+}
+
+.reset-world-button:hover:not(:disabled) {
+  border-color: rgba(224, 90, 90, 0.7) !important;
+}
+
+/* A17: the ecology-status paragraph already exists (style.css's own
+   .ecology-status rule above) -- this modifier turns it from plain warning
+   text into an actual banner exactly while the 25%-output penalty (or a
+   full collapse) is in effect. */
+.ecology-status--warning {
+  background: rgba(224, 90, 90, 0.12);
+  border: 1px solid rgba(224, 90, 90, 0.4);
+  border-radius: 8px;
+  padding: 0.4rem 0.6rem;
+  font-weight: 600;
+}
+
+/* A15: visual terraforming feedback -- an increasingly lush green tint
+   layered onto the existing planet-visual glow as terraform_progress
+   climbs through its 5 tiers (0/25/50/75/100), via a ::after overlay so
+   it composes with whatever's already drawn per planet (glow/rings/
+   rocks/backdrop) without touching any of those existing rules. */
+.planet-visual {
+  position: relative;
+}
+
+.planet-visual::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: radial-gradient(circle, rgba(127, 214, 163, 0.55), transparent 70%);
+  opacity: 0;
+  transition: opacity 0.6s ease;
+  pointer-events: none;
+}
+
+.planet-visual.terraform-tier-1::after { opacity: 0.12; }
+.planet-visual.terraform-tier-2::after { opacity: 0.28; }
+.planet-visual.terraform-tier-3::after { opacity: 0.48; }
+.planet-visual.terraform-tier-4::after { opacity: 0.7; }
+
+@media (prefers-reduced-motion: reduce) {
+  .planet-visual::after { transition: none; }
+}
+
+/* A16: a small research-tree diagram -- one card per tier, connected by a
+   plain arrow, instead of the single flat progress bar above it. */
+.research-tree {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: stretch;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+
+.research-tree-node {
+  flex: 1 1 140px;
+  padding: 0.6rem 0.75rem;
+  border-radius: 10px;
+  border: 1px solid rgba(140, 160, 255, 0.14);
+  background: rgba(10, 12, 22, 0.4);
+}
+
+.research-tree-node--completed {
+  border-color: rgba(127, 214, 163, 0.4);
+  background: rgba(127, 214, 163, 0.08);
+}
+
+.research-tree-node--current {
+  border-color: rgba(91, 110, 225, 0.5);
+  background: rgba(91, 110, 225, 0.1);
+  box-shadow: 0 0 14px rgba(91, 110, 225, 0.25);
+}
+
+.research-tree-node--locked {
+  opacity: 0.5;
+}
+
+.research-tree-node-name {
+  margin: 0 0 0.2rem;
+  font-weight: 600;
+  font-size: 0.85rem;
+}
+
+.research-tree-node-status {
+  margin: 0 0 0.3rem;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  opacity: 0.7;
+}
+
+.research-tree-node-unlocks {
+  margin: 0;
+  font-size: 0.75rem;
+  opacity: 0.7;
+}
+
+.research-tree-arrow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.4;
+  font-size: 1.1rem;
+  padding: 0 0.1rem;
+}
+
+/* A11: Governor Report panel. */
+.governor-report-intro {
+  font-size: 0.8rem;
+  opacity: 0.75;
+  margin: 0 0 0.75rem;
+}
+
+.governor-report-card {
+  padding: 0.7rem 0.9rem;
+  margin-bottom: 0.6rem;
+  border: 1px solid rgba(140, 160, 255, 0.14);
+  border-radius: 10px;
+  background: rgba(10, 12, 22, 0.4);
+}
+
+.governor-report-card-name {
+  margin: 0 0 0.2rem;
+  font-weight: 600;
+  font-size: 0.85rem;
+}
+
+.governor-report-card-efficiency {
+  margin: 0 0 0.15rem;
+  font-size: 0.78rem;
+  color: #7fd6a3;
+}
+
+.governor-report-card-generated {
+  margin: 0;
+  font-size: 0.75rem;
+  opacity: 0.7;
+}
+
+.governor-report-total {
+  margin: 0.5rem 0 0;
+  font-size: 0.8rem;
+  font-weight: 600;
+  opacity: 0.85;
+}
+
+.governor-report-empty {
+  font-size: 0.85rem;
+  opacity: 0.7;
+}
+
+/* A4 + A8: Lifetime Stats + Shareable Summary Card, one consolidated panel. */
+.stats-panel-heading {
+  text-transform: uppercase;
+  font-size: 0.75rem;
+  letter-spacing: 0.1em;
+  opacity: 0.6;
+  margin: 0.75rem 0 0.4rem;
+}
+
+.stats-panel-heading:first-child {
+  margin-top: 0;
+}
+
+.stats-panel-row {
+  margin: 0 0 0.35rem;
+  font-size: 0.82rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.share-card {
+  white-space: pre-wrap;
+  font-family: inherit;
+  font-size: 0.8rem;
+  line-height: 1.5;
+  padding: 0.75rem 0.9rem;
+  border-radius: 10px;
+  border: 1px solid rgba(140, 160, 255, 0.14);
+  background: rgba(5, 6, 13, 0.5);
+  margin: 0 0 0.6rem;
+}
+
+.copy-share-card-status {
+  font-size: 0.78rem;
+  color: #7fd6a3;
+  min-height: 1.2em;
+  margin: 0.4rem 0 0;
+}
+
+/* A1: Prestige / New Game+ readout + button, inside the existing
+   win-banner. */
+.prestige-level-readout {
+  font-size: 0.82rem;
+  opacity: 0.85;
+  margin: 0.75rem 0 0.6rem;
+}
+
+#prestige-button {
+  border-color: rgba(127, 214, 163, 0.4) !important;
+  color: #7fd6a3;
+}
+
+/* ============================================================
+   Settings panel (site-wide goal, planning/TODO.md): consolidated
+   text-scale + reduced-motion controls. Reuses .section for the panel
+   shell itself (same hidden-until-opened idiom as #howto-panel/
+   #achievements-panel), so only the internal layout needs its own rules. */
+.settings-panel-heading {
+  margin: 0 0 0.75rem;
+  font-size: 0.95rem;
+  opacity: 0.9;
+}
+
+.settings-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.settings-row:last-child {
+  margin-bottom: 0;
+}
+
+.settings-label {
+  font-size: 0.85rem;
+}
+
+.text-size-control {
+  display: inline-flex;
+  gap: 0.25rem;
+}
+
+.text-size-control button {
+  min-width: 2.2rem;
+  padding: 0.3rem 0.5rem;
+}
+
+.settings-checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+/* Reduced-motion override: a manual, persisted toggle independent of the
+   OS-level `prefers-reduced-motion` media query already gating several
+   animations in this file (planet spin/pulse, rock drift, meter shimmer).
+   Rather than duplicating every individual @keyframes/animation/transition
+   rule with a second selector, this one blanket rule (applied only when
+   settings.js sets the attribute) collapses every animation/transition on
+   the page to effectively instant -- the same standard "force-disable"
+   pattern used site-wide for this kind of manual override, and strictly
+   additive to the existing media-query-gated rules elsewhere in this file
+   (an OS-level reduced-motion user gets the same effect either way; this
+   just also covers a player whose OS setting is untouched but who wants
+   motion off in-game). */
+html[data-reduced-motion="true"] *,
+html[data-reduced-motion="true"] *::before,
+html[data-reduced-motion="true"] *::after {
+  animation-duration: 0.001ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.001ms !important;
+  scroll-behavior: auto !important;
+}
+
+/* ============================================================
+   "What's New" changelog panel (site-wide goal, planning/TODO.md, origin
+   K16). Reuses .section for the panel shell (same hidden-until-opened
+   idiom as #achievements-panel/#settings-panel), and the same glass-panel
+   card language as .achievement-card for each entry. Needs the same
+   explicit [hidden] override .achievements-panel needed, since this is
+   also a grid. */
+.changelog-panel {
+  text-align: left;
+  display: grid;
+  gap: 0.6rem;
+}
+
+.changelog-panel[hidden] {
+  display: none;
+}
+
+.changelog-entry {
+  padding: 0.75rem 1rem;
+  border: 1px solid rgba(140, 160, 255, 0.14);
+  border-radius: 12px;
+  background: rgba(10, 12, 22, 0.4);
+}
+
+.changelog-entry-date {
+  margin: 0 0 0.2rem;
+  font-size: 0.72rem;
+  opacity: 0.55;
+  font-variant-numeric: tabular-nums;
+}
+
+.changelog-entry-text {
+  margin: 0;
+  font-size: 0.85rem;
+  line-height: 1.4;
+}
+
+/* ============================================================
+   Per-game: SOL batch (TODO.md A1-A30): overview dashboard, build-order
+   planner, prestige tree, away report, epilogue, floaters, legend,
+   badge/tag. Every panel reuses the existing .section glass-panel shell.
+   ============================================================ */
+.overview-panel[hidden],
+.build-plan-panel[hidden],
+.prestige-tree-panel[hidden],
+.away-report[hidden],
+.epilogue-panel[hidden] {
+  display: none;
+}
+
+/* Compact in-panel buttons (override the full-width .secondary look). */
+button.secondary.mini-button {
+  width: auto;
+  padding: 0.35rem 0.7rem;
+  font-size: 0.75rem;
+  border-radius: 8px;
+  box-shadow: none;
+}
+
+button.secondary.mini-button::after {
+  display: none;
+}
+
+button.secondary.mini-button.selected {
+  background: linear-gradient(135deg, #2f6b4d, #1e4733);
+  border-color: rgba(127, 214, 163, 0.5);
+}
+
+.prestige-badge {
+  display: inline-block;
+  vertical-align: middle;
+  margin-left: 0.4rem;
+  padding: 0.15rem 0.55rem;
+  border-radius: 999px;
+  border: 1px solid rgba(127, 214, 163, 0.45);
+  color: #7fd6a3;
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.prestige-bonus-tag {
+  margin: -0.15rem 0 0.35rem;
+  font-size: 0.72rem;
+  color: #7fd6a3;
+  opacity: 0.9;
+}
+
+.travel-progress {
+  margin: 0 0 0.5rem;
+  font-size: 0.75rem;
+  opacity: 0.65;
+}
+
+/* A9: overview cards */
+.overview-summary {
+  margin: 0 0 0.75rem;
+  font-size: 0.8rem;
+  opacity: 0.8;
+}
+
+.overview-card {
+  padding: 0.7rem 0.9rem;
+  margin-bottom: 0.6rem;
+  border: 1px solid rgba(140, 160, 255, 0.14);
+  border-radius: 10px;
+  background: rgba(10, 12, 22, 0.4);
+}
+
+.overview-card--current {
+  border-color: rgba(127, 214, 163, 0.45);
+}
+
+.overview-card-title {
+  margin: 0 0 0.2rem;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.overview-card-stats,
+.overview-card-extras {
+  margin: 0 0 0.35rem;
+  font-size: 0.76rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.overview-card-extras {
+  opacity: 0.7;
+}
+
+.overview-bar-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.25rem;
+}
+
+.overview-bar-label {
+  flex: 0 0 4.6rem;
+  font-size: 0.7rem;
+  opacity: 0.6;
+}
+
+.overview-meter {
+  flex: 1;
+  height: 6px;
+  margin: 0;
+}
+
+.overview-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem;
+  margin-top: 0.4rem;
+}
+
+.overview-actions-label {
+  font-size: 0.7rem;
+  opacity: 0.6;
+  margin-right: 0.1rem;
+}
+
+/* A13: build plan */
+.build-plan-hint {
+  margin: 0 0 0.6rem;
+  font-size: 0.78rem;
+  opacity: 0.7;
+}
+
+.build-plan-add-row {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 0.6rem;
+}
+
+.build-plan-input,
+.stats-code-textarea {
+  flex: 1;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 0.5rem 0.65rem;
+  border-radius: 8px;
+  border: 1px solid rgba(140, 160, 255, 0.25);
+  background: rgba(5, 6, 13, 0.6);
+  color: inherit;
+  font: inherit;
+  font-size: 0.85rem;
+}
+
+.build-plan-add-row button.secondary {
+  width: auto;
+  padding: 0.5rem 1rem;
+}
+
+.build-plan-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.3rem;
+}
+
+.build-plan-text {
+  flex: 1;
+  font-size: 0.85rem;
+}
+
+.build-plan-row--done .build-plan-text {
+  text-decoration: line-through;
+  opacity: 0.5;
+}
+
+.build-plan-empty {
+  font-size: 0.8rem;
+  opacity: 0.6;
+}
+
+.build-plan-panel > button.secondary {
+  margin-top: 0.5rem;
+}
+
+/* A1/A3: prestige tree */
+.prestige-tree-points {
+  margin: 0 0 0.5rem;
+  font-size: 0.82rem;
+  color: #7fd6a3;
+}
+
+.prestige-node {
+  padding: 0.6rem 0.8rem;
+  margin-bottom: 0.5rem;
+  border: 1px solid rgba(140, 160, 255, 0.14);
+  border-radius: 10px;
+  background: rgba(10, 12, 22, 0.4);
+}
+
+.prestige-node--unlocked {
+  border-color: rgba(127, 214, 163, 0.45);
+}
+
+.prestige-node-name {
+  margin: 0 0 0.15rem;
+  font-weight: 600;
+  font-size: 0.85rem;
+}
+
+.prestige-node-desc,
+.prestige-node-status {
+  margin: 0 0 0.35rem;
+  font-size: 0.76rem;
+  opacity: 0.75;
+}
+
+/* A5: away report, A27: epilogue */
+.away-report-text {
+  margin: 0 0 0.5rem;
+  font-size: 0.82rem;
+}
+
+.epilogue-heading {
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  font-size: 0.8rem;
+  color: #7fd6a3;
+  margin: 0 0 0.6rem;
+}
+
+.epilogue-paragraph {
+  margin: 0 0 0.7rem;
+  font-size: 0.88rem;
+  line-height: 1.55;
+}
+
+/* Win-banner extras + stats-panel extras */
+#epilogue-button,
+#sandbox-toggle-button {
+  margin-top: 0.5rem;
+}
+
+.stats-extra {
+  margin-top: 0.75rem;
+}
+
+.stats-extra summary {
+  cursor: pointer;
+  font-size: 0.82rem;
+  opacity: 0.85;
+}
+
+.stats-extra-hint {
+  font-size: 0.75rem;
+  opacity: 0.65;
+  margin: 0.4rem 0;
+}
+
+.stats-code-textarea {
+  min-height: 3.2rem;
+  margin: 0.4rem 0;
+  resize: vertical;
+}
+
+.compare-run-results {
+  white-space: pre-line;
+  font-size: 0.8rem;
+  margin-top: 0.5rem;
+  min-height: 1.2em;
+}
+
+/* A14: collapsible research tiers */
+.research-tree-node-toggle {
+  display: block;
+  width: 100%;
+  text-align: left;
+  background: none;
+  border: none;
+  color: inherit;
+  cursor: pointer;
+  padding: 0;
+}
+
+/* A20: terraform swatch legend (colors mirror the .planet-visual::after tint opacities) */
+.terraform-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem 0.75rem;
+  margin: 0.4rem 0 0;
+  font-size: 0.7rem;
+  opacity: 0.8;
+}
+
+.terraform-legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.terraform-swatch {
+  display: inline-block;
+  width: 0.85rem;
+  height: 0.85rem;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  background: #1c2436;
+}
+
+.terraform-swatch--1 { background: color-mix(in srgb, #7fd6a3 12%, #1c2436); }
+.terraform-swatch--2 { background: color-mix(in srgb, #7fd6a3 28%, #1c2436); }
+.terraform-swatch--3 { background: color-mix(in srgb, #7fd6a3 48%, #1c2436); }
+.terraform-swatch--4 { background: color-mix(in srgb, #7fd6a3 70%, #1c2436); }
+
+/* A12 / A30: floating sparks and build icons (never intercept clicks) */
+.spark-layer {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 45;
+  overflow: hidden;
+}
+
+.floater {
+  position: fixed;
+  transform: translate(-50%, -50%);
+  animation: floater-rise 0.7s ease-out forwards;
+  user-select: none;
+}
+
+.floater--spark {
+  color: #ffd76a;
+  font-size: 1rem;
+  text-shadow: 0 0 8px rgba(255, 215, 106, 0.8);
+}
+
+.floater--build {
+  font-size: 1.6rem;
+  animation-name: floater-pop;
+}
+
+@keyframes floater-rise {
+  from { opacity: 1; transform: translate(-50%, -50%) scale(0.8); }
+  to { opacity: 0; transform: translate(-50%, -150%) scale(1.3); }
+}
+
+@keyframes floater-pop {
+  0% { opacity: 0; transform: translate(-50%, -50%) scale(0.4); }
+  30% { opacity: 1; transform: translate(-50%, -90%) scale(1.25); }
+  100% { opacity: 0; transform: translate(-50%, -190%) scale(1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .floater { display: none; }
+}
+html[data-reduced-motion="true"] .floater { display: none; }
+
+/* U10: research tree node list. */
+.research-node-list { display: grid; gap: 0.5rem; margin: 0.6rem 0; }
+.research-node { padding: 0.5rem 0.7rem; border: 1px solid rgba(140, 160, 255, 0.2); border-radius: 10px; }
+.research-node--researched { opacity: 0.65; border-color: rgba(120, 200, 140, 0.4); }
+.research-node--locked { opacity: 0.55; }
+.research-node-name { margin: 0 0 0.15rem; font-weight: 600; }
+.research-node-detail { margin: 0 0 0.35rem; font-size: 0.8rem; opacity: 0.85; }
+.research-node-button { width: 100%; }
+
+/* A25: the captain's log banner and list. */
+.captains-log-latest {
+  margin: 0.2rem 0 0.8rem;
+  font-style: italic;
+  opacity: 0.9;
+}
+
+.captains-log-list {
+  margin: 0.4rem 0 0;
+  padding-left: 1.2rem;
+  font-size: 0.85rem;
+}
+
+/* Audit 2026-10-06 (S5): on phones keep the toast above the ad bar and the collapsed save widget. */
+@media (max-width: 600px) { .achievement-toast { bottom: 4.5rem; } }
