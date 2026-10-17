@@ -93,3 +93,56 @@ html[data-layout="pc"] #pc-hintbar { flex: 0 0 auto; padding-left: 8.5rem; }
 html[data-theme="light"] #real-world-comparison-chart .comparison-bar-label { fill: #1b2233; }
 html[data-theme="light"] .pc-readout { color: #1b2233; }
 html[data-theme="light"] #pc-hintbar { opacity: 1; color: #2a3350; }
+
+/* --- R4-HEPC-4: hold I to label the pasture (pc.js builds the labels while the key is down) --- */
+.pasture-label {
+  position: absolute;
+  z-index: 20;
+  max-width: 12rem;
+  padding: 0.2rem 0.45rem;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  background: rgba(20, 22, 36, 0.92);
+  color: #f1f2f8;
+  font-size: 0.72rem;
+  line-height: 1.25;
+  text-align: center;
+  pointer-events: none;
+  transform: translate(-50%, -50%);
+}
+.pasture-label strong { display: block; font-size: 0.78rem; }
+html[data-theme="light"] .pasture-label { background: rgba(255, 253, 246, 0.95); color: #1b2233; border-color: rgba(27, 34, 51, 0.5); }
+
+/* --- R4-HEPC-3: right-click menu on a lever --- */
+.lever-context-menu {
+  position: fixed;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  min-width: 11rem;
+  padding: 0.3rem 0;
+  background: var(--pc-window-bg, #16151d);
+  border: 1px solid rgba(140, 160, 255, 0.35);
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+}
+.lever-context-menu button { padding: 0.45rem 1rem; border: 0; background: none; color: inherit; font: inherit; text-align: left; cursor: pointer; white-space: nowrap; }
+.lever-context-menu button:hover, .lever-context-menu button:focus-visible { background: rgba(140, 160, 255, 0.18); outline: none; box-shadow: inset 2px 0 0 #e0c24c; }
+.lever-context-menu button:disabled { opacity: 0.5; cursor: default; }
+html[data-theme="light"] .lever-context-menu { background: #fbf6ec; color: #1b1710; }
+.invest-row.goal-pinned, #actions.goal-pinned { border-color: #e0c24c; box-shadow: 0 0 0 2px rgba(224, 194, 76, 0.45); }
+.goal-pinned-badge { display: inline-block; margin-left: 0.4rem; padding: 0 0.4rem; border: 1px solid currentColor; border-radius: 999px; font-size: 0.7rem; font-weight: 700; }
+#baseline-farm-card.highlighted, #pc-baseline-panel.highlighted { box-shadow: 0 0 0 3px rgba(111, 174, 112, 0.7); }
+.context-menu-toast {
+  position: fixed;
+  left: 50%;
+  bottom: 3.2rem;
+  z-index: 2000;
+  max-width: min(32rem, 90vw);
+  padding: 0.5rem 1rem;
+  transform: translateX(-50%);
+  border-radius: 6px;
+  background: #2a2f48;
+  color: #e8e9f0;
+}
+html[data-theme="light"] .context-menu-toast { background: #1b2233; color: #f4f5fa; }
