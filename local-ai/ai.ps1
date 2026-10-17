@@ -161,6 +161,28 @@ if ($behind -gt 0) { Write-Host "Note: your own folder's $Base is $behind commit
 $gameDir = Join-Path $work "games\$Game"
 $report = Join-Path $reports (($branch -replace '/', '_') + ".md")
 
+# Every test run has a time limit (2026-10-17: a hung browser test stalled the whole queue from 22:36 to 03:08;
+# pytest itself never gives up). Runs python -m pytest in the current folder; on time-out the whole process tree
+# (pytest, its browser) is ended and the output says so. Sets $LASTEXITCODE like a normal call.
+function Invoke-Pytest([string[]]$PytestArgs, [int]$Seconds = 900) {
+    $outFile = [IO.Path]::GetTempFileName()
+    $errFile = [IO.Path]::GetTempFileName()
+    $quoted = @("-m", "pytest") + $PytestArgs | ForEach-Object { '"' + $_ + '"' }
+    $proc = Start-Process python -ArgumentList $quoted -NoNewWindow -PassThru -WorkingDirectory (Get-Location).Path `
+        -RedirectStandardOutput $outFile -RedirectStandardError $errFile
+    $null = $proc.Handle   # without this, ExitCode can come back empty
+    $finished = $proc.WaitForExit($Seconds * 1000)
+    if (-not $finished) { taskkill /T /F /PID $proc.Id 2>$null | Out-Null; Start-Sleep 2 }
+    $out = ((Get-Content $outFile -Raw -ErrorAction SilentlyContinue) + (Get-Content $errFile -Raw -ErrorAction SilentlyContinue))
+    Remove-Item $outFile, $errFile -ErrorAction SilentlyContinue
+    if (-not $finished) {
+        $global:LASTEXITCODE = 1
+        return "$out`nTIMED OUT: the tests were still running after $Seconds seconds and were stopped. A test that never ends usually waits for something that never happens (a selector, a page load, an endless loop)."
+    }
+    $global:LASTEXITCODE = $proc.ExitCode
+    return $out
+}
+
 # Tests that already fail before the AI starts are not its fault and must not fail its task (2026-10-15: a Dead
 # Reckoning browser test from the Mac audit fails on this laptop on main itself, so every Dead Reckoning task
 # failed). Run the whole suite once on the starting point, keep the failures (cached per game and commit), and
@@ -170,7 +192,7 @@ $baseFile = Join-Path $reports "testbase-$Game-$baseHead.txt"
 if (-not (Test-Path $baseFile)) {
     Write-Host "Checking which of $Game's tests already fail before the AI starts (once per commit)..."
     Push-Location $gameDir
-    $baseOut = (python -m pytest -q -p no:warnings -rfE 2>&1 | Out-String)
+    $baseOut = Invoke-Pytest @("-q", "-p", "no:warnings", "-rfE") 1800
     Pop-Location
     @("# tests failing on $baseHead before any AI change (written by ai.ps1)") +
         @($baseOut -split "`r?`n" | Where-Object { $_ -match '^(FAILED|ERROR) \S' } | ForEach-Object { ($_ -split ' ')[1] } | Sort-Object -Unique) |
@@ -330,7 +352,7 @@ while (-not $timedOut -and $repairs -lt 3) {
         ForEach-Object { $_.Substring(3).Trim('"') } | Where-Object { $_ -match "^games/$([regex]::Escape($Game))/tests/[^/]+\.py$" } | ForEach-Object { Join-Path $work $_ })
     if ($freshTests.Count -gt 0) { python (Join-Path $aiDir "tidy_new_tests.py") @freshTests 2>$null | Out-Null }
     Push-Location $gameDir
-    $firstTry = (python -m pytest -q -x --tb=short -p no:warnings --ignore-glob=*browser* @skipKnown 2>&1 | Out-String)
+    $firstTry = Invoke-Pytest (@("-q", "-x", "--tb=short", "-p", "no:warnings", "--ignore-glob=*browser*") + $skipKnown) 900
     $passing = ($LASTEXITCODE -eq 0)
     # flake8 counts as a failing check too (2026-10-14: two Lexis features passed every test and then failed the
     # final flake8 on an unused variable and a redefined fixture, with no round to fix them).
@@ -345,7 +367,7 @@ while (-not $timedOut -and $repairs -lt 3) {
         $browserFiles = @(Get-ChildItem (Join-Path $gameDir "tests") -Filter "*browser*.py" -File -ErrorAction SilentlyContinue | ForEach-Object { "tests/" + $_.Name })
         $browserLine = "no browser tests"
         if ($browserFiles.Count -gt 0) {
-            $browserTry = (python -m pytest -q -x --tb=short -p no:warnings @browserFiles @skipKnown 2>&1 | Out-String)
+            $browserTry = Invoke-Pytest (@("-q", "-x", "--tb=short", "-p", "no:warnings") + $browserFiles + $skipKnown) 900
             $browserLine = ($browserTry.Trim() -split "`n")[-1]
             if ($LASTEXITCODE -ne 0) { $passing = $false; $firstTry = $browserTry }
         }
@@ -460,7 +482,7 @@ if ($verifiedState -and $verifiedState -eq (Get-WorkState)) {
     $testOut = "$verifiedLine (whole suite, before the final tidy-up changed nothing)"
     $testsOk = $true
 } else {
-    $testOut = (python -m pytest -q @skipKnown 2>&1 | Out-String)
+    $testOut = Invoke-Pytest (@("-q") + $skipKnown) 1800
     $testsOk = ($LASTEXITCODE -eq 0)
 }
 $salvageNote = ""
@@ -469,7 +491,7 @@ if (-not $testsOk -and $testOnly) {
     $rels = @($newTests | ForEach-Object { $_.Substring("games/$Game/".Length) })
     $salvageNote = ((python (Join-Path $aiDir "salvage_tests.py") $gameDir @rels 2>&1) -join " ")
     if ($LASTEXITCODE -eq 0) {
-        $testOut = (python -m pytest -q @skipKnown 2>&1 | Out-String)
+        $testOut = Invoke-Pytest (@("-q") + $skipKnown) 1800
         $testsOk = ($LASTEXITCODE -eq 0)
     }
 }
