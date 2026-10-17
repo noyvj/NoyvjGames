@@ -117,7 +117,13 @@ def test_desktop_tutorial_steps_only_point_at_things_that_exist_there(slug):
     if not path.exists():
         pytest.skip("no Desktop tutorial")
     classic, desktop = _read(slug, "index.html"), _read(slug, "pc.html")
-    assert "PC_TUTORIAL_STEPS" in classic, "index.html must use the Desktop steps when they exist"
+    # A split game keeps its page code in local scripts (boot.js ...), so look there too.
+    local_js = "".join(
+        (ROOT / "games" / slug / name).read_text(encoding="utf-8")
+        for name in re.findall(r'<script src="([A-Za-z0-9_.-]+\.js)"', classic)
+        if (ROOT / "games" / slug / name).exists()
+    )
+    assert "PC_TUTORIAL_STEPS" in classic + local_js, "index.html (or its local scripts) must use the Desktop steps when they exist"
     page_ids = _ids(desktop) | SHELL_IDS
     for selector in re.findall(r'selector:\s*"([^"]+)"', path.read_text(encoding="utf-8")):
         first = _id_of(selector)

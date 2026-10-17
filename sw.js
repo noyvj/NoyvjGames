@@ -2,7 +2,7 @@
 // the precache list; ordinary content deploys don't need it, because
 // same-origin requests are network-first (see the fetch handler below) and
 // so always pick up fresh files whenever the player is online.
-const SW_VERSION = 65;
+const SW_VERSION = 66;
 const CACHE_NAME = "site-cache-v" + SW_VERSION;
 // How long a same-origin network request may take before we give up and
 // serve the cached copy instead (a slow/flaky connection shouldn't hang).
@@ -162,6 +162,39 @@ const PRECACHE_URLS = [
   "games/thaw/settings.js",
   "games/thaw/style.css",
   "games/thaw/game.py",
+  "games/thaw/boot.js",
+  "games/thaw/community-compare.js",
+  "games/thaw/feedback.js",
+  "games/thaw/graph-crosshair.js",
+  "games/thaw/shortcuts.js",
+  "games/thaw/style-1-base.css",
+  "games/thaw/style-2-visuals.css",
+  "games/thaw/style-3-panels.css",
+  "games/thaw/style-4-features.css",
+  "games/thaw/thaw_achievements.py",
+  "games/thaw/thaw_bridge.py",
+  "games/thaw/thaw_flavour.py",
+  "games/thaw/thaw_graphs.py",
+  "games/thaw/thaw_handlers.py",
+  "games/thaw/thaw_loading.py",
+  "games/thaw/thaw_mechanics.py",
+  "games/thaw/thaw_model.py",
+  "games/thaw/thaw_pace.py",
+  "games/thaw/thaw_panels.py",
+  "games/thaw/thaw_presets.py",
+  "games/thaw/thaw_readouts.py",
+  "games/thaw/thaw_records.py",
+  "games/thaw/thaw_renderer.py",
+  "games/thaw/thaw_rules.py",
+  "games/thaw/thaw_runs.py",
+  "games/thaw/thaw_runstate.py",
+  "games/thaw/thaw_saveparts.py",
+  "games/thaw/thaw_savestate.py",
+  "games/thaw/thaw_sciencelog.py",
+  "games/thaw/thaw_settingscode.py",
+  "games/thaw/thaw_timeline.py",
+  "games/thaw/thaw_views.py",
+  "games/thaw/tutorial-steps.js",
   "games/loop/index.html",
   "games/loop/style.css",
   "games/loop/game.py",

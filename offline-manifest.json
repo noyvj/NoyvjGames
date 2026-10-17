@@ -2056,9 +2056,24 @@
      "precached": true
     },
     {
+     "path": "games/thaw/boot.js",
+     "bytes": 3380,
+     "precached": true
+    },
+    {
      "path": "games/thaw/changelog.json",
      "bytes": 17814,
      "precached": false
+    },
+    {
+     "path": "games/thaw/community-compare.js",
+     "bytes": 3357,
+     "precached": true
+    },
+    {
+     "path": "games/thaw/feedback.js",
+     "bytes": 4048,
+     "precached": true
     },
     {
      "path": "games/thaw/focus-mode.js",
@@ -2067,7 +2082,12 @@
     },
     {
      "path": "games/thaw/game.py",
-     "bytes": 292173,
+     "bytes": 12862,
+     "precached": true
+    },
+    {
+     "path": "games/thaw/graph-crosshair.js",
+     "bytes": 3733,
      "precached": true
     },
     {
@@ -2077,7 +2097,7 @@
     },
     {
      "path": "games/thaw/index.html",
-     "bytes": 76340,
+     "bytes": 57546,
      "precached": true
     },
     {
@@ -2107,7 +2127,7 @@
     },
     {
      "path": "games/thaw/pc.html",
-     "bytes": 80540,
+     "bytes": 61746,
      "precached": true
     },
     {
@@ -2121,13 +2141,158 @@
      "precached": true
     },
     {
+     "path": "games/thaw/shortcuts.js",
+     "bytes": 707,
+     "precached": true
+    },
+    {
      "path": "games/thaw/sources.json",
      "bytes": 2345,
      "precached": false
     },
     {
+     "path": "games/thaw/style-1-base.css",
+     "bytes": 11756,
+     "precached": true
+    },
+    {
+     "path": "games/thaw/style-2-visuals.css",
+     "bytes": 16996,
+     "precached": true
+    },
+    {
+     "path": "games/thaw/style-3-panels.css",
+     "bytes": 12853,
+     "precached": true
+    },
+    {
+     "path": "games/thaw/style-4-features.css",
+     "bytes": 15996,
+     "precached": true
+    },
+    {
      "path": "games/thaw/style.css",
-     "bytes": 70591,
+     "bytes": 14260,
+     "precached": true
+    },
+    {
+     "path": "games/thaw/thaw_achievements.py",
+     "bytes": 20871,
+     "precached": true
+    },
+    {
+     "path": "games/thaw/thaw_bridge.py",
+     "bytes": 2077,
+     "precached": true
+    },
+    {
+     "path": "games/thaw/thaw_flavour.py",
+     "bytes": 13222,
+     "precached": true
+    },
+    {
+     "path": "games/thaw/thaw_graphs.py",
+     "bytes": 17181,
+     "precached": true
+    },
+    {
+     "path": "games/thaw/thaw_handlers.py",
+     "bytes": 16061,
+     "precached": true
+    },
+    {
+     "path": "games/thaw/thaw_loading.py",
+     "bytes": 7519,
+     "precached": true
+    },
+    {
+     "path": "games/thaw/thaw_mechanics.py",
+     "bytes": 19226,
+     "precached": true
+    },
+    {
+     "path": "games/thaw/thaw_model.py",
+     "bytes": 25076,
+     "precached": true
+    },
+    {
+     "path": "games/thaw/thaw_pace.py",
+     "bytes": 7870,
+     "precached": true
+    },
+    {
+     "path": "games/thaw/thaw_panels.py",
+     "bytes": 17436,
+     "precached": true
+    },
+    {
+     "path": "games/thaw/thaw_presets.py",
+     "bytes": 14890,
+     "precached": true
+    },
+    {
+     "path": "games/thaw/thaw_readouts.py",
+     "bytes": 20133,
+     "precached": true
+    },
+    {
+     "path": "games/thaw/thaw_records.py",
+     "bytes": 7401,
+     "precached": true
+    },
+    {
+     "path": "games/thaw/thaw_renderer.py",
+     "bytes": 13657,
+     "precached": true
+    },
+    {
+     "path": "games/thaw/thaw_rules.py",
+     "bytes": 8305,
+     "precached": true
+    },
+    {
+     "path": "games/thaw/thaw_runs.py",
+     "bytes": 20351,
+     "precached": true
+    },
+    {
+     "path": "games/thaw/thaw_runstate.py",
+     "bytes": 3532,
+     "precached": true
+    },
+    {
+     "path": "games/thaw/thaw_saveparts.py",
+     "bytes": 17350,
+     "precached": true
+    },
+    {
+     "path": "games/thaw/thaw_savestate.py",
+     "bytes": 4929,
+     "precached": true
+    },
+    {
+     "path": "games/thaw/thaw_sciencelog.py",
+     "bytes": 9880,
+     "precached": true
+    },
+    {
+     "path": "games/thaw/thaw_settingscode.py",
+     "bytes": 7287,
+     "precached": true
+    },
+    {
+     "path": "games/thaw/thaw_timeline.py",
+     "bytes": 14058,
+     "precached": true
+    },
+    {
+     "path": "games/thaw/thaw_views.py",
+     "bytes": 11024,
+     "precached": true
+    },
+    {
+     "path": "games/thaw/tutorial-steps.js",
+     "bytes": 4274,
      "precached": true
     }
    ],
@@ -2188,11 +2353,6 @@
      "precached": true
     },
     {
-     "path": "shared/ghost.py",
-     "bytes": 13517,
-     "precached": true
-    },
-    {
      "path": "shared/hub-auth.js",
      "bytes": 1356,
      "precached": true
@@ -2205,11 +2365,6 @@
     {
      "path": "shared/info-page.css",
      "bytes": 1092,
-     "precached": true
-    },
-    {
-     "path": "shared/info_page.py",
-     "bytes": 3410,
      "precached": true
     },
     {
@@ -2240,11 +2395,6 @@
     {
      "path": "shared/mobile-hud.js",
      "bytes": 4491,
-     "precached": false
-    },
-    {
-     "path": "shared/narrative_log.py",
-     "bytes": 8585,
      "precached": false
     },
     {
@@ -2360,7 +2510,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14791177,
+   "bytes": 14768871,
    "bytes_complete": true
   },
   "loop": {
