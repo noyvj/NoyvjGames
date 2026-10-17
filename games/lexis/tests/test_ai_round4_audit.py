@@ -8,10 +8,11 @@ import re
 from pathlib import Path
 
 import game
+from .pagefiles import app_text
 
 GAME_DIR = Path(__file__).resolve().parent.parent
 INDEX = (GAME_DIR / "index.html").read_text(encoding="utf-8")
-APP = (GAME_DIR / "app.js").read_text(encoding="utf-8")
+APP = app_text()
 CSS = (GAME_DIR / "style.css").read_text(encoding="utf-8")
 PC_JS = (GAME_DIR / "pc.js").read_text(encoding="utf-8")
 PC_CSS = (GAME_DIR / "pc.css").read_text(encoding="utf-8")
@@ -132,7 +133,7 @@ def test_the_cards_and_the_sign_keyboard_are_phone_only():
 def test_the_sign_keyboard_is_built_on_every_planet_before_the_early_returns_in_render():
     render = APP[APP.index("  function render() {"):]
     render = render[:render.index("saveResumeFrame();")]
-    assert render.index("renderSignKeyboard();") < render.index('if (currentPlanet === "bridge")')
+    assert render.index("renderSignKeyboard();") < render.index('if (A.currentPlanet === "bridge")')
 
 
 def test_sign_keyboard_buttons_are_named_by_ordinals_never_by_internal_letters():

@@ -7,6 +7,7 @@ import re
 from pathlib import Path
 
 import pytest
+from .pagefiles import app_text
 
 GAME_DIR = Path(__file__).resolve().parent.parent
 SLUG = "lexis"
@@ -64,6 +65,6 @@ def test_copy_result_container_exists_once(name):
 
 
 def test_app_js_mounts_the_button_and_marks_achievement_rows():
-    app = (GAME_DIR / "app.js").read_text(encoding="utf-8")
+    app = app_text()
     assert 'mountButton("#report-copy-result"' in app
     assert "data-achievement-id" in app and "data-achievement-label" in app
