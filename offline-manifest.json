@@ -721,18 +721,233 @@
      "precached": false
     },
     {
+     "path": "games/grid/boot.js",
+     "bytes": 5214,
+     "precached": true
+    },
+    {
      "path": "games/grid/changelog.json",
      "bytes": 15797,
      "precached": false
     },
     {
+     "path": "games/grid/community-compare.js",
+     "bytes": 1460,
+     "precached": true
+    },
+    {
+     "path": "games/grid/copy-and-credits.js",
+     "bytes": 2368,
+     "precached": true
+    },
+    {
+     "path": "games/grid/feedback.js",
+     "bytes": 2049,
+     "precached": true
+    },
+    {
      "path": "games/grid/game.py",
-     "bytes": 346958,
+     "bytes": 14548,
+     "precached": true
+    },
+    {
+     "path": "games/grid/grid_achievement_cards.py",
+     "bytes": 6049,
+     "precached": true
+    },
+    {
+     "path": "games/grid/grid_achievements.py",
+     "bytes": 11458,
+     "precached": true
+    },
+    {
+     "path": "games/grid/grid_advance.py",
+     "bytes": 6440,
+     "precached": true
+    },
+    {
+     "path": "games/grid/grid_announce.py",
+     "bytes": 8843,
+     "precached": true
+    },
+    {
+     "path": "games/grid/grid_arbitrage.py",
+     "bytes": 2546,
+     "precached": true
+    },
+    {
+     "path": "games/grid/grid_callouts.py",
+     "bytes": 9340,
+     "precached": true
+    },
+    {
+     "path": "games/grid/grid_career_actions.py",
+     "bytes": 3730,
+     "precached": true
+    },
+    {
+     "path": "games/grid/grid_career_data.py",
+     "bytes": 12453,
+     "precached": true
+    },
+    {
+     "path": "games/grid/grid_careerpanel.py",
+     "bytes": 12654,
+     "precached": true
+    },
+    {
+     "path": "games/grid/grid_coach.py",
+     "bytes": 4872,
+     "precached": true
+    },
+    {
+     "path": "games/grid/grid_difficulty.py",
+     "bytes": 2947,
+     "precached": true
+    },
+    {
+     "path": "games/grid/grid_fleet.py",
+     "bytes": 4796,
+     "precached": true
+    },
+    {
+     "path": "games/grid/grid_gridley.py",
+     "bytes": 10027,
+     "precached": true
+    },
+    {
+     "path": "games/grid/grid_handlers_panels.py",
+     "bytes": 13994,
+     "precached": true
+    },
+    {
+     "path": "games/grid/grid_handlers_play.py",
+     "bytes": 13468,
+     "precached": true
+    },
+    {
+     "path": "games/grid/grid_loading.py",
+     "bytes": 5514,
+     "precached": true
+    },
+    {
+     "path": "games/grid/grid_messages.py",
+     "bytes": 2548,
+     "precached": true
+    },
+    {
+     "path": "games/grid/grid_panels.py",
+     "bytes": 5008,
+     "precached": true
+    },
+    {
+     "path": "games/grid/grid_prefs.py",
+     "bytes": 6901,
+     "precached": true
+    },
+    {
+     "path": "games/grid/grid_realgrid.py",
+     "bytes": 6429,
+     "precached": true
+    },
+    {
+     "path": "games/grid/grid_renderer.py",
+     "bytes": 18220,
+     "precached": true
+    },
+    {
+     "path": "games/grid/grid_rules.py",
+     "bytes": 24088,
+     "precached": true
+    },
+    {
+     "path": "games/grid/grid_runs.py",
+     "bytes": 7666,
+     "precached": true
+    },
+    {
+     "path": "games/grid/grid_runsetup.py",
+     "bytes": 6499,
+     "precached": true
+    },
+    {
+     "path": "games/grid/grid_runstate.py",
+     "bytes": 4416,
+     "precached": true
+    },
+    {
+     "path": "games/grid/grid_sandbox.py",
+     "bytes": 3593,
+     "precached": true
+    },
+    {
+     "path": "games/grid/grid_sandbox_state.py",
+     "bytes": 5650,
+     "precached": true
+    },
+    {
+     "path": "games/grid/grid_savegame.py",
+     "bytes": 22251,
+     "precached": true
+    },
+    {
+     "path": "games/grid/grid_schematic.py",
+     "bytes": 7024,
+     "precached": true
+    },
+    {
+     "path": "games/grid/grid_shadow.py",
+     "bytes": 5234,
+     "precached": true
+    },
+    {
+     "path": "games/grid/grid_skyline.py",
+     "bytes": 4143,
+     "precached": true
+    },
+    {
+     "path": "games/grid/grid_slots.py",
+     "bytes": 6207,
+     "precached": true
+    },
+    {
+     "path": "games/grid/grid_state.py",
+     "bytes": 28210,
+     "precached": true
+    },
+    {
+     "path": "games/grid/grid_state_extras.py",
+     "bytes": 11878,
+     "precached": true
+    },
+    {
+     "path": "games/grid/grid_state_round.py",
+     "bytes": 20699,
+     "precached": true
+    },
+    {
+     "path": "games/grid/grid_summary.py",
+     "bytes": 6661,
+     "precached": true
+    },
+    {
+     "path": "games/grid/grid_trend.py",
+     "bytes": 21162,
+     "precached": true
+    },
+    {
+     "path": "games/grid/grid_views.py",
+     "bytes": 9418,
+     "precached": true
+    },
+    {
+     "path": "games/grid/grid_whatif.py",
+     "bytes": 6336,
      "precached": true
     },
     {
      "path": "games/grid/index.html",
-     "bytes": 79105,
+     "bytes": 61228,
      "precached": true
     },
     {
@@ -747,7 +962,7 @@
     },
     {
      "path": "games/grid/pc.html",
-     "bytes": 83946,
+     "bytes": 66069,
      "precached": true
     },
     {
@@ -758,7 +973,12 @@
     {
      "path": "games/grid/settings.js",
      "bytes": 5096,
-     "precached": false
+     "precached": true
+    },
+    {
+     "path": "games/grid/shortcuts.js",
+     "bytes": 920,
+     "precached": true
     },
     {
      "path": "games/grid/sources.json",
@@ -771,8 +991,48 @@
      "precached": false
     },
     {
+     "path": "games/grid/style-1-base.css",
+     "bytes": 16339,
+     "precached": true
+    },
+    {
+     "path": "games/grid/style-2-panels.css",
+     "bytes": 15475,
+     "precached": true
+    },
+    {
+     "path": "games/grid/style-3-plants.css",
+     "bytes": 11384,
+     "precached": true
+    },
+    {
+     "path": "games/grid/style-4-rounds.css",
+     "bytes": 10075,
+     "precached": true
+    },
+    {
+     "path": "games/grid/style-5-extras.css",
+     "bytes": 13248,
+     "precached": true
+    },
+    {
      "path": "games/grid/style.css",
-     "bytes": 66745,
+     "bytes": 764,
+     "precached": true
+    },
+    {
+     "path": "games/grid/summary-print-and-schematic-save.js",
+     "bytes": 2677,
+     "precached": true
+    },
+    {
+     "path": "games/grid/todays-run.js",
+     "bytes": 748,
+     "precached": true
+    },
+    {
+     "path": "games/grid/tutorial-steps.js",
+     "bytes": 3895,
      "precached": true
     }
    ],
@@ -818,11 +1078,6 @@
      "precached": true
     },
     {
-     "path": "shared/comparison_chart.py",
-     "bytes": 13310,
-     "precached": false
-    },
-    {
      "path": "shared/confirm-dialog.js",
      "bytes": 10900,
      "precached": false
@@ -843,11 +1098,6 @@
      "precached": true
     },
     {
-     "path": "shared/ghost.py",
-     "bytes": 13517,
-     "precached": true
-    },
-    {
      "path": "shared/hub-auth.js",
      "bytes": 1356,
      "precached": true
@@ -860,11 +1110,6 @@
     {
      "path": "shared/info-page.css",
      "bytes": 1092,
-     "precached": true
-    },
-    {
-     "path": "shared/info_page.py",
-     "bytes": 3410,
      "precached": true
     },
     {
@@ -968,11 +1213,6 @@
      "precached": true
     },
     {
-     "path": "shared/seed.py",
-     "bytes": 9788,
-     "precached": true
-    },
-    {
      "path": "shared/site-settings.js",
      "bytes": 6290,
      "precached": false
@@ -985,11 +1225,6 @@
     {
      "path": "shared/skill-tree.js",
      "bytes": 23289,
-     "precached": true
-    },
-    {
-     "path": "shared/skill_tree.py",
-     "bytes": 10981,
      "precached": true
     },
     {
@@ -1055,7 +1290,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14940818,
+   "bytes": 14910891,
    "bytes_complete": true
   },
   "tide": {
