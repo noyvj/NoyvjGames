@@ -2,7 +2,7 @@
 // the precache list; ordinary content deploys don't need it, because
 // same-origin requests are network-first (see the fetch handler below) and
 // so always pick up fresh files whenever the player is online.
-const SW_VERSION = 69;
+const SW_VERSION = 70;
 const CACHE_NAME = "site-cache-v" + SW_VERSION;
 // How long a same-origin network request may take before we give up and
 // serve the cached copy instead (a slow/flaky connection shouldn't hang).
@@ -238,6 +238,40 @@ const PRECACHE_URLS = [
   "games/aftermath/index.html",
   "games/aftermath/style.css",
   "games/aftermath/game.py",
+  "games/aftermath/aftermath_achievements.py",
+  "games/aftermath/aftermath_actions.py",
+  "games/aftermath/aftermath_bonuses.py",
+  "games/aftermath/aftermath_challenges.py",
+  "games/aftermath/aftermath_chronicle.py",
+  "games/aftermath/aftermath_codex.py",
+  "games/aftermath/aftermath_flourish.py",
+  "games/aftermath/aftermath_handlers.py",
+  "games/aftermath/aftermath_model_run.py",
+  "games/aftermath/aftermath_panels.py",
+  "games/aftermath/aftermath_pastruns.py",
+  "games/aftermath/aftermath_persist.py",
+  "games/aftermath/aftermath_renderer.py",
+  "games/aftermath/aftermath_rules.py",
+  "games/aftermath/aftermath_runstate.py",
+  "games/aftermath/aftermath_runview.py",
+  "games/aftermath/aftermath_savestate.py",
+  "games/aftermath/aftermath_skillmap.py",
+  "games/aftermath/aftermath_skilltree.py",
+  "games/aftermath/aftermath_tools.py",
+  "games/aftermath/boot.js",
+  "games/aftermath/community-resilience.js",
+  "games/aftermath/copy-wiring.js",
+  "games/aftermath/feedback.js",
+  "games/aftermath/run-code-boxes.js",
+  "games/aftermath/seasonal-event.js",
+  "games/aftermath/settings.js",
+  "games/aftermath/shortcuts.js",
+  "games/aftermath/style-1-base.css",
+  "games/aftermath/style-2-console.css",
+  "games/aftermath/style-3-panels.css",
+  "games/aftermath/style-4-tools.css",
+  "games/aftermath/todays-run.js",
+  "games/aftermath/tutorial-steps.js",
   "games/aftermath/ui.js",
   "games/herd/index.html",
   "games/herd/app.js",

@@ -1806,18 +1806,138 @@
      "precached": false
     },
     {
+     "path": "games/aftermath/aftermath_achievements.py",
+     "bytes": 18185,
+     "precached": true
+    },
+    {
+     "path": "games/aftermath/aftermath_actions.py",
+     "bytes": 9665,
+     "precached": true
+    },
+    {
+     "path": "games/aftermath/aftermath_bonuses.py",
+     "bytes": 17141,
+     "precached": true
+    },
+    {
+     "path": "games/aftermath/aftermath_challenges.py",
+     "bytes": 27978,
+     "precached": true
+    },
+    {
+     "path": "games/aftermath/aftermath_chronicle.py",
+     "bytes": 14447,
+     "precached": true
+    },
+    {
+     "path": "games/aftermath/aftermath_codex.py",
+     "bytes": 15559,
+     "precached": true
+    },
+    {
+     "path": "games/aftermath/aftermath_flourish.py",
+     "bytes": 12790,
+     "precached": true
+    },
+    {
+     "path": "games/aftermath/aftermath_handlers.py",
+     "bytes": 20950,
+     "precached": true
+    },
+    {
+     "path": "games/aftermath/aftermath_model_run.py",
+     "bytes": 24439,
+     "precached": true
+    },
+    {
+     "path": "games/aftermath/aftermath_panels.py",
+     "bytes": 24776,
+     "precached": true
+    },
+    {
+     "path": "games/aftermath/aftermath_pastruns.py",
+     "bytes": 32874,
+     "precached": true
+    },
+    {
+     "path": "games/aftermath/aftermath_persist.py",
+     "bytes": 25749,
+     "precached": true
+    },
+    {
+     "path": "games/aftermath/aftermath_renderer.py",
+     "bytes": 19826,
+     "precached": true
+    },
+    {
+     "path": "games/aftermath/aftermath_rules.py",
+     "bytes": 20649,
+     "precached": true
+    },
+    {
+     "path": "games/aftermath/aftermath_runstate.py",
+     "bytes": 4212,
+     "precached": true
+    },
+    {
+     "path": "games/aftermath/aftermath_runview.py",
+     "bytes": 26259,
+     "precached": true
+    },
+    {
+     "path": "games/aftermath/aftermath_savestate.py",
+     "bytes": 9323,
+     "precached": true
+    },
+    {
+     "path": "games/aftermath/aftermath_skillmap.py",
+     "bytes": 34102,
+     "precached": true
+    },
+    {
+     "path": "games/aftermath/aftermath_skilltree.py",
+     "bytes": 5882,
+     "precached": true
+    },
+    {
+     "path": "games/aftermath/aftermath_tools.py",
+     "bytes": 19441,
+     "precached": true
+    },
+    {
+     "path": "games/aftermath/boot.js",
+     "bytes": 4197,
+     "precached": true
+    },
+    {
      "path": "games/aftermath/changelog.json",
      "bytes": 22661,
      "precached": false
     },
     {
+     "path": "games/aftermath/community-resilience.js",
+     "bytes": 1908,
+     "precached": true
+    },
+    {
+     "path": "games/aftermath/copy-wiring.js",
+     "bytes": 2301,
+     "precached": true
+    },
+    {
+     "path": "games/aftermath/feedback.js",
+     "bytes": 2036,
+     "precached": true
+    },
+    {
      "path": "games/aftermath/game.py",
-     "bytes": 367607,
+     "bytes": 10927,
      "precached": true
     },
     {
      "path": "games/aftermath/index.html",
-     "bytes": 76584,
+     "bytes": 57254,
      "precached": true
     },
     {
@@ -1832,7 +1952,7 @@
     },
     {
      "path": "games/aftermath/pc.html",
-     "bytes": 80816,
+     "bytes": 61486,
      "precached": true
     },
     {
@@ -1841,9 +1961,24 @@
      "precached": true
     },
     {
+     "path": "games/aftermath/run-code-boxes.js",
+     "bytes": 1825,
+     "precached": true
+    },
+    {
+     "path": "games/aftermath/seasonal-event.js",
+     "bytes": 1578,
+     "precached": true
+    },
+    {
      "path": "games/aftermath/settings.js",
      "bytes": 11352,
-     "precached": false
+     "precached": true
+    },
+    {
+     "path": "games/aftermath/shortcuts.js",
+     "bytes": 1234,
+     "precached": true
     },
     {
      "path": "games/aftermath/sources.json",
@@ -1851,8 +1986,38 @@
      "precached": false
     },
     {
+     "path": "games/aftermath/style-1-base.css",
+     "bytes": 21321,
+     "precached": true
+    },
+    {
+     "path": "games/aftermath/style-2-console.css",
+     "bytes": 19128,
+     "precached": true
+    },
+    {
+     "path": "games/aftermath/style-3-panels.css",
+     "bytes": 19474,
+     "precached": true
+    },
+    {
+     "path": "games/aftermath/style-4-tools.css",
+     "bytes": 18680,
+     "precached": true
+    },
+    {
      "path": "games/aftermath/style.css",
-     "bytes": 90734,
+     "bytes": 13910,
+     "precached": true
+    },
+    {
+     "path": "games/aftermath/todays-run.js",
+     "bytes": 729,
+     "precached": true
+    },
+    {
+     "path": "games/aftermath/tutorial-steps.js",
+     "bytes": 4279,
      "precached": true
     },
     {
@@ -1928,11 +2093,6 @@
      "precached": true
     },
     {
-     "path": "shared/export_progress.py",
-     "bytes": 4954,
-     "precached": false
-    },
-    {
      "path": "shared/hub-auth.js",
      "bytes": 1356,
      "precached": true
@@ -1945,11 +2105,6 @@
     {
      "path": "shared/info-page.css",
      "bytes": 1092,
-     "precached": true
-    },
-    {
-     "path": "shared/info_page.py",
-     "bytes": 3410,
      "precached": true
     },
     {
@@ -2130,7 +2285,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 15006867,
+   "bytes": 15009276,
    "bytes_complete": true
   },
   "herd": {
