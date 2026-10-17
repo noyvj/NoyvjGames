@@ -10,6 +10,8 @@ from pathlib import Path
 
 import pytest
 
+from .pagefiles import page_text
+
 GAME_DIR = Path(__file__).resolve().parent.parent
 ROOT = GAME_DIR.parent.parent
 SLUG = "tide"
@@ -19,7 +21,7 @@ PAGES = ["index.html", "pc.html"]
 
 
 def page(name):
-    return (GAME_DIR / name).read_text(encoding="utf-8")
+    return page_text(name)  # the page plus the local scripts it loads
 
 
 @pytest.mark.parametrize("name", PAGES)
@@ -79,7 +81,7 @@ def test_desktop_page_is_current():
     spec = importlib.util.spec_from_file_location("gpp", ROOT / "scripts" / "generate-pc-pages.py")
     gpp = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(gpp)
-    assert gpp.build(SLUG, gpp.load_configs()[SLUG]) == page("pc.html")
+    assert gpp.build(SLUG, gpp.load_configs()[SLUG]) == (GAME_DIR / "pc.html").read_text(encoding="utf-8")  # the generated page itself, not its scripts
 
 
 def assert_fields_shape(fields):

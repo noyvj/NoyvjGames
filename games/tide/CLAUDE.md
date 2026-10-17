@@ -2,6 +2,51 @@
 
 **Built following the shared conventions in `planning/archive/climate-quartet-plan.md`** (testing, feedback hook, hope-angle requirement, hub integration — moved there 2026-09-22 once all four quartet games shipped; was `climate-quartet-plan.md` at the games root while build order still mattered). This file is Tide-specific only. Built third of the four — the grid redraw was the most visually involved piece, built after Grid and Canopy's patterns were solid.
 
+## File map (read this first; every file is small enough to read whole)
+
+`game.py` was one 7,600-line file with one 1,450-line class. It is now an entry point plus 29 `tide_*.py` modules, and the stylesheet and the page's inline scripts are split too (SP-1e in `planning/TODO.md`; the recipe is in `planning/SHARED-COMPONENTS.md`). Nothing changed in behaviour or in a save. Ask for the one file that holds what you are changing.
+
+**Python (`tide_*.py`, listed in dependency order: a module imports only from the ones before it).** The list lives in ONE place that matters, `TIDE_PY_MODULES` in `boot.js` (the page writes those files into Pyodide's file system before it runs `game.py`); `_PART_NAMES` in `game.py` repeats it in the same order, and `tests/test_file_sizes.py` checks both against the files on disk.
+
+| File | Holds (ask for it when you change...) |
+|------|------|
+| `game.py` | Entry point. Imports the parts, re-exports every name (`game.<name>` still works for tests and the page), forwards live state, and `setup()` wires the buttons. Ask for it only to add a button listener. |
+| `tide_rules.py` | Fixed numbers and tables: costs, thresholds, tiers, the five coastlines (`COASTLINES`), crew, workshop ranges, storm and market numbers, storage keys, `INVEST_LABELS`, `sea_level_wave_cue_duration`. |
+| `tide_runstate.py` | The variables that get REPLACED while playing (`state` = the live `SettlementState`, `almanac`, panel-open flags, ticker and ledger filters, library picks, planner length ...) and `LIVE_NAMES`. |
+| `tide_coasts.py` | Coastline helpers: the coastline in force, its meter and storm numbers, tile and row flood state, `coastline_grid`, heritage sites. |
+| `tide_bridge.py` | Tiny helpers: localStorage read/write, `_clamped_int`, `_finite_number`. |
+| `tide_model_town.py` | `SettlementTownMixin` (SettlementState part 1 of 3): `__init__` (every starting value), managed retreat, population, diversification, the checkpoint, heritage, citizen science, storms and bracing, naming, tides. |
+| `tide_model_economy.py` | `SettlementEconomyMixin` (part 2): Trade Winds market, `invest`, output mix, hard lag, the Acid Tide boss, crew, fish yield, the sister settlement, adaptation tiers, damage and flood readouts, `session_summary_text`. |
+| `tide_model_season.py` | `SettlementSeasonMixin` (part 3): Harbor Ledger rows, snapshots and scrubber data, descriptions, ticker messages and `advance_season()`; then the assembled `SettlementState(...)` and the creation of the live `state`. A new SettlementState method goes in the mixin for its topic. |
+| `tide_coastline.py` | Damage messages, the coastline grid renderers (current, mini, before/now) and the season scrubber (`scrub_view`, `scrub_to`, `render_scrubber`). |
+| `tide_library.py` | Session library data: saved runs, validation, picks, the overlay record, delete. |
+| `tide_graphs.py` | SVG graphs (sparklines, acidity and fish history, delayed consequence), the graph range and marker preferences, `render_graphs`. |
+| `tide_panels.py` | The info page render, the personal best coastline (localStorage), the What's New changelog. |
+| `tide_achievements.py` | Achievements and ranks: catalog loading, checks, progress, panel, toast, community rarity request. |
+| `tide_ticker.py` | The season ticker history and the live ticker (categories, filters, search) and the Harbor Ledger table. |
+| `tide_runcode.py` | Shareable run codes (`shared/run_code.py`): pack, decode, replay, friend-run ghosts, the run code box. |
+| `tide_libraryview.py` | The session library panel and its comparison graph. |
+| `tide_daily.py` | The Daily Tide: fixed daily plan, records, hub tracking, copy line, panel. |
+| `tide_almanac.py` | The Harbor Almanac (lifetime counts and bests) and the season planner. |
+| `tide_chrome.py` | Session summary display, copy-result fields, fish warning banner, graph range chips, screen-reader announcements, tab title and favicon, copy as text. |
+| `tide_controls.py` | Output mix, sea scenario and coastline pickers, settlement history, the programmes list, storm range, bell and forecast text. |
+| `tide_readouts.py` | Plain labels, hard-lag toggle, acidity past, the afford list, net-funds chip, goals, quiet seasons, harbor names, the season forecast, the sister settlement panel. |
+| `tide_seasonflow.py` | Balance and domino readouts, rescue burst, season report card, rewind eligibility, speedrun record. |
+| `tide_flavour.py` | Harbor quips, critters and sightings, scene themes, the delta popover, the market panel, crew. |
+| `tide_workshop.py` | Autosave list and the custom-rules workshop. |
+| `tide_events.py` | Postcards, the Acid Tide boss panel, storm bracing panel, chess mode. |
+| `tide_savestate.py` | `get_state()`, the steward summary, the resume note, save helper fields, the community coastline line. |
+| `tide_renderer.py` | `render()`: redraws the whole page, calling every panel's render function. |
+| `tide_loading.py` | `load_state()` and its list loaders: restores a save, then redraws. |
+| `tide_actions.py` | Actions that replace the running game and redraw: new run, daily start, rewind, autosave restore. |
+| `tide_handlers.py` | Every `on_*` click handler and the `_make_*_handler` factories for the invest buttons, heritage and diversify. A new handler goes here. |
+
+**State rule.** A module variable that some function REPLACES with `global x` / `x = ...` lives only in `tide_runstate.py`; every other module reads and writes it as `runstate.x` (each module starts with `import tide_runstate as runstate`). Never `from tide_runstate import x` (that copies the value once and goes stale). Lists, dicts and sets that are only changed in place (`_ghosts`, `_run_code_message`, `_harbor_rolls`) stay in the module that owns them. A new rebound variable goes in `tide_runstate.py` AND in its `LIVE_NAMES`. Tests use `game.state`, `game.graph_range = ...` and so on: `game.py` forwards reads and writes of the names in `LIVE_NAMES` to `tide_runstate`, and a write to any other name is copied into every module that holds that name (so `monkeypatch.setattr(game, "_read_local_storage_item", ...)` works).
+
+**Late-bound names.** A few functions are called by an earlier module but defined in a later one: `get_state` (called by `set_checkpoint` in `tide_model_town`) and `render` (called by handler factories in `tide_libraryview` and `tide_flavour`). The earlier module holds a `name = None` placeholder and the later module (`tide_savestate`, `tide_renderer`) fills it in at the end of its own file. `tests/test_file_sizes.py` checks that wiring. Do not add more of these; put a new function in a module after everything it calls.
+
+**Page files.** `index.html` is markup only (about 62 KB, the one file allowed above 14,000 tokens, capped at 16,000 by `tests/test_file_sizes.py`). Scripts: `tutorial-steps.js` (the walkthrough steps), `boot.js` (loads Pyodide, writes the Python modules, runs `game.py`, starts the tutorial and mobile HUD), `copy-wiring.js` (shared Copy result buttons and Credits links), `community-coastline.js` (R-30 fetch), `shortcuts.js` (keys and panels for the `?` help), `feedback.js` (the yes/no feedback prompt), then the older `settings.js`, `ui.js`, `pc.js`. Styles load in this order (the order is the cascade; Desktop's `pc.css` goes after the first `style.css` link): `style-1-base.css` (text scale, page shell, meters, tech tree, icon labels), `style-2-visuals.css` (the visual pass, console design pass 2, achievements), `style-3-panels.css` (changelog, toast, session summary, ticker, personal best, output mix, reduced motion, heritage tiles), `style.css` (the last part; starts with the blanket `[hidden]` rule that `shared/tests/test_hidden_attribute_rule.py` expects there, then accessibility, the ledger and the 2026-10-08 and later passes). Put a new rule in the part for its area. `pc.html` is generated (`scripts/generate-pc-pages.py`), never edited by hand. `tests/pagefiles.py` has `game_css()` and `page_text()` for tests that need the whole stylesheet or page text.
+
 ## Concept
 
 You run a coastal settlement, balancing fishing/industry output against ocean health (an acidity meter) and a slowly rising sea-level line. The core teaching challenge here is **delayed consequence** — the damage from today's choices shows up late, which is exactly why acidification is hard for people to intuitively grasp in real life. The game should make that lag itself the lesson, not smooth it over for playability's sake.

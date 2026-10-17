@@ -7,6 +7,8 @@ from pathlib import Path
 
 import pytest
 
+from .pagefiles import page_text
+
 GAME_DIR = Path(__file__).resolve().parent.parent
 
 
@@ -174,7 +176,7 @@ def test_a_comparison_is_never_a_percentile_of_one_player(game_env):
 
 @pytest.mark.parametrize("page", ["index.html", "pc.html"])
 def test_both_pages_have_the_line_and_the_fetch(page):
-    html = (GAME_DIR / page).read_text(encoding="utf-8")
+    html = page_text(page)
     assert 'id="coastline-community"' in html
     assert "set_community_coastline" in html
     assert "/stats/games/tide" in html

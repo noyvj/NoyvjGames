@@ -7,9 +7,11 @@ from pathlib import Path
 
 import pytest
 
+from .pagefiles import page_text
+
 ROOT = Path(__file__).resolve().parent.parent
-HTML = (ROOT / "index.html").read_text(encoding="utf-8")
-PC_HTML = (ROOT / "pc.html").read_text(encoding="utf-8")
+HTML = page_text("index.html")  # the page plus the local scripts it loads (boot.js, shortcuts.js, ...)
+PC_HTML = page_text("pc.html")
 CONFIG = json.loads((ROOT / "pc-config.json").read_text(encoding="utf-8"))
 COASTS = ("open", "delta", "headland", "atoll", "port")
 SCENARIOS = ("conservative", "moderate", "severe")
