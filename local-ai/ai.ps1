@@ -161,6 +161,28 @@ if ($behind -gt 0) { Write-Host "Note: your own folder's $Base is $behind commit
 $gameDir = Join-Path $work "games\$Game"
 $report = Join-Path $reports (($branch -replace '/', '_') + ".md")
 
+# Every test run has a time limit (2026-10-17: a hung browser test stalled the whole queue from 22:36 to 03:08;
+# pytest itself never gives up). Runs python -m pytest in the current folder; on time-out the whole process tree
+# (pytest, its browser) is ended and the output says so. Sets $LASTEXITCODE like a normal call.
+function Invoke-Pytest([string[]]$PytestArgs, [int]$Seconds = 900) {
+    $outFile = [IO.Path]::GetTempFileName()
+    $errFile = [IO.Path]::GetTempFileName()
+    $quoted = @("-m", "pytest") + $PytestArgs | ForEach-Object { '"' + $_ + '"' }
+    $proc = Start-Process python -ArgumentList $quoted -NoNewWindow -PassThru -WorkingDirectory (Get-Location).Path `
+        -RedirectStandardOutput $outFile -RedirectStandardError $errFile
+    $null = $proc.Handle   # without this, ExitCode can come back empty
+    $finished = $proc.WaitForExit($Seconds * 1000)
+    if (-not $finished) { taskkill /T /F /PID $proc.Id 2>$null | Out-Null; Start-Sleep 2 }
+    $out = ((Get-Content $outFile -Raw -ErrorAction SilentlyContinue) + (Get-Content $errFile -Raw -ErrorAction SilentlyContinue))
+    Remove-Item $outFile, $errFile -ErrorAction SilentlyContinue
+    if (-not $finished) {
+        $global:LASTEXITCODE = 1
+        return "$out`nTIMED OUT: the tests were still running after $Seconds seconds and were stopped. A test that never ends usually waits for something that never happens (a selector, a page load, an endless loop)."
+    }
+    $global:LASTEXITCODE = $proc.ExitCode
+    return $out
+}
+
 # Tests that already fail before the AI starts are not its fault and must not fail its task (2026-10-15: a Dead
 # Reckoning browser test from the Mac audit fails on this laptop on main itself, so every Dead Reckoning task
 # failed). Run the whole suite once on the starting point, keep the failures (cached per game and commit), and
@@ -170,7 +192,7 @@ $baseFile = Join-Path $reports "testbase-$Game-$baseHead.txt"
 if (-not (Test-Path $baseFile)) {
     Write-Host "Checking which of $Game's tests already fail before the AI starts (once per commit)..."
     Push-Location $gameDir
-    $baseOut = (python -m pytest -q -p no:warnings -rfE 2>&1 | Out-String)
+    $baseOut = Invoke-Pytest @("-q", "-p", "no:warnings", "-rfE") 1800
     Pop-Location
     @("# tests failing on $baseHead before any AI change (written by ai.ps1)") +
         @($baseOut -split "`r?`n" | Where-Object { $_ -match '^(FAILED|ERROR) \S' } | ForEach-Object { ($_ -split ' ')[1] } | Sort-Object -Unique) |
@@ -322,7 +344,11 @@ $repairs = 0
 while (-not $timedOut -and $repairs -lt 3) {
     $touched = @(git -C $work status --porcelain --untracked-files=all | ForEach-Object { $_.Substring(3).Trim('"') } |
         Where-Object { $_ -like "games/$Game/*" -and $_ -notlike "*/pc.html" })
-    if ($touched.Count -eq 0 -or ($touched | Where-Object { $_ -notmatch "/tests/test_ai_[^/]+\.py$" }).Count -eq 0) { break }
+    # A test-writing task (T-, EDGE-) gets repair rounds too (2026-10-17): its failures are almost always the test's
+    # own setup (a made-up level the game rejects), which the error message names exactly. Before, it went straight
+    # to salvage and was thrown away.
+    $testTask = $Item -match '^(T|EDGE)-'
+    if ($touched.Count -eq 0 -or (-not $testTask -and ($touched | Where-Object { $_ -notmatch "/tests/test_ai_[^/]+\.py$" }).Count -eq 0)) { break }
     # Tidy layout and the model's new test files first, so flake8 below only reports real mistakes.
     $chgPy = @($touched | Where-Object { $_ -like "*.py" } | ForEach-Object { Join-Path $work $_ } | Where-Object { Test-Path $_ })
     if ($chgPy.Count -gt 0) { python -m autopep8 --in-place --select=E1,E2,E3,W2,W3 @chgPy 2>$null | Out-Null }
@@ -330,7 +356,7 @@ while (-not $timedOut -and $repairs -lt 3) {
         ForEach-Object { $_.Substring(3).Trim('"') } | Where-Object { $_ -match "^games/$([regex]::Escape($Game))/tests/[^/]+\.py$" } | ForEach-Object { Join-Path $work $_ })
     if ($freshTests.Count -gt 0) { python (Join-Path $aiDir "tidy_new_tests.py") @freshTests 2>$null | Out-Null }
     Push-Location $gameDir
-    $firstTry = (python -m pytest -q -x --tb=short -p no:warnings --ignore-glob=*browser* @skipKnown 2>&1 | Out-String)
+    $firstTry = Invoke-Pytest (@("-q", "-x", "--tb=short", "-p", "no:warnings", "--ignore-glob=*browser*") + $skipKnown) 900
     $passing = ($LASTEXITCODE -eq 0)
     # flake8 counts as a failing check too (2026-10-14: two Lexis features passed every test and then failed the
     # final flake8 on an unused variable and a redefined fixture, with no round to fix them).
@@ -345,7 +371,7 @@ while (-not $timedOut -and $repairs -lt 3) {
         $browserFiles = @(Get-ChildItem (Join-Path $gameDir "tests") -Filter "*browser*.py" -File -ErrorAction SilentlyContinue | ForEach-Object { "tests/" + $_.Name })
         $browserLine = "no browser tests"
         if ($browserFiles.Count -gt 0) {
-            $browserTry = (python -m pytest -q -x --tb=short -p no:warnings @browserFiles @skipKnown 2>&1 | Out-String)
+            $browserTry = Invoke-Pytest (@("-q", "-x", "--tb=short", "-p", "no:warnings") + $browserFiles + $skipKnown) 900
             $browserLine = ($browserTry.Trim() -split "`n")[-1]
             if ($LASTEXITCODE -ne 0) { $passing = $false; $firstTry = $browserTry }
         }
@@ -393,6 +419,31 @@ $checkLines
     }
     $tail = (($firstTry.Trim() -split "`n") | Select-Object -Last 60) -join "`n"
     $repairFile = Join-Path $work ".aider-repair.md"
+    if ($testTask) {
+        @"
+# Fix your new tests (repair round $repairs of 3)
+
+You were asked to do this in games/${Game}:
+
+$Task
+
+Your new test file fails. The game's code is right and must not change: fix the TEST. Read the error below:
+usually the test builds an input the game rejects (a made-up level, board or save), or expects a value the
+function does not return. Build every input exactly the way the example test file does (copy its setup, or use a
+real level from the game's own data files), then check by reading the function what it really returns. Do not
+delete a test just to pass; fix it, or replace it with one that checks something real. Change only your new
+test file.
+
+Test output (end):
+~~~
+$tail
+~~~
+"@ | Set-Content -Encoding utf8 $repairFile
+        $repairFiles = @(); foreach ($f in $touched) { $repairFiles += @("--file", $f.Substring("games/$Game/".Length)) }
+        $timedOut = Invoke-Aider $repairFile $repairFiles
+        Remove-Item $repairFile -ErrorAction SilentlyContinue
+        continue
+    }
     @"
 # Fix the failing checks (repair round $repairs of 3)
 
@@ -438,6 +489,9 @@ $problems = @()
 if ($timedOut) { $problems += "timed out after $TimeoutMinutes minutes" }
 if ($inside.Count -eq 0) { $problems += "the AI made no changes in games/$Game" }
 if ($outside.Count -gt 0) { $problems += "it changed files outside games/${Game}: $($outside -join ', ')" }
+# A test-writing task must never change the game itself (now that its repair rounds could be tempted to).
+$gameEdits = @($inside | Where-Object { $_ -notmatch "/tests/[^/]+\.py$" })
+if ($Item -match '^(T|EDGE)-' -and $gameEdits.Count -gt 0) { $problems += "a test-writing task changed game files: $($gameEdits -join ', ')" }
 
 $py = @($inside | Where-Object { $_ -like "*.py" } | ForEach-Object { Join-Path $work $_ } | Where-Object { Test-Path $_ })
 # Layout (spacing, blank lines, trailing spaces) is fixed mechanically rather than failing correct work over it.
@@ -460,7 +514,7 @@ if ($verifiedState -and $verifiedState -eq (Get-WorkState)) {
     $testOut = "$verifiedLine (whole suite, before the final tidy-up changed nothing)"
     $testsOk = $true
 } else {
-    $testOut = (python -m pytest -q @skipKnown 2>&1 | Out-String)
+    $testOut = Invoke-Pytest (@("-q") + $skipKnown) 1800
     $testsOk = ($LASTEXITCODE -eq 0)
 }
 $salvageNote = ""
@@ -469,7 +523,7 @@ if (-not $testsOk -and $testOnly) {
     $rels = @($newTests | ForEach-Object { $_.Substring("games/$Game/".Length) })
     $salvageNote = ((python (Join-Path $aiDir "salvage_tests.py") $gameDir @rels 2>&1) -join " ")
     if ($LASTEXITCODE -eq 0) {
-        $testOut = (python -m pytest -q @skipKnown 2>&1 | Out-String)
+        $testOut = Invoke-Pytest (@("-q") + $skipKnown) 1800
         $testsOk = ($LASTEXITCODE -eq 0)
     }
 }

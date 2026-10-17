@@ -4,6 +4,16 @@ Written 2026-10-16 by the Windows Claude session (Noyvj), which runs and tunes t
 audits and file changes that make the work easier for that model. The items are in order of how much each
 should raise the pass rate. Tick an item here when it's done, and leave a short note under it.
 
+## The TODO lists are labeled (2026-10-17)
+Every open item in planning/TODO.md and planning/TODO-NEXT.md ends with a label saying who can do it. The
+labels come from `python local-ai/label_todo.py --write`, and the legend is at the top of each list. The
+labels that are Noy2's input:
+- `[local AI: after split]` (341 items): split the item into steps (item 1 below).
+- `[local AI: after file split]` (332 items): split the game's code (item 5 below).
+After splitting, rerun `python local-ai/label_todo.py --write` and `python3 scripts/todo-progress.py` so the
+labels and the progress line match. Items labeled `[local AI: yes]` are what the local AI runs, after a batch
+of test-writing tasks.
+
 ## What the model is, and where it fails (read this first)
 - Qwen3.6 35B-A3B through Ollama + Aider on an RTX 3080 Ti (16 GB). It has 35B parameters but about 3B work
   per word: fast, but it codes like a small model. It knows roughly what to write and gets names, types and

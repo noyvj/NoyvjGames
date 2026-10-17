@@ -14,18 +14,17 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-GAMES = ["lighthouse", "rule-finder", "hull-repair", "lexis", "mirror-lab", "stranded",
-         "station-medic", "reaction-bench", "picture-grid", "robot-script", "pocket-bazaar",
-         "constellations", "logic-gates", "evidence-hunt", "dead-reckoning", "heist-committee",
-         "signal",
-         # big games whose game.py is too large, but which also have small plain-Python modules
-         "continuum", "chronicle", "sol", "champ-de-mots"]
-SKIP_MODULES = {"game", "render", "harness", "info"}
-BUDGET = 14000          # tokens for the module + example test, leaving room for rules and answers
+# Every game folder with Python and tests (2026-10-17; was a fixed list of the small games). The six games whose
+# files do not fit even the 192k model are left out, like their parked feature tasks.
+TOO_BIG = {"sol", "canopy", "grid", "aftermath", "trade-empire", "champ-de-mots"}
+GAMES = sorted(d.name for d in (ROOT / "games").iterdir()
+               if d.is_dir() and d.name not in TOO_BIG and list(d.glob("*.py")) and (d / "tests").is_dir())
+SKIP_MODULES = {"render", "harness", "info"}   # game.py is in now: the 64k model holds most of them
+BUDGET = 40000          # tokens for the module + example test: the 64k model, leaving room for rules and the answer
 
 
 def tokens(path):
-    return len(path.read_text(encoding="utf-8")) * 2 // 7
+    return len(path.read_text(encoding="utf-8")) // 3   # real code packs ~3 characters per token
 
 
 def browser_code(text):
@@ -74,7 +73,8 @@ def tasks_for(game):
             kind = "method" if "." in fn else "function"
             task = (f"Write pytest tests for the {kind} {fn}() in {name}.py. Put them in a NEW file "
                     f"{new_file} and change no other file. Import modules the same way "
-                    f"tests/{example.name} does. Read {fn}() carefully and test what it really does: "
+                    f"tests/{example.name} does."
+                    f" Build every input exactly the way that file does (copy its setup or use a real level from the game's data); never invent a data format. Read {fn}() carefully and test what it really does: "
                     f"two or three normal cases and one edge case, each with a short docstring. "
                     f"Every test must pass.")
             lines.append(f"{game} | {item} | {name}.py, tests/{example.name} | {task}")
@@ -98,6 +98,7 @@ def edge_tasks_for(game):
             continue
         task = (f"Write edge-case pytest tests for {name}.py in a NEW file tests/test_ai_edge_{name}.py "
                 f"and change no other file. Import modules the same way tests/{example.name} does. "
+                f"Build every input exactly the way that file does (copy its setup or use a real level from the game's data); never invent a data format. "
                 f"Pick four to six public functions or methods in {name}.py and test their limits: "
                 f"empty or zero input, the smallest and largest allowed values, and values that should "
                 f"be rejected or clamped, but only where the code really handles them. Give each test a "
@@ -106,15 +107,26 @@ def edge_tasks_for(game):
     return lines
 
 
+def already_passed():
+    done = ROOT / "local-ai" / "queue-done.txt"
+    if not done.exists():
+        return set()
+    rows = done.read_text(encoding="utf-8-sig").splitlines()
+    return {(r.split("|")[0].split()[-1], r.split("|")[1].strip()) for r in rows if r.startswith("PASSED") and r.count("|") >= 3}
+
+
+def game_size(game):
+    files = [f for f in (ROOT / "games" / game).glob("*") if f.suffix in (".py", ".js", ".html", ".css")]
+    return sum(sorted((f.stat().st_size for f in files), reverse=True)[:4])
+
+
 def main():
     make = edge_tasks_for if "--edge" in sys.argv else tasks_for
-    per_game = {g: make(g) for g in GAMES}
-    # interleave games so one game's trouble never blocks a long stretch of the queue
+    passed = already_passed()
+    # one game's tasks together, smallest games first: switching between the 64k and 128k models reloads the model
     out = []
-    while any(per_game.values()):
-        for g in GAMES:
-            if per_game[g]:
-                out.append(per_game[g].pop(0))
+    for g in sorted(GAMES, key=game_size):
+        out += [line for line in make(g) if (g, line.split("|")[1].strip()) not in passed]
     for line in out:
         print(line)
     print(f"# {len(out)} test tasks", file=sys.stderr)

@@ -8,6 +8,7 @@
   use_repo_map: true
   extra_params:
     num_ctx: 32768
+    num_predict: 24576  # longest reply, thinking included (2026-10-17: a repair reply thought for 55k tokens, 30+ min, then answered nothing)
 
 # Qwen3.6 35B-A3B (2026-10-12): a mixture-of-experts model, 35B total but about 3B active per token,
 # so the part that spills from the 16 GB card into system RAM costs far less speed than a dense model.
@@ -16,6 +17,7 @@
   use_repo_map: true
   extra_params:
     num_ctx: 65536  # 32k was too small: game.py + app.js filled it and the task text got cut
+    num_predict: 24576  # longest reply, thinking included (2026-10-17: a repair reply thought for 55k tokens, 30+ min, then answered nothing)
 
 # Long-context names for the same Qwen3.6 model (ollama cp, no extra disk), picked automatically by
 # ai.ps1 from the size of the game's game.py: big games (73k-146k tokens) need the whole file in view.
@@ -25,8 +27,10 @@
   use_repo_map: true
   extra_params:
     num_ctx: 131072
+    num_predict: 24576  # longest reply, thinking included (2026-10-17: a repair reply thought for 55k tokens, 30+ min, then answered nothing)
 - name: ollama_chat/qwen3.6-192k
   edit_format: diff
   use_repo_map: true
   extra_params:
     num_ctx: 196608
+    num_predict: 24576  # longest reply, thinking included (2026-10-17: a repair reply thought for 55k tokens, 30+ min, then answered nothing)
