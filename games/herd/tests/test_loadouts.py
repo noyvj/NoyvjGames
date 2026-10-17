@@ -2,6 +2,7 @@
 farm at once and to every later generation, and makes the run unranked."""
 import json
 from pathlib import Path
+from .pagefiles import page_text
 
 ROOT = Path(__file__).resolve().parent.parent
 
@@ -182,6 +183,6 @@ def test_undo_keeps_unlocked_loadouts(game_env, monkeypatch):
 
 def test_both_pages_have_the_ids():
     for page in ("index.html", "pc.html"):
-        text = (ROOT / page).read_text()
+        text = page_text(page)
         for ident in ("loadout-panel", "loadout-summary", "loadout-select", "loadout-note", "loadout-list", "loadout-status"):
             assert f'id="{ident}"' in text, (page, ident)

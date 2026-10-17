@@ -1,6 +1,7 @@
 """GF-17: cosmetic barn styles unlocked by achievements. Pure looks: no number may change."""
 import json
 from pathlib import Path
+from .pagefiles import page_text
 
 PAGES = ("index.html", "pc.html")
 ROOT = Path(__file__).resolve().parent.parent
@@ -116,7 +117,7 @@ def test_unlocks_survive_a_handover_and_an_undo(game_env, monkeypatch):
 
 def test_both_pages_have_the_barn_ids():
     for page in PAGES:
-        text = (ROOT / page).read_text()
+        text = page_text(page)
         for ident in ("pasture-visual", "pasture-barn", "barn-panel", "barn-summary", "barn-status"):
             assert f'id="{ident}"' in text, (page, ident)
         for skin in ("red", "stone", "green", "sunflower", "moonlit", "gold"):

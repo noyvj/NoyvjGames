@@ -5,6 +5,7 @@ import json
 from pathlib import Path
 
 import pytest
+from .pagefiles import game_css, page_text
 
 HERE = Path(__file__).resolve().parent.parent
 
@@ -135,13 +136,13 @@ def test_output_is_accessible_and_the_chart_uses_line_styles(game_env):
     chart = m.plan_chart_svg(result)
     assert "role=\"img\"" in chart and "plan-line--plan" in chart and "plan-line--idle" in chart and "plan-line--base" in chart
     assert ">P<" in chart and ">N<" in chart and ">B<" in chart
-    css = (HERE / "style.css").read_text(encoding="utf-8")
+    css = game_css()
     assert "stroke-dasharray" in css[css.index(".plan-line--idle"):css.index(".plan-line--idle") + 80]
 
 
 def test_planner_is_on_both_pages_and_reachable_on_desktop():
     for page in ("index.html", "pc.html"):
-        html = (HERE / page).read_text(encoding="utf-8")
+        html = page_text(page)
         for rid in ("planner-panel", "plan-add-button", "plan-table", "plan-chart", "plan-horizon-10-button"):
             assert f'id="{rid}"' in html
     cfg = json.loads((HERE / "pc-config.json").read_text(encoding="utf-8"))

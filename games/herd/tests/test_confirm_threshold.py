@@ -4,6 +4,7 @@ goes through the shared confirm dialog (no "don't ask again" box), anything smal
 
 import sys
 from pathlib import Path
+from .pagefiles import page_text
 
 HERE = Path(__file__).resolve().parent.parent
 
@@ -120,7 +121,7 @@ def test_settings_select_is_wired_on_both_pages_and_resets():
     js = (HERE / "settings.js").read_text(encoding="utf-8")
     assert '"herd-confirm-percent"' in js and "resetConfirmThreshold();" in js
     for page in ("index.html", "pc.html"):
-        html = (HERE / page).read_text(encoding="utf-8")
+        html = page_text(page)
         assert 'id="confirm-threshold-select"' in html
         for value in ("0", "25", "50", "75"):
             assert f'<option value="{value}">' in html

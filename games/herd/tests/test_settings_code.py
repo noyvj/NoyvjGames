@@ -1,6 +1,7 @@
 """F-25: the settings code. One paste moves every local Herd setting, the ranch rules, the pinned
 stats and the best coupling ratio to another device; a bad code changes nothing."""
 import json
+from .pagefiles import page_text
 
 
 def set_local(env, key, value):
@@ -133,7 +134,7 @@ def test_both_pages_have_the_ids_and_the_boot_loads_the_helper():
     from pathlib import Path
     root = Path(__file__).resolve().parent.parent
     for page in ("index.html", "pc.html"):
-        text = (root / page).read_text()
+        text = page_text(page)
         for ident in ("settings-code-box", "settings-export-button", "settings-import-button", "settings-code-status"):
             assert f'id="{ident}"' in text, (page, ident)
         assert "shared/export_progress.py" in text

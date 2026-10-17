@@ -4,6 +4,7 @@ import json
 from pathlib import Path
 
 import pytest
+from .pagefiles import page_text
 
 HERE = Path(__file__).resolve().parent.parent
 
@@ -190,7 +191,7 @@ def test_a_handover_keeps_the_rules(game_env):
 
 def test_both_pages_carry_the_rule_controls():
     for page in ("index.html", "pc.html"):
-        html = (HERE / page).read_text(encoding="utf-8")
+        html = page_text(page)
         for rid in ("rule-starting-funds", "rule-season-swing", "rule-pressure-strength", "rule-growth-slope",
                     "rules-summary", "rules-reset-button", "rules-badge"):
             assert f'id="{rid}"' in html

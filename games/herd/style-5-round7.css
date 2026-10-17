@@ -1,0 +1,208 @@
+/* F-26 lite mode (the site-wide switch in shared/lite-mode.js sets html[data-lite="true"]): Herd's own costs.
+   The haze is a page-wide overlay and the wisps, clouds and cows animate; the pressure, methane and coupling
+   numbers all stay on screen as text, so nothing needed to play is lost. */
+html[data-lite="true"] .haze-overlay,
+html[data-lite="true"] .pasture-visual-wisp,
+html[data-lite="true"] .pasture-visual-cloud { display: none !important; }
+html[data-lite="true"] .pasture-visual-cow { animation: none !important; }
+html[data-lite="true"] #game, html[data-lite="true"] .pinned-strip { backdrop-filter: none !important; -webkit-backdrop-filter: none !important; }
+.settings-row select { max-width: 100%; }
+
+/* ---- Round 7: F-25 settings code ---- */
+.settings-code { display: block; }
+.settings-code textarea {
+  width: 100%; box-sizing: border-box; margin-top: 0.35rem; padding: 0.4rem; font: inherit; font-size: 0.8rem;
+  font-family: ui-monospace, Menlo, Consolas, monospace; color: inherit; background: rgba(127, 127, 127, 0.15);
+  border: 1px solid rgba(127, 127, 127, 0.55); border-radius: 6px; resize: vertical; word-break: break-all;
+}
+.settings-code-buttons { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.5rem; }
+
+/* ---- Round 7: GF-17 cosmetic barns ---- */
+.pasture-visual { --barn-wall: #b5382c; --barn-roof: #6b2a22; --barn-trim: #fff4e6; --fence: #e9dcc0; --barn-mark: "\1F404"; --tractor-filter: none; }
+.pasture-visual[data-barn="stone"] { --barn-wall: #9a9a94; --barn-roof: #55555a; --barn-trim: #e6e6e0; --fence: #8a8a85; --barn-mark: "\1FAA8"; --tractor-filter: grayscale(0.7); }
+.pasture-visual[data-barn="green"] { --barn-wall: #4f8a5c; --barn-roof: #2f5f3a; --barn-trim: #f3f3e8; --fence: #cdb98a; --barn-mark: "\1F33F"; --tractor-filter: hue-rotate(70deg); }
+.pasture-visual[data-barn="sunflower"] { --barn-wall: #e2b934; --barn-roof: #8a5a14; --barn-trim: #fff7d6; --fence: #f3e0a0; --barn-mark: "\1F33B"; --tractor-filter: hue-rotate(25deg) saturate(1.3); }
+.pasture-visual[data-barn="moonlit"] { --barn-wall: #3b4a7a; --barn-roof: #232b4d; --barn-trim: #cfd8ff; --fence: #6f7aa8; --barn-mark: "\1F319"; --tractor-filter: hue-rotate(200deg); }
+.pasture-visual[data-barn="gold"] { --barn-wall: #d6a92f; --barn-roof: #f0d36a; --barn-trim: #fff3b0; --fence: #f0d36a; --barn-mark: "\2B50"; --tractor-filter: sepia(1) saturate(3); }
+.pasture-barn { position: absolute; right: 10px; bottom: 30px; width: 46px; height: 32px; background: var(--barn-wall); border: 2px solid var(--barn-trim); border-radius: 2px 2px 0 0; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3); z-index: 1; }
+.pasture-barn-roof { position: absolute; left: -7px; right: -7px; top: -13px; height: 12px; background: var(--barn-roof); clip-path: polygon(0 100%, 50% 0, 100% 100%); }
+.pasture-barn-door { position: absolute; left: 50%; bottom: -2px; width: 20px; height: 20px; margin-left: -10px; background: var(--barn-roof); border: 2px solid var(--barn-trim); border-bottom: 0; text-align: center; font-size: 11px; line-height: 17px; overflow: hidden; }
+.pasture-barn-door::after { content: var(--barn-mark); }
+.pasture-fence { position: absolute; left: 0; right: 0; bottom: 36px; height: 9px; z-index: 1; pointer-events: none;
+  background: repeating-linear-gradient(90deg, var(--fence) 0 3px, transparent 3px 11px); border-top: 2px solid var(--fence); opacity: 0.9; }
+.pasture-tractor { filter: var(--tractor-filter, none); }
+.barn-list { list-style: none; margin: 0.4rem 0 0; padding: 0; display: grid; gap: 0.4rem; }
+.barn-row { display: grid; grid-template-columns: 1.6rem 1fr auto; align-items: center; gap: 0.1rem 0.5rem; padding: 0.35rem 0.5rem; border: 1px solid rgba(127, 127, 127, 0.35); border-radius: 8px; }
+.barn-row .barn-name { font-weight: 700; font-size: 0.9rem; }
+.barn-row .barn-note { grid-column: 2; font-size: 0.78rem; opacity: 0.85; }
+.barn-row button { grid-column: 3; grid-row: 1 / span 2; margin: 0; min-width: 7rem; }
+.barn-swatch { grid-row: 1 / span 2; width: 1.4rem; height: 1.2rem; border-radius: 2px; border: 2px solid var(--swatch-trim, #fff); background: var(--swatch-wall, #b5382c); position: relative; }
+.barn-swatch::after { content: ""; position: absolute; left: -3px; right: -3px; top: -6px; height: 6px; background: var(--swatch-roof, #6b2a22); clip-path: polygon(0 100%, 50% 0, 100% 100%); }
+.barn-swatch--stone { --swatch-wall: #9a9a94; --swatch-roof: #55555a; }
+.barn-swatch--green { --swatch-wall: #4f8a5c; --swatch-roof: #2f5f3a; }
+.barn-swatch--sunflower { --swatch-wall: #e2b934; --swatch-roof: #8a5a14; }
+.barn-swatch--moonlit { --swatch-wall: #3b4a7a; --swatch-roof: #232b4d; }
+.barn-swatch--gold { --swatch-wall: #d6a92f; --swatch-roof: #f0d36a; }
+
+/* ---- Round 7: GF-21 golden cow ---- */
+.golden-cow-glider {
+  position: absolute; bottom: 20px; left: -14%; z-index: 3; font-size: 1.5rem; line-height: 1; cursor: pointer;
+  filter: sepia(1) saturate(5) hue-rotate(-12deg) brightness(1.15) drop-shadow(0 0 6px rgba(255, 215, 0, 0.9));
+  animation: golden-glide 14s linear infinite;
+}
+.golden-cow-glider[hidden] { display: none; }
+.golden-cow-glider:hover { animation-play-state: paused; }
+@keyframes golden-glide { from { left: -14%; } to { left: 104%; } }
+@media (prefers-reduced-motion: reduce) { .golden-cow-glider { animation: none; left: 52%; } }
+html[data-reduced-motion="true"] .golden-cow-glider, html[data-lite="true"] .golden-cow-glider { animation: none; left: 52%; }
+.golden-cow-panel button { width: 100%; }
+
+/* ---- Round 7: GF-28 blind run ---- */
+.blind-run-panel { margin: 0.4rem 0; padding: 0.5rem 0.6rem; border: 2px dashed rgba(127, 127, 127, 0.7); border-radius: 8px; }
+.blind-run-panel button { margin-top: 0.4rem; }
+
+/* ---- Round 7: GF-23 starting loadouts ---- */
+.loadout-list { margin: 0.4rem 0 0; padding-left: 1.1rem; font-size: 0.82rem; }
+.loadout-list li { margin: 0.2rem 0; }
+
+/* ---- Round 7: GF-3 regulator audits ---- */
+.audit-targets { margin: 0.3rem 0; padding-left: 1.1rem; font-size: 0.85rem; }
+.audit-panel.audit-warning { border: 2px solid #e69f00; }
+.audit-panel.audit-warning .audit-headline::before { content: "\26A0\FE0F "; }
+
+/* ---- Round 7: GF-24 practice sandbox ---- */
+.sandbox-panel input[type="range"] { width: 100%; min-height: 28px; }
+.sandbox-panel .rule-row { display: flex; justify-content: space-between; gap: 0.5rem; margin-top: 0.5rem; font-size: 0.85rem; }
+.sandbox-panel output { font-variant-numeric: tabular-nums; font-weight: 700; }
+.sandbox-panel button { margin-top: 0.5rem; }
+
+/* ---- Round 4 phone view (R4-HEMO-2, -3, -4, -7, -8, audited) ----------------------------------
+   Everything the phone view adds is switched on only inside the max-width 600px block below; the
+   base rules just keep those pieces out of the wide layouts. app.js fills the strip, thermometer
+   and calm barn; game.py draws the herd slider. */
+.mobile-top-strip, .methane-thermo, .herd-slider-container, .calm-barn-word, .calm-barn-exit, #calm-barn-toggle { display: none; }
+
+@media (max-width: 600px) {
+  body, body.has-mobile-hud { padding-top: 44px; }
+  #game { min-width: 0; }
+  /* the shared sticky HUD (funds, herd, methane) would sit on top of the strip, which carries the same numbers */
+  #mobile-hud-bar { display: none !important; }
+
+  /* HEMO-2: a thin strip fixed to the top (the page's own glass panel would otherwise carry it away) */
+  .mobile-top-strip {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 40;
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    gap: 0.3rem;
+    min-height: 44px;
+    padding: 0.2rem 0.5rem;
+    background: rgba(20, 22, 36, 0.96);
+    border-bottom: 1px solid rgba(140, 160, 255, 0.25);
+    font-size: 0.8rem;
+    font-variant-numeric: tabular-nums;
+  }
+  .mobile-strip-label {
+    padding: 0.15rem 0.5rem;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    border: 1px solid currentColor;
+    transition: background-color 0.4s ease, color 0.4s ease;
+  }
+  .mobile-strip-label.band-low { background: rgba(76, 156, 110, 0.25); color: #7fd6a3; }
+  .mobile-strip-label.band-mid { background: rgba(224, 162, 76, 0.25); color: #f0d36a; }
+  .mobile-strip-label.band-high { background: rgba(224, 103, 76, 0.25); color: #ff9c85; }
+  html[data-theme="light"] .mobile-top-strip { background: rgba(255, 253, 246, 0.97); color: #1b2233; }
+  html[data-theme="light"] .mobile-strip-label.band-low { color: #1d6b43; }
+  html[data-theme="light"] .mobile-strip-label.band-mid { color: #7a5200; }
+  html[data-theme="light"] .mobile-strip-label.band-high { color: #9b2c14; }
+  .pinned-strip { top: 44px; }
+
+  /* HEMO-3: levers in a shelf you swipe sideways (Grow Herd, the three decoupling levers, the pivot) */
+  .lever-shelf {
+    display: flex;
+    flex-direction: row;
+    align-items: flex-start;
+    gap: 0.6rem;
+    max-width: 100%;
+    margin-bottom: 1rem;
+    padding-bottom: 0.4rem;
+    overflow-x: auto;
+    scroll-snap-type: x proximity;
+    -webkit-overflow-scrolling: touch;
+  }
+  .lever-shelf > .section { flex: 0 0 94%; min-width: 0; margin-bottom: 0; scroll-snap-align: start; }
+
+  /* HEMO-8: herd-size slider with a big handle and the live numbers above it */
+  .herd-slider-container {
+    display: block;
+    margin: 0 0 1rem;
+    padding: 0.8rem 1rem;
+    background: rgba(20, 22, 36, 0.6);
+    border-radius: 12px;
+    border: 1px solid rgba(140, 160, 255, 0.14);
+  }
+  html[data-theme="light"] .herd-slider-container { background: rgba(255, 253, 246, 0.85); border-color: rgba(27, 34, 51, 0.2); }
+  .herd-slider-readouts { display: flex; flex-direction: column; gap: 0.25rem; margin-bottom: 0.5rem; font-size: 0.85rem; font-weight: 600; font-variant-numeric: tabular-nums; }
+  .herd-slider-label { display: block; margin-bottom: 0.25rem; font-size: 0.85rem; }
+  .herd-slider-label output { font-weight: 700; }
+  .herd-slider-input { width: 100%; height: 44px; margin: 0; background: transparent; cursor: pointer; }
+  .herd-slider-input::-webkit-slider-thumb { width: 40px; height: 40px; border-radius: 50%; background: #e0c24c; border: 3px solid #fff; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35); }
+  .herd-slider-input::-moz-range-thumb { width: 36px; height: 36px; border-radius: 50%; background: #e0c24c; border: 3px solid #fff; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35); }
+  .herd-slider-input:disabled { opacity: 0.5; cursor: default; }
+  #herd-slider-buy-button { width: 100%; min-height: 44px; margin-top: 0.4rem; }
+
+  /* HEMO-4: a thin thermometer in the right-hand gutter (outside #game, whose blur would trap a fixed child) */
+  .methane-thermo {
+    position: fixed;
+    right: 2px;
+    top: 50%;
+    z-index: 30;
+    display: block;
+    width: 12px;
+    height: 160px;
+    margin: 0;
+    padding: 2px;
+    transform: translateY(-50%);
+    background: rgba(20, 22, 36, 0.8);
+    border: 1px solid rgba(140, 160, 255, 0.4);
+    border-radius: 8px;
+    cursor: pointer;
+  }
+  .methane-thermo[hidden] { display: none; }
+  /* a larger invisible hit area, so the thin tube is still easy to tap */
+  .methane-thermo::after { content: ""; position: absolute; top: -8px; bottom: -8px; left: -16px; right: -2px; }
+  .methane-thermo-track { position: relative; display: flex; align-items: flex-end; width: 100%; height: 100%; border-radius: 5px; background: rgba(0, 0, 0, 0.35); overflow: hidden; }
+  .methane-thermo-fill { display: block; width: 100%; height: 0; background: repeating-linear-gradient(45deg, #b06fd6 0 4px, #8a4fb0 4px 8px); transition: height 0.3s ease; }
+  html[data-theme="light"] .methane-thermo { background: rgba(255, 253, 246, 0.9); }
+
+  /* HEMO-7: Calm barn. Everything except the pasture, one word, the Advance Round button and the
+     notices (marked calm-keep in index.html) goes; the animals slow right down. */
+  #calm-barn-toggle { display: block; width: 100%; min-height: 44px; margin: 0 0 1rem; }
+  #game.calm-barn-mode > :not(.calm-keep):not(#round-announcer) { display: none !important; }
+  body:has(#game.calm-barn-mode) .mobile-top-strip,
+  body:has(#game.calm-barn-mode) .methane-thermo { display: none; }
+  #game.calm-barn-mode .calm-barn-word { display: block; margin: 1rem 0; font-size: 1.5rem; font-weight: 600; text-align: center; letter-spacing: 0.04em; color: #7fd6a3; }
+  html[data-theme="light"] #game.calm-barn-mode .calm-barn-word { color: #1d6b43; }
+  #game.calm-barn-mode .calm-barn-exit { display: block; width: 100%; min-height: 44px; margin: 0.75rem 0 0; }
+  #game.calm-barn-mode .pasture-visual { opacity: 0.45; filter: brightness(0.55) saturate(0.7); }
+  #game.calm-barn-mode .pasture-visual-cow { animation-duration: 14s; }
+  #game.calm-barn-mode .pasture-visual-wisp { animation-duration: 14s; }
+  #game.calm-barn-mode .pasture-visual-cloud { animation-duration: 160s; }
+  html[data-reduced-motion="true"] #game.calm-barn-mode .pasture-visual-cow,
+  html[data-reduced-motion="true"] #game.calm-barn-mode .pasture-visual-wisp,
+  html[data-reduced-motion="true"] #game.calm-barn-mode .pasture-visual-cloud,
+  html[data-lite="true"] #game.calm-barn-mode .pasture-visual-cow,
+  html[data-lite="true"] #game.calm-barn-mode .pasture-visual-wisp,
+  html[data-lite="true"] #game.calm-barn-mode .pasture-visual-cloud { animation: none; }
+  @media (prefers-reduced-motion: reduce) {
+    #game.calm-barn-mode .pasture-visual-cow,
+    #game.calm-barn-mode .pasture-visual-wisp,
+    #game.calm-barn-mode .pasture-visual-cloud { animation: none; }
+    .mobile-strip-label, .methane-thermo-fill { transition: none; }
+  }
+}
+html[data-reduced-motion="true"] .mobile-strip-label, html[data-reduced-motion="true"] .methane-thermo-fill { transition: none; }

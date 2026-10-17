@@ -1,6 +1,7 @@
 """F-11 Beginner / Standard / Expert profiles."""
 
 from pathlib import Path
+from .pagefiles import game_css, page_text
 
 HERE = Path(__file__).resolve().parent.parent
 
@@ -68,11 +69,11 @@ def test_the_choice_is_never_in_a_save(game_env):
 
 
 def test_expert_css_layer_and_js_and_pages():
-    css = (HERE / "style.css").read_text(encoding="utf-8")
+    css = game_css()
     for selector in (".grow-consequence-preview", ".invest-efficiency", ".info-toggle"):
         assert f'html[data-profile="expert"] {selector}' in css
     js = (HERE / "settings.js").read_text(encoding="utf-8")
     assert 'data-profile' in js and 'applyProfile("standard")' in js
     for page in ("index.html", "pc.html"):
-        html = (HERE / page).read_text(encoding="utf-8")
+        html = page_text(page)
         assert 'id="profile-select"' in html and 'id="next-lever-hint"' in html

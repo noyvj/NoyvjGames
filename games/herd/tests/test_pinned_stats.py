@@ -2,6 +2,7 @@
 
 import json
 from pathlib import Path
+from .pagefiles import game_css, page_text
 
 HERE = Path(__file__).resolve().parent.parent
 
@@ -65,7 +66,7 @@ def test_junk_pins_are_cleaned(game_env):
 
 def test_every_stat_has_a_checkbox_on_both_pages_and_the_strip_is_in_the_desktop_side_column():
     for page in ("index.html", "pc.html"):
-        html = (HERE / page).read_text(encoding="utf-8")
+        html = page_text(page)
         assert 'id="pinned-strip"' in html
         for stat in ("funds", "income", "welfare", "methane-round", "methane", "score", "herd", "pressure"):
             assert f'id="pin-{stat}"' in html
@@ -74,6 +75,6 @@ def test_every_stat_has_a_checkbox_on_both_pages_and_the_strip_is_in_the_desktop
 
 
 def test_the_strip_is_sticky_and_text_labelled():
-    css = (HERE / "style.css").read_text(encoding="utf-8")
+    css = game_css()
     block = css[css.index(".pinned-strip {"):css.index(".pin-chip-label {")]
     assert "position: sticky" in block

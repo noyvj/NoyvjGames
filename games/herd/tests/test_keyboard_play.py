@@ -4,11 +4,12 @@ these tests pin the wiring; the live key presses are covered by the build notes 
 
 import re
 from pathlib import Path
+from .pagefiles import game_css, page_text
 
 HERE = Path(__file__).resolve().parent.parent
 SETTINGS_JS = (HERE / "settings.js").read_text(encoding="utf-8")
-INDEX_HTML = (HERE / "index.html").read_text(encoding="utf-8")
-PC_HTML = (HERE / "pc.html").read_text(encoding="utf-8")
+INDEX_HTML = page_text("index.html")
+PC_HTML = page_text("pc.html")
 
 
 def _lever_ids():
@@ -40,7 +41,7 @@ def test_cheat_sheet_lists_each_shortcut_and_is_rebuilt_if_the_panel_is_redrawn(
     for label in ("Tab / Shift + Tab", "Up / Down arrow", "Home / End", "Left / Right arrow", "Esc"):
         assert label in SETTINGS_JS
     assert "new MutationObserver(ensure).observe(howto" in SETTINGS_JS
-    assert ".howto-keys" in (HERE / "style.css").read_text(encoding="utf-8")
+    assert ".howto-keys" in game_css()
 
 
 def test_the_question_mark_overlay_gets_herds_own_lines():

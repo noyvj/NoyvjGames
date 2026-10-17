@@ -6,6 +6,7 @@ aria-live round announcer (F-10, partial)."""
 import json
 import re
 from pathlib import Path
+from .pagefiles import page_text
 
 GAME_DIR = Path(__file__).resolve().parent.parent
 
@@ -209,7 +210,7 @@ def test_old_save_without_a_log_loads_with_an_empty_one(game_env):
 def test_filter_options_in_both_pages_match_the_lever_labels(game_env):
     m = game_env.module
     for name in ("index.html", "pc.html"):
-        html = (GAME_DIR / name).read_text(encoding="utf-8")
+        html = page_text(name)
         select = html[html.index('id="lever-history-filter"'):]
         select = select[:select.index("</select>")]
         values = re.findall(r'<option value="([^"]+)"', select)
@@ -481,7 +482,7 @@ def test_every_combo_can_be_found_with_a_reachable_farm(game_env):
 
 
 def test_combo_reward_text_in_the_page_matches_the_constant(game_env):
-    html = (GAME_DIR / "index.html").read_text(encoding="utf-8")
+    html = page_text("index.html")
     assert f'<span class="combo-reward">{game_env.module.COMBO_REWARD_FUNDS}</span>' in html
 
 
@@ -626,7 +627,7 @@ def test_advance_round_announces_the_result_for_screen_readers(game_env):
 
 def test_announcer_is_a_polite_live_region_in_both_pages():
     for name in ("index.html", "pc.html"):
-        html = (GAME_DIR / name).read_text(encoding="utf-8")
+        html = page_text(name)
         assert re.search(r'<p id="round-announcer" class="sr-only" role="status" aria-live="polite">', html)
 
 

@@ -2,6 +2,7 @@
 trust hit for failing, deterministic, and the baseline farm is never touched."""
 import json
 from pathlib import Path
+from .pagefiles import page_text
 
 ROOT = Path(__file__).resolve().parent.parent
 
@@ -269,6 +270,6 @@ def test_handover_starts_a_fresh_audit_record(game_env):
 
 def test_both_pages_have_the_ids():
     for page in ("index.html", "pc.html"):
-        text = (ROOT / page).read_text()
+        text = page_text(page)
         for ident in ("audit-panel", "audit-headline", "audit-target-coupling", "audit-target-welfare", "audit-reward", "audit-record"):
             assert f'id="{ident}"' in text, (page, ident)

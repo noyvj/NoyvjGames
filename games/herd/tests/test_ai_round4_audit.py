@@ -6,11 +6,12 @@ service worker registration is still there). The real clicks are in test_ai_roun
 
 import re
 from pathlib import Path
+from .pagefiles import game_css, game_source, page_text
 
 HERE = Path(__file__).resolve().parent.parent
-INDEX = (HERE / "index.html").read_text(encoding="utf-8")
-PC_HTML = (HERE / "pc.html").read_text(encoding="utf-8")
-STYLE = (HERE / "style.css").read_text(encoding="utf-8")
+INDEX = page_text("index.html")
+PC_HTML = page_text("pc.html")
+STYLE = game_css()
 PC_CSS = (HERE / "pc.css").read_text(encoding="utf-8")
 APP_JS = (HERE / "app.js").read_text(encoding="utf-8")
 PC_JS = (HERE / "pc.js").read_text(encoding="utf-8")
@@ -182,7 +183,7 @@ def test_calm_barn_motion_is_slower_never_faster_and_off_with_reduced_motion():
 
 def test_calm_barn_is_a_per_device_setting_never_in_the_save():
     assert 'var CALM_KEY = "herd-calm-barn"' in APP_JS
-    assert "herd-calm-barn" not in (HERE / "game.py").read_text(encoding="utf-8")
+    assert "herd-calm-barn" not in game_source()
     # Settings > Reset to Default leaves the calm barn
     assert "#settings-reset-button" in APP_JS and "storeCalm(false)" in APP_JS
 

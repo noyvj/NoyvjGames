@@ -1,0 +1,627 @@
+/* Settings panel: text scaling. settings.js sets --text-scale on the root
+   element and persists it to localStorage; every font-size in this file is
+   already in rem (confirmed by grep before relying on this), so scaling
+   the root font-size scales the whole game uniformly with zero other
+   changes -- same approach Continuum's Phase 5 accessibility.js and
+   Aftermath's settings.js already established. Default 1 here means a
+   page that never runs settings.js still renders at exactly today's size. */
+:root {
+  --text-scale: 1;
+}
+
+html {
+  font-size: calc(16px * var(--text-scale, 1));
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  background: transparent;
+  color: #e8e9f0;
+  display: flex;
+  justify-content: center;
+}
+
+#game {
+  position: relative;
+  width: 100%;
+  max-width: 480px;
+  margin: 1.5rem 1rem 2rem;
+  padding: 1.5rem 1rem 2rem;
+  background: linear-gradient(165deg, rgba(24, 27, 43, 0.78), rgba(14, 16, 28, 0.85));
+  border: 1px solid rgba(140, 160, 255, 0.14);
+  border-radius: 20px;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+.haze-overlay {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at center, #8a6a3c 0%, #6d4c31 100%);
+  opacity: 0;
+  pointer-events: none;
+  z-index: 5;
+  transition: opacity 0.3s ease;
+}
+
+.context-blurb {
+  margin: 0 0 1.25rem;
+  padding: 0.6rem 0.75rem;
+  border-left: 2px solid #4c7c3a;
+  background: rgba(20, 22, 36, 0.6);
+  border-radius: 0 6px 6px 0;
+  font-size: 0.8rem;
+  opacity: 0.8;
+}
+
+.coupling-gauge-svg {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.gauge-track {
+  fill: none;
+  stroke: #1a1d2b;
+  stroke-width: 10;
+  stroke-linecap: round;
+}
+
+.gauge-fill {
+  fill: none;
+  stroke-width: 10;
+  stroke-linecap: round;
+  transition: stroke-dasharray 0.3s ease, stroke 0.3s ease;
+}
+
+/* F8 (planning/TODO.md): the record-decoupling-ratio marker on the
+   coupling gauge -- a small diamond, distinct in shape (not just color)
+   from the live .gauge-fill arc, matching the shared "record" gold used
+   by shared/personal-best.css's medal badge elsewhere on this page. */
+.gauge-record-marker {
+  fill: #e0c24c;
+  stroke: #1a1d2b;
+  stroke-width: 1;
+}
+
+h1 {
+  margin: 0 0 0.25rem;
+  font-size: 1.75rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  background: linear-gradient(120deg, #eaeaf0 20%, #a9c3ff 55%, #eaeaf0 80%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  text-shadow: 0 0 40px rgba(120, 150, 255, 0.25);
+}
+
+.tagline {
+  margin: 0 0 1.25rem;
+  opacity: 0.75;
+  font-size: 0.95rem;
+}
+
+.section {
+  background: linear-gradient(165deg, rgba(30, 33, 52, 0.65), rgba(18, 20, 33, 0.7));
+  border: 1px solid rgba(140, 160, 255, 0.14);
+  border-radius: 10px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
+}
+
+.status-line {
+  margin: 0 0 0.4rem;
+  font-size: 0.95rem;
+}
+
+.status-line:last-child {
+  margin-bottom: 0;
+}
+
+.comparison-message {
+  margin: 0.6rem 0 0;
+  font-size: 0.85rem;
+  font-style: italic;
+  opacity: 0.85;
+}
+
+/* .info-page-* rules moved to shared/info-page.css (see index.html's
+   <link> in <head>) as part of consolidating the info-page feature. */
+
+/* Z17 (site-wide goal): the F15 real-world comparison chart, built on
+   shared/comparison_chart.py's bar_comparison_svg(). "You" reuses the
+   gauge's own decoupled-green; "real farms (documented)" uses an
+   Okabi-Ito blue rather than red, so this never becomes a red/green
+   colorblind-confusion pair (this game's own earlier colorblind-safety
+   audit already established that convention for this file). */
+.comparison-chart {
+  margin: 0.5rem 0 0;
+}
+
+.comparison-bar-svg {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.comparison-bar--you {
+  fill: #4c9c6e;
+}
+
+.comparison-bar--reference {
+  fill: #4fa8dd;
+}
+
+.comparison-bar-label {
+  fill: #e8ecf6;
+  font-size: 7px;
+}
+
+.meter-label {
+  margin: 0.4rem 0 0.3rem;
+  font-size: 0.8rem;
+  opacity: 0.7;
+}
+
+.meter {
+  width: 100%;
+  height: 8px;
+  border-radius: 4px;
+  background: rgba(20, 22, 36, 0.9);
+  border: 1px solid rgba(140, 160, 255, 0.1);
+  overflow: hidden;
+  margin-bottom: 0.4rem;
+}
+
+.meter-fill {
+  height: 100%;
+  width: 0%;
+  transition: width 0.2s ease;
+}
+
+.meter-fill--methane {
+  background: linear-gradient(90deg, #8a4fb0, #b06fd6);
+  box-shadow: 0 0 10px rgba(176, 111, 214, 0.5);
+}
+
+#actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+/* F9 — consequence preview next to the Grow Herd button. */
+.grow-consequence-preview {
+  margin: 0;
+  font-size: 0.78rem;
+  opacity: 0.7;
+  text-align: center;
+}
+
+.invest-row {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid rgba(140, 160, 255, 0.14);
+}
+
+.invest-row:last-child {
+  border-bottom: none;
+}
+
+.invest-name {
+  font-size: 0.9rem;
+}
+
+.invest-count {
+  font-size: 0.9rem;
+  opacity: 0.75;
+  text-align: center;
+  min-width: 1.5rem;
+}
+
+button.secondary {
+  flex: 1;
+  padding: 0.6rem;
+  border: 1px solid rgba(140, 160, 255, 0.18);
+  border-radius: 8px;
+  background: linear-gradient(135deg, #2a2f48, #1a1c2c);
+  color: #e8e9f0;
+  font-size: 0.85rem;
+  cursor: pointer;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  transition: filter 120ms ease;
+}
+
+button.secondary:hover:not(:disabled) {
+  filter: brightness(1.1);
+}
+
+button.secondary:active:not(:disabled) {
+  filter: brightness(0.8);
+}
+
+button.secondary:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+button.primary {
+  width: 100%;
+  padding: 0.8rem;
+  border: none;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #5f9a48, #3d6530);
+  color: #e8e9f0;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12);
+  transition: filter 120ms ease;
+}
+
+button.primary:hover:not(:disabled) {
+  filter: brightness(1.1);
+}
+
+button.primary:active {
+  filter: brightness(0.85);
+}
+
+.feedback-question {
+  margin: 0 0 0.75rem;
+  font-size: 0.9rem;
+}
+
+.feedback-buttons {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 0.6rem;
+}
+
+.feedback-buttons .secondary.selected {
+  border-color: #6fae70;
+  background: linear-gradient(135deg, #2a4a2c, #1a2e1c);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 0 10px rgba(111, 174, 112, 0.25);
+}
+
+.feedback-comment {
+  width: 100%;
+  min-height: 2.5rem;
+  margin-bottom: 0.6rem;
+  padding: 0.5rem;
+  border: 1px solid rgba(140, 160, 255, 0.18);
+  border-radius: 8px;
+  background: rgba(20, 22, 36, 0.7);
+  color: #e8e9f0;
+  font-family: inherit;
+  font-size: 0.85rem;
+  resize: vertical;
+}
+
+.feedback-status {
+  margin: 0.5rem 0 0;
+  font-size: 0.8rem;
+  opacity: 0.8;
+}
+
+.hub-back-link {
+  display: inline-block;
+  margin-bottom: 0.6rem;
+  font-size: 0.85rem;
+  color: inherit;
+  opacity: 0.65;
+  text-decoration: none;
+}
+
+.hub-back-link:hover {
+  opacity: 1;
+  text-decoration: underline;
+}
+
+/* Icon labels — pure CSS, no markup/game.py change, same technique as
+   SOL's "Icon labels — pure CSS" pass (see games/sol/style.css). Herd's
+   ids don't share a repeating suffix the way SOL's planets do, so most
+   rules target exact ids; the three decoupling-measure name spans do
+   share a "-name" pattern id-by-id since each needs its own icon.
+   Leaves the coupling-ratio gauge's own color logic and the haze-overlay
+   color untouched — only adds a small glyph in front of otherwise plain
+   label text. */
+#funds-display::before {
+  content: "💰 ";
+}
+
+#herd-display::before {
+  content: "🐄 ";
+}
+
+#methane-display::before {
+  content: "💨 ";
+}
+
+#coupling-display::before {
+  content: "⚖️ ";
+}
+
+#pressure-display::before {
+  content: "⚠️ ";
+}
+
+#score-display::before {
+  content: "🏆 ";
+}
+
+#coupling-gauge-label::before {
+  content: "🌡️ ";
+}
+
+#decoupling-summary-display::before {
+  content: "♻️ ";
+}
+
+.meter-label::before {
+  content: "🥦 ";
+}
+
+#plant-pivot-display::before {
+  content: "🌱 ";
+}
+
+/* feed-name/caps-name/capture-name no longer get a duplicate ::before
+   icon here — game.py's own innerText already prepends each measure's
+   icon (f"{spec['icon']} {spec['label']}"), so a CSS-added icon on top
+   of that rendered as two copies of the same glyph. The Full visual
+   pass below gives each .invest-row its own larger icon medallion
+   instead (via [data-measure] ::before on the row, not the name span). */
+
+/* Investment counts read better as small chips than bare numbers —
+   rounded/padded/subtly bordered, using the same violet-tinted glass
+   accent already used site-wide for borders/dividers (see CLAUDE.md
+   tech notes). No DOM change: same .invest-count class, all four rows
+   (feed/caps/capture/plant-pivot) pick it up automatically. */
+.invest-count {
+  padding: 0.15rem 0.55rem;
+  border-radius: 999px;
+  background: rgba(140, 160, 255, 0.1);
+  border: 1px solid rgba(140, 160, 255, 0.16);
+}
+
+/* Info buttons — same zero-JS <details class="info-toggle"> disclosure
+   widget as games/sol/style.css, copied verbatim since Herd already uses
+   the same violet-tinted (rgba(140, 160, 255, ...)) glass palette site-wide
+   (see the Sep 2026 visual-pass note in CLAUDE.md), so no re-theming needed. */
+.info-toggle {
+  display: inline-block;
+  margin-left: 0.4rem;
+  vertical-align: middle;
+}
+
+.info-toggle summary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.1rem;
+  height: 1.1rem;
+  border-radius: 50%;
+  background: rgba(140, 160, 255, 0.16);
+  border: 1px solid rgba(140, 160, 255, 0.3);
+  color: #cdd8ff;
+  font-size: 0.68rem;
+  font-weight: 700;
+  cursor: pointer;
+  list-style: none;
+  user-select: none;
+}
+
+.info-toggle summary::-webkit-details-marker {
+  display: none;
+}
+
+.info-toggle summary:hover {
+  background: rgba(140, 160, 255, 0.28);
+}
+
+.info-toggle[open] summary {
+  background: rgba(140, 160, 255, 0.32);
+}
+
+.info-toggle p {
+  text-align: left;
+  font-size: 0.78rem;
+  font-weight: 400;
+  opacity: 0.85;
+  line-height: 1.5;
+  margin: 0.5rem 0 0;
+  padding: 0.6rem 0.75rem;
+  background: rgba(5, 6, 13, 0.5);
+  border: 1px solid rgba(140, 160, 255, 0.14);
+  border-radius: 8px;
+}
+
+/* ============================================================
+   Full visual pass — content-window redesign (2026-09-05)
+   Herd was a stack of plain text lines with a flat-color meter
+   and one existing SVG dial. This section adds a CSS-drawn
+   illustrated pasture scene (sky, sun, grazing herd, rising
+   methane wisps) as the hero visual, a dial-housing frame around
+   the existing coupling gauge, restyles every .section into a
+   distinct HUD card with a colored accent bar, redraws the meter
+   as a segmented glowing gauge, and turns the decoupling/pivot
+   rows into icon-medallion tiles. Pure CSS plus small decorative
+   wrapper divs (same technique as games/sol/style.css) — no
+   id/class renames, no game.py changes, nothing touched that any
+   test or the innerText-driven render loop depends on. Palette
+   stays inside Herd's existing violet-glass + pastoral-gold/green
+   theme (see CLAUDE.md's Sep 2026 tech note) rather than importing
+   SOL's space palette.
+   ============================================================ */
+
+/* --- Pasture visual (hero illustration) --- */
+.pasture-visual {
+  position: relative;
+  width: 100%;
+  height: 150px;
+  margin: 0 0 1.25rem;
+  border-radius: 14px;
+  overflow: hidden;
+  border: 1px solid rgba(140, 160, 255, 0.16);
+  box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.25), 0 4px 14px rgba(0, 0, 0, 0.2);
+}
+
+.pasture-visual-sky {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, #bfe3f2 0%, #eaf2c2 60%, #dcecac 100%);
+}
+
+.pasture-visual-sun {
+  position: absolute;
+  top: 14px;
+  right: 20px;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: radial-gradient(circle, #fff6cf 0%, #ffe28a 55%, rgba(255, 226, 138, 0) 75%);
+  box-shadow: 0 0 22px rgba(255, 226, 138, 0.7);
+}
+
+.pasture-visual-cloud {
+  position: absolute;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.75);
+  filter: blur(1px);
+  animation: cloud-drift 40s linear infinite;
+}
+
+.pasture-visual-cloud--a {
+  width: 46px;
+  height: 16px;
+  top: 18px;
+  left: -20%;
+  box-shadow: 16px 6px 0 -2px rgba(255, 255, 255, 0.75), -14px 4px 0 -3px rgba(255, 255, 255, 0.6);
+}
+
+.pasture-visual-cloud--b {
+  width: 34px;
+  height: 12px;
+  top: 42px;
+  left: -40%;
+  opacity: 0.7;
+  animation-duration: 55s;
+  animation-delay: -20s;
+  box-shadow: 12px 4px 0 -2px rgba(255, 255, 255, 0.65);
+}
+
+@keyframes cloud-drift {
+  from { transform: translateX(0); }
+  to { transform: translateX(420px); }
+}
+
+.pasture-visual-hill {
+  position: absolute;
+  left: -10%;
+  width: 120%;
+  border-radius: 50% 50% 0 0 / 100% 100% 0 0;
+}
+
+.pasture-visual-hill--back {
+  bottom: -14px;
+  height: 60px;
+  background:
+    radial-gradient(circle at 20% 100%, rgba(255, 255, 255, 0.12) 0 3px, transparent 4px) 0 0/24px 24px,
+    linear-gradient(180deg, #a9c97e 0%, #8bb768 100%);
+  opacity: 0.85;
+}
+
+.pasture-visual-hill--front {
+  bottom: -20px;
+  height: 46px;
+  background:
+    repeating-linear-gradient(100deg, rgba(255, 255, 255, 0.08) 0 2px, transparent 2px 10px),
+    linear-gradient(180deg, #74a54e 0%, #4f7e35 100%);
+}
+
+.pasture-visual-herd {
+  position: absolute;
+  inset: 0;
+}
+
+.pasture-visual-cow {
+  position: absolute;
+  bottom: 14px;
+  width: 26px;
+  height: 17px;
+  border-radius: 48% 52% 45% 55% / 62% 58% 42% 38%;
+  background:
+    radial-gradient(circle at 28% 30%, rgba(45, 38, 30, 0.85) 0 24%, transparent 25%),
+    radial-gradient(circle at 68% 62%, rgba(45, 38, 30, 0.85) 0 20%, transparent 21%),
+    linear-gradient(160deg, #fdfaf1, #e7dfc9);
+  box-shadow: inset -3px -3px 4px rgba(0, 0, 0, 0.18);
+  animation: cow-graze 4.5s ease-in-out infinite;
+}
+
+.pasture-visual-cow::before {
+  content: "";
+  position: absolute;
+  top: -5px;
+  width: 10px;
+  height: 9px;
+  border-radius: 50%;
+  background: linear-gradient(160deg, #6b5a45, #47392b);
+}
+
+.pasture-visual-cow--a { left: 8%; bottom: 16px; animation-delay: 0s; }
+.pasture-visual-cow--a::before { left: -4px; }
+.pasture-visual-cow--b { left: 24%; bottom: 10px; transform: scale(0.85); animation-delay: -1.2s; }
+.pasture-visual-cow--b::before { right: -4px; }
+.pasture-visual-cow--c { left: 45%; bottom: 18px; animation-delay: -2.4s; }
+.pasture-visual-cow--c::before { left: -4px; }
+.pasture-visual-cow--d { left: 63%; bottom: 9px; transform: scale(0.8); animation-delay: -3.1s; }
+.pasture-visual-cow--d::before { right: -4px; }
+.pasture-visual-cow--e { left: 80%; bottom: 15px; transform: scale(0.92); animation-delay: -0.6s; }
+.pasture-visual-cow--e::before { left: -4px; }
+
+@keyframes cow-graze {
+  0%, 100% { transform: translateY(0) scale(var(--cow-scale, 1)); }
+  50% { transform: translateY(-1.5px) scale(var(--cow-scale, 1)); }
+}
+
+.pasture-visual-wisp {
+  position: absolute;
+  top: -10px;
+  left: 50%;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(176, 111, 214, 0.55), rgba(176, 111, 214, 0));
+  filter: blur(1px);
+  animation: wisp-rise 3.6s ease-out infinite;
+}
+
+.pasture-visual-cow--c .pasture-visual-wisp {
+  animation-delay: -1.8s;
+}
+
+@keyframes wisp-rise {
+  0% { transform: translate(-50%, 0) scale(0.6); opacity: 0; }
+  25% { opacity: 0.8; }
+  100% { transform: translate(-50%, -34px) scale(1.4); opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pasture-visual-cloud,
+  .pasture-visual-cow,
+  .pasture-visual-wisp {
+    animation: none;
+  }
+}

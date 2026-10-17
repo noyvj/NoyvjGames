@@ -4,12 +4,13 @@ wiring in the files plus the Python-drawn markers and bars."""
 
 import re
 from pathlib import Path
+from .pagefiles import game_css, page_text
 
 HERE = Path(__file__).resolve().parent.parent
 SETTINGS_JS = (HERE / "settings.js").read_text(encoding="utf-8")
-STYLE_CSS = (HERE / "style.css").read_text(encoding="utf-8")
-INDEX_HTML = (HERE / "index.html").read_text(encoding="utf-8")
-PC_HTML = (HERE / "pc.html").read_text(encoding="utf-8")
+STYLE_CSS = game_css()
+INDEX_HTML = page_text("index.html")
+PC_HTML = page_text("pc.html")
 
 PREFS = [
     ("herd-high-contrast", "data-high-contrast", "high-contrast-checkbox"),

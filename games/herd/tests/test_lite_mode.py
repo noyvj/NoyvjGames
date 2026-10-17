@@ -1,14 +1,15 @@
 """F-26 Herd's part of lite mode: the shared switch is in Settings and Herd's own costs are off under it."""
 
 from pathlib import Path
+from .pagefiles import game_css, page_text
 
 HERE = Path(__file__).resolve().parent.parent
-CSS = (HERE / "style.css").read_text(encoding="utf-8")
+CSS = game_css()
 
 
 def test_the_shared_lite_switch_is_in_settings_on_both_pages():
     for page in ("index.html", "pc.html"):
-        html = (HERE / page).read_text(encoding="utf-8")
+        html = page_text(page)
         assert 'id="lite-mode-checkbox" data-lite-toggle' in html and "data-lite-status" in html
         assert "shared/lite-mode.js" in html and "shared/lite-mode.css" in html
 

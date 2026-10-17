@@ -4,10 +4,11 @@ the word list, that every definition is short and plain, and the CSS hooks. The 
 
 import re
 from pathlib import Path
+from .pagefiles import game_css, page_text
 
 HERE = Path(__file__).resolve().parent.parent
 JS = (HERE / "settings.js").read_text(encoding="utf-8")
-CSS = (HERE / "style.css").read_text(encoding="utf-8")
+CSS = game_css()
 
 
 def _entries():
@@ -37,6 +38,6 @@ def test_popover_and_glossary_block_have_styles_and_the_escape_key_closes_it():
 
 
 def test_the_terms_appear_in_the_pages_static_text():
-    html = (HERE / "index.html").read_text(encoding="utf-8").lower()
+    html = page_text("index.html").lower()
     for word in ("coupling ratio", "welfare", "pressure", "decoupl"):
         assert word in html
