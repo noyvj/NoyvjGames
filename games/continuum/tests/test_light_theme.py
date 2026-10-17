@@ -11,10 +11,12 @@ import json
 import re
 from pathlib import Path
 
+from .pagefiles import game_css, render3d_source
+
 GAME_DIR = Path(__file__).resolve().parent.parent
-CSS = (GAME_DIR / "style.css").read_text(encoding="utf-8")
+CSS = game_css()
 HTML = (GAME_DIR / "index.html").read_text(encoding="utf-8")
-RENDER3D = (GAME_DIR / "render3d.js").read_text(encoding="utf-8")
+RENDER3D = render3d_source()
 HAMLET = (GAME_DIR / "hamlet.js").read_text(encoding="utf-8")
 
 LIGHT = 'html[data-theme="light"]'

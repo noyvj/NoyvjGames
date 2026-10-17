@@ -1,11 +1,13 @@
 """Z-28: Continuum keeps its own season clock and speed buttons (U1); shared/pause-hidden.js only
-adds the 'pause while the tab is hidden' hold on top of them, through two hooks written in index.html
+adds the 'pause while the tab is hidden' hold on top of them, through two hooks written in boot.js
 (pause = remember the speed and set it to 0, resume = restore it). The JS is tested in
 shared/tests/test_pause_hidden_browser.py; these pin the Continuum side."""
 
 import json
 import re
 from pathlib import Path
+
+from .pagefiles import page_text
 
 GAME_DIR = Path(__file__).resolve().parent.parent
 
@@ -56,7 +58,7 @@ def test_the_clock_step_is_still_clamped_so_a_woken_tab_never_bursts(game_env):
 
 def test_both_pages_have_the_setting_the_script_and_the_hooks():
     for name in ("index.html", "pc.html"):
-        html = (GAME_DIR / name).read_text(encoding="utf-8")
+        html = page_text(name)
         assert 'id="pause-hidden-checkbox"' in html
         assert 'shared/pause-hidden.js" data-game-id="continuum" data-manual' in html
         assert 'NoyvjPauseHidden.init({' in html and 'gameId: "continuum"' in html

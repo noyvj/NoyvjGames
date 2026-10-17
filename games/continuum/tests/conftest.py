@@ -10,7 +10,7 @@ from .fakes import FakeDocument, FakeElement, FakeTimers, create_proxy
 GAME_DIR = Path(__file__).resolve().parent.parent
 GAME_PY = GAME_DIR / "game.py"
 
-# Continuum is split into separate engine modules (sim / research /
+# game.py is split into continuum_*.py modules in the same folder. Continuum is split into separate engine modules (sim / research /
 # sustainability / save / info_content / log / transition) per its own
 # CLAUDE.md tech notes, so the game directory has to be importable before
 # game.py can be exec'd.
@@ -311,6 +311,16 @@ def _remove_pyodide_fakes():
     # document happened to be active on its first import. Same reasoning
     # as the climate quartet's own conftest.py (e.g. canopy's).
     for name in ("js", "pyodide", "pyodide.ffi", "game", "info_page"):
+        sys.modules.pop(name, None)
+    _forget_game_modules()
+
+
+def _forget_game_modules():
+    # game.py is split into continuum_*.py modules next to it (see "File map" in CLAUDE.md); each binds `document`
+    # and `setTimeout` from the fake `js` at import and holds the live state, so every test needs fresh copies,
+    # exactly as it needs a fresh game.py. The engine modules (sim, research, ...) stay cached, as before.
+    # (continuum_sim_* and continuum_research_* are the parts of the cached engine modules sim.py and research.py: they stay.)
+    for name in [n for n in sys.modules if n.startswith("continuum_") and not n.startswith(("continuum_sim_", "continuum_research_"))]:
         sys.modules.pop(name, None)
 
 

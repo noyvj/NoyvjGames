@@ -58,6 +58,71 @@ Achievable, but it's an architecture decision worth being explicit about: **Pyod
 ### 8. Accessibility
 Colorblind-safe palette and text scaling, built in from the visual pass rather than retrofitted. Worth doing well here specifically since it's being flagged as a pattern to eventually apply site-wide (see Deferred Items) — Continuum can be the first implementation to get right.
 
+## File map (read this before editing; the game is split into small files, 2026-10-18)
+
+The old 264 KB `game.py`, 73 KB `sim.py`, 54 KB `research.py`, 56 KB `render3d.js`, 86 KB `index.html` and 86 KB `style.css` were cut into files a small model can read whole. Nothing the AI may edit passes about 14,000 estimated tokens (bytes / 4); `tests/test_file_sizes.py` fails if a file does (the generated `pc.html`, `CLAUDE.md` and the `.json` data are exempt; `index.html` has a documented cap of 17,500: it is about 67 KB of real markup with no seam to cut). Behaviour did not change: every name the old `game.py`, `sim.py` and `research.py` had is still `game.<name>`, `sim.<name>`, `research.<name>`; saves are identical; the page looks identical. The other engine modules (`sustainability.py`, `save.py`, `views.py` ...) were already small and are unchanged.
+
+**Python.** `game.py` is the entry point: it imports the `continuum_*` modules in dependency order (a module only imports from earlier ones) and re-exports every name (`game.get_state`, `game.render` ...). **The module list lives in two places that must match**: `_PART_NAMES` in `game.py` and `ENGINE_MODULES` at the top of `boot.js` (the page writes each file into Pyodide before running `game.py`; it also lists the engine modules and the sim/research parts). A new module also goes into `sw.js` and `offline-manifest.json`. `tests/test_module_list.py` checks both lists, the files on disk and the import order. Put a new feature in the module for its area, or a new `continuum_<feature>.py` placed in dependency order in both lists.
+
+**Late-bound `render`.** Panels and click handlers call `render()`, which calls every `update_*` function, so the cycle is cut in one place: each module before `continuum_renderer.py` that calls `render()` holds a `render = None` line, and `continuum_renderer.py` fills them all in at the end of its file (`_RENDER_USERS`; a test checks it). Do not add other forward references: put new code after everything it calls.
+
+| File | Size | What it holds, and when to ask for it |
+|------|------|---------------------------------------|
+| `continuum_runstate.py` | 8 KB | The live state: every module variable that gets REPLACED while playing (`campaign`, `state`, `tree`, `chronicle`, `sim_speed`, the panel-open flags and status strings ...) plus `LIVE_NAMES`. Ask for it to add a new rebound variable. |
+| `continuum_base.py` | 14 KB | Small things many panels share: the season's effects and report text, the visual-state hook, the season calendar and clock constants, the Desktop-layout check, and the dynasty/rewind/citizen helpers that the archive and the save code also need. Ask for it to change the season report text, the effects, or a shared helper. |
+| `continuum_founders.py` | 6 KB | The Founder's Log (notes, play time), the settlement name input, and the Minutes panel. |
+| `continuum_achievements.py` | 15 KB | Achievements: the checks, progress readouts, the earned list, the panel and the unlock toast. |
+| `continuum_clock.py` | 3 KB | The season clock: season length, speed buttons and the clock readout. The tick itself is in continuum_advance. |
+| `continuum_archive.py` | 35 KB | The settlement archive, comparison table, export and shareable card, Found a New Settlement, the post-mortem and the Civilization Summary panel (they call each other, so they live together). |
+| `continuum_dynasty.py` | 16 KB | Dynasty (banked legacy points, banners), era doctrines and the K-17 rewind token. |
+| `continuum_beyond.py` | 6 KB | The Beyond (K-13, the endless mode after the Relay Age): the ladder kept in localStorage, banking a result after each season, and the panel. |
+| `continuum_techdebt.py` | 4 KB | Technical debt (K-4): Quick builds, the refactor button and the panel. |
+| `continuum_heritage.py` | 6 KB | Heritage sites: listing, demolish confirm and the panel. |
+| `continuum_infopanels.py` | 8 KB | The What's New changelog panel, the real-world info page and its report button. |
+| `continuum_savestate.py` | 5 KB | get_state() / load_state() for the shared save widget, and entering and leaving the practice sandbox. |
+| `continuum_timelapse.py` | 6 KB | The time-lapse run replay (K-9): frames, scrubber, play and the panel. |
+| `continuum_citizens.py` | 12 KB | Notable citizens (K-15/K-28) and the neighbour settlements panel (trade, share, bid). |
+| `continuum_panels.py` | 14 KB | The log, sustainability and research panels, and the Work/Build/Study click-handler factories. |
+| `continuum_challenge.py` | 14 KB | Daily challenge and scenario editor with share codes (K-10/K-11): ledger, controls, runs and the panel. |
+| `continuum_geography.py` | 4 KB | The geography panel: seed, new map, off switch. |
+| `continuum_progress.py` | 14 KB | The Work and Build panels, the era-progress panel, Advance Era, and the Look Back (revisit) panel. |
+| `continuum_extras.py` | 2 KB | The standing-advantage rows of the City Views dashboard, and the hook that banks a collapsed settlement's Dynasty legacy. |
+| `continuum_peers.py` | 4 KB | The peer-settlement comparison graph (R-33): publish plan, show, hide and metric. |
+| `continuum_views.py` | 13 KB | The City Views panel (dashboard, map, flow) and the civic insights/challenges render. |
+| `continuum_orders.py` | 12 KB | Standing orders: running them each season and the orders panel. |
+| `continuum_scenario.py` | 8 KB | Starting scenarios (K12), hard mode (K18), consulting cases (K22) and their display updates. |
+| `continuum_hamlet.py` | 28 KB | The optional Hamlet view (U2) and the Desktop HUD chips: capability checks, chips, town panel and render_hamlet. |
+| `continuum_advance.py` | 7 KB | The tick loop and on_advance_season(): the one place a season actually happens. Ask for it to change what happens in a season. |
+| `continuum_advisors.py` | 6 KB | The advisor council (K-8): advice rows, follow handlers and the panel. |
+| `continuum_renderer.py` | 6 KB | render(): redraws the whole page from the settlement. It calls every update_* function, and the handler modules before it call it back through a late-bound `render` placeholder. Ask for it to change what a full redraw updates. |
+| `continuum_setup.py` | 12 KB | setup(): wires every button, then starts the game. The two research-filter handlers sit here too. Ask for it to wire a new button. |
+| `game.py` | 5 KB | Entry point: `_PART_NAMES`, the re-export loop, `_GameModule`, the `sys.path` set-up. |
+| `sim.py` | | Facade over `continuum_sim_tables.py` (eras, roles, buildings, scenarios, 18 KB: add a role, building or scenario here), `continuum_sim_numbers.py` (production, pollution, sprawl, relay, land and growth constants, `NEUTRAL_EFFECTS`, 19 KB: tune a rate here) and `continuum_sim_city.py` (the `CityState` class, 33 KB: change how a season is simulated). The long design docstring stays in `sim.py`. |
+| `research.py` | | Facade over `continuum_research_tree.py` (tiers, `ResearchNode`, `ResearchTree`, 11 KB) and the node data in `continuum_research_nodes_early.py` (Tribal to Classical), `_mid.py` (Medieval to Digital) and `_late.py` (Space, Relay, late-tier nodes), 12-14 KB each. It composes `NODE_LIST` from the three lists and holds `NODES`, `EFFECT_LABELS`, `describe_effects`, `unlock_estimate` and `build_tree`. |
+
+**State rule.** A module variable that some function REPLACES (`campaign`, `state`, `sim_speed`, `views_tab`, `hamlet_on` ...) lives only in `continuum_runstate.py`; every other module reads and writes it as `runstate.<name>` (each starts with `import continuum_runstate as runstate`). Never `from continuum_runstate import state` (that copy goes stale when the practice sandbox swaps the settlement; a test checks). Lists, dicts and sets only changed in place (`research_branch_filter`, `_compare_picks` ...) stay in the module that owns them. A new rebound variable goes into `continuum_runstate.py` AND its `LIVE_NAMES`; `game.<name>` reads and writes of those names are forwarded to it, and the sandbox swaps them with `vars(runstate)`. JS that needs one of them asks a function (`current_sim_speed()`), never `pyodide.globals.get("sim_speed")` (a stale copy). Tests that patch a name (`monkeypatch.setattr(game_env.module, "_pc_layout", ...)`) work: the new value is copied into every module that holds that name.
+
+**Page.** One line per file:
+
+| File | What it holds |
+|------|---------------|
+| `index.html` | The page markup only (about 67 KB, the one file above the usual limit). Scripts are separate files loaded in the old order. `pc.html` is generated from it, never edit `pc.html`. |
+| `boot.js` | Pyodide boot: `ENGINE_MODULES` (the module list), writes the shared helpers and every module into Pyodide, runs `game.py`, starts the tutorial, mobile HUD, dock, the season clock and the 3D layer. |
+| `tutorial-steps.js` | The walkthrough text (`CONTINUUM_TUTORIAL_STEPS`). |
+| `render3d-scenes.js` | Three.js building blocks, lighting and one scene builder per era (`ERA_BUILDERS`); exports `window.ContinuumScenes`. Ask for it to change how an era looks. |
+| `render3d.js` | The renderer, camera and presets, drag controls, snapshot, screensaver, 2D/3D toggle and `ContinuumVisual` / `ContinuumScene`. Loaded after `render3d-scenes.js`. |
+| `copy-result-wiring.js` | Mounts the Copy result buttons in the Summary and Challenge panels. |
+| `community-compare.js` | The "compare with the community" button. |
+| `shortcuts.js` | Keyboard shortcuts and the `?` cheat sheet. |
+| `daily-leaderboard.js` | The daily-challenge leaderboard mount. |
+| `answer-report.js` | `window.submitAnswerReport` (the info panel's report button). |
+| `register-sw.js` | Registers the service worker. |
+| `style-1-base.css` | Styles part 1: text scale, page shell, meters, research tree, log, panels and the first visual pass. |
+| `style-2-console.css` | Styles part 2: the console look, the phone layout, the Hamlet view, the first K-section panels. |
+| `style.css` | Last stylesheet: the site-wide `[hidden] { display: none !important; }` rule (a shared test looks for it here), the screensaver, key remapping, the later K-section panels and the light theme for them. |
+
+The stylesheets must stay in the order `style-1-base.css`, `style-2-console.css`, `style.css` (the order is the cascade). After changing `index.html`, `pc-config.json`, `pc.js` or `pc.css`, regenerate `pc.html` with `python3 scripts/generate-pc-pages.py`. Tests read the pieces through `tests/pagefiles.py` (`game_css()`, `page_text(page)`, `game_source()`, `render3d_source()`, `engine_module_list()`); `tests/conftest.py` forgets the `continuum_*` game modules between tests (the sim and research parts stay cached with their facades).
+
 ## Milestones
 
 Given the multi-week scope, milestones are grouped into phases. Treat each phase as several sessions' worth of work.

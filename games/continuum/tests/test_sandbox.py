@@ -15,6 +15,7 @@ import sim
 import sustainability
 
 from . import test_challengerun as challenge_tests
+from .pagefiles import page_text
 
 GAME_DIR = Path(__file__).resolve().parent.parent
 PAGES = ["index.html", "pc.html"]
@@ -342,7 +343,7 @@ def test_the_sandbox_can_move_through_eras(game_env):
 
 @pytest.mark.parametrize("name", PAGES)
 def test_both_pages_carry_the_toggle_the_era_select_the_stylesheet_and_the_script(name):
-    html = (GAME_DIR / name).read_text(encoding="utf-8")
+    html = page_text(name)
     assert html.count('id="sandbox-toggle-button"') == 1 and "data-sandbox-toggle" in html
     assert html.count('id="sandbox-era-select"') == 1
     assert html.count('<link rel="stylesheet" href="../../shared/sandbox-mode.css">') == 1

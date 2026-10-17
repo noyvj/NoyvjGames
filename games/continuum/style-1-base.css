@@ -1,0 +1,819 @@
+/* Continuum styles, part 1 of 3: text scale and the page shell, meters, research tree, log, panels and the first design pass (settlement scene, Three.js stage, land plot, section cards, HUD gauges, icon tiles). Loaded in order by index.html: style-1-base.css, style-2-console.css, then style.css. */
+/* Continuum — one settlement across seven eras.
+   Deliberately close to the hub's other games structurally (dark card
+   shell, meters, secondary/primary buttons) but on its own warmer palette,
+   since this one is meant to read as the flagship rather than one of the
+   climate quartet. Era-specific styling is a Phase 4 question; a single
+   consistent visual language across all seven eras is the current plan.
+
+   Visual pass (space theme, see root/SOL): the shared starfield/nebula
+   (shared/space-bg.css) now sits behind the page, so body/container
+   backgrounds went transparent and each .section became its own glass
+   panel (translucent + blurred + violet-tinted border) rather than one
+   solid card, since this game already reads as several distinct panels
+   (status, sustainability, work, buildings, research). The warm
+   amber/bronze accent is kept throughout — that hue is this game's own
+   identity, not something the space theme should flatten into SOL's
+   blue. Every color that encodes state (land health, sustainability
+   components, the weakest-component call-out, warnings, locked-node
+   reasons) is untouched; only chrome (panels, borders, buttons, meter
+   glow) changed. */
+
+/* Phase 5 accessibility: text scaling. accessibility.js sets --text-scale
+   on the root element and persists it to localStorage; every font-size in
+   this file is already in `rem` (see the grep this was checked against),
+   so scaling the root font-size scales the whole game uniformly with zero
+   other changes. Default 1 here means a page that never runs
+   accessibility.js (or loads before it finishes) still renders at exactly
+   the same size the game always has. */
+:root {
+  --text-scale: 1;
+}
+
+html {
+  font-size: calc(16px * var(--text-scale, 1));
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  background: transparent;
+  color: #eee7dd;
+  display: flex;
+  justify-content: center;
+}
+
+.game-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+/* Settings panel: manual "reduce motion" override. The existing
+   `@media (prefers-reduced-motion: reduce)` rules elsewhere in this
+   file already respect the OS-level setting; this adds a player-facing
+   in-game toggle (settings.js adds/removes `.reduce-motion` on <html>)
+   for someone who wants the same effect without changing a system-wide
+   setting. Forces every animation/transition already in this file to
+   be effectively instantaneous rather than duplicating each one. */
+.reduce-motion,
+.reduce-motion * {
+  animation-duration: 0.001ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.001ms !important;
+  scroll-behavior: auto !important;
+}
+
+#game {
+  width: 100%;
+  max-width: 480px;
+  padding: 1.5rem 1rem 2rem;
+}
+
+h1 {
+  margin: 0 0 0.25rem;
+  font-size: 1.75rem;
+  letter-spacing: 0.02em;
+  display: inline-block;
+  background: linear-gradient(120deg, #eee7dd 20%, #e8b876 55%, #eee7dd 80%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  text-shadow: 0 0 32px rgba(216, 164, 92, 0.3);
+}
+
+.tagline {
+  margin: 0 0 0.5rem;
+  opacity: 0.75;
+  font-size: 0.95rem;
+}
+
+.context-blurb {
+  margin: 0 0 1.25rem;
+  padding: 0.6rem 0.75rem;
+  border-left: 2px solid #a8763e;
+  background: linear-gradient(165deg, rgba(27, 24, 21, 0.7), rgba(16, 14, 12, 0.75));
+  border-radius: 0 6px 6px 0;
+  font-size: 0.8rem;
+  opacity: 0.8;
+}
+
+.section {
+  background: linear-gradient(165deg, rgba(30, 26, 22, 0.78), rgba(17, 15, 13, 0.85));
+  border: 1px solid rgba(140, 160, 255, 0.14);
+  border-radius: 18px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  box-shadow: 0 10px 32px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+.section-heading {
+  margin: 0 0 0.75rem;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  opacity: 0.6;
+  font-weight: 600;
+}
+
+.era-line {
+  margin: 0 0 0.5rem;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  color: #d6a45c;
+}
+
+.status-line {
+  margin: 0 0 0.4rem;
+  font-size: 0.95rem;
+}
+
+.status-line:last-child {
+  margin-bottom: 0;
+}
+
+.event-display {
+  margin: 0.6rem 0 0;
+  font-size: 0.85rem;
+  font-style: italic;
+  opacity: 0.85;
+}
+
+.event-display--warning {
+  color: #e0b84c;
+  opacity: 1;
+}
+
+.meter {
+  width: 100%;
+  height: 8px;
+  border-radius: 4px;
+  background: rgba(5, 6, 13, 0.55);
+  overflow: hidden;
+  margin: 0.2rem 0 0.6rem;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.4);
+}
+
+.meter-fill {
+  height: 100%;
+  width: 0%;
+  transition: width 0.2s ease;
+}
+
+.meter-fill--land {
+  background: #6f9c5a;
+  box-shadow: 0 0 10px rgba(111, 156, 90, 0.6);
+}
+
+.meter-fill--score {
+  background: #d6a45c;
+  box-shadow: 0 0 10px rgba(214, 164, 92, 0.6);
+}
+
+.component-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.35rem 0.75rem;
+  margin: 0.5rem 0 0;
+}
+
+.component-line {
+  margin: 0;
+  font-size: 0.82rem;
+  opacity: 0.8;
+  padding: 0.35rem 0.5rem;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(140, 160, 255, 0.12);
+  border-radius: 8px;
+}
+
+/* The single weakest component is called out, so the score reads as a
+   diagnosis rather than a grade. */
+.component-line--weakest {
+  opacity: 1;
+  color: #e0a04c;
+}
+
+.row {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  padding: 0.6rem 0;
+  border-bottom: 1px solid rgba(140, 160, 255, 0.14);
+}
+
+.row:last-child {
+  border-bottom: none;
+}
+
+.row-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.row-name {
+  font-size: 0.95rem;
+}
+
+.row-count {
+  font-size: 0.95rem;
+  opacity: 0.75;
+  min-width: 1.5rem;
+  text-align: right;
+}
+
+.row-blurb {
+  margin: 0;
+  font-size: 0.78rem;
+  opacity: 0.6;
+  line-height: 1.4;
+}
+
+.row-actions {
+  display: flex;
+  gap: 0.4rem;
+  margin-top: 0.2rem;
+}
+
+.row-actions button.secondary {
+  flex: 1;
+}
+
+/* Research rows are built by render_research(), not written into the HTML —
+   fourteen tiers of static markup would be unmaintainable. */
+.research-row--done {
+  opacity: 0.55;
+}
+
+.research-row--locked {
+  opacity: 0.75;
+}
+
+.research-meta {
+  margin: 0;
+  display: inline-block;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  opacity: 0.5;
+  padding: 0.15rem 0.5rem;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(140, 160, 255, 0.14);
+  border-radius: 999px;
+}
+
+.research-locked-reason {
+  margin: 0.15rem 0 0;
+  font-size: 0.75rem;
+  font-style: italic;
+  color: #d08c5c;
+  opacity: 0.9;
+}
+
+button.secondary {
+  padding: 0.5rem 0.6rem;
+  border: none;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #3c3226, #211b15);
+  color: #eee7dd;
+  font-size: 0.8rem;
+  cursor: pointer;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12);
+  transition: filter 120ms ease;
+}
+
+button.secondary:hover:not(:disabled) {
+  filter: brightness(1.1);
+}
+
+button.secondary:active:not(:disabled) {
+  filter: brightness(0.8);
+}
+
+button.secondary:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+button.primary {
+  width: 100%;
+  padding: 0.8rem;
+  border: none;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #c99354, #8a5f2e);
+  color: #16130f;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.18), 0 4px 16px rgba(168, 118, 62, 0.3);
+  transition: filter 120ms ease;
+}
+
+button.primary:hover:not(:disabled) {
+  filter: brightness(1.1);
+}
+
+button.primary:active {
+  filter: brightness(0.85);
+}
+
+.hub-back-link {
+  display: inline-block;
+  margin-bottom: 0.6rem;
+  font-size: 0.85rem;
+  color: inherit;
+  opacity: 0.65;
+  text-decoration: none;
+}
+
+.hub-back-link:hover {
+  opacity: 1;
+  text-decoration: underline;
+}
+
+/* Icon labels — pure CSS, no markup/game.py change (see root/SOL for the
+   reference technique). The work/building rows already carry their own
+   icons as literal HTML text (added in an earlier audit-fix commit), so
+   this pass targets everything else in the status/sustainability/research
+   panels that was still a bare numeric readout: population, land health,
+   the four sustainability components, the era/season counters, the
+   remaining resource stats, and the research panel's own headline stat
+   plus its per-node tier/branch chip. Every selector below is an existing
+   id or class already in index.html/game.py — nothing renamed, nothing
+   new. Colors are untouched: an ::before icon inherits whatever color its
+   parent already has, so .component-line--weakest's amber call-out and
+   the research locked/available states are unaffected. */
+#era-display::before {
+  content: "📜 ";
+}
+
+#season-display::before {
+  content: "🗓️ ";
+}
+
+#population-display::before {
+  content: "👥 ";
+}
+
+#housing-display::before {
+  content: "🏠 ";
+}
+
+#food-display::before {
+  content: "🍞 ";
+}
+
+#materials-display::before {
+  content: "🪵 ";
+}
+
+#tools-display::before {
+  content: "🔨 ";
+}
+
+#knowledge-display::before {
+  content: "📚 ";
+}
+
+#land-health-display::before {
+  content: "🌾 ";
+}
+
+#score-display::before {
+  content: "🌱 ";
+}
+
+#livability-display::before {
+  content: "🏛️ ";
+}
+
+#equity-display::before {
+  content: "⚖️ ";
+}
+
+#balance-display::before {
+  content: "🌾 ";
+}
+
+#resilience-display::before {
+  content: "🛡️ ";
+}
+
+#research-status-display::before {
+  content: "🔬 ";
+}
+
+.research-meta::before {
+  content: "🔬 ";
+}
+
+/* Info-toggle — zero-JS "i" disclosure badge, same pattern as SOL
+   (games/sol/style.css). Recolored from SOL's blue-violet to this game's
+   own warm amber/bronze accent (matches .era-line, button.primary, the
+   score meter) rather than the space-theme's violet chrome, since this is
+   an interactive affordance, not panel structure. */
+.info-toggle {
+  display: inline-block;
+  margin-left: 0.4rem;
+  vertical-align: middle;
+}
+
+.info-toggle summary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.1rem;
+  height: 1.1rem;
+  border-radius: 50%;
+  background: rgba(216, 164, 92, 0.18);
+  border: 1px solid rgba(216, 164, 92, 0.4);
+  color: #f0d9b8;
+  font-size: 0.68rem;
+  font-weight: 700;
+  cursor: pointer;
+  list-style: none;
+  user-select: none;
+}
+
+.info-toggle summary::-webkit-details-marker {
+  display: none;
+}
+
+.info-toggle summary:hover {
+  background: rgba(216, 164, 92, 0.3);
+}
+
+.info-toggle[open] summary {
+  background: rgba(216, 164, 92, 0.34);
+}
+
+.info-toggle p {
+  text-align: left;
+  font-size: 0.78rem;
+  font-weight: 400;
+  opacity: 0.85;
+  line-height: 1.5;
+  margin: 0.5rem 0 0;
+  padding: 0.6rem 0.75rem;
+  background: rgba(5, 6, 13, 0.5);
+  border: 1px solid rgba(216, 164, 92, 0.16);
+  border-radius: 8px;
+}
+
+/* ============================================================
+   Full visual pass — content-window redesign (2026-09-05)
+   Every panel used to be a stack of plain text lines with a flat-
+   color bar underneath — same problem as the rest of the hub before
+   its own passes. This section turns Continuum's content window into
+   an actual settlement game screen, themed to its own subject rather
+   than reusing SOL's planet spheres: a CSS-drawn tribal village scene
+   up top, an illustrated plot-of-land strip standing in for the old
+   flat land-health bar, a small branching "research tree" diagram
+   over the research panel, every .section given a colored left-accent
+   per panel type, meters redrawn as segmented glowing HUD gauges, and
+   the single-button Build/Study rows turned into icon-over-label
+   tiles. Pure CSS plus the small decorative wrapper <div>s each visual
+   needs — no id/class renamed, nothing game.py or the test suite
+   touches was changed, no game.py changes at all. Colors stay inside
+   the amber/bronze/green palette this game already uses; the section
+   accents below just make that palette do double duty as navigation.
+   ============================================================ */
+
+/* --- Settlement scene (hero illustration, #status) --------------------
+   A small tribal village at dawn: gradient sky + sun, a rolling green
+   hillside, three huts of varying size, and a flickering hearth fire —
+   grounding "Tribal era" in an actual picture instead of only the text
+   line below it. Static per the SOL reference (its planet visuals don't
+   react to resource counts either); this reads as "which era" rather
+   than a live gauge. */
+.settlement-visual {
+  position: relative;
+  width: 100%;
+  height: 96px;
+  margin-bottom: 1rem;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: inset 0 0 0 1px rgba(216, 164, 92, 0.2), 0 6px 18px rgba(0, 0, 0, 0.35);
+}
+
+.settlement-sky {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, #493a68 0%, #a8663e 45%, #e8a85c 72%, #f3c98a 100%);
+}
+
+.settlement-sky::after {
+  content: "";
+  position: absolute;
+  top: 12px;
+  right: 20px;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: radial-gradient(circle, #fff6de, #f0c264 60%, transparent 100%);
+  box-shadow: 0 0 22px 7px rgba(240, 194, 100, 0.55);
+}
+
+.settlement-ground {
+  position: absolute;
+  left: -10%;
+  right: -10%;
+  bottom: -20%;
+  height: 60%;
+  background: linear-gradient(180deg, #6f9c5a 0%, #4a6f3a 55%, #32501e 100%);
+  border-radius: 50%;
+}
+
+.settlement-hut {
+  position: absolute;
+  bottom: 20%;
+  background: linear-gradient(160deg, #d3ab74, #8a6238);
+  border-radius: 50% 50% 3px 3px / 65% 65% 3px 3px;
+  box-shadow: inset -4px -5px 7px rgba(0, 0, 0, 0.38);
+}
+
+.settlement-hut::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(160deg, rgba(255, 255, 255, 0.16), transparent 55%);
+}
+
+.settlement-hut--a { left: 12%; width: 28px; height: 24px; }
+.settlement-hut--b { left: 30%; width: 40px; height: 34px; }
+.settlement-hut--c { left: 56%; width: 24px; height: 20px; }
+
+.settlement-fire {
+  position: absolute;
+  bottom: 21%;
+  left: 46%;
+  width: 7px;
+  height: 11px;
+  border-radius: 50% 50% 50% 50% / 65% 65% 40% 40%;
+  background: radial-gradient(circle, #ffe19a, #e8843c 65%, transparent 100%);
+  box-shadow: 0 0 12px 4px rgba(232, 132, 60, 0.65);
+  animation: settlement-fire-flicker 1.6s ease-in-out infinite;
+}
+
+@keyframes settlement-fire-flicker {
+  0%, 100% { transform: scaleY(1) translateY(0); opacity: 0.9; }
+  50% { transform: scaleY(1.2) translateY(-2px); opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .settlement-fire { animation: none; }
+}
+
+/* --- Phase 5: Three.js low-poly settlement view -------------------------
+   #visual3d-container replaces .settlement-visual's decorative role with a
+   real, reactive scene when render3d.js successfully boots (see that
+   file's own doc comment for the full fallback story). Sized close to the
+   old diorama's footprint but taller, since a real 3D scene needs more
+   room to read as recognisable geometry than a flat CSS gradient did. */
+.visual3d-container {
+  width: 100%;
+  height: 220px;
+  margin-bottom: 1rem;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: inset 0 0 0 1px rgba(216, 164, 92, 0.2), 0 6px 18px rgba(0, 0, 0, 0.35);
+  cursor: grab;
+  background: #14101c;
+}
+
+.visual3d-container:active {
+  cursor: grabbing;
+}
+
+.visual3d-container canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.visual-mode-toggle {
+  margin-bottom: 0.5rem;
+}
+
+/* K6: named camera presets, shown only alongside the live 3D view (see
+   render3d.js's applyViewMode()/setupCameraPresetButtons()) -- a plain
+   flex row of small secondary buttons, matching the toggle button above
+   it rather than introducing a new button style for three more options. */
+.camera-preset-buttons {
+  display: flex;
+  gap: 0.4rem;
+  margin-bottom: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.camera-preset-button {
+  flex: 1 1 auto;
+}
+
+/* --- Land plot visual (#land-health-display) ---------------------------
+   A small illustrated strip of ground — soil-and-grass texture over a
+   green-to-brown gradient — sitting above the actual (dynamic) land
+   health gauge below it, so the concept the number describes ("a plot
+   of land that can be lush or stripped bare") gets its own picture
+   rather than only a percentage and a bar. */
+.land-plot-visual {
+  height: 14px;
+  margin: 0.3rem 0 0.5rem;
+  border-radius: 4px;
+  background:
+    radial-gradient(circle at 20% 55%, rgba(255, 255, 255, 0.2) 0 2px, transparent 3px) 0 0/12px 12px,
+    radial-gradient(circle at 68% 30%, rgba(255, 255, 255, 0.14) 0 1.5px, transparent 2.5px) 4px 0/16px 16px,
+    linear-gradient(90deg, #3f7d3a 0%, #6f9c5a 38%, #9c8347 72%, #6b4a2a 100%);
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.4);
+}
+
+/* --- Research tree visual (#research) -----------------------------------
+   A tiny branching diagram — trunk + three glowing nodes — standing in
+   for the "one tree, fourteen tiers, seven eras" line just below it.
+   Colors match the tree's three real branches (provision / community /
+   craft) rather than being decorative-only. */
+.research-tree-visual {
+  position: relative;
+  height: 56px;
+  margin: 0 0 0.85rem;
+}
+
+.research-tree-trunk {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  width: 3px;
+  height: 22px;
+  transform: translateX(-50%);
+  background: linear-gradient(180deg, transparent, #a8763e);
+}
+
+.research-tree-branch {
+  position: absolute;
+  bottom: 20px;
+  left: 50%;
+  width: 2px;
+  height: 28px;
+  transform-origin: bottom center;
+}
+
+.research-tree-branch--provision {
+  color: #6f9c5a;
+  transform: translateX(-50%) rotate(-26deg);
+  background: linear-gradient(180deg, currentColor, transparent);
+}
+
+.research-tree-branch--community {
+  color: #d6a45c;
+  transform: translateX(-50%);
+  background: linear-gradient(180deg, currentColor, transparent);
+}
+
+.research-tree-branch--craft {
+  color: #c97a3e;
+  transform: translateX(-50%) rotate(26deg);
+  background: linear-gradient(180deg, currentColor, transparent);
+}
+
+.research-tree-node {
+  position: absolute;
+  top: -6px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, currentColor, transparent 75%);
+  box-shadow: 0 0 9px currentColor;
+}
+
+/* --- Section cards: give each panel a colored left-accent bar, same
+   technique as the rest of the hub — one selector per panel id, no
+   change to the shared glass-panel look every .section already has. */
+#status { border-left: 4px solid #a8763e; }
+#sustainability { border-left: 4px solid #d6a45c; }
+#work { border-left: 4px solid #6f9c5a; }
+#buildings { border-left: 4px solid #c97a3e; }
+#research { border-left: 4px solid #d08c5c; }
+#info-page-panel { border-left: 4px solid #8a6a45; }
+#log { border-left: 4px solid #b58a52; }
+#era-progress { border-left: 4px solid #8a56b0; }
+
+/* Log rows are built by render_log(), same reason as research rows -- a
+   session's worth of entries can't be static markup. Kind-specific accent
+   only; row layout itself matches every other .row in the game. */
+.log-row {
+  border-left: 3px solid transparent;
+  padding-left: 0.5rem;
+}
+.log-row--research { border-left-color: #d08c5c; }
+.log-row--population { border-left-color: #6f9c5a; }
+/* Phase 5 colorblind-safety audit: this up/down pair used to be plain
+   green (#6f9c5a, shared with .log-row--population above) vs. red
+   (#b23a3a) — a hue-only good/bad pair, which is exactly the deuteranopia
+   /protanopia failure case (red and green are the two hues the two most
+   common forms of color blindness confuse most directly). Re-picked from
+   the Okabe & Ito colorblind-safe palette instead: blue (#56B4E9-family)
+   vs. vermillion (#D55E00-family), which stays distinguishable under
+   deuteranopia, protanopia AND tritanopia simulation, unlike the original
+   red/green choice. render_log() (game.py) also now prefixes each entry's
+   season/era tag with a plain ▲/▼ glyph, so the distinction never depends
+   on color perception at all — the color is now backup, not the only
+   signal. See CLAUDE.md's Phase 5 build notes for the audit this came
+   from. */
+.log-row--livability-up { border-left-color: #4fa8dd; }
+.log-row--livability-down { border-left-color: #d2691e; }
+/* Not wired into any render path yet -- transition.py (Milestone 7)
+   defines the "transition" kind but nothing calls it from game.py until
+   Milestone 8 gives Agrarian real content. Styled now so it's ready. */
+.log-row--transition { border-left-color: #8a56b0; }
+
+/* --- Gauges: replace the flat bar with a segmented, glowing HUD gauge.
+   game.py only ever writes inline .style.width on #land-health-bar /
+   #score-bar, so the visual language around that width is ours to
+   redraw; the fill colors themselves (.meter-fill--land/--score) are
+   untouched, since those already carry state-meaning. */
+.meter {
+  height: 14px;
+  border-radius: 7px;
+  background: rgba(5, 6, 13, 0.6);
+  border: 1px solid rgba(216, 164, 92, 0.14);
+  box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.5);
+}
+
+.meter-fill {
+  border-radius: 6px;
+  position: relative;
+  overflow: hidden;
+}
+
+.meter-fill::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: repeating-linear-gradient(
+    90deg,
+    transparent 0,
+    transparent calc(10% - 1px),
+    rgba(0, 0, 0, 0.3) calc(10% - 1px),
+    rgba(0, 0, 0, 0.3) 10%
+  );
+}
+
+.meter-fill::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 40%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.32), transparent);
+  animation: meter-shimmer 2.6s ease-in-out infinite;
+}
+
+@keyframes meter-shimmer {
+  0% { transform: translateX(-120%); }
+  100% { transform: translateX(340%); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .meter-fill::after { animation: none; display: none; }
+}
+
+/* --- Icon-tile Build/Study buttons: each of these rows carries exactly
+   one action button, so stacking a bigger icon above the label reads
+   as a game action tile rather than a plain text button — same move as
+   the hub's stacked priority-option tiles. Reached via id-suffix and a
+   button-scoped id-prefix so every building's Build button and every
+   research node's Study button (ids vary per node, e.g.
+   "research-shared_granaries") get it without a per-instance rule. */
+[id$="-build-button"],
+button[id^="research-"] {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.15rem;
+  padding: 0.55rem 0.6rem 0.45rem;
+}
+
+[id$="-build-button"]::before {
+  content: "🛠️";
+  font-size: 1.05rem;
+  line-height: 1;
+}
+
+button[id^="research-"]::before {
+  content: "🔬";
+  font-size: 1.05rem;
+  line-height: 1;
+}

@@ -10,11 +10,13 @@ import re
 import subprocess
 import sys
 
+from .pagefiles import game_source, page_text
+
 GAME_DIR = pathlib.Path(__file__).resolve().parent.parent
 ROOT = GAME_DIR.parent.parent
 CLASSIC = (GAME_DIR / "index.html").read_text(encoding="utf-8")
 DESKTOP = (GAME_DIR / "pc.html").read_text(encoding="utf-8")
-GAME_PY = (GAME_DIR / "game.py").read_text(encoding="utf-8")
+GAME_PY = game_source()
 
 
 def _ids(html):
@@ -58,7 +60,7 @@ def test_desktop_page_declares_its_layout_before_anything_else_loads():
 def test_classic_page_only_gains_the_redirect_script_and_the_tutorial_hook():
     assert "layout-pref.js" in CLASSIC and "pc.html" in CLASSIC
     assert "pc-shell" not in CLASSIC and "pc.css" not in CLASSIC
-    assert "window.CONTINUUM_PC_TUTORIAL_STEPS || CONTINUUM_TUTORIAL_STEPS" in CLASSIC
+    assert "window.CONTINUUM_PC_TUTORIAL_STEPS || CONTINUUM_TUTORIAL_STEPS" in page_text("index.html")
 
 
 def test_hamlet_is_the_way_to_play_on_the_desktop_boot(game_env, monkeypatch):
