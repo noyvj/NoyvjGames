@@ -9549,18 +9549,28 @@
      "precached": false
     },
     {
+     "path": "games/trade-empire/boot.js",
+     "bytes": 3479,
+     "precached": true
+    },
+    {
      "path": "games/trade-empire/changelog.json",
      "bytes": 18292,
      "precached": false
     },
     {
+     "path": "games/trade-empire/crisis-key.js",
+     "bytes": 523,
+     "precached": true
+    },
+    {
      "path": "games/trade-empire/game.py",
-     "bytes": 402098,
+     "bytes": 6045,
      "precached": true
     },
     {
      "path": "games/trade-empire/index.html",
-     "bytes": 118100,
+     "bytes": 109748,
      "precached": true
     },
     {
@@ -9575,7 +9585,7 @@
     },
     {
      "path": "games/trade-empire/pc.html",
-     "bytes": 121514,
+     "bytes": 113162,
      "precached": true
     },
     {
@@ -9586,7 +9596,12 @@
     {
      "path": "games/trade-empire/settings.js",
      "bytes": 8086,
-     "precached": false
+     "precached": true
+    },
+    {
+     "path": "games/trade-empire/shortcuts.js",
+     "bytes": 931,
+     "precached": true
     },
     {
      "path": "games/trade-empire/sources.json",
@@ -9599,8 +9614,253 @@
      "precached": false
     },
     {
+     "path": "games/trade-empire/style-1-base.css",
+     "bytes": 14135,
+     "precached": true
+    },
+    {
+     "path": "games/trade-empire/style-2-visuals.css",
+     "bytes": 23542,
+     "precached": true
+    },
+    {
      "path": "games/trade-empire/style.css",
-     "bytes": 62882,
+     "bytes": 26244,
+     "precached": true
+    },
+    {
+     "path": "games/trade-empire/summary-copy.js",
+     "bytes": 612,
+     "precached": true
+    },
+    {
+     "path": "games/trade-empire/trade_achievements.py",
+     "bytes": 20830,
+     "precached": true
+    },
+    {
+     "path": "games/trade-empire/trade_blackout.py",
+     "bytes": 6093,
+     "precached": true
+    },
+    {
+     "path": "games/trade-empire/trade_blueprints.py",
+     "bytes": 8993,
+     "precached": true
+    },
+    {
+     "path": "games/trade-empire/trade_captains.py",
+     "bytes": 4263,
+     "precached": true
+    },
+    {
+     "path": "games/trade-empire/trade_cartel.py",
+     "bytes": 7696,
+     "precached": true
+    },
+    {
+     "path": "games/trade-empire/trade_chain_logic.py",
+     "bytes": 27690,
+     "precached": true
+    },
+    {
+     "path": "games/trade-empire/trade_chain_rules.py",
+     "bytes": 21580,
+     "precached": true
+    },
+    {
+     "path": "games/trade-empire/trade_chain_ui.py",
+     "bytes": 11744,
+     "precached": true
+    },
+    {
+     "path": "games/trade-empire/trade_charter.py",
+     "bytes": 12984,
+     "precached": true
+    },
+    {
+     "path": "games/trade-empire/trade_charter_ui.py",
+     "bytes": 10765,
+     "precached": true
+    },
+    {
+     "path": "games/trade-empire/trade_colony.py",
+     "bytes": 8019,
+     "precached": true
+    },
+    {
+     "path": "games/trade-empire/trade_crew.py",
+     "bytes": 4287,
+     "precached": true
+    },
+    {
+     "path": "games/trade-empire/trade_crises.py",
+     "bytes": 8001,
+     "precached": true
+    },
+    {
+     "path": "games/trade-empire/trade_effects.py",
+     "bytes": 2499,
+     "precached": true
+    },
+    {
+     "path": "games/trade-empire/trade_exchange.py",
+     "bytes": 6167,
+     "precached": true
+    },
+    {
+     "path": "games/trade-empire/trade_expedition.py",
+     "bytes": 9102,
+     "precached": true
+    },
+    {
+     "path": "games/trade-empire/trade_founding.py",
+     "bytes": 4311,
+     "precached": true
+    },
+    {
+     "path": "games/trade-empire/trade_ghost.py",
+     "bytes": 8360,
+     "precached": true
+    },
+    {
+     "path": "games/trade-empire/trade_guild.py",
+     "bytes": 5416,
+     "precached": true
+    },
+    {
+     "path": "games/trade-empire/trade_handlers_core.py",
+     "bytes": 11147,
+     "precached": true
+    },
+    {
+     "path": "games/trade-empire/trade_handlers_features.py",
+     "bytes": 6980,
+     "precached": true
+    },
+    {
+     "path": "games/trade-empire/trade_handlers_modes.py",
+     "bytes": 4715,
+     "precached": true
+    },
+    {
+     "path": "games/trade-empire/trade_hub.py",
+     "bytes": 5661,
+     "precached": true
+    },
+    {
+     "path": "games/trade-empire/trade_loading.py",
+     "bytes": 16399,
+     "precached": true
+    },
+    {
+     "path": "games/trade-empire/trade_loadparts.py",
+     "bytes": 19959,
+     "precached": true
+    },
+    {
+     "path": "games/trade-empire/trade_mapdraw.py",
+     "bytes": 7277,
+     "precached": true
+    },
+    {
+     "path": "games/trade-empire/trade_mapview.py",
+     "bytes": 4806,
+     "precached": true
+    },
+    {
+     "path": "games/trade-empire/trade_market.py",
+     "bytes": 11592,
+     "precached": true
+    },
+    {
+     "path": "games/trade-empire/trade_meridian.py",
+     "bytes": 6631,
+     "precached": true
+    },
+    {
+     "path": "games/trade-empire/trade_modes.py",
+     "bytes": 5588,
+     "precached": true
+    },
+    {
+     "path": "games/trade-empire/trade_panels_fleet.py",
+     "bytes": 14394,
+     "precached": true
+    },
+    {
+     "path": "games/trade-empire/trade_panels_systems.py",
+     "bytes": 20582,
+     "precached": true
+    },
+    {
+     "path": "games/trade-empire/trade_records.py",
+     "bytes": 1753,
+     "precached": true
+    },
+    {
+     "path": "games/trade-empire/trade_renderer.py",
+     "bytes": 4152,
+     "precached": true
+    },
+    {
+     "path": "games/trade-empire/trade_research.py",
+     "bytes": 7656,
+     "precached": true
+    },
+    {
+     "path": "games/trade-empire/trade_rules.py",
+     "bytes": 17378,
+     "precached": true
+    },
+    {
+     "path": "games/trade-empire/trade_runstate.py",
+     "bytes": 8467,
+     "precached": true
+    },
+    {
+     "path": "games/trade-empire/trade_sandbox.py",
+     "bytes": 3745,
+     "precached": true
+    },
+    {
+     "path": "games/trade-empire/trade_savestate.py",
+     "bytes": 11302,
+     "precached": true
+    },
+    {
+     "path": "games/trade-empire/trade_setup.py",
+     "bytes": 13781,
+     "precached": true
+    },
+    {
+     "path": "games/trade-empire/trade_ships.py",
+     "bytes": 16857,
+     "precached": true
+    },
+    {
+     "path": "games/trade-empire/trade_summary.py",
+     "bytes": 10437,
+     "precached": true
+    },
+    {
+     "path": "games/trade-empire/trade_tick.py",
+     "bytes": 9255,
+     "precached": true
+    },
+    {
+     "path": "games/trade-empire/trade_uikit.py",
+     "bytes": 2268,
+     "precached": true
+    },
+    {
+     "path": "games/trade-empire/trade_weather.py",
+     "bytes": 6762,
+     "precached": true
+    },
+    {
+     "path": "games/trade-empire/tutorial-steps.js",
+     "bytes": 4803,
      "precached": true
     }
    ],
@@ -9653,11 +9913,6 @@
     {
      "path": "shared/error-boundary.js",
      "bytes": 9714,
-     "precached": true
-    },
-    {
-     "path": "shared/ghost.py",
-     "bytes": 13517,
      "precached": true
     },
     {
@@ -9771,11 +10026,6 @@
      "precached": true
     },
     {
-     "path": "shared/seed.py",
-     "bytes": 9788,
-     "precached": true
-    },
-    {
      "path": "shared/site-settings.js",
      "bytes": 6290,
      "precached": false
@@ -9858,7 +10108,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 15041100,
+   "bytes": 15054769,
    "bytes_complete": true
   }
  }
