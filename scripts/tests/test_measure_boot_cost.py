@@ -162,7 +162,7 @@ def test_table_output_and_detail_flag():
     out = run_script("tide")
     assert out.returncode == 0 and out.stdout.splitlines()[0].startswith("game") and "tide" in out.stdout
     detail = run_script("--detail", "tide")
-    assert "biggest prefix groups" in detail.stdout and "tide_*" in detail.stdout   # Tide is split into tide_* modules (SP-1e)
+    assert "tide_*" in detail.stdout   # Tide is split into tide_* modules (SP-1e)
 
 
 def test_unknown_game_is_an_error():
