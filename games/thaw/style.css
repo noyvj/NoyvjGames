@@ -1748,7 +1748,6 @@ html[data-reduced-motion="true"] .info-page-dot { transition: none; }
   .mobile-invest-handle { transition: none; }
 }
 
-/* R4-THMO-5: Landscape comparison board — show all four regions as a compact 2x2 grid of mini graphs. */
 /* R4-THMO-10: pull-down archive bottom sheet (mobile only) */
 @media (max-width: 600px) {
   #archive-panel {
@@ -1783,44 +1782,18 @@ html[data-reduced-motion="true"] .info-page-dot { transition: none; }
   }
 }
 
-@media (max-width: 600px) and (orientation: landscape) {
-  #focus-mode-dots { display: none; }
-
-  /* Hide verbose status text to make room for graphs */
-  #game[data-landscape="true"] .status-line,
-  #game[data-landscape="true"] .comparison-message { display: none; }
-  #game[data-landscape="true"] .meter { height: 4px; }
-
-  /* Lay out the main sections into a compact grid */
-  #game[data-landscape="true"] {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.5rem;
-    padding: 0.5rem;
-  }
-  #game[data-landscape="true"] #status,
-  #game[data-landscape="true"] #region-comparison,
-  #game[data-landscape="true"] #worst-case-section {
-    flex: 1 1 48%;
-    min-width: 0;
-    margin-bottom: 0;
-  }
-
-  /* Ensure region cards sit side-by-side in landscape */
-  #game[data-landscape="true"] .region-comparison-row {
-    display: flex;
-    gap: 0.4rem;
-  }
-  #game[data-landscape="true"] .region-card {
-    flex: 1 1 48%;
-    margin-bottom: 0;
-  }
-
-  /* Size graphs for landscape */
-  #game[data-landscape="true"] .mini-temp-graph-svg {
-    height: auto;
-    max-height: 5rem;
-  }
+/* R4-THMO-5: a phone turned sideways (a short landscape screen) shows the four regions as a 2 by 2 board of mini graphs. */
+.landscape-board { display: none; }
+@media (orientation: landscape) and (max-height: 520px) {
+  html:not([data-layout="pc"]) #game { max-width: 760px; margin: 0.5rem auto; }
+  html:not([data-layout="pc"]):not([data-hide-board="true"]) .landscape-board { display: block; }
+  .landscape-board-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; }
+  .landscape-cell { min-width: 0; padding: 0.3rem 0.5rem; border: 1px solid rgba(140, 160, 255, 0.14); border-radius: 10px; }
+  .landscape-cell p { margin: 0; }
+  .landscape-cell-label { font-size: 0.75rem; opacity: 0.8; }
+  .landscape-cell-stat { font-size: 0.95rem; font-weight: 600; font-variant-numeric: tabular-nums; }
+  .landscape-cell-graph .mini-temp-graph-svg { height: 56px; }
+  .landscape-cell-graph .graph-readout { display: none; }
 }
 
 /* R4-THMO-4: the same milestone crossing that buzzes a phone tints the temperature line for a moment. Never with Reduce motion,

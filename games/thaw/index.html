@@ -297,6 +297,33 @@
     <!-- R4-THMO-8: position dots for the swipeable cards; phones only, built by info-page-swipe.js. -->
     <div id="info-page-dots" class="info-page-dots" aria-hidden="true"></div>
 
+    <!-- R4-THMO-5: with the phone turned sideways, the four regions as a 2 by 2 board of mini graphs (copied from the real
+         graphs by landscape-grid.js; shown by style.css only on a short landscape screen; Settings can hide it). -->
+    <div id="landscape-board" class="landscape-board section" role="group" aria-label="All four regions side by side">
+      <div class="landscape-board-grid">
+        <div class="landscape-cell" data-graph="graph" data-stat="temperature-display">
+          <p class="landscape-cell-label">Region A</p>
+          <div class="landscape-cell-graph" aria-hidden="true"></div>
+          <p class="landscape-cell-stat"></p>
+        </div>
+        <div class="landscape-cell" data-graph="b-graph" data-stat="b-temperature-display">
+          <p class="landscape-cell-label">Region B</p>
+          <div class="landscape-cell-graph" aria-hidden="true"></div>
+          <p class="landscape-cell-stat"></p>
+        </div>
+        <div class="landscape-cell" data-graph="c-graph" data-stat="c-temperature-display">
+          <p class="landscape-cell-label">Region C</p>
+          <div class="landscape-cell-graph" aria-hidden="true"></div>
+          <p class="landscape-cell-stat"></p>
+        </div>
+        <div class="landscape-cell" data-graph="d-graph" data-stat="d-temperature-display" data-needs="worst-case-panel">
+          <p class="landscape-cell-label">Region D (worst case)</p>
+          <div class="landscape-cell-graph" aria-hidden="true"></div>
+          <p class="landscape-cell-stat"></p>
+        </div>
+      </div>
+    </div>
+
     <div id="status" class="section">
       <!-- G2: Region A's permanent flavor subtitle, matching the ones on Regions B/C/D below. -->
       <!-- G-10: spoken summary of each round (aria-live), visually hidden. -->

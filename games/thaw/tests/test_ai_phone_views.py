@@ -73,7 +73,7 @@ def test_the_css_does_not_remove_the_reduced_motion_rules_for_the_crate():
 def test_the_phone_rules_sit_inside_a_narrow_screen_or_short_landscape_query():
     css = _read("style.css")
     # a base rule may only hide these; the visible layout comes from a query
-    for selector in ("#focus-mode-dots", "#mobile-invest-details", "#landscape-board", ".info-page-dots", ".archive-sheet-close"):
+    for selector in ("#focus-mode-dots", "#mobile-invest-details", ".landscape-board", ".info-page-dots", ".archive-sheet-close"):
         base_rules = re.findall(r"(?m)^%s\s*\{([^}]*)\}" % re.escape(selector), css)
         assert base_rules, selector
         assert all("display: none" in rule for rule in base_rules), selector
@@ -282,5 +282,56 @@ def test_real_story_stays_a_plain_list_on_a_wide_screen(base):
             page.wait_for_timeout(200)
             assert page.evaluate("getComputedStyle(document.querySelector('#info-page-panel')).display") != "flex", page_name
             assert not page.is_visible("#info-page-dots"), page_name
+        browser.close()
+    assert errors == []
+
+
+def test_landscape_board_shows_four_live_graphs_only_on_a_short_landscape_screen(base):
+    errors = []
+    with pw.sync_playwright() as p:
+        browser = p.chromium.launch()
+        ctx, page = _open(browser, base, errors, 740, 360)           # a phone turned sideways
+        assert page.is_visible("#landscape-board")
+        assert page.locator(".landscape-cell").count() == 4
+        for _ in range(3):
+            page.click("#advance-round-button")
+            page.wait_for_timeout(150)
+        page.wait_for_timeout(300)
+        cells = page.locator(".landscape-cell")
+        assert "Not revealed" in cells.nth(3).inner_text() and cells.nth(3).locator("svg").count() == 0   # Region D is a reveal
+        page.evaluate("document.querySelector('#worst-case-toggle-button').click()")
+        page.wait_for_timeout(300)
+        for i in range(4):
+            assert cells.nth(i).locator("svg.mini-temp-graph-svg").count() == 1, i
+            assert re.search(r"\d", cells.nth(i).locator(".landscape-cell-stat").inner_text()), i
+        # a copy: no focusable stand-in, no duplicated ids, and it follows the next round
+        assert page.evaluate("document.querySelectorAll('#landscape-board [id], #landscape-board [tabindex], #landscape-board [data-pts]').length") == 0
+        before = cells.nth(1).locator(".landscape-cell-stat").inner_text()
+        page.click("#advance-round-button")
+        page.wait_for_timeout(500)
+        assert cells.nth(1).locator(".landscape-cell-stat").inner_text() != before
+        # 2 by 2
+        boxes = [cells.nth(i).bounding_box() for i in range(4)]
+        assert boxes[0]["y"] == boxes[1]["y"] and boxes[2]["y"] == boxes[3]["y"] and boxes[2]["y"] > boxes[0]["y"]
+        assert boxes[0]["x"] == boxes[2]["x"] and boxes[1]["x"] > boxes[0]["x"]
+        assert page.evaluate("document.documentElement.scrollWidth - document.documentElement.clientWidth") <= 1
+        # Settings switch hides it, and so does turning the phone upright
+        page.evaluate("document.documentElement.setAttribute('data-hide-board', 'true')")
+        assert not page.is_visible("#landscape-board")
+        page.evaluate("document.documentElement.setAttribute('data-hide-board', 'false')")
+        assert page.is_visible("#landscape-board")
+        page.set_viewport_size({"width": 360, "height": 740})
+        assert not page.is_visible("#landscape-board")
+        browser.close()
+    assert errors == []
+
+
+def test_landscape_board_is_not_part_of_the_desktop_pages(base):
+    errors = []
+    with pw.sync_playwright() as p:
+        browser = p.chromium.launch()
+        for page_name in PAGES:
+            ctx, page = _open(browser, base, errors, 1440, 900, page_name, touch=False)
+            assert not page.is_visible("#landscape-board"), page_name
         browser.close()
     assert errors == []
