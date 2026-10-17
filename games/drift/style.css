@@ -1917,3 +1917,57 @@ html[data-theme="light"] #save-nudge, html[data-theme="light"] #band-change-note
 html.high-contrast #save-nudge, html.high-contrast #band-change-note { background: #000000; color: #ffffff; border-left-color: #ffffff; }
 html.high-contrast[data-theme="light"] #save-nudge, html.high-contrast[data-theme="light"] #band-change-note { background: #ffffff; color: #000000; border-left-color: #000000; }
 .tier-table td, .tier-table th { padding: 0.25rem 0.3rem; font-size: 0.7rem; }
+
+/* R4-DRMO-3: mobile view — Advance Round button with a strain ring.
+   The key action and key risk share one control on narrow screens. */
+@media (max-width: 600px) {
+  #advance-round-wrap {
+    position: fixed;
+    bottom: 1rem;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 100;
+    width: calc(100% - 2rem);
+    max-width: 480px;
+    display: flex;
+    justify-content: center;
+  }
+
+  #advance-round-button {
+    position: relative;
+    padding: 1rem 2.2rem;
+    font-size: 1.1rem;
+    width: 100%;
+  }
+
+  /* Strain ring */
+  #advance-round-button::before {
+    content: "";
+    position: absolute;
+    inset: -6px;
+    border-radius: 14px;
+    border: 2px solid transparent;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+    pointer-events: none;
+  }
+
+  #advance-round-button[data-strain="strained"]::before {
+    border-color: #c9a13c;
+    box-shadow: 0 0 12px rgba(201, 161, 60, 0.5);
+  }
+
+  #advance-round-button[data-strain="critical"]::before {
+    border-color: #c9603c;
+    box-shadow: 0 0 18px rgba(201, 96, 60, 0.7);
+    animation: advance-ring-pulse 1.5s ease-in-out infinite;
+  }
+
+  @keyframes advance-ring-pulse {
+    0%, 100% { box-shadow: 0 0 18px rgba(201, 96, 60, 0.7); }
+    50% { box-shadow: 0 0 28px rgba(201, 96, 60, 0.9); }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    #advance-round-button[data-strain="critical"]::before { animation: none; }
+  }
+}
