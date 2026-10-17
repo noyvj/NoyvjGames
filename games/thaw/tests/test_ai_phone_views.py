@@ -73,7 +73,7 @@ def test_the_css_does_not_remove_the_reduced_motion_rules_for_the_crate():
 def test_the_phone_rules_sit_inside_a_narrow_screen_or_short_landscape_query():
     css = _read("style.css")
     # a base rule may only hide these; the visible layout comes from a query
-    for selector in ("#focus-mode-dots", ".mobile-invest-details", ".landscape-board", ".info-page-dots"):
+    for selector in ("#focus-mode-dots", ".mobile-invest-details", ".landscape-board", ".info-page-dots", ".archive-sheet-close"):
         base_rules = re.findall(r"(?m)^%s\s*\{([^}]*)\}" % re.escape(selector), css)
         assert base_rules, selector
         assert all("display: none" in rule for rule in base_rules), selector
@@ -420,5 +420,97 @@ def test_mobile_invest_bar_is_phone_only_and_replaces_nothing(base):
             ctx, page = _open(browser, base, errors, 1440, 900, page_name, touch=False)
             assert not page.is_visible("#mobile-invest-details"), page_name
             assert page.is_visible("#output-invest-button"), page_name
+        browser.close()
+    assert errors == []
+
+
+def _sheet_open(page):
+    return page.evaluate("(() => { const p = document.getElementById('archive-panel'); return !p.hidden && getComputedStyle(p).position === 'fixed'; })()")
+
+
+def _pull_from_title(ctx, page, dy=170):
+    page.evaluate("window.scrollTo(0, 0)")
+    page.wait_for_timeout(100)
+    box = page.locator("#game h1").first.bounding_box()
+    x, y = box["x"] + box["width"] / 2.0, box["y"] + box["height"] / 2.0
+    _drag(ctx, page, x, y, x, y + dy)
+
+
+def test_archive_opens_as_a_bottom_sheet_by_pull_down_and_closes_four_ways(base):
+    errors = []
+    with pw.sync_playwright() as p:
+        browser = p.chromium.launch()
+        ctx, page = _open(browser, base, errors)
+        assert not _sheet_open(page)
+        # a short pull does nothing; a long one opens the sheet, fixed to the bottom of the screen
+        _pull_from_title(ctx, page, 40)
+        assert not _sheet_open(page)
+        _pull_from_title(ctx, page, 170)
+        assert _sheet_open(page)
+        rect = page.evaluate("(() => { const r = document.getElementById('archive-panel').getBoundingClientRect(); return [r.bottom, innerHeight, r.height, r.width, innerWidth]; })()")
+        assert abs(rect[0] - rect[1]) <= 1 and rect[2] <= rect[1] * 0.71 + 1 and rect[3] == rect[4]
+        assert "Hide climate archive" in page.inner_text("#archive-toggle-button")      # the game's own state followed
+        assert "Region A" in page.inner_text("#archive-row-a")
+        # close 1: the Close button
+        page.click("#archive-sheet-close")
+        assert not _sheet_open(page) and "archive" in page.inner_text("#archive-toggle-button").lower() and "Hide" not in page.inner_text("#archive-toggle-button")
+        # close 2: pull the open sheet down
+        _pull_from_title(ctx, page, 170)
+        assert _sheet_open(page)
+        r = page.locator("#archive-panel").bounding_box()
+        _drag(ctx, page, r["x"] + r["width"] / 2.0, r["y"] + 20, r["x"] + r["width"] / 2.0, r["y"] + 200)
+        assert not _sheet_open(page)
+        # close 3: Esc (the shared shortcut closes whichever panel is open)
+        _pull_from_title(ctx, page, 170)
+        assert _sheet_open(page)
+        page.keyboard.press("Escape")
+        assert not _sheet_open(page)
+        # close 4: a tap outside it
+        _pull_from_title(ctx, page, 170)
+        assert _sheet_open(page)
+        page.evaluate("document.querySelector('#game h1').click()")
+        assert not _sheet_open(page)
+        # a pull that starts on a graph, a button or the middle of a scrolled page is not a pull for the archive
+        page.evaluate("window.scrollTo(0, 400)")
+        page.wait_for_timeout(100)
+        _drag(ctx, page, 180, 200, 180, 400)
+        assert not _sheet_open(page)
+        assert page.evaluate("document.documentElement.scrollWidth - document.documentElement.clientWidth") <= 40
+        browser.close()
+    assert errors == []
+
+
+def test_archive_pull_can_be_switched_off_but_the_button_still_works(base):
+    errors = []
+    with pw.sync_playwright() as p:
+        browser = p.chromium.launch()
+        ctx, page = _open(browser, base, errors)
+        page.evaluate("document.documentElement.setAttribute('data-no-pull-archive', 'true')")
+        _pull_from_title(ctx, page, 170)
+        assert not _sheet_open(page)
+        _mid(page, "#archive-toggle-button")
+        page.click("#archive-toggle-button")
+        assert _sheet_open(page)
+        page.click("#archive-sheet-close")
+        assert not _sheet_open(page)
+        browser.close()
+    assert errors == []
+
+
+def test_archive_panel_stays_in_its_own_place_on_wide_screens(base):
+    errors = []
+    with pw.sync_playwright() as p:
+        browser = p.chromium.launch()
+        for page_name in PAGES:
+            ctx, page = _open(browser, base, errors, 1440, 900, page_name, touch=False)
+            assert page.evaluate("document.getElementById('archive-panel').parentNode !== document.body"), page_name
+            assert not page.is_visible("#archive-sheet-close"), page_name
+        ctx, page = _open(browser, base, errors, 1000, 800, "index.html", touch=False)     # a wide window made narrow and wide again
+        page.set_viewport_size({"width": 360, "height": 740})
+        page.wait_for_timeout(200)
+        assert page.evaluate("document.getElementById('archive-panel').parentNode === document.body")
+        page.set_viewport_size({"width": 1000, "height": 800})
+        page.wait_for_timeout(200)
+        assert page.evaluate("document.getElementById('archive-panel').parentNode !== document.body")
         browser.close()
     assert errors == []

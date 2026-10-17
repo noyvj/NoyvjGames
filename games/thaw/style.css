@@ -1785,3 +1785,47 @@ html:not([data-reduced-motion="true"]):not([data-lite="true"]) .threshold-crosse
 @media (prefers-reduced-motion: reduce) {
   .threshold-crossed-pulse { animation: none !important; }
 }
+
+/* R4-THMO-10: on phones the Climate archive opens as a bottom sheet (by its own button, or by pulling down at the top of the page).
+   The panel is moved under <body> by archive-swipe.js on a phone, because #game's backdrop blur would otherwise make "fixed" mean "inside the card". */
+.archive-sheet-close { display: none; }
+@media (max-width: 600px) {
+  html:not([data-layout="pc"]) .archive-sheet-close { display: block; width: 100%; min-height: 44px; margin: 0 0 0.6rem; font-size: 0.9rem; }
+  html:not([data-layout="pc"]) body > #archive-panel:not([hidden]) {
+    position: fixed;
+    left: 0; right: 0; bottom: 0;
+    max-height: 70vh;
+    overflow-y: auto;
+    z-index: 9000;
+    margin: 0;
+    padding: 0.5rem 1rem 1rem;
+    box-sizing: border-box;
+    border-radius: 16px 16px 0 0;
+    border: 1px solid rgba(140, 160, 255, 0.3);
+    border-bottom: none;
+    background: #161a2b;
+    color: #e8e9f0;
+    box-shadow: 0 -6px 24px rgba(0, 0, 0, 0.45);
+    overscroll-behavior: contain;
+  }
+  html:not([data-layout="pc"]) body > #archive-panel:not([hidden])::before {
+    content: "";
+    display: block;
+    width: 3rem;
+    height: 4px;
+    margin: 0 auto 0.6rem;
+    border-radius: 2px;
+    background: rgba(255, 255, 255, 0.35);
+  }
+  html[data-theme="light"]:not([data-layout="pc"]) body > #archive-panel:not([hidden]) { background: #fbf6ec; color: #1b1710; border-color: rgba(122, 74, 18, 0.45); }
+  html[data-theme="light"]:not([data-layout="pc"]) body > #archive-panel:not([hidden])::before { background: rgba(0, 0, 0, 0.3); }
+  html:not([data-reduced-motion="true"]):not([data-lite="true"]) body > #archive-panel:not([hidden]) { animation: archive-sheet-in 0.25s ease-out; }
+  html:not([data-layout="pc"]):not([data-no-pull-archive="true"]) { overscroll-behavior-y: contain; }
+}
+@keyframes archive-sheet-in {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+@media (prefers-reduced-motion: reduce) {
+  body > #archive-panel:not([hidden]) { animation: none !important; }
+}

@@ -389,7 +389,8 @@
       <p id="ghost-sentence" class="sr-only ghost-sentence" role="status" hidden></p>
       <p id="personal-best-display" class="personal-best-display">Personal best: 0.0° saved</p>
       <button id="archive-toggle-button" class="secondary archive-toggle" type="button">Climate archive</button>
-      <div id="archive-panel" class="archive-panel" hidden>
+      <div id="archive-panel" class="archive-panel" role="region" aria-label="Climate archive" hidden>
+        <button type="button" id="archive-sheet-close" class="secondary archive-sheet-close">Close the archive</button>
         <p class="meter-label">Best-ever records on this device, across every session</p>
         <p id="archive-row-a" class="archive-row"></p>
         <p id="archive-row-b" class="archive-row"></p>
@@ -1227,6 +1228,7 @@
         { toggle: "settings-toggle-button", panel: "settings-panel" },
         { toggle: "info-page-toggle-button", panel: "info-page-panel" },
         { toggle: "worst-case-toggle-button", panel: "worst-case-panel" },
+        { toggle: "archive-toggle-button", panel: "archive-panel" },
       ],
     });
   </script>
