@@ -103,19 +103,19 @@
 </head>
 <body>
   <div class="ambient-bg ambient-bg--pastoral" aria-hidden="true"><div class="ambient-bg-blobs"></div><div class="ambient-bg-accent"></div></div>
+  <!-- R4-HEMO-2: thin top strip with round, funds and methane (phone view only, filled by app.js) -->
+  <div id="mobile-top-strip" class="mobile-top-strip" role="group" aria-label="Round, funds and methane">
+    <span id="mobile-round">Round 1</span>
+    <span id="mobile-funds">Funds: 300</span>
+    <span id="mobile-methane">Methane: 0</span>
+    <span id="mobile-strip-label" class="mobile-strip-label">Stable</span>
+  </div>
+  <!-- R4-HEMO-4: methane thermometer on the screen edge (phone view only); a tap opens the Why this number? methane breakdown -->
+  <button id="methane-thermometer" class="methane-thermo" type="button" aria-label="Methane 0, open the methane breakdown" title="Methane: tap for the breakdown" hidden>
+    <span class="methane-thermo-track"><span id="methane-thermo-fill" class="methane-thermo-fill"></span></span>
+  </button>
   <div id="game">
-    <!-- R4-HEMO-4: Mobile methane thermometer -->
-    <div id="methane-thermometer" class="methane-thermo" hidden>
-      <div class="methane-thermo-track">
-        <div id="methane-thermo-fill" class="methane-thermo-fill"></div>
-      </div>
-      <span id="methane-thermo-label" class="methane-thermo-label">0</span>
-      <div id="methane-thermo-breakdown" class="methane-thermo-breakdown">
-        <p id="methane-thermo-detail">Methane: 0</p>
-        <p id="methane-thermo-pressure">Pressure: 0%</p>
-      </div>
-    </div>
-    <div id="haze-overlay" class="haze-overlay"></div>
+    <div id="haze-overlay" class="haze-overlay calm-keep"></div>
     <div id="pinned-strip" class="pinned-strip" role="group" aria-label="Pinned stats" hidden></div>
     <a href="../../index.html" class="hub-back-link">&larr; All games</a>
     <h1>Herd</h1>
@@ -135,8 +135,8 @@
            accessibility.js/Aftermath's settings.js this pattern is modeled on. -->
       <button id="sandbox-toggle-button" class="secondary" type="button" data-sandbox-toggle title="Set the herd, methane and levers freely and watch the gauge react: unlimited funds, nothing scored or saved. Your real farm is untouched.">🧪 Practice sandbox</button>
       <button id="settings-toggle-button" class="secondary" type="button">⚙️ Settings</button>
-      <button id="calm-barn-toggle" class="secondary" type="button">🌙 Calm Barn</button>
     </div>
+    <button id="calm-barn-toggle" class="secondary calm-barn-toggle" type="button" aria-pressed="false" title="A quiet bedtime view: dimmed pasture, slow animals, one word and the Advance Round button">🌙 Calm barn</button>
     <div id="howto-panel" class="section" hidden></div>
     <div id="achievements-panel" class="section achievements-panel" hidden></div>
     <div id="report-card-panel" class="section report-card-panel print-summary" hidden></div>
@@ -246,14 +246,14 @@
       </div>
     </div>
 
-    <div id="achievement-toast" class="achievement-toast" hidden>
+    <div id="achievement-toast" class="achievement-toast calm-keep" hidden>
       <p id="achievement-toast-text"></p>
     </div>
-    <div id="milestone-toast" class="milestone-toast" hidden>
+    <div id="milestone-toast" class="milestone-toast calm-keep" hidden>
       <p id="milestone-toast-text"></p>
     </div>
 
-    <div id="save-recovery-panel" class="section save-recovery-panel" role="alert" hidden>
+    <div id="save-recovery-panel" class="section save-recovery-panel calm-keep" role="alert" hidden>
       <p class="meter-label">This save could not be loaded as it is</p>
       <ul id="save-recovery-reasons" class="save-recovery-reasons"></ul>
       <p id="save-recovery-note" class="comparison-message"></p>
@@ -262,19 +262,20 @@
     </div>
 
     <p id="tagline-display" class="tagline">Grow a farm. Herd size and methane emissions are coupled by default — decoupling them takes deliberate investment.</p>
-    <p id="calm-barn-word" class="tagline" hidden>Healthy Farm</p>
+    <p id="calm-barn-word" class="calm-barn-word calm-keep" role="status" aria-live="polite">Healthy farm</p>
+    <button id="calm-barn-exit" class="secondary calm-barn-exit calm-keep" type="button">Leave calm barn</button>
     <p class="context-blurb">Methane is a far more potent greenhouse gas than CO2 over the short term — roughly 80x stronger over 20 years — which makes industrial agriculture's methane output an outsized lever for near-term warming, even though it fades from the atmosphere faster than CO2 does.</p>
     <p id="community-stat-display" class="comparison-message community-stat" hidden></p>
 
-    <div id="pasture-visual" class="pasture-visual" data-barn="red" aria-hidden="true">
-      <div class="pasture-visual-sky" data-label="Sky &amp; Sun&#10;Weather / Season swings (F9)"></div>
-      <div class="pasture-visual-sun" data-label="Sun&#10;Season swings"></div>
-      <div class="pasture-visual-cloud pasture-visual-cloud--a" data-label="Clouds&#10;Plant-based demand surges (F9)"></div>
-      <div class="pasture-visual-cloud pasture-visual-cloud--b" data-label="Clouds&#10;Demand surges"></div>
-      <div class="pasture-visual-hill pasture-visual-hill--back" data-label="Hills&#10;Pasture land (affects welfare, F15)"></div>
-      <div class="pasture-visual-hill pasture-visual-hill--front" data-label="Hills&#10;Pasture land"></div>
-      <div id="pasture-barn" class="pasture-barn" data-label="Barn&#10;Retrofits &amp; cosmetic styles (GF-17)"><span class="pasture-barn-roof"></span><span class="pasture-barn-door"></span></div>
-      <div class="pasture-fence" data-label="Fence&#10;Herd Caps limit pasture size"></div>
+    <div id="pasture-visual" class="pasture-visual calm-keep" data-barn="red" aria-hidden="true">
+      <div class="pasture-visual-sky"></div>
+      <div class="pasture-visual-sun"></div>
+      <div class="pasture-visual-cloud pasture-visual-cloud--a"></div>
+      <div class="pasture-visual-cloud pasture-visual-cloud--b"></div>
+      <div class="pasture-visual-hill pasture-visual-hill--back"></div>
+      <div class="pasture-visual-hill pasture-visual-hill--front"></div>
+      <div id="pasture-barn" class="pasture-barn"><span class="pasture-barn-roof"></span><span class="pasture-barn-door"></span></div>
+      <div class="pasture-fence"></div>
       <div id="golden-cow-glider" class="golden-cow-glider" hidden>&#128004;&#10024;</div>
       <span id="pasture-herd-count" class="pasture-herd-count" hidden>Herd: 0</span>
       <div class="pasture-visual-herd">
@@ -291,14 +292,15 @@
       <p id="cow-bubble" class="cow-bubble" role="status" aria-live="polite" hidden></p>
     </div>
 
-    <!-- R4-HEMO-8: Mobile herd-size projection slider -->
-    <div id="herd-slider-container" class="herd-slider-container" hidden>
+    <!-- R4-HEMO-8: herd-size slider (phone view only). game.py draws the numbers and buys the units. -->
+    <div id="herd-slider-container" class="herd-slider-container">
       <div class="herd-slider-readouts">
-        <span id="herd-slider-methane">Methane: 0</span>
-        <span id="herd-slider-income">Income: 0</span>
+        <span id="herd-slider-methane">Methane per round: 0</span>
+        <span id="herd-slider-income">Income per round: 0</span>
       </div>
-      <label for="herd-size-slider" class="herd-slider-label">Project herd size</label>
-      <input type="range" id="herd-size-slider" class="herd-slider-input" min="0" max="80" value="0">
+      <label for="herd-size-slider" class="herd-slider-label">Herd size after buying: <output id="herd-slider-value" for="herd-size-slider">0</output></label>
+      <input type="range" id="herd-size-slider" class="herd-slider-input" min="0" max="0" step="1" value="0" disabled>
+      <button id="herd-slider-buy-button" class="secondary" type="button" disabled>Move the handle to plan a herd</button>
     </div>
 
     <button id="info-page-toggle-button" class="secondary info-page-toggle">Loading...</button>
@@ -379,7 +381,7 @@
     </div>
 
     <!-- R4-HEMO-3: Mobile sideways shelf for levers -->
-    <div id="mobile-lever-shelf" class="lever-shelf">
+    <div id="mobile-lever-shelf" class="lever-shelf" role="group" aria-label="Levers: scroll sideways">
       <div id="actions" class="section">
         <p id="rules-badge" class="rules-badge" hidden></p>
         <div id="bulk-stepper" class="bulk-stepper" role="group" aria-label="How many units each purchase button buys">
@@ -432,6 +434,15 @@
         </div>
         <p id="combined-decoupling-display" class="comparison-message">Efficiency measures alone bring you to 1.00 methane/herd/round — the plant-based pivot isn't active yet.</p>
       </div>
+    </div>
+
+    <p id="round-announcer" class="sr-only" role="status" aria-live="polite"></p>
+    <button id="advance-round-button" class="primary calm-keep">⏭️ Advance Round</button>
+    <div id="round-delta-strip" class="round-delta-strip" role="group" aria-label="What changed last round (click a chip to pin it)" hidden>
+      <button id="delta-chip-funds" class="delta-chip" type="button" aria-pressed="false" hidden></button>
+      <button id="delta-chip-methane" class="delta-chip" type="button" aria-pressed="false" hidden></button>
+      <button id="delta-chip-welfare" class="delta-chip" type="button" aria-pressed="false" hidden></button>
+      <button id="delta-chip-pressure" class="delta-chip" type="button" aria-pressed="false" hidden></button>
     </div>
 
     <details id="explain-panel" class="section farm-extras explain-panel">
@@ -723,15 +734,6 @@
       <p id="undo-note" class="comparison-message"></p>
     </div>
 
-    <p id="round-announcer" class="sr-only" role="status" aria-live="polite"></p>
-    <button id="advance-round-button" class="primary">⏭️ Advance Round</button>
-    <div id="round-delta-strip" class="round-delta-strip" role="group" aria-label="What changed last round (click a chip to pin it)" hidden>
-      <button id="delta-chip-funds" class="delta-chip" type="button" aria-pressed="false" hidden></button>
-      <button id="delta-chip-methane" class="delta-chip" type="button" aria-pressed="false" hidden></button>
-      <button id="delta-chip-welfare" class="delta-chip" type="button" aria-pressed="false" hidden></button>
-      <button id="delta-chip-pressure" class="delta-chip" type="button" aria-pressed="false" hidden></button>
-    </div>
-
     <div id="leaderboard-mount" class="section"></div>
 
     <div id="feedback-prompt" class="section">
@@ -952,52 +954,10 @@
       ],
     });
   </script>
-  <!-- R4-HEMO-2: sticky mobile top strip for round, funds, methane -->
-  <div id="mobile-top-strip" class="mobile-top-strip" hidden>
-    <span id="mobile-round">Round 1</span>
-    <span id="mobile-funds">Funds: 300</span>
-    <span id="mobile-methane">Methane: 0</span>
-    <span id="mobile-strip-label" class="mobile-strip-label">Stable</span>
-  </div>
-
-  <!-- R4-HEMO-2: Mobile sticky top strip sync & band label -->
   <script>
-    (function() {
-      const strip = document.getElementById("mobile-top-strip");
-      if (!strip) return;
-      const roundEl = document.getElementById("mobile-round");
-      const fundsEl = document.getElementById("mobile-funds");
-      const methaneEl = document.getElementById("mobile-methane");
-      const labelEl = document.getElementById("mobile-strip-label");
-
-      function updateStrip() {
-        if (!roundEl || !fundsEl || !methaneEl) return;
-        roundEl.textContent = document.getElementById("round-display")?.textContent || "Round 1";
-        fundsEl.textContent = document.getElementById("funds-display")?.textContent || "Funds: 300";
-        methaneEl.textContent = document.getElementById("methane-display")?.textContent || "Methane: 0";
-
-        const methaneText = methaneEl.textContent;
-        const num = parseFloat(methaneText.replace(/[^0-9.-]/g, ""));
-        if (isNaN(num)) return;
-
-        let band = "band-low";
-        let text = "Stable";
-        if (num > 50) { band = "band-mid"; text = "Rising"; }
-        if (num > 150) { band = "band-high"; text = "High"; }
-
-        labelEl.textContent = text;
-        labelEl.className = "mobile-strip-label " + band;
-      }
-
-      updateStrip();
-      strip.hidden = false;
-
-      const observer = new MutationObserver(updateStrip);
-      ["round-display", "funds-display", "methane-display"].forEach(id => {
-        const el = document.getElementById(id);
-        if (el) observer.observe(el, { childList: true, characterData: true, subtree: true });
-      });
-    })();
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.register("../../sw.js");
+    }
   </script>
   <!--
     Milestone 6 feedback prompt: plain JS, not Pyodide/game.py — same
@@ -1166,36 +1126,6 @@
           })
           .catch(() => { cache.set(key, { at: Date.now(), text: null, title: "" }); });
       };
-    })();
-  </script>
-  <!-- R4-HEPC-4: Hold I to label pasture parts (works on both Classic and Desktop pages) -->
-  <script>
-    window.addEventListener("load", () => {
-      const pasture = document.getElementById("pasture-visual");
-      if (!pasture) return;
-      let labelTimeout = null;
-      function showLabels() { pasture.classList.add("labels-on"); }
-      function hideLabels() { 
-        if (labelTimeout) clearTimeout(labelTimeout);
-        labelTimeout = setTimeout(() => pasture.classList.remove("labels-on"), 150);
-      }
-      window.addEventListener("keydown", (e) => {
-        if (e.key.toLowerCase() === "i" && !e.ctrlKey && !e.altKey && !e.metaKey) showLabels();
-      });
-      window.addEventListener("keyup", (e) => {
-        if (e.key.toLowerCase() === "i") hideLabels();
-      });
-    });
-  </script>
-  <!-- R4-HEMO-3: Mobile lever shelf behavior -->
-  <script>
-    (function () {
-      function initMobileLeverShelf() {
-        const shelf = document.getElementById("mobile-lever-shelf");
-        if (!shelf) return;
-        shelf.style.scrollBehavior = "smooth";
-      }
-      window.addEventListener("load", initMobileLeverShelf);
     })();
   </script>
 <button type="button" class="secondary" id="noyvj-report-menu-button" onclick="window.NoyvjReport &amp;&amp; window.NoyvjReport.open()">Report a problem</button>

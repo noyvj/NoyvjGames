@@ -137,6 +137,8 @@ ELEMENT_IDS = [
     # GF-3 audits.
     "audit-panel", "audit-headline", "audit-target-coupling", "audit-target-welfare", "audit-reward", "audit-record",
     # GF-23 loadouts.
+    # R4-HEMO-8 herd-size slider.
+    "herd-slider-container", "herd-size-slider", "herd-slider-value", "herd-slider-methane", "herd-slider-income", "herd-slider-buy-button",
     "loadout-panel", "loadout-summary", "loadout-select", "loadout-note", "loadout-list", "loadout-status",
     # GF-28 blind run.
     "blind-run-checkbox", "blind-run-note", "blind-run-panel", "blind-reveal-text", "blind-reveal-button",
