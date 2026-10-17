@@ -73,7 +73,8 @@ def tasks_for(game):
             kind = "method" if "." in fn else "function"
             task = (f"Write pytest tests for the {kind} {fn}() in {name}.py. Put them in a NEW file "
                     f"{new_file} and change no other file. Import modules the same way "
-                    f"tests/{example.name} does. Read {fn}() carefully and test what it really does: "
+                    f"tests/{example.name} does."
+                    f" Build every input exactly the way that file does (copy its setup or use a real level from the game's data); never invent a data format. Read {fn}() carefully and test what it really does: "
                     f"two or three normal cases and one edge case, each with a short docstring. "
                     f"Every test must pass.")
             lines.append(f"{game} | {item} | {name}.py, tests/{example.name} | {task}")
@@ -97,6 +98,7 @@ def edge_tasks_for(game):
             continue
         task = (f"Write edge-case pytest tests for {name}.py in a NEW file tests/test_ai_edge_{name}.py "
                 f"and change no other file. Import modules the same way tests/{example.name} does. "
+                f"Build every input exactly the way that file does (copy its setup or use a real level from the game's data); never invent a data format. "
                 f"Pick four to six public functions or methods in {name}.py and test their limits: "
                 f"empty or zero input, the smallest and largest allowed values, and values that should "
                 f"be rejected or clamped, but only where the code really handles them. Give each test a "

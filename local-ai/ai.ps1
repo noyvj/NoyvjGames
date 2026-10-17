@@ -344,7 +344,11 @@ $repairs = 0
 while (-not $timedOut -and $repairs -lt 3) {
     $touched = @(git -C $work status --porcelain --untracked-files=all | ForEach-Object { $_.Substring(3).Trim('"') } |
         Where-Object { $_ -like "games/$Game/*" -and $_ -notlike "*/pc.html" })
-    if ($touched.Count -eq 0 -or ($touched | Where-Object { $_ -notmatch "/tests/test_ai_[^/]+\.py$" }).Count -eq 0) { break }
+    # A test-writing task (T-, EDGE-) gets repair rounds too (2026-10-17): its failures are almost always the test's
+    # own setup (a made-up level the game rejects), which the error message names exactly. Before, it went straight
+    # to salvage and was thrown away.
+    $testTask = $Item -match '^(T|EDGE)-'
+    if ($touched.Count -eq 0 -or (-not $testTask -and ($touched | Where-Object { $_ -notmatch "/tests/test_ai_[^/]+\.py$" }).Count -eq 0)) { break }
     # Tidy layout and the model's new test files first, so flake8 below only reports real mistakes.
     $chgPy = @($touched | Where-Object { $_ -like "*.py" } | ForEach-Object { Join-Path $work $_ } | Where-Object { Test-Path $_ })
     if ($chgPy.Count -gt 0) { python -m autopep8 --in-place --select=E1,E2,E3,W2,W3 @chgPy 2>$null | Out-Null }
@@ -415,6 +419,31 @@ $checkLines
     }
     $tail = (($firstTry.Trim() -split "`n") | Select-Object -Last 60) -join "`n"
     $repairFile = Join-Path $work ".aider-repair.md"
+    if ($testTask) {
+        @"
+# Fix your new tests (repair round $repairs of 3)
+
+You were asked to do this in games/${Game}:
+
+$Task
+
+Your new test file fails. The game's code is right and must not change: fix the TEST. Read the error below:
+usually the test builds an input the game rejects (a made-up level, board or save), or expects a value the
+function does not return. Build every input exactly the way the example test file does (copy its setup, or use a
+real level from the game's own data files), then check by reading the function what it really returns. Do not
+delete a test just to pass; fix it, or replace it with one that checks something real. Change only your new
+test file.
+
+Test output (end):
+~~~
+$tail
+~~~
+"@ | Set-Content -Encoding utf8 $repairFile
+        $repairFiles = @(); foreach ($f in $touched) { $repairFiles += @("--file", $f.Substring("games/$Game/".Length)) }
+        $timedOut = Invoke-Aider $repairFile $repairFiles
+        Remove-Item $repairFile -ErrorAction SilentlyContinue
+        continue
+    }
     @"
 # Fix the failing checks (repair round $repairs of 3)
 
@@ -460,6 +489,9 @@ $problems = @()
 if ($timedOut) { $problems += "timed out after $TimeoutMinutes minutes" }
 if ($inside.Count -eq 0) { $problems += "the AI made no changes in games/$Game" }
 if ($outside.Count -gt 0) { $problems += "it changed files outside games/${Game}: $($outside -join ', ')" }
+# A test-writing task must never change the game itself (now that its repair rounds could be tempted to).
+$gameEdits = @($inside | Where-Object { $_ -notmatch "/tests/[^/]+\.py$" })
+if ($Item -match '^(T|EDGE)-' -and $gameEdits.Count -gt 0) { $problems += "a test-writing task changed game files: $($gameEdits -join ', ')" }
 
 $py = @($inside | Where-Object { $_ -like "*.py" } | ForEach-Object { Join-Path $work $_ } | Where-Object { Test-Path $_ })
 # Layout (spacing, blank lines, trailing spaces) is fixed mechanically rather than failing correct work over it.
