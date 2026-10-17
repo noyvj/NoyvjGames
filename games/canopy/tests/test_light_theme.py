@@ -7,10 +7,11 @@ verified with a live computed-style scan (see CLAUDE.md, "Light theme")."""
 
 import re
 from pathlib import Path
+from .pagefiles import game_css, page_text
 
 GAME_DIR = Path(__file__).resolve().parent.parent
-CSS = (GAME_DIR / "style.css").read_text(encoding="utf-8")
-HTML = (GAME_DIR / "index.html").read_text(encoding="utf-8")
+CSS = game_css()
+HTML = page_text("index.html")
 
 LIGHT = 'html[data-theme="light"]'
 

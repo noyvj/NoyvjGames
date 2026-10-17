@@ -4,6 +4,7 @@ repeats a repeated message; plus the pieces of the keyboard grid cursor that liv
 import pathlib
 
 from .gb_helpers import make_mature
+from .pagefiles import game_css, page_text
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 
@@ -115,9 +116,9 @@ def test_a_repeated_message_still_changes_the_live_region_text(game_env):
 
 
 def test_the_cursor_ring_and_the_hotkeys_are_in_the_page():
-    css = (ROOT / "style.css").read_text()
+    css = game_css()
     assert ".plot-grid .plot-tile:focus-visible" in css and "outline: 3px solid" in css
     for page in ("index.html", "pc.html"):
-        html = (ROOT / page).read_text()
+        html = page_text(page)
         assert 'id="sr-announcer"' in html and 'aria-live="polite"' in html
         assert "hotkey_clear_selected" in html and "hotkey_replant_selected" in html and "hotkey_clear_cut_selected" in html

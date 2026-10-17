@@ -5,8 +5,9 @@ import re
 from pathlib import Path
 
 from .gb_helpers import tile, tile_marks
+from .pagefiles import game_css
 
-CSS = (Path(__file__).resolve().parent.parent / "style.css").read_text(encoding="utf-8")
+CSS = game_css()
 
 
 def _almost_mature(m, indices):

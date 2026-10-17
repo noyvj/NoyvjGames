@@ -3,11 +3,12 @@ motion, light theme) for the new elements."""
 
 import re
 from pathlib import Path
+from .pagefiles import game_css, game_source, page_text
 
 HERE = Path(__file__).resolve().parent.parent
-HTML = (HERE / "index.html").read_text(encoding="utf-8")
-CSS = (HERE / "style.css").read_text(encoding="utf-8")
-GAME = (HERE / "game.py").read_text(encoding="utf-8")
+HTML = page_text("index.html")
+CSS = game_css()
+GAME = game_source()
 
 NEW_IDS = [
     "season-indicator", "season-text", "weather-text", "perfect-streak-text", "forest-visual",

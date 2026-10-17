@@ -8,6 +8,7 @@ import re
 import sys
 import types
 from pathlib import Path
+from .pagefiles import game_source, page_text
 
 GAME_DIR = Path(__file__).resolve().parent.parent
 SLUG = "canopy"
@@ -125,14 +126,14 @@ def test_fast_forward_is_more_ticks_never_a_different_tick(game_env):
 
 
 def test_the_tick_and_the_rules_never_read_the_speed():
-    source = (GAME_DIR / "game.py").read_text(encoding="utf-8")
+    source = game_source()
     code = re.sub(r"def _start_tick_loop\(\):.*?return \"interval\"\n", "", source, flags=re.S)
     assert "NoyvjTime" not in code, "only _start_tick_loop may talk to the time controller"
 
 
 def test_both_pages_carry_the_controls_the_setting_and_the_scripts():
     for name in ("index.html", "pc.html"):
-        html = (GAME_DIR / name).read_text(encoding="utf-8")
+        html = page_text(name)
         assert 'id="time-controls"' in html and 'id="pause-hidden-checkbox"' in html
         assert 'shared/time-controls.js" data-game-id="%s"' % SLUG in html
         assert 'shared/pause-hidden.js" data-game-id="%s"' % SLUG in html

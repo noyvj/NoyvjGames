@@ -3,6 +3,7 @@
 import json
 
 from .gb_helpers import tile
+from .pagefiles import game_css, game_source, page_text
 
 # --- GB-13 Poacher Patrol ---------------------------------------------------------------------------------------
 
@@ -349,7 +350,7 @@ def test_the_spirit_text_is_plain_text_never_markup(game_env):
 
 def test_every_mode_animation_is_behind_the_effects_switch_and_reduced_motion():
     from pathlib import Path
-    css = (Path(__file__).resolve().parent.parent / "style.css").read_text(encoding="utf-8")
+    css = game_css()
     start = css.index("GB batch 3 (2026-10-08)")
     block = css[start: css.index("Light theme (Y11b", start)]
     for name in ("gb3-poacher-shake", "gb3-storm-flicker", "gb3-spirit-glow"):
@@ -363,8 +364,8 @@ def test_the_switch_is_a_per_browser_setting_that_default_on():
     from pathlib import Path
     root = Path(__file__).resolve().parent.parent
     js = (root / "settings.js").read_text(encoding="utf-8")
-    html = (root / "index.html").read_text(encoding="utf-8")
+    html = page_text("index.html")
     assert 'canopy-level-effects' in js and '!== "off"' in js  # absent means on
     assert 'id="level-effects-checkbox" checked' in html
-    game = (root / "game.py").read_text(encoding="utf-8")
+    game = game_source()
     assert "level-effects" not in game and "level_effects" not in game  # a browser preference, never part of a save

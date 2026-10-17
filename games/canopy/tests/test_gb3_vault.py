@@ -10,6 +10,7 @@ import pytest
 import skill_tree
 
 from .gb_helpers import make_mature
+from .pagefiles import page_text
 
 
 def _give_points(m, count):
@@ -464,5 +465,5 @@ def test_a_page_without_the_skill_tree_still_plays(game_env):
 def test_the_python_mirror_is_the_one_the_page_loads():
     root = Path(__file__).resolve().parent.parent
     assert (root.parent.parent / "shared" / "skill_tree.py").exists()
-    html = (root / "index.html").read_text(encoding="utf-8")
+    html = page_text("index.html")
     assert 'fetch("../../shared/skill_tree.py")' in html and 'writeFile("skill_tree.py"' in html

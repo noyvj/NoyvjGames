@@ -19,6 +19,68 @@ A single forest region divided into a grid of plots. Each plot can be cleared (f
 - Cleared plots degrade in *future* yield potential (soil quality drops) — clearing repeatedly on the same plot gets worse, not better, over time.
 - No fail-state. It's a comparison game — the player accumulates two visible numbers over a session: total short-term resource income vs total standing forest value — and can watch how the balance shifts depending on their play style.
 
+## File map (read this before editing; the game is split into small files, 2026-10-18)
+
+The old 499 KB `game.py`, the 95 KB `index.html` and the 92 KB `style.css` were cut into files a small model can read whole. Nothing the AI may edit passes about 14,000 estimated tokens (bytes / 4); `tests/test_file_sizes.py` fails if a file does (the generated `pc.html` and `.json` data are exempt; `index.html` has a documented cap of 15,000: it is about 59 KB of real markup with no seam to cut). Behaviour did not change: every name the old `game.py` had is still `game.<name>`, saves are identical, the page looks identical.
+
+**Python.** `game.py` is the entry point: it imports the modules in dependency order (a module only imports from earlier ones) and re-exports every name (`game.get_state`, `game.render`, `game.Plot` ...). **The module list lives in two places that must match**: `_PART_NAMES` in `game.py` and `CANOPY_PY_MODULES` at the top of `boot.js`. A new module also goes into `sw.js` and `offline-manifest.json`. `tests/test_module_list.py` checks both lists, the files on disk and the import order. A function that (even indirectly) calls `render()` lives in `canopy_renderer.py` (the cycle with `render`) or in the `canopy_handlers_*` modules after it; everything before only draws or computes.
+
+| File | Size | What it holds, and when to ask for it |
+|------|------|---------------------------------------|
+| `canopy_runstate.py` | 12 KB | The live state: every module variable that gets REPLACED while playing (income, selected plot, panel-open flags, region and level state ...) plus `LIVE_NAMES`. Ask for it to add a new rebound variable. |
+| `canopy_rules.py` | 17 KB | Fixed numbers and content tables for the core rules: grid sizes, difficulty, plot states, seasons, the Forest Lab numbers, maturity, stakeholder and specialist constants, tree species, neighbour synergy. No browser calls. Ask for it to change a rate, threshold or table of the core rules. |
+| `canopy_worldvars.py` | 15 KB | Constants and in-place collections for the later features (regions, golden seedling, tend, weather, challenges, contracts, display options, rival logging), plus the variables those features keep. Rebound variables are in canopy_runstate. Ask for it to change a constant or table of a later feature. |
+| `canopy_helpers.py` | 14 KB | Small shared helpers: tile ids and coordinate labels, localStorage reads and writes, SVG text and sparklines, the forest log entry, the screen-reader announcer queue, timed callbacks, number formatting and display preferences. Ask for it to change shared formatting, storage or announcer helpers. |
+| `canopy_valuation.py` | 4 KB | Standing forest value, biodiversity, active plot counts, clear counts and the playstyle badge: the numbers many panels read. |
+| `canopy_records.py` | 9 KB | Personal best and the legacy bonus (both kept in localStorage, never in the save). |
+| `canopy_weather.py` | 5 KB | Seasons, rain and drought episodes, the perfect-season streak and the end of a season. |
+| `canopy_effects.py` | 9 KB | The small multipliers that feed a plot's growth, recovery and payout: carbon slump, legacy bonus, weather, perfect streak, clear-cut dip, Seed Vault perks and Expedition perks (with their trees). Ask for it to change what feeds a plot's growth or payout. |
+| `canopy_clearcut.py` | 5 KB | Clear-cut soil dips (GB-21): healing, preview, the harvester badge and the panel. |
+| `canopy_plot.py` | 13 KB | The Plot class (one forest plot: state, value, growth, degradation) and the plot grids built from it. Ask for it to change how one plot grows, degrades or pays. |
+| `canopy_forestlog.py` | 4 KB | The forest log and wildlife log lines, and the specialist and adopt panels. |
+| `canopy_gridview.py` | 6 KB | Plot tile colours, tooltips, tile marks and the stats panel render (render_grid itself is in canopy_renderer). |
+| `canopy_carbon.py` | 4 KB | The carbon credit market (GB-29): price, trend, selling and the chart. |
+| `canopy_lifetime.py` | 16 KB | Lifetime stats, the Forest Rank (XP, frames, palettes) and My Forests comparison. |
+| `canopy_community.py` | 4 KB | The community plot (shared growth pool) and its note. |
+| `canopy_layout.py` | 11 KB | Custom plot layouts (B-29): presets, saved layouts, bests and the editor. |
+| `canopy_stakeholders.py` | 21 KB | Stakeholder requests (trigger, message, counter-offer plan), stakeholder faces and friendship, request history and the stakeholder panel render. |
+| `canopy_plotsheet.py` | 4 KB | Plot notes and the phone bottom sheet. |
+| `canopy_regions.py` | 12 KB | The Highland Grove and the Wetland Forest: unlocking, tides and floods, tooltips, stats and panels. |
+| `canopy_summary.py` | 15 KB | The session summary pieces: breakdown text, counterfactual, history sparkline, share text, replay and the forest card. |
+| `canopy_labui.py` | 5 KB | The Forest Lab panel (B-5): sliders, saved variants and renders. |
+| `canopy_achievements.py` | 19 KB | Achievements (catalog, checks, progress, toast, grove wall). Ask for it to add or change an achievement or the toast. |
+| `canopy_infopanels.py` | 11 KB | The What's New changelog, the example playthrough and The Real Story info page. |
+| `canopy_ghost.py` | 7 KB | The best-session ghost (Z-3e): recording, banking and comparison. |
+| `canopy_charts.py` | 12 KB | The report card and timeline charts, the forest log panels and the ghost toggle. |
+| `canopy_realworld.py` | 7 KB | The sourced real-world note, the grid-size select render and the badge source copy. |
+| `canopy_forecast.py` | 7 KB | The season indicator, the screen-reader announcer, selection announcements and the season forecast. |
+| `canopy_tend.py` | 9 KB | Golden seedlings, Tend, the Heart Tree, forest and plot names, and Undo clear. |
+| `canopy_challenge.py` | 13 KB | Scenarios (clear-cut start, remnant) and challenges (Pacifist, Scorched, Sprint ...): records, goals, status and badges. |
+| `canopy_almanac.py` | 10 KB | Rare wildlife, milestone tiers and forest titles, chain bloom, and the Forest Almanac. |
+| `canopy_contracts.py` | 13 KB | Ranger contracts: board, progress, rewards and the panel, plus their save fields. |
+| `canopy_levels.py` | 29 KB | Levels mode: the level specs, poacher, storm and spirit runs, level status, and the Seed Vault points that levels earn. |
+| `canopy_vault.py` | 9 KB | The Seed Vault (GB-10/GB-26) and crew helpers, and the loaders for levels and vault saves. |
+| `canopy_expedition.py` | 15 KB | The Expedition (GB-3): seeded map, perks tree, scoring, bests and renders. |
+| `canopy_gbstate.py` | 6 KB | Per-tick hooks for the GB features, the reset of their state and the loader for it. |
+| `canopy_survey.py` | 8 KB | Tree species choice, forest switching and Survey mode (plan clears and replants, then commit). |
+| `canopy_hazards.py` | 17 KB | Blight, wildfire and the rival logging company: state, per-tick rules and renders. |
+| `canopy_session.py` | 3 KB | Reset Session confirm text and the reset button render (reset_session itself is in canopy_renderer). |
+| `canopy_comfort.py` | 8 KB | Comfort features: the slow-computer guard, the coach hints and the while-away chip. |
+| `canopy_sessionview.py` | 8 KB | Saved playstyle runs and their comparison, the session summary panel and the stats line. |
+| `canopy_savestate.py` | 16 KB | get_state(): everything that goes into a save, and the plot and region dictionaries. Ask for it to change what a save holds. |
+| `canopy_renderer.py` | 45 KB | render() and the functions that call each other with it (reset_session, render_grid, the region, level, vault and expedition renders and their button handlers). They form one cycle, so they live together. Ask for it to change render() or the grid, region, level, vault and expedition renders. |
+| `canopy_handlers_core.py` | 13 KB | Click handlers for plots and regions (clear, replant, tend, names, undo, hotkeys, survey queue). |
+| `canopy_handlers_panels.py` | 14 KB | Click handlers for the panels (reset, difficulty, stakeholder requests, notes, sheet, carbon, layout, lab, specialist, adopt, pace, scenario, challenge). |
+| `canopy_handlers_modes.py` | 11 KB | Click handlers for levels, vault, expedition, survey commit, wildfire and rival. |
+| `canopy_loading.py` | 16 KB | load_state(): restores a save into the live game, then redraws. Ask for it to change how a save is restored. |
+| `canopy_tick.py` | 6 KB | tick(): one second of game time, and the tick loop starter. |
+| `canopy_setup.py` | 14 KB | setup(): wires every button and starts the game. Ask for it to wire a new button. |
+| `game.py` | 3 KB | Entry point: `_PART_NAMES`, the re-export loop and `_GameModule`. `setup()` runs when `canopy_setup` is imported. |
+
+**State rule.** A module variable that some function REPLACES (`total_income += ...`, `selected_index = 3`) lives only in `canopy_runstate.py`; every other module reads and writes it as `runstate.<name>` (each starts with `import canopy_runstate as runstate`). Never `from canopy_runstate import total_income` (a test checks). Lists, dicts and sets only changed in place stay in the module that owns them. A new rebound variable goes into `canopy_runstate.py` AND its `LIVE_NAMES`; `game.<name>` reads and writes of those names are forwarded. Tests that patch a name work: the new value is copied into every module that holds it. The page reads live numbers through functions (`community_field_value`), never `pyodide.globals.get("<state name>")`.
+
+**Page.** `index.html` is markup only (`pc.html` is generated from it by `python3 scripts/generate-pc-pages.py`, never edit it). Scripts: `boot.js` (Pyodide boot, the module list, the plot tooltip/keyboard wiring), `tutorial-steps.js`, `save-profiles.js`, `todays-run.js`, `copy-wiring.js`, `shortcuts.js`, `feedback.js`, `settings.js`. Stylesheets, in this cascade order: `style-1-base.css` (text scale, tiles, stats, legend), `style-2-visuals.css` (visual and console pass), `style-3-features.css` (toasts, summary, regions, first feature batches), `style.css` (last: the `[hidden]` rule, phone layout, later features, light theme). Tests read the pieces through `tests/pagefiles.py` (`game_css()`, `page_text(page)`, `game_source()`); `tests/conftest.py` forgets the `canopy_*` modules between tests. `tests/test_b_oct9*.py` is one old test file cut in three.
+
 ## Milestones
 
 | # | Milestone | Content | Status |

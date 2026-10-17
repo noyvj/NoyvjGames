@@ -3,8 +3,9 @@
 from pathlib import Path
 
 from .gb_helpers import decline_requests, make_mature, ring_around
+from .pagefiles import page_text
 
-HTML = (Path(__file__).resolve().parent.parent / "index.html").read_text(encoding="utf-8")
+HTML = page_text("index.html")
 
 
 def _items(env):

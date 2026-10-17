@@ -49,8 +49,7 @@ READY = "!!window.pyodide && !!window.pyodide.globals.get('start_todays_run') &&
 
 FINISH = """() => {
     window.pyodide.runPython(`
-global forest_tick
-forest_tick = EXPEDITION_TICKS - 1
+runstate.forest_tick = EXPEDITION_TICKS - 1
 tick()
 `);
     return window.pyodide.runPython('expedition_finished()');
@@ -68,7 +67,7 @@ def open_panel(page):
 
 
 def expedition_seed(page):
-    return page.evaluate("window.pyodide.runPython('current_expedition[\"seed\"] if current_expedition else \"\"')")
+    return page.evaluate("window.pyodide.runPython('runstate.current_expedition[\"seed\"] if runstate.current_expedition else \"\"')")
 
 
 @pytest.mark.parametrize("page_name,width,height", [("index.html", 1440, 900), ("index.html", 360, 740), ("pc.html", 1440, 900)])
@@ -116,7 +115,7 @@ def test_todays_run_starts_the_dated_expedition_and_finishing_it_counts_once(bas
         # the run already under way is never restarted
         press(page)
         assert "already playing today's run" in page.inner_text("#expedition-seed-message")
-        assert page.evaluate("window.pyodide.runPython('forest_tick')") == 0
+        assert page.evaluate("window.pyodide.runPython('runstate.forest_tick')") == 0
 
         # finishing it on today's seed counts once
         assert page.evaluate(FINISH) is True
@@ -125,7 +124,7 @@ def test_todays_run_starts_the_dated_expedition_and_finishing_it_counts_once(bas
         assert record["runs"]["canopy"]["seed"] == today and record["runs"]["canopy"]["text"].startswith("Expedition score ")
         assert record["runs"]["canopy"]["score"] > 0 and record["streaks"]["canopy"]["count"] == 1
         assert "Today's run done" in page.inner_text("#todays-run-slot")
-        page.evaluate("window.pyodide.runPython('start_expedition(current_expedition[\"seed\"])')")
+        page.evaluate("window.pyodide.runPython('start_expedition(runstate.current_expedition[\"seed\"])')")
         assert page.evaluate(FINISH) is True
         assert page.evaluate("JSON.parse(localStorage.getItem('noyvj-daily-v1')).streaks.canopy.count") == 1
         assert page.evaluate("document.documentElement.scrollWidth - document.documentElement.clientWidth") <= 1

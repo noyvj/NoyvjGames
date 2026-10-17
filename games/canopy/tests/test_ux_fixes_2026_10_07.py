@@ -8,13 +8,14 @@ browser, see CLAUDE.md). UX-4 is behavioural and lives in test_display_batch_1.p
 import json
 import re
 from pathlib import Path
+from .pagefiles import game_css, game_source, page_text
 
 GAME_DIR = Path(__file__).resolve().parent.parent
-INDEX = (GAME_DIR / "index.html").read_text(encoding="utf-8")
-STYLE = (GAME_DIR / "style.css").read_text(encoding="utf-8")
+INDEX = page_text("index.html")
+STYLE = game_css()
 PC_CSS = (GAME_DIR / "pc.css").read_text(encoding="utf-8")
 PC_CONFIG = json.loads((GAME_DIR / "pc-config.json").read_text(encoding="utf-8"))
-GAME_PY = (GAME_DIR / "game.py").read_text(encoding="utf-8")
+GAME_PY = game_source()
 
 
 # --- UX-3: arrow keys -------------------------------------------------------
@@ -105,7 +106,7 @@ def test_desktop_demoted_panels_are_windows_not_dropped():
 
 
 def test_every_id_game_py_needs_is_still_in_the_desktop_page():
-    pc_html = (GAME_DIR / "pc.html").read_text(encoding="utf-8")
+    pc_html = page_text("pc.html")
     for element_id in ("stats", "forest-visual", "forest-name-input", "plot-nickname-input",
                        "tend-status", "action-panel", "stakeholder-panel", "specialist-row"):
         assert f'id="{element_id}"' in pc_html

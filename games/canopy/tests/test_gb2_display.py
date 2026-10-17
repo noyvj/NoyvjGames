@@ -6,6 +6,7 @@ import json
 import pytest
 
 from .gb_helpers import advance_to, make_mature, tile, tile_marks
+from .pagefiles import game_css, page_text
 
 
 # --- B-12: season forecast ----------------------------------------------------------------------------------------
@@ -87,8 +88,7 @@ def test_biodiversity_specialist_shows_its_faster_rate(game_env):
 
 
 def test_plot_tooltip_element_keeps_line_breaks(game_env):
-    css = (game_env.module.__file__.rsplit("/", 1)[0] + "/style.css")
-    text = open(css, encoding="utf-8").read()
+    text = game_css()
     start = text.index(".plot-tooltip {")
     assert "white-space: pre;" in text[start:start + 500]
 
@@ -244,12 +244,12 @@ def test_hotkey_c_respects_the_heart_tree(game_env):
 
 def test_the_page_routes_c_and_r_and_lists_them(game_env):
     root = game_env.module.__file__.rsplit("/", 1)[0]
-    html = open(root + "/index.html", encoding="utf-8").read()
+    html = page_text("index.html")
     assert 'key !== "c" && key !== "r"' in html
     assert "hotkey_clear_selected" in html and "hotkey_replant_selected" in html
     assert "C — clear the selected plot; R — replant the selected plot" in html
     assert 'id="sr-announcer"' in html and 'aria-live="polite"' in html and 'role="status"' in html
-    css = open(root + "/style.css", encoding="utf-8").read()
+    css = game_css()
     assert ".plot-grid .plot-tile:focus-visible" in css and "outline: 3px solid #ffd54f" in css
 
 
@@ -395,6 +395,10 @@ def test_default_format_is_unchanged(game_env):
 
 def _read(game_env, name):
     root = game_env.module.__file__.rsplit("/", 1)[0]
+    if name in ("index.html", "pc.html"):
+        return page_text(name)
+    if name == "style.css":
+        return game_css()
     return open(f"{root}/{name}", encoding="utf-8").read()
 
 
