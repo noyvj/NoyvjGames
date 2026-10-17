@@ -69,6 +69,8 @@
 </script>
 <link rel="icon" type="image/svg+xml" href="../../icons/favicon-sol.svg">
 <link rel="stylesheet" href="../../shared/space-bg.css">
+<link rel="stylesheet" href="style-1-base.css">
+<link rel="stylesheet" href="style-2-panels.css">
 <link rel="stylesheet" href="style.css">
 <link rel="stylesheet" href="../../shared/pc-shell.css">
 <link rel="stylesheet" href="pc.css">
@@ -1374,98 +1376,8 @@
     <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
   </div>
 
-  <script>
-    const SOL_TUTORIAL_STEPS = [
-      {
-        title: "Welcome to SOL",
-        text: "You're starting a solar-system mining operation on Earth. This quick walkthrough covers the core loop and every system you'll unlock along the way — skip it any time, and reopen it later from the Tutorial button up top.",
-      },
-      {
-        selector: "#click-button",
-        title: "Mine Iron",
-        text: "Click this to manually mine Iron. Manual clicking matters most early on — once automation kicks in here, it fades in relevance, but you'll click again on each new planet you reach.",
-      },
-      {
-        selector: "#automation",
-        title: "Auto-Miners",
-        text: "Spend Iron to buy an Auto-Miner — it mines a steady amount per second on its own, no clicking required. This is how every resource loop scales past what manual clicking alone can do.",
-      },
-      {
-        selector: "#ecology",
-        title: "Ecological Health",
-        text: "Extraction pollutes the planet over time. Below 10% health you lose 25% of your output; at 0% production stops entirely. Recyclers slow the decline — build one to keep this sustainable.",
-      },
-      {
-        selector: "#terraform",
-        title: "Terraforming",
-        text: "This bar fills on its own from sustained economic and ecological balance — it isn't a separate resource you spend. Keep ecology healthy over time and this rises automatically.",
-      },
-      {
-        selector: "#research",
-        title: "Research",
-        text: "Research is a tree: buy nodes with Iron, and most give a small bonus (more yield, cheaper miners, cheaper trade routes). Branches split and rejoin, and the last node of each level unlocks new destinations. Research isn't planet-by-planet: the Near Bodies level opens the Moon and Mars together.",
-      },
-      {
-        selector: "#governor",
-        title: "Governor — Priority & Budget",
-        text: "Once you're managing multiple planets, you can't watch them all at once. The Governor keeps a planet running while you're away — Priority sets what it optimizes for, Budget sets how much of its resources it spends doing that.",
-      },
-      {
-        selector: "#travel",
-        title: "Travel",
-        text: "Once you've funded enough research, travel buttons appear here for every newly-unlocked body. You don't need to fully develop your current planet first — just meet the research requirement.",
-      },
-      {
-        title: "You're ready",
-        text: "That's the whole loop: mine, automate, balance ecology, research, expand, and let the Governor mind what you leave behind. Reach 100% terraforming everywhere for the win state — the simulation keeps going afterward as a sandbox. Good luck out there.",
-      },
-    ];
-
-    async function main() {
-      const pyodide = await loadPyodide();
-      window.pyodide = pyodide; // exposed for the save/load bridge below
-      // Shared "export my progress" helper (Z8, see shared/export_progress.py)
-      // -- written into Pyodide's virtual filesystem before game.py runs so
-      // `import export_progress` resolves normally, same fetch-then-write
-      // pattern Aftermath's index.html already uses for shared/info_page.py.
-      const exportProgressSource = await (await fetch("../../shared/export_progress.py")).text();
-      pyodide.FS.writeFile("export_progress.py", exportProgressSource, { encoding: "utf8" });
-      // Round-6: the Scarcity Run's pure helpers (challenges.py) and the shared seeded-run module they
-      // draw from (shared/seed.py, the same Rng every daily on the site uses), written next to game.py.
-      const [seedSource, challengesSource] = await Promise.all([
-        fetch("../../shared/seed.py").then((response) => response.text()),
-        fetch("challenges.py").then((response) => response.text()),
-      ]);
-      pyodide.FS.writeFile("seed.py", seedSource, { encoding: "utf8" });
-      pyodide.FS.writeFile("challenges.py", challengesSource, { encoding: "utf8" });
-      // Z-3d3: the shared ghost-run trace (shared/ghost.py): the Ghost Run's sentence is built through it.
-      const ghostSource = await (await fetch("../../shared/ghost.py")).text();
-      pyodide.FS.writeFile("ghost.py", ghostSource, { encoding: "utf8" });
-      // ACHIEVEMENTS-SYSTEM-DESIGN.md's loading contract: fetch the static
-      // catalog and hand it to Python as a window global *before* game.py
-      // runs, same pattern Le Champ de Mots established for its own JSON
-      // assets (see that game's index.html + game.py's _read_json_asset()).
-      const [achievementsJson, changelogJson, code] = await Promise.all([
-        fetch("achievements.json").then((response) => response.text()),
-        fetch("changelog.json").then((response) => response.text()),
-        fetch("game.py").then((response) => response.text()),
-      ]);
-      window.ACHIEVEMENTS_JSON = achievementsJson;
-      window.CHANGELOG_JSON = changelogJson;
-      await pyodide.runPythonAsync(code);
-
-      if (window.GameTutorial) {
-        GameTutorial.init(window.SOL_PC_TUTORIAL_STEPS || SOL_TUTORIAL_STEPS, { gameId: "sol" });
-      }
-      if (window.MobileHud) {
-        MobileHud.init([
-          { selector: "#resource-count", label: "Iron" },
-          { selector: "#ecology-percent", label: "Ecology" },
-        ]);
-      }
-    }
-    main();
-  </script>
+  <script src="tutorial-steps.js"></script>
+  <script src="boot.js"></script>
   <!--
     SAVE-BUTTON-INTEGRATION.md: SOL is the reference integration for the
     shared save widget, replacing the bespoke save/load bridge that used
@@ -1484,63 +1396,7 @@
   <!-- Z-20 shared Copy result button, Z-27 achievement Share buttons, Y-29 Credits link (2026-10-08). -->
   <script src="../../shared/copy-result.js" data-game-id="sol"></script>
   <script src="../../shared/achievement-share.js" data-game-id="sol" data-game-name="SOL"></script>
-  <script>
-    (function () {
-      // copy_result_fields() in game.py returns the headline numbers; read at click time.
-      function fields() {
-        try {
-          var fn = window.pyodide.globals.get("copy_result_fields");
-          var result = fn();
-          var out = result.toJs({ dict_converter: Object.fromEntries });
-          result.destroy();
-          fn.destroy();
-          return out;
-        } catch (e) {
-          return {};
-        }
-      }
-      // Mounts the button inside the summary panel and puts it back if the game rebuilds the panel.
-      function mountCopy(panelId, beforeSelector) {
-        var panel = document.getElementById(panelId);
-        if (!panel || !window.NoyvjCopyResult) return;
-        function ensure() {
-          if (panel.querySelector(":scope > .run-end-copy")) return;
-          var host = document.createElement("div");
-          host.className = "run-end-copy";
-          host.setAttribute("data-copy-result-for", panelId);
-          var anchor = beforeSelector ? panel.querySelector(beforeSelector) : null;
-          if (anchor && anchor.parentNode === panel) panel.insertBefore(host, anchor);
-          else panel.appendChild(host);
-          NoyvjCopyResult.mountButton(host, { getResult: fields });
-        }
-        ensure();
-        new MutationObserver(ensure).observe(panel, { childList: true });
-      }
-      // A small Credits link at the foot of the how-to and info panels, kept if the game rewrites them.
-      function addCredits(panelId) {
-        var panel = document.getElementById(panelId);
-        if (!panel) return;
-        function ensure() {
-          if (panel.querySelector(":scope > .game-credits-link")) return;
-          var p = document.createElement("p");
-          p.className = "game-credits-link";
-          p.style.cssText = "margin:0.25rem 0 0;font-size:0.8rem";
-          var a = document.createElement("a");
-          a.href = "../../credits.html";
-          a.textContent = "Credits and thanks";
-          a.style.cssText = "display:inline-flex;align-items:center;min-height:44px;color:inherit;text-decoration:underline";
-          p.appendChild(a);
-          panel.appendChild(p);
-        }
-        ensure();
-        new MutationObserver(ensure).observe(panel, { childList: true });
-      }
-      mountCopy("epilogue-panel");
-      mountCopy("stats-panel");
-      addCredits("howto-panel");
-      addCredits("info-page-panel");
-    })();
-  </script>
+  <script src="copy-wiring.js"></script>
 <!-- wiring-oct8:end -->
   <script src="../../shared/leaderboard.js" data-game-id="sol" data-board="fastest_completion" data-order="asc" data-title="fastest full completion" data-unit="s" data-mount="#leaderboard-mount"></script>
   <!-- Z4 (site-wide goal): "?" shows a keyboard-shortcuts help overlay,
@@ -1548,50 +1404,9 @@
   <script src="../../shared/time-controls.js" data-game-id="sol" data-container="#time-controls"></script>
   <script src="../../shared/pause-hidden.js" data-game-id="sol"></script>
   <script src="../../shared/goals-panel.js"></script>
-  <script>
-    (function () {
-      if (!window.NoyvjGoals) return;
-      var panel = NoyvjGoals.mount("#goals", {
-        game: "sol",
-        getGoals: function () {
-          try {
-            var fn = window.pyodide && window.pyodide.globals.get("goals_json");
-            if (!fn) return [];
-            var text = fn();
-            if (fn.destroy) fn.destroy();
-            return JSON.parse(text);
-          } catch (e) { return []; }
-        },
-      });
-      window.SOL_GOALS = panel;
-      NoyvjGoals.bindCheckbox(panel, "#goals-checkbox");
-    })();
-  </script>
+  <script src="goals-mount.js"></script>
   <script src="../../shared/keyboard-shortcuts.js"></script>
-  <script>
-    window.KeyboardShortcuts.init({
-      extra: ["Space — pause or resume time", "[ and ] — slower or faster (1x, 2x, 4x)"],
-      panels: [
-        { toggle: "howto-toggle-button", panel: "howto-panel" },
-        { toggle: "settings-toggle-button", panel: "settings-panel" },
-        { toggle: "achievements-toggle-button", panel: "achievements-panel" },
-        { toggle: "stats-toggle-button", panel: "stats-panel" },
-        { toggle: "governor-report-toggle-button", panel: "governor-report-panel" },
-        { toggle: "changelog-toggle-button", panel: "changelog-panel" },
-        { toggle: "overview-toggle-button", panel: "overview-panel" },
-        { toggle: "build-plan-toggle-button", panel: "build-plan-panel" },
-        { toggle: "chains-toggle-button", panel: "chains-panel" },
-        { toggle: "splits-toggle-button", panel: "splits-panel" },
-        { toggle: "charter-toggle-button", panel: "charter-panel" },
-        { toggle: "observatory-toggle-button", panel: "observatory-panel" },
-        { toggle: "capsules-toggle-button", panel: "capsules-panel" },
-        { toggle: "scarcity-toggle-button", panel: "scarcity-panel" },
-        { toggle: "doctrine-toggle-button", panel: "doctrine-panel" },
-        { toggle: "prestige-tree-toggle-button", panel: "prestige-tree-panel" },
-        { toggle: "epilogue-button", panel: "epilogue-panel" },
-      ],
-    });
-  </script>
+  <script src="shortcuts.js"></script>
   <script>
     if ("serviceWorker" in navigator) {
       navigator.serviceWorker.register("../../sw.js");

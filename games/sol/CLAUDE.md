@@ -35,6 +35,51 @@ Universal-Paperclips-style incremental game, solar-system themed. Player starts 
 9. **Win condition** — 100% completion across the solar system triggers a soft "win" state; game remains playable sandbox-style afterward.
 10. **Balance philosophy** — soft punishment for imbalance, always recoverable. No dead-end/unwinnable states.
 
+## File map (read this before editing; the game is split into small files, 2026-10-18)
+
+The old 375 KB `game.py`, the big `index.html` and `style.css` were cut into files a small model can read whole. Nothing the AI may edit passes about 14,000 estimated tokens (bytes / 4) except `index.html` (about 85 KB of real markup with no seam to cut; read it with grep by element id, cap 21,500 in `tests/test_file_sizes.py`); the generated `pc.html` and `.json` data are exempt. Behaviour did not change: every name the old `game.py` had is still `game.<name>`, saves are identical, the page looks identical.
+
+**Python.** `game.py` is the entry point: it imports the modules, re-exports every name (`game.tick`, `game.get_state` ...) and wires the buttons in `setup()`. Modules are in dependency order (a module only imports from earlier ones). **The module list lives in two places that must match**: `_PART_NAMES` in `game.py` and `SOL_PY_MODULES` at the top of `boot.js` (the page writes each file, plus `challenges.py`, into Pyodide before running `game.py`). A new module also goes into `sw.js` and `offline-manifest.json`. `tests/test_module_list.py` checks both lists, the files on disk and the import order.
+
+| File | Size | What it holds, and when to ask for it |
+|------|------|---------------------------------------|
+| `sol_runstate.py` | 12 KB | The live state: every module variable that gets REPLACED while playing (tick counters, lifetime stats, prestige, panel-open flags, the Scarcity Run, ghost recordings) plus `LIVE_NAMES`. Ask for it to add a new rebound variable. |
+| `sol_rules.py` | 26 KB | Fixed numbers and tables: the planets, research nodes and tiers, the prestige tree, Governor personalities, specialisations, build-plan limits, rumours, storage keys. Data and tiny pure checks only. Ask for it to change a price, rate, threshold or table. |
+| `sol_util.py` | 10 KB | Small shared helpers: the toast, localStorage reads and writes, time and number formatting, DOM element makers, floating sparks, view hiding. Ask for it when a helper is used by several panels. |
+| `sol_story.py` | 10 KB | The achievements catalog (read from achievements.json) and the captain's story log lines. |
+| `sol_runmods.py` | 12 KB | Run-wide rule modifiers: prestige mutators, Eras, timed anomalies and the megaproject yield factors. Ask for it to add a mutator, an era or an anomaly. |
+| `sol_scarcity.py` | 5 KB | The Scarcity Run's fixed numbers, saved days, factors and the text helpers the Stats card shares. |
+| `sol_econ.py` | 24 KB | Research effects and costs, production, terraforming, close-call tracking and the display updaters for each world (resource, generators, ecology, trade, sky cities, research, travel, Governor). Ask for it to change a cost, a formula or a world's readout. |
+| `sol_rhythm.py` | 14 KB | Click-rhythm streak, speedrun split data, trophy shelf data, chain reactions and the Governor's mood. |
+| `sol_observatory.py` | 22 KB | The Observatory: survey chart, rival colonies, rumours, rogue comets and the panel. |
+| `sol_codex.py` | 10 KB | The hidden Codex and the three-goals list. |
+| `sol_charter.py` | 12 KB | The Mission Board with Charter stamps, and Megaprojects (logic). |
+| `sol_doctrines.py` | 7 KB | Governor Doctrines: rules, conditions, actions and the per-tick doctrine step. |
+| `sol_sim.py` | 7 KB | One tick of one world: governor_step, incoming trade restore and _simulate_planet. Ask for it to change the core economy tick. |
+| `sol_headless.py` | 17 KB | Runs on a copy (Doctrine dry run, Ecology Stress Test, Blueprint Swap) and the Doctrines panel. |
+| `sol_achievements.py` | 13 KB | Achievement checks and progress tables, the summary and panel, trophy shelf and best-run text. Ask for it to add or change an achievement. |
+| `sol_panels.py` | 6 KB | The What's New changelog panel and the Governor Report. |
+| `sol_statsview.py` | 12 KB | The Stats and Share panel, the share card text, cross-planet summaries, stats codes and the run compare. |
+| `sol_planner.py` | 10 KB | Build-order planner, prestige tree, epilogue and win display panels. |
+| `sol_overview.py` | 9 KB | The multi-planet overview dashboard. |
+| `sol_actions.py` | 14 KB | Player actions behind the click handlers: mining, buying, research, trade destination, travel, away reports and per-world resets. |
+| `sol_capsules.py` | 14 KB | Time Capsules: frozen run snapshots to compare and branch from. |
+| `sol_savestate.py` | 25 KB | serialize_state / deserialize_state, the session additions and the welcome-back snapshot and toast. Ask for it to add a saved field. |
+| `sol_scarcity_run.py` | 8 KB | The Scarcity Run engine: swapping the real game out and a day's copy in, the Governor-alone headless run and the daily spec. |
+| `sol_ghost.py` | 16 KB | The Ghost Run (personal-best and daily recordings, pace sentence) and the splits panel. |
+| `sol_scarcity_panel.py` | 17 KB | The Scarcity Run's finish, tick hook and panel (calendar, ghost section, tally). |
+| `sol_charter_panel.py` | 9 KB | The Mission Board and Megaproject panels. |
+| `sol_run.py` | 10 KB | tick(), _full_render() and the per-tick achievement and story hooks. Ask for it to change what runs each tick or what a redraw covers. |
+| `sol_session.py` | 3 KB | Loading a save (get_state, load_state, JSON forms) and starting or leaving a Scarcity Run: things that replace the running game and redraw. |
+| `sol_handlers.py` | 29 KB | Every `on_*` click and change handler (buy, mine, travel, toggle panels, reset, prestige, scarcity ...). Ask for it to change what a button does. |
+| `game.py` | 26 KB | Entry point: `_PART_NAMES`, the re-export loop, `_GameModule`, the tick loop and `setup()` (every addEventListener). Ask for it to wire a new button. |
+
+`challenges.py` (the Scarcity Run's pure helpers) is unchanged.
+
+**State rule.** A module variable that some function REPLACES (`total_ticks += 1`, `current_planet = ...`) lives only in `sol_runstate.py`; every other module reads and writes it as `runstate.<name>` (each starts with `import sol_runstate as runstate`). Never `from sol_runstate import total_ticks` (that copy goes stale; a test checks). Lists, dicts and sets only changed in place (`planet_state`, `researched_nodes`, `capsules` ...) stay in the module that owns them. A new rebound variable goes into `sol_runstate.py` AND its `LIVE_NAMES`; `game.<name>` reads and writes of those names are forwarded to it. The stats-code and compare helpers reach their counters with `vars(runstate)[name]`. Tests that patch a name (`game_env.module.some_function = fake`) work: the new value is copied into every module that holds that name.
+
+**Page.** `index.html` is the markup; its scripts are separate files loaded in the old order: `tutorial-steps.js` (`SOL_TUTORIAL_STEPS`), `boot.js` (Pyodide boot and `SOL_PY_MODULES`), `copy-wiring.js` (Copy result button, Credits links), `goals-mount.js` (three-goals list), `shortcuts.js` (shortcut help panels); the service-worker line and the ad push stay inline. Stylesheets load in this order (the order is the cascade): `style-1-base.css` (shell, planet views, gauges, planet art), `style-2-panels.css` (console pass, achievements, research tree, reports, overview, build plan, prestige tree, epilogue, sparks), then `style.css` (last; starts with the site-wide `[hidden]` rule a shared test looks for, then round-3 additions, Scarcity Run and light-theme polish). After changing `index.html`, `pc-config.json`, `pc.js` or `pc.css`, regenerate `pc.html` with `python3 scripts/generate-pc-pages.py`; never edit `pc.html`. Tests read the split pieces through `tests/pagefiles.py` (`game_css()`, `page_text(page)`, `game_source()`); `tests/conftest.py` forgets the `sol_*` modules between tests.
+
 ## Milestone plan (17 milestones, weeks 1–13; milestone 9 is a multi-part batch and will likely run over its single nominal week)
 
 | Wk | Milestone | Content |
