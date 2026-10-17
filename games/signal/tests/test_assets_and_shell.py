@@ -3,10 +3,11 @@
 import json
 import re
 from pathlib import Path
+from .pagefiles import app_text, engine_text
 
 GAME_DIR = Path(__file__).resolve().parent.parent
 HTML = (GAME_DIR / "index.html").read_text(encoding="utf-8")
-APP_JS = (GAME_DIR / "app.js").read_text(encoding="utf-8")
+APP_JS = app_text()
 
 
 def test_achievements_catalog_shape(game):
@@ -27,7 +28,7 @@ def test_achievements_catalog_shape(game):
 
 def test_every_achievement_id_is_reachable_by_the_engine(game):
     """Each id appears as a literal `_earn(...)` target, so none is dead."""
-    source = (GAME_DIR / "game.py").read_text(encoding="utf-8")
+    source = engine_text()
     for aid in game.ACHIEVEMENT_IDS:
         assert '_earn("%s"' % aid in source, aid
 
@@ -78,7 +79,7 @@ def test_ids_the_shared_scripts_and_app_expect_exist():
 
 
 def test_engine_has_no_dom_dependency():
-    source = (GAME_DIR / "game.py").read_text(encoding="utf-8")
+    source = engine_text()
     assert "document." not in source and "getElementById" not in source
     assert len(re.findall(r"^\s+import js\b", source, re.M)) == 2  # the optional asset read and the optional UI hook, both guarded
 

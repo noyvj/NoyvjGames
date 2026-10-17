@@ -11,9 +11,10 @@ import threading
 from pathlib import Path
 
 import pytest
+from .pagefiles import app_text, engine_text
 
 GAME_DIR = Path(__file__).resolve().parent.parent
-APP = (GAME_DIR / "app.js").read_text(encoding="utf-8")
+APP = app_text()
 SETTINGS = (GAME_DIR / "settings.js").read_text(encoding="utf-8")
 STYLE = (GAME_DIR / "style.css").read_text(encoding="utf-8")
 HTML = (GAME_DIR / "index.html").read_text(encoding="utf-8")
@@ -42,7 +43,7 @@ def test_the_setting_has_a_control_a_read_a_reset_and_is_per_device():
     assert re.search(r'magBox\.addEventListener\("change"', SETTINGS)
     reset = SETTINGS[SETTINGS.index('on("display-reset-button"'):]
     assert 'set(MAGNIFIER_KEY, "on")' in reset and "magBox.checked = true" in reset
-    assert "magnifier" not in (GAME_DIR / "game.py").read_text(encoding="utf-8")      # never in the save
+    assert "magnifier" not in engine_text()      # never in the save
 
 
 def test_css_is_phone_only_and_every_class_js_adds_is_styled():

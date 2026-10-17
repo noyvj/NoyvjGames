@@ -1,4 +1,4 @@
-"""Signal's engine (game.py) never touches the DOM -- app.js draws whatever it
+"""Signal's engine (game.py and its signal_*.py parts) never touches the DOM -- app.js draws whatever it
 returns -- so unlike the older Pyodide games there is no fake-DOM harness to
 build: the module is loaded once and every test resets it through `g`.
 """
@@ -17,9 +17,18 @@ GAME_PY = GAME_DIR / "game.py"
 EPOCH_DATE = datetime.date(2026, 9, 27)
 
 
+# game.py is split into signal_*.py modules in the same folder (see "File map" in CLAUDE.md), so the game folder must
+# be importable.
+if str(GAME_DIR) not in sys.path:
+    sys.path.insert(0, str(GAME_DIR))
+
+
 def _load_module():
     # game.py optionally does `import js`; under CPython that must fail cleanly.
     sys.modules.pop("js", None)
+    # a fresh load also gets fresh copies of the split modules
+    for name in [n for n in sys.modules if n.startswith("signal_")]:
+        sys.modules.pop(name, None)
     spec = importlib.util.spec_from_file_location("signal_game", GAME_PY)
     module = importlib.util.module_from_spec(spec)
     sys.modules["signal_game"] = module

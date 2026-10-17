@@ -91,7 +91,7 @@
 <script src="settings.js"></script>
 <!-- AdSense: placeholder client ID until application is approved -->
 <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXXXXXXXXXXX" crossorigin="anonymous"></script>
-<!-- Pyodide is deliberately NOT loaded here: app.js injects it after first paint (or on the first tap/key),
+<!-- Pyodide is deliberately NOT loaded here: app-3-engine.js injects it after first paint (or on the first tap/key),
      so this static shell is readable and tappable long before the engine (game.py) is warm. -->
 <script src="../../shared/copy-result.js" data-game-id="signal"></script>
 <script src="../../shared/achievement-share.js" data-game-id="signal" data-game-name="Signal"></script>
@@ -295,6 +295,9 @@
     if (window.GameTutorial) GameTutorial.init(window.SIGNAL_PC_TUTORIAL_STEPS || SIGNAL_TUTORIAL_STEPS, { gameId: "signal" });
     if (window.MobileDock) MobileDock.init("#action-bar");
   </script>
+  <script src="app-1-core.js"></script>
+  <script src="app-2-render.js"></script>
+  <script src="app-3-engine.js"></script>
   <script src="app.js"></script>
   <script src="../../shared/last-played.js" data-game-id="signal"></script>
   <script src="../../shared/whats-new-banner.js" data-game-id="signal"></script>
