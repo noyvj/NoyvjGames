@@ -1721,18 +1721,23 @@
      "precached": false
     },
     {
+     "path": "games/herd/app.js",
+     "bytes": 6669,
+     "precached": true
+    },
+    {
      "path": "games/herd/changelog.json",
      "bytes": 22526,
      "precached": false
     },
     {
      "path": "games/herd/game.py",
-     "bytes": 297128,
+     "bytes": 299889,
      "precached": true
     },
     {
      "path": "games/herd/index.html",
-     "bytes": 72028,
+     "bytes": 74471,
      "precached": true
     },
     {
@@ -1742,23 +1747,23 @@
     },
     {
      "path": "games/herd/pc.css",
-     "bytes": 5895,
+     "bytes": 8139,
      "precached": true
     },
     {
      "path": "games/herd/pc.html",
-     "bytes": 75697,
+     "bytes": 78140,
      "precached": true
     },
     {
      "path": "games/herd/pc.js",
-     "bytes": 4844,
+     "bytes": 15916,
      "precached": true
     },
     {
      "path": "games/herd/settings.js",
-     "bytes": 32168,
-     "precached": false
+     "bytes": 34164,
+     "precached": true
     },
     {
      "path": "games/herd/sources.json",
@@ -1772,7 +1777,7 @@
     },
     {
      "path": "games/herd/style.css",
-     "bytes": 67949,
+     "bytes": 75074,
      "precached": true
     }
    ],
@@ -2035,7 +2040,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14847900,
+   "bytes": 14884653,
    "bytes_complete": true
   },
   "thaw": {

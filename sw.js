@@ -148,6 +148,8 @@ const PRECACHE_URLS = [
   "games/aftermath/game.py",
   "games/aftermath/ui.js",
   "games/herd/index.html",
+  "games/herd/app.js",
+  "games/herd/settings.js",
   "games/herd/style.css",
   "games/herd/game.py",
   "games/thaw/index.html",

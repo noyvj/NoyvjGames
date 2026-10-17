@@ -1,6 +1,6 @@
 # Next TODO list (from the Round 4 ideas, started 2026-10-12)
 
-**Progress: 130/921 items checked off (14.1%).** This is the NEXT list, written alongside the live `planning/TODO.md` (which is untouched). It becomes the live list once the current one is archived. Run `python3 scripts/todo-progress.py planning/TODO-NEXT.md` after ticking items.
+**Progress: 136/921 items checked off (14.8%).** This is the NEXT list, written alongside the live `planning/TODO.md` (which is untouched). It becomes the live list once the current one is archived. Run `python3 scripts/todo-progress.py planning/TODO-NEXT.md` after ticking items.
 
 How it is built: one section per Round 4 section on the ideas sheet (`planning/IMPROVEMENT-IDEAS-ROUND-4.md`), in the sheet's order, ids `R4-<section code>-<number>`. Only ideas you answered "yes" to are items, with your note where you wrote one. A section that is not fully answered keeps its heading and ends with one item to add the rest once you have answered them. "No" answers are dropped (listed under the heading); "later" answers are parked in `planning/LATER.md`.
 
@@ -24,10 +24,12 @@ How it is built: one section per Round 4 section on the ideas sheet (`planning/I
 | RSMO. Robot Script: mobile view | 6/10 | 60% | ██████░░░░ |
 | HRPC. Hull Repair: PC view | 6/10 | 60% | ██████░░░░ |
 | HRMO. Hull Repair: mobile view | 6/10 | 60% | ██████░░░░ |
+| HEMO. Herd: mobile view | 4/10 | 40% | ████░░░░░░ |
 | LGMO. Logic Gates: mobile view | 4/10 | 40% | ████░░░░░░ |
 | DEMO. Dead Reckoning: mobile view | 3/10 | 30% | ███░░░░░░░ |
 | RSPC. Robot Script: PC view | 3/10 | 30% | ███░░░░░░░ |
 | PX. Lexis: made for you | 6/29 | 21% | ██░░░░░░░░ |
+| HEPC. Herd: PC view | 2/10 | 20% | ██░░░░░░░░ |
 | DEPC. Dead Reckoning: PC view | 2/10 | 20% | ██░░░░░░░░ |
 | LGPC. Logic Gates: PC view | 2/10 | 20% | ██░░░░░░░░ |
 | PU. Signal: made for you | 1/6 | 17% | ██░░░░░░░░ |
@@ -52,8 +54,6 @@ How it is built: one section per Round 4 section on the ideas sheet (`planning/I
 | TIMO. Tide: mobile view | 0/10 | 0% | ░░░░░░░░░░ |
 | AFPC. Aftermath: PC view | 0/10 | 0% | ░░░░░░░░░░ |
 | AFMO. Aftermath: mobile view | 0/10 | 0% | ░░░░░░░░░░ |
-| HEPC. Herd: PC view | 0/10 | 0% | ░░░░░░░░░░ |
-| HEMO. Herd: mobile view | 0/10 | 0% | ░░░░░░░░░░ |
 | THPC. Thaw: PC view | 0/10 | 0% | ░░░░░░░░░░ |
 | THMO. Thaw: mobile view | 0/10 | 0% | ░░░░░░░░░░ |
 | LOPC. Loop: PC view | 0/10 | 0% | ░░░░░░░░░░ |
@@ -111,7 +111,7 @@ How it is built: one section per Round 4 section on the ideas sheet (`planning/I
 | OCP. Overclock: made for you | 0/1 | 0% | ░░░░░░░░░░ |
 | AU. Sound | 0/1 | 0% | ░░░░░░░░░░ |
 | **Done: 1 sections at 100%** (LEPC) | 10/10 | 100% | ██████████ |
-| **All sections** | **130/921** | **14.1%** | █░░░░░░░░░ |
+| **All sections** | **136/921** | **14.8%** | █░░░░░░░░░ |
 
 <!-- PROGRESS-CHART:END -->
 
@@ -583,8 +583,8 @@ Dropped (you said no): PG-30.
 
 - [ ] R4-HEPC-1: (big) Draw the farm as a pasture you can click: hover a paddock to see herd size, methane and income, and click to apply a lever such as feed change or capture. The levers sit on the farm instead of in a list.
 - [ ] R4-HEPC-2: (small) Show a hover card on each gauge with its last five rounds and what moved it most. You see cause and effect without opening the report.
-- [ ] R4-HEPC-3: (small) Add a right-click menu on a lever with Buy, Pin as a goal, Show cost over time and Compare with baseline farm. You get tools at your cursor.
-- [ ] R4-HEPC-4: (small) Hold I to label every part of the pasture with what it is and which lever affects it. New players learn the farm by pointing.
+- [x] R4-HEPC-3: (small) Add a right-click menu on a lever with Buy, Pin as a goal, Show cost over time and Compare with baseline farm. You get tools at your cursor.
+- [x] R4-HEPC-4: (small) Hold I to label every part of the pasture with what it is and which lever affects it. New players learn the farm by pointing.
 - [ ] R4-HEPC-5: (big) Add a baseline-farm ghost mode where a second, greyed pasture beside yours shows the "grow unchecked" farm round by round with a drag handle between them. You see the decoupling payoff directly.
 - [ ] R4-HEPC-6: (small) Let you resize the Report Card and dock it beside the pasture. You read your score while choosing levers.
 - [ ] R4-HEPC-7: (big) Add a three-round lever planner where you queue levers for the next rounds and see a projected methane line before you commit. You can plan ahead like a strategy game.
@@ -597,13 +597,13 @@ Dropped (you said no): PG-30.
 10 ideas on the sheet: 10 yes, 0 no, 0 later, 0 not answered yet.
 
 - [ ] R4-HEMO-1: (big) Make the farm a portrait scene with levers as large cards below it, where a swipe on a card buys it and a long-press shows the cost over time. A round plays with one thumb.
-- [ ] R4-HEMO-2: (small) Pin round, funds and methane in a thin sticky top strip that gently changes label when methane crosses a band. The main trade-off stays in sight.
+- [x] R4-HEMO-2: (small) Pin round, funds and methane in a thin sticky top strip that gently changes label when methane crosses a band. The main trade-off stays in sight.
 - [ ] R4-HEMO-3: (small) Put levers in a sideways shelf of large tiles above Advance, grouped as feed, herd and capture. You pick a lever without scrolling the page.
-- [ ] R4-HEMO-4: (small) Show methane as a tall thermometer on the screen edge that opens its breakdown sheet when tapped. The key risk stays in view.
+- [x] R4-HEMO-4: (small) Show methane as a tall thermometer on the screen edge that opens its breakdown sheet when tapped. The key risk stays in view.
 - [ ] R4-HEMO-5: (small) Make the baseline-farm comparison a flip card where a tap turns your farm into the unchecked-growth farm. You compare with one tap.
 - [ ] R4-HEMO-6: (small) Let a pull-down on the farm advance one round with a confirm tick. A one-gesture turn suits tired thumbs.
-- [ ] R4-HEMO-7: (big) Add a calm barn mode that dims the pasture, slows the animals, and shows only a single "healthy farm" word and the advance button. It suits bed-time play.
-- [ ] R4-HEMO-8: (small) Add a herd-size slider with a big handle and live methane and income numbers above it. A herd decision feels direct.
+- [x] R4-HEMO-7: (big) Add a calm barn mode that dims the pasture, slows the animals, and shows only a single "healthy farm" word and the advance button. It suits bed-time play.
+- [x] R4-HEMO-8: (small) Add a herd-size slider with a big handle and live methane and income numbers above it. A herd decision feels direct.
 - [ ] R4-HEMO-9: (small) Show the Report Card as a swipeable stack of cards (score, methane, funds, herd), one per screen. A report fits a phone.
 - [ ] R4-HEMO-10: (small) Add an undo bar for the last lever bought, kept until you advance. A mis-tap costs nothing.
 
