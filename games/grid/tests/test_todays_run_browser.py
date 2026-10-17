@@ -49,8 +49,8 @@ READY = "document.querySelector('#scenario-toggle-button') && document.querySele
 PLAY_AND_FINISH = """() => {
     window.pyodide.runPython(`
 for _ in range(6):
-    state.advance_round(rng=lambda: 1.0, age_rng=lambda: 1.0)
-state.plant_counts["solar"] = 5
+    runstate.state.advance_round(rng=lambda: 1.0, age_rng=lambda: 1.0)
+runstate.state.plant_counts["solar"] = 5
 `);
     return window.pyodide.runPython("finish_run()");
 }"""
@@ -79,13 +79,13 @@ def test_todays_run_sets_the_dated_seed_and_finishing_it_counts_once(base, page_
         page.wait_for_function(READY, timeout=90000)
         today = page.evaluate("NoyvjSeed.daily.seed('grid', '2026-10-20')")
         old = page.evaluate("NoyvjSeed.daily.seed('grid', '2026-10-19')")
-        own = page.evaluate("window.pyodide.runPython('state.seed')")
+        own = page.evaluate("window.pyodide.runPython('runstate.state.seed')")
         assert own != today
 
         # a run begun on an older day's seed, and an ordinary run, never count
         page.evaluate("(s) => window.pyodide.globals.get('start_todays_run')(s)", old)
         assert page.evaluate(PLAY_AND_FINISH) is not None
-        assert page.evaluate("window.pyodide.runPython('state.seed')") != old
+        assert page.evaluate("window.pyodide.runPython('runstate.state.seed')") != old
         assert page.evaluate(PLAY_AND_FINISH) is not None
         assert page.evaluate("localStorage.getItem('noyvj-daily-v1')") is None
 
@@ -94,18 +94,18 @@ def test_todays_run_sets_the_dated_seed_and_finishing_it_counts_once(base, page_
         assert "Play today's run" in page.inner_text("#todays-run-slot") and today in page.inner_text("#todays-run-slot")
         page.click("#todays-run-slot button")
         assert today in page.inner_text("#todays-run-note") and "counts it for today" in page.inner_text("#todays-run-note")
-        assert page.evaluate("window.pyodide.runPython('state.seed')") == today
+        assert page.evaluate("window.pyodide.runPython('runstate.state.seed')") == today
         assert page.evaluate("NoyvjSeed.current()") == today
         assert page.evaluate("localStorage.getItem('noyvj-daily-v1')") is None   # setting a seed is not finishing
 
         # a run under way is never replaced
-        page.evaluate("window.pyodide.runPython('state.advance_round(rng=lambda: 1.0, age_rng=lambda: 1.0)')")
-        funds = page.evaluate("window.pyodide.runPython('state.funds')")
+        page.evaluate("window.pyodide.runPython('runstate.state.advance_round(rng=lambda: 1.0, age_rng=lambda: 1.0)')")
+        funds = page.evaluate("window.pyodide.runPython('runstate.state.funds')")
         page.click("#todays-run-slot button")
         assert "Nothing was changed" in page.inner_text("#todays-run-note")
-        assert page.evaluate("window.pyodide.runPython('state.seed')") == today
-        assert page.evaluate("window.pyodide.runPython('state.funds')") == funds
-        assert page.evaluate("window.pyodide.runPython('state.round_number')") == 2
+        assert page.evaluate("window.pyodide.runPython('runstate.state.seed')") == today
+        assert page.evaluate("window.pyodide.runPython('runstate.state.funds')") == funds
+        assert page.evaluate("window.pyodide.runPython('runstate.state.round_number')") == 2
 
         # finishing the run on today's seed counts once
         assert page.evaluate(PLAY_AND_FINISH) is not None
@@ -114,7 +114,7 @@ def test_todays_run_sets_the_dated_seed_and_finishing_it_counts_once(base, page_
         assert record["runs"]["grid"]["seed"] == today and record["runs"]["grid"]["text"].startswith("Grade ")
         assert record["streaks"]["grid"]["count"] == 1
         page.click("#todays-run-slot button")
-        assert page.evaluate("window.pyodide.runPython('state.seed')") == today
+        assert page.evaluate("window.pyodide.runPython('runstate.state.seed')") == today
         assert "Today's run done" in page.inner_text("#todays-run-slot")
         assert page.evaluate(PLAY_AND_FINISH) is not None
         assert page.evaluate("JSON.parse(localStorage.getItem('noyvj-daily-v1')).streaks.grid.count") == 1

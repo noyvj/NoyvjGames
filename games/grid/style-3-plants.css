@@ -1,0 +1,396 @@
+/* --- Plant icons: one small illustrated tile per type, added as a
+   sibling of #<type>-name (never nested inside it — game.py
+   overwrites that span's innerText, including PLANT_ICON's emoji,
+   on every render()). Each is built from plain CSS shapes/gradients
+   rather than a bare emoji or flat swatch. */
+.plant-icon {
+  position: relative;
+  width: 34px;
+  height: 34px;
+  flex: 0 0 auto;
+}
+
+/* Coal — dark mound + smokestack, rising smoke puffs */
+.plant-icon--coal .plant-icon-stack {
+  position: absolute;
+  left: 4px;
+  bottom: 4px;
+  width: 26px;
+  height: 16px;
+  border-radius: 40% 40% 6px 6px / 60% 60% 6px 6px;
+  background: linear-gradient(160deg, #4a4d5c, #23242e);
+}
+
+.plant-icon--coal .plant-icon-stack::before {
+  content: "";
+  position: absolute;
+  right: 2px;
+  bottom: 10px;
+  width: 6px;
+  height: 16px;
+  background: linear-gradient(#5a5d6c, #33343e);
+  border-radius: 1px;
+}
+
+.plant-icon-smoke {
+  position: absolute;
+  right: 1px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: rgba(180, 184, 196, 0.55);
+  animation: grid-smoke-rise 3.2s ease-in infinite;
+}
+
+.plant-icon-smoke--a { bottom: 20px; animation-delay: 0s; }
+.plant-icon-smoke--b { bottom: 20px; animation-delay: 1.6s; }
+
+@keyframes grid-smoke-rise {
+  0% { transform: translate(0, 0) scale(0.6); opacity: 0; }
+  20% { opacity: 0.7; }
+  100% { transform: translate(6px, -20px) scale(1.4); opacity: 0; }
+}
+
+/* Gas — squat tank + flickering flame */
+.plant-icon--gas .plant-icon-tank {
+  position: absolute;
+  left: 6px;
+  bottom: 3px;
+  width: 20px;
+  height: 14px;
+  border-radius: 5px;
+  background: linear-gradient(160deg, #5a5d6c, #2c2d38);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.plant-icon-flame {
+  position: absolute;
+  left: 13px;
+  bottom: 15px;
+  width: 8px;
+  height: 12px;
+  background: radial-gradient(circle at 50% 30%, #ffe08a, #e0a24c 55%, #c1622f 100%);
+  clip-path: polygon(50% 0%, 85% 55%, 65% 55%, 90% 100%, 10% 100%, 35% 60%, 15% 60%);
+  animation: grid-flame-flicker 1.4s ease-in-out infinite;
+  transform-origin: bottom center;
+}
+
+@keyframes grid-flame-flicker {
+  0%, 100% { transform: scaleY(1) scaleX(1); }
+  50% { transform: scaleY(1.12) scaleX(0.92); }
+}
+
+/* Nuclear — reactor dome + pulsing radioactive glow */
+.plant-icon--nuclear .plant-icon-dome {
+  position: absolute;
+  left: 4px;
+  bottom: 3px;
+  width: 26px;
+  height: 18px;
+  border-radius: 50% 50% 3px 3px / 100% 100% 3px 3px;
+  background: linear-gradient(160deg, #dfe4f2, #9aa4bb 55%, #5c6478);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.plant-icon-glow {
+  position: absolute;
+  left: 10px;
+  bottom: 9px;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(214, 224, 78, 0.9), transparent 70%);
+  animation: grid-radiate-pulse 2.4s ease-in-out infinite;
+}
+
+@keyframes grid-radiate-pulse {
+  0%, 100% { opacity: 0.35; transform: scale(0.85); }
+  50% { opacity: 0.9; transform: scale(1.15); }
+}
+
+/* Solar — tilted grid of panel cells with a diagonal shine sweep */
+.plant-icon--solar .plant-icon-panel {
+  position: absolute;
+  inset: 5px;
+  border-radius: 3px;
+  transform: rotate(-10deg);
+  background:
+    repeating-linear-gradient(90deg, rgba(10, 16, 30, 0.9) 0 1.5px, transparent 1.5px 9px),
+    repeating-linear-gradient(0deg, rgba(10, 16, 30, 0.9) 0 1.5px, transparent 1.5px 9px),
+    linear-gradient(135deg, #6fb3ff, #2c5fa8 60%, #163a63);
+  overflow: hidden;
+}
+
+.plant-icon--solar .plant-icon-panel::after {
+  content: "";
+  position: absolute;
+  inset: -60% -10%;
+  background: linear-gradient(115deg, transparent 40%, rgba(255, 255, 255, 0.55) 50%, transparent 60%);
+  animation: grid-panel-shine 3.6s ease-in-out infinite;
+}
+
+@keyframes grid-panel-shine {
+  0%, 30% { transform: translateX(-60%); }
+  70%, 100% { transform: translateX(60%); }
+}
+
+.plant-icon-sun {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #ffe08a;
+  box-shadow: 0 0 6px 2px rgba(255, 224, 138, 0.7);
+}
+
+/* Wind — pole + three rotating blades */
+.plant-icon--wind .plant-icon-pole {
+  position: absolute;
+  left: 15px;
+  bottom: 2px;
+  width: 4px;
+  height: 26px;
+  border-radius: 2px;
+  background: linear-gradient(#dfe4f2, #8a90a3);
+}
+
+.plant-icon-blades {
+  position: absolute;
+  left: 8px;
+  top: 3px;
+  width: 18px;
+  height: 18px;
+  animation: grid-turbine-spin 5s linear infinite;
+}
+
+.plant-icon-blade {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 3px;
+  height: 9px;
+  margin-left: -1.5px;
+  margin-top: -9px;
+  border-radius: 3px 3px 0 0;
+  background: linear-gradient(#f2f4fa, #b7bdd0);
+  transform-origin: 50% 100%;
+}
+
+.plant-icon-blade:nth-child(1) { transform: rotate(0deg); }
+.plant-icon-blade:nth-child(2) { transform: rotate(120deg); }
+.plant-icon-blade:nth-child(3) { transform: rotate(240deg); }
+
+@keyframes grid-turbine-spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .plant-icon-blades { animation: none; }
+}
+
+/* Hydro — dam wall + flowing wave lines */
+.plant-icon--hydro .plant-icon-dam {
+  position: absolute;
+  left: 3px;
+  bottom: 10px;
+  width: 28px;
+  height: 14px;
+  clip-path: polygon(0% 100%, 12% 0%, 100% 0%, 100% 100%);
+  background: linear-gradient(160deg, #b7bdd0, #6c7286);
+}
+
+.plant-icon-wave {
+  position: absolute;
+  left: 2px;
+  right: 2px;
+  bottom: 2px;
+  height: 8px;
+  background-image: repeating-radial-gradient(circle at 0 100%, transparent 0, transparent 3px, rgba(111, 179, 255, 0.75) 3px, rgba(111, 179, 255, 0.75) 4px, transparent 4px, transparent 8px);
+  background-size: 12px 12px;
+  animation: grid-wave-flow 2.4s linear infinite;
+}
+
+@keyframes grid-wave-flow {
+  from { background-position: 0 0; }
+  to { background-position: -24px 0; }
+}
+
+/* Battery -- a simple cell outline + pulsing bolt, deliberately less
+   elaborate than the six generation-type icons above: it's a support
+   tier, not a generation source, and doesn't need the same illustrated
+   weight. */
+.plant-icon--battery .plant-icon-battery-body {
+  position: absolute;
+  left: 5px;
+  bottom: 6px;
+  width: 24px;
+  height: 20px;
+  border-radius: 3px;
+  border: 2px solid #7fd6a3;
+  background: rgba(127, 214, 163, 0.12);
+}
+
+.plant-icon--battery .plant-icon-battery-body::before {
+  content: "";
+  position: absolute;
+  right: -5px;
+  top: 6px;
+  width: 3px;
+  height: 8px;
+  border-radius: 0 2px 2px 0;
+  background: #7fd6a3;
+}
+
+.plant-icon-battery-bolt {
+  position: absolute;
+  left: 13px;
+  bottom: 9px;
+  width: 8px;
+  height: 14px;
+  background: #d6e04e;
+  clip-path: polygon(60% 0%, 100% 40%, 60% 40%, 100% 100%, 0% 55%, 40% 55%, 0% 0%);
+  animation: grid-battery-pulse 2.6s ease-in-out infinite;
+}
+
+@keyframes grid-battery-pulse {
+  0%, 100% { opacity: 0.7; }
+  50% { opacity: 1; }
+}
+
+.battery-context-blurb {
+  margin: 0.75rem 0 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .plant-icon-smoke,
+  .plant-icon-flame,
+  .plant-icon-glow,
+  .plant-icon--solar .plant-icon-panel::after,
+  .plant-icon-wave,
+  .plant-icon-battery-bolt { animation: none; }
+}
+
+/* --- Plant action buttons: tint per action so the row reads as a
+   set of distinct tile-actions (build/grow, retire/remove,
+   maintain/repair) rather than three identical gray buttons, and
+   lift the existing ::before emoji into a small icon-over-label
+   face like a proper HUD action tile. */
+.plant-row-actions button.secondary {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.2rem;
+  padding: 0.55rem 0.4rem 0.5rem;
+  line-height: 1.2;
+}
+
+.plant-row-actions button.secondary::before {
+  font-size: 1.05rem;
+}
+
+button.secondary[id$="-build-button"] {
+  border-color: rgba(76, 156, 110, 0.35);
+}
+
+button.secondary[id$="-retire-button"] {
+  border-color: rgba(224, 103, 76, 0.35);
+}
+
+button.secondary[id$="-maintain-button"] {
+  border-color: rgba(224, 162, 76, 0.35);
+}
+
+/* ============================================================
+   Design pass 2 — embed controls & readouts into the console
+   (2026-09-06). The transmission-line hero and HUD card treatment
+   above gave Grid its own illustrated identity, but the labels,
+   plant counts and action buttons inside those cards still read
+   as flat web UI sitting on the panel rather than something
+   physically part of the console. Same three ideas as SOL's
+   reference pass, adapted to Grid's own cyan/amber/purple/blue
+   accent palette rather than SOL's colors: labels become mounted
+   nameplates, the plant-count numbers become recessed screen
+   readouts, and every button becomes a beveled physical switch
+   with a status LED wired to its own :disabled state. Pure CSS on
+   existing selectors — no new elements/ids, nothing game.py
+   touches. */
+
+/* --- Nameplates: plant labels and section sub-headings read as
+   engraved plates mounted on the console rather than plain text
+   sitting on the card background. */
+.plant-name,
+.meter-label {
+  display: inline-block;
+  padding: 0.3rem 0.7rem;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(0, 0, 0, 0.22));
+  border: 1px solid rgba(140, 160, 255, 0.16);
+  border-radius: 6px;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06), inset 0 -1px 2px rgba(0, 0, 0, 0.3), 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+/* --- Recessed digital-screen readout: each plant's unit count sits
+   in a dark glass-fronted display cut into the console face instead
+   of floating as a plain rounded chip. Scanline texture + inner glow
+   reinforce "screen," not "text." Keeps its existing pill shape --
+   only the background/shadow read changes. */
+.plant-count {
+  background:
+    repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.03) 0, rgba(255, 255, 255, 0.03) 1px, transparent 1px, transparent 3px),
+    radial-gradient(ellipse at 50% 20%, rgba(224, 162, 76, 0.12), transparent 70%),
+    rgba(3, 4, 9, 0.7);
+  border-color: rgba(224, 162, 76, 0.3);
+  box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.6), inset 0 0 14px rgba(224, 162, 76, 0.1);
+}
+
+/* --- Physical console switches: every button gets an outer bezel
+   ring and an inset face, plus a small status LED that glows green
+   while the action is available and dims grey when :disabled -- a
+   genuinely functional indicator driven by the existing disabled
+   state, not decoration. */
+button.secondary,
+button.primary {
+  position: relative;
+  box-shadow:
+    0 4px 14px rgba(0, 0, 0, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.14),
+    inset 0 -3px 6px rgba(0, 0, 0, 0.25),
+    0 0 0 3px rgba(0, 0, 0, 0.22);
+}
+
+button.secondary:active:not(:disabled),
+button.primary:active {
+  box-shadow:
+    inset 0 3px 9px rgba(0, 0, 0, 0.5),
+    inset 0 -1px 0 rgba(255, 255, 255, 0.05),
+    0 0 0 3px rgba(0, 0, 0, 0.22);
+}
+
+button.secondary::after,
+button.primary::after {
+  content: "";
+  position: absolute;
+  top: 0.5rem;
+  right: 0.6rem;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #4c9c6e;
+  box-shadow: 0 0 6px 1px rgba(76, 156, 110, 0.85);
+}
+
+button.secondary:disabled::after,
+button.primary:disabled::after {
+  background: #565b73;
+  box-shadow: none;
+}
+
+/* The plant-action tiles already carry a flex-column icon-over-label
+   layout with their own tinted border per action -- give their LED a
+   little more room so it doesn't crowd the wrench/hammer/bin glyph. */
+.plant-row-actions button.secondary::after {
+  top: 0.4rem;
+  right: 0.4rem;
+}

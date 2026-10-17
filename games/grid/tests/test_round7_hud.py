@@ -1,12 +1,13 @@
 """Round-7 pass: the sticky key-stats bar shows round and capacity too (C-20)."""
 import re
 from pathlib import Path
+from .pagefiles import page_text
 
 GAME_DIR = Path(__file__).resolve().parent.parent
 
 
 def _hud_fields(page):
-    html = (GAME_DIR / page).read_text(encoding="utf-8")
+    html = page_text(page)
     block = html.split("MobileHud.init([", 1)[1].split("]);", 1)[0]
     return re.findall(r'selector: "([^"]+)", label: "([^"]+)"', block), html
 

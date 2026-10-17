@@ -2,8 +2,9 @@
 from pathlib import Path
 
 from .test_round7_trend import _tick
+from .pagefiles import game_css
 
-STYLE = (Path(__file__).resolve().parent.parent / "style.css").read_text()
+STYLE = game_css()
 
 
 def test_nothing_is_drawn_until_a_round_is_advanced(game_env):
