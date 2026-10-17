@@ -6790,8 +6790,33 @@
      "precached": true
     },
     {
+     "path": "games/lighthouse/app-1-core.js",
+     "bytes": 5602,
+     "precached": true
+    },
+    {
+     "path": "games/lighthouse/app-2-scene.js",
+     "bytes": 15371,
+     "precached": true
+    },
+    {
+     "path": "games/lighthouse/app-3-story.js",
+     "bytes": 13494,
+     "precached": true
+    },
+    {
+     "path": "games/lighthouse/app-4-phases.js",
+     "bytes": 20753,
+     "precached": true
+    },
+    {
+     "path": "games/lighthouse/app-5-render.js",
+     "bytes": 12455,
+     "precached": true
+    },
+    {
      "path": "games/lighthouse/app.js",
-     "bytes": 81962,
+     "bytes": 19421,
      "precached": true
     },
     {
@@ -6841,7 +6866,7 @@
     },
     {
      "path": "games/lighthouse/index.html",
-     "bytes": 31741,
+     "bytes": 31937,
      "precached": true
     },
     {
@@ -6896,7 +6921,7 @@
     },
     {
      "path": "games/lighthouse/pc.html",
-     "bytes": 34149,
+     "bytes": 34345,
      "precached": true
     },
     {
@@ -7214,7 +7239,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14672308,
+   "bytes": 14677834,
    "bytes_complete": true
   },
   "pocket-bazaar": {

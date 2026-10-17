@@ -13,7 +13,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 SW = ROOT / "sw.js"
-SKIP = {"conftest.py", "requirements-dev.txt"}
+SKIP = {"conftest.py", "requirements-dev.txt", "harness.py"}
 
 
 def runtime_files(slug):

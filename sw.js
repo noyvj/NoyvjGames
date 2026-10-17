@@ -2,7 +2,7 @@
 // the precache list; ordinary content deploys don't need it, because
 // same-origin requests are network-first (see the fetch handler below) and
 // so always pick up fresh files whenever the player is online.
-const SW_VERSION = 75;
+const SW_VERSION = 76;
 const CACHE_NAME = "site-cache-v" + SW_VERSION;
 // How long a same-origin network request may take before we give up and
 // serve the cached copy instead (a slow/flaky connection shouldn't hang).
@@ -606,6 +606,11 @@ const PRECACHE_URLS = [
   "games/lighthouse/index.html",
   "games/lighthouse/style.css",
   "games/lighthouse/game.py",
+  "games/lighthouse/app-1-core.js",
+  "games/lighthouse/app-2-scene.js",
+  "games/lighthouse/app-3-story.js",
+  "games/lighthouse/app-4-phases.js",
+  "games/lighthouse/app-5-render.js",
   "games/lighthouse/app.js",
   "games/lighthouse/settings.js",
   "games/lighthouse/mobile-prefs.js",
