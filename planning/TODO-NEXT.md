@@ -1,6 +1,6 @@
 # Next TODO list (from the Round 4 ideas, started 2026-10-12)
 
-**Progress: 136/921 items checked off (14.8%).** This is the NEXT list, written alongside the live `planning/TODO.md` (which is untouched). It becomes the live list once the current one is archived. Run `python3 scripts/todo-progress.py planning/TODO-NEXT.md` after ticking items.
+**Progress: 138/921 items checked off (15.0%).** This is the NEXT list, written alongside the live `planning/TODO.md` (which is untouched). It becomes the live list once the current one is archived. Run `python3 scripts/todo-progress.py planning/TODO-NEXT.md` after ticking items.
 
 How it is built: one section per Round 4 section on the ideas sheet (`planning/IMPROVEMENT-IDEAS-ROUND-4.md`), in the sheet's order, ids `R4-<section code>-<number>`. Only ideas you answered "yes" to are items, with your note where you wrote one. A section that is not fully answered keeps its heading and ends with one item to add the rest once you have answered them. "No" answers are dropped (listed under the heading); "later" answers are parked in `planning/LATER.md`.
 
@@ -30,6 +30,7 @@ How it is built: one section per Round 4 section on the ideas sheet (`planning/I
 | RSPC. Robot Script: PC view | 3/10 | 30% | ███░░░░░░░ |
 | PX. Lexis: made for you | 6/29 | 21% | ██░░░░░░░░ |
 | HEPC. Herd: PC view | 2/10 | 20% | ██░░░░░░░░ |
+| DRMO. Drift: mobile view | 2/10 | 20% | ██░░░░░░░░ |
 | DEPC. Dead Reckoning: PC view | 2/10 | 20% | ██░░░░░░░░ |
 | LGPC. Logic Gates: PC view | 2/10 | 20% | ██░░░░░░░░ |
 | PU. Signal: made for you | 1/6 | 17% | ██░░░░░░░░ |
@@ -60,7 +61,6 @@ How it is built: one section per Round 4 section on the ideas sheet (`planning/I
 | LOMO. Loop: mobile view | 0/10 | 0% | ░░░░░░░░░░ |
 | DR. Drift: general ideas | 0/10 | 0% | ░░░░░░░░░░ |
 | DRPC. Drift: PC view | 0/10 | 0% | ░░░░░░░░░░ |
-| DRMO. Drift: mobile view | 0/10 | 0% | ░░░░░░░░░░ |
 | TEPC. Trade Empire: PC view | 0/10 | 0% | ░░░░░░░░░░ |
 | TEMO. Trade Empire: mobile view | 0/10 | 0% | ░░░░░░░░░░ |
 | COPC. Continuum: PC view | 0/10 | 0% | ░░░░░░░░░░ |
@@ -111,7 +111,7 @@ How it is built: one section per Round 4 section on the ideas sheet (`planning/I
 | OCP. Overclock: made for you | 0/1 | 0% | ░░░░░░░░░░ |
 | AU. Sound | 0/1 | 0% | ░░░░░░░░░░ |
 | **Done: 1 sections at 100%** (LEPC) | 10/10 | 100% | ██████████ |
-| **All sections** | **136/921** | **14.8%** | █░░░░░░░░░ |
+| **All sections** | **138/921** | **15.0%** | █░░░░░░░░░ |
 
 <!-- PROGRESS-CHART:END -->
 
@@ -748,8 +748,8 @@ Dropped (you said no): PG-30.
 10 ideas on the sheet: 10 yes, 0 no, 0 later, 0 not answered yet.
 
 - [ ] R4-DRMO-1: (big) Make the region visual a portrait map where a tap on a building opens a bottom sheet with Invest and details. Managing the district is a direct touch.
-- [ ] R4-DRMO-2: (small) Let you swipe between your region and the neighbouring district as two full-screen cards. Comparing neighbours is a flick.
-- [ ] R4-DRMO-3: (small) Keep Advance Round as a large bottom button with a small strain ring around it. The key action and key risk share one control.
+- [x] R4-DRMO-2: (small) Let you swipe between your region and the neighbouring district as two full-screen cards. Comparing neighbours is a flick.
+- [x] R4-DRMO-3: (small) Keep Advance Round as a large bottom button with a small strain ring around it. The key action and key risk share one control.
 - [ ] R4-DRMO-4: (small) Make long investment lists into collapsible groups with a sticky header showing the group's total cost. You skim a region's options in one screen.
 - [ ] R4-DRMO-5: (small) Let a swipe on a gauge cycle between its value, its last ten rounds as a mini graph and a plain explanation. Each gauge becomes a three-sided card.
 - [ ] R4-DRMO-6: (small) Add a text size picker (small, normal, large) with a live preview, remembered on the phone. Long labels stay comfortable to read.

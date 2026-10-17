@@ -2647,7 +2647,7 @@
     },
     {
      "path": "games/drift/index.html",
-     "bytes": 63122,
+     "bytes": 63465,
      "precached": true
     },
     {
@@ -2662,7 +2662,7 @@
     },
     {
      "path": "games/drift/pc.html",
-     "bytes": 66296,
+     "bytes": 66639,
      "precached": true
     },
     {
@@ -2673,7 +2673,7 @@
     {
      "path": "games/drift/settings.js",
      "bytes": 11734,
-     "precached": false
+     "precached": true
     },
     {
      "path": "games/drift/sources.json",
@@ -2687,12 +2687,12 @@
     },
     {
      "path": "games/drift/style.css",
-     "bytes": 67285,
+     "bytes": 70368,
      "precached": true
     },
     {
      "path": "games/drift/ui.js",
-     "bytes": 5880,
+     "bytes": 8229,
      "precached": true
     }
    ],
@@ -2925,7 +2925,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14746847,
+   "bytes": 14752965,
    "bytes_complete": true
   },
   "champ-de-mots": {

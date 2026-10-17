@@ -159,6 +159,7 @@ const PRECACHE_URLS = [
   "games/loop/style.css",
   "games/loop/game.py",
   "games/drift/index.html",
+  "games/drift/settings.js",
   "games/drift/style.css",
   "games/drift/game.py",
   "games/drift/ui.js",
