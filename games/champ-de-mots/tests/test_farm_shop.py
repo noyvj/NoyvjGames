@@ -5,9 +5,10 @@ scheduling, skins only frame the plot cells."""
 import json
 import re
 from pathlib import Path
+from .pagefiles import style_css
 
 GAME_DIR = Path(__file__).resolve().parent.parent
-STYLE = (GAME_DIR / "style.css").read_text(encoding="utf-8")
+STYLE = style_css()
 
 
 def _answer_on_the_farm(module, plot_id):

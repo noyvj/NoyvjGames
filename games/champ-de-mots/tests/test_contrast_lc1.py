@@ -10,9 +10,10 @@ exist and cover the classes that were failing, and the scanner tool is present a
 import ast
 import re
 from pathlib import Path
+from .pagefiles import style_css
 
 GAME_DIR = Path(__file__).resolve().parent.parent
-STYLE = (GAME_DIR / "style.css").read_text(encoding="utf-8")
+STYLE = style_css()
 VISUAL = (GAME_DIR / "visual-styles.css").read_text(encoding="utf-8")
 MINI = (GAME_DIR / "minigames.css").read_text(encoding="utf-8")
 

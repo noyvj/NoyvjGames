@@ -3,6 +3,7 @@ ledger surfaced as the header's "Practice score" tile and a dashboard
 section -- never SRS state."""
 
 import json
+from .pagefiles import page_text
 
 
 def _srs_snapshot(state):
@@ -190,6 +191,5 @@ def test_dashboard_lists_every_mode(game_env):
 
 
 def test_index_has_the_score_tile():
-    from pathlib import Path
-    html = (Path(__file__).resolve().parent.parent / "index.html").read_text(encoding="utf-8")
+    html = page_text("index.html")
     assert 'id="practice-score-display"' in html

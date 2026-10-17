@@ -9,6 +9,7 @@ anywhere in the interface.
 from pathlib import Path
 
 from .conftest import catalog_counts
+from .pagefiles import game_source, page_text, style_css
 
 GAME_DIR = Path(__file__).resolve().parent.parent
 
@@ -159,6 +160,14 @@ def test_plot_cells_carry_an_accessible_label(game_env):
 
 
 def _source(name):
+    """What the shipped file held before the split: game.py is the game's Python as a whole, style.css its three
+    stylesheet parts, index.html the page plus the scripts it loads."""
+    if name == "game.py":
+        return game_source()
+    if name == "style.css":
+        return style_css()
+    if name == "index.html":
+        return page_text(name)
     return (GAME_DIR / name).read_text(encoding="utf-8")
 
 

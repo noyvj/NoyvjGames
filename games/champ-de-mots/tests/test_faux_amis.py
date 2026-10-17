@@ -6,6 +6,7 @@ small synthetic page written in the same wiki layout, and a fake fetch hook, so 
 import json
 import sys
 import types
+from .pagefiles import page_text, style_css
 
 
 SOURCE_FRAGMENT = "French Wiktionary"
@@ -138,7 +139,7 @@ def test_opening_the_panel_reads_the_live_page_names_it_and_caches_the_entries(g
 
 
 def test_the_source_link_points_at_the_page_the_game_reads():
-    html = (__import__("pathlib").Path(__file__).resolve().parent.parent / "index.html").read_text(encoding="utf-8")
+    html = page_text("index.html")
     assert 'id="amis-source-link" href="https://fr.wiktionary.org/wiki/Annexe:Faux-amis_anglais-fran%C3%A7ais"' in html
 
 
@@ -354,7 +355,7 @@ def test_the_badge_appears_when_the_list_finishes_loading_and_not_before(game_en
 
 
 def test_the_badge_is_a_shape_in_the_stylesheet_not_a_colour_alone():
-    css = (__import__("pathlib").Path(__file__).resolve().parent.parent / "style.css").read_text(encoding="utf-8")
+    css = style_css()
     assert ".plot--amis { background-image: linear-gradient(315deg" in css
     assert "animation" not in css.split("L-16: a farm plot")[1]
 
@@ -367,7 +368,7 @@ def test_faux_amis_is_reachable_on_the_desktop_page():
     cfg = json.loads((base / "pc-config.json").read_text(encoding="utf-8"))
     assert ["amis-panel", "amis-toggle-button", "Faux Amis"] in cfg["windows"]
     assert "#amis-toggle-button" in cfg["zones"]["side"]
-    html = (base / "pc.html").read_text(encoding="utf-8")
+    html = page_text("pc.html")
     for element_id in ("amis-panel", "amis-toggle-button", "amis-choices", "amis-source", "amis-source-link", "amis-close-button"):
         assert f'id="{element_id}"' in html, element_id
     assert "amis_tick" in html and "championFetchText" in html

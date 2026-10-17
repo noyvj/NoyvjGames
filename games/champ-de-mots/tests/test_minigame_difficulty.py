@@ -4,6 +4,7 @@ about the watering rule; it is remembered per game in this browser; the ledger
 points do not scale with it, the game score does a little."""
 
 import pytest
+from .pagefiles import page_text
 
 ALL = ("blitz", "racer", "boutique", "cafe", "sprint", "pairs", "gaps", "listenpick", "wordorder")
 
@@ -178,7 +179,7 @@ def test_both_pages_have_the_difficulty_controls():
     from pathlib import Path
     root = Path(__file__).resolve().parent.parent
     for name in ("index.html", "pc.html"):
-        html = (root / name).read_text(encoding="utf-8")
+        html = page_text(name)
         for key in ALL:
             assert f'id="{key}-difficulty-select"' in html and f'id="{key}-difficulty-note"' in html, (name, key)
             assert f'id="{key}-waters"' in html, (name, key)

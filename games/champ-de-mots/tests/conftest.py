@@ -598,10 +598,22 @@ def _remove_pyodide_fakes():
     # genuinely fresh minigames module, exactly like "game" already gets.
     for name in ("js", "pyodide", "pyodide.ffi", "game", "minigames", "formats"):
         sys.modules.pop(name, None)
+    _forget_game_modules()
+
+
+def _forget_game_modules():
+    # game.py and minigames.py are split into champ_*.py modules next to them; each binds `document` and
+    # `create_proxy` from the fake `js`/`pyodide` at import and keeps its own module-level state, so every test
+    # needs fresh copies, exactly as it needs a fresh game.py.
+    for name, module in list(sys.modules.items()):
+        path = getattr(module, "__file__", None)
+        if path and Path(path).resolve().parent == GAME_DIR:
+            sys.modules.pop(name, None)
 
 
 def _load_game_env():
     elements = {id_: FakeElement(id_) for id_ in ELEMENT_IDS}
+    _forget_game_modules()
     _install_pyodide_fakes(elements)
 
     spec = importlib.util.spec_from_file_location("game", GAME_PY)

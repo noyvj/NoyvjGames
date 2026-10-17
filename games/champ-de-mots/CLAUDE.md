@@ -3,6 +3,88 @@
 
 ---
 
+## File map (read this before editing; the game is split into small files, 2026-10-18)
+
+The old single `game.py` (420 KB), `minigames.py` (144 KB), `index.html` and `style.css` were cut into files a small model can read whole. Nothing the AI may edit passes about 14,000 estimated tokens (bytes divided by 4) except `index.html` (about 75 KB of markup, capped by `tests/test_file_sizes.py`); that test fails if a file grows past its limit (the generated `pc.html` and `study-table.html`, `.json` data and this notes file are exempt). Behaviour did not change: every name the old `game.py` and `minigames.py` had is still `game.<name>` / `minigames.<name>`, saves are byte-identical, the page looks identical. To find a function, `grep -n "def name" champ_*.py`.
+
+**Python, the farm.** `game.py` is only the entry point: it imports the modules, re-exports every name (`game.get_state`, `game.render`, `game.FarmState` ... tests and the page use them) and calls `setup()`. The modules below are listed in dependency order (a module only imports from the ones before it). **The module list lives in two places that must match**: `_PART_NAMES` in `game.py` (and in `minigames.py` for the minigames' modules) and `CHAMP_PY_MODULES` at the top of `boot.js` (the page fetches each file and writes it into Pyodide's file system before it runs `game.py`); a new module also goes into `sw.js` and `offline-manifest.json`. `tests/test_module_list.py` checks the files on disk, the lists and the import order.
+
+| File | Size | What it holds, and when to ask for it |
+|------|------|---------------------------------------|
+| `champ_rules.py` | 8 KB | Le Champ de Mots' fixed numbers and small tables: the spaced-repetition constants, the growth stages, the file names, the practice-ledger modes and caps and the exam-planner defaults. Pure data. Ask for this file to change a number. |
+| `champ_runstate.py` | 13 KB | The live state: every module variable that gets REPLACED while playing (`current_question`, `review_queue`, `combo_count`, the panel-open flags ...), plus `LIVE_NAMES`. Ask for it to add a new rebound variable. |
+| `champ_catalog.py` | 5 KB | Loading the course data: the combined FREN151/FREN152 catalog, the supplementary notes (cultural notes, liaison questions, pronunciation risks) and the chapter titles. Read once when the game starts. |
+| `champ_model.py` | 13 KB | The farm itself: Plot, Row and FarmState (the plots, the spaced-repetition scheduler, the unlock chain), the one live `state`, and the plot-record helpers the save code uses. Ask for this file to change how a plot grows or is scheduled. |
+| `champ_qbuild.py` | 21 KB | Building questions: normalising answers, blanking a word, finding look-alike distractors, the pools they come from and variants_for() (which kinds of question a plot offers). |
+| `champ_questions.py` | 10 KB | generate_question(): turns a plot and a question kind into the prompt, choices and answer a player sees, plus the progressive choice-versus-typed schedule (wants_typed). |
+| `champ_grading.py` | 21 KB | Grading: the accepted spellings of an answer, strict and lenient tiers, the weeds look-alike table, the error-pattern digest and check_answer(). |
+| `champ_labels.py` | 7 KB | Fixed wording for the farm (stage icons and labels, legend and status messages, report button labels) and the failure feedback blurb. |
+| `champ_util.py` | 2 KB | Tiny helpers every panel uses: _element() (look up a page element), pref_get()/pref_set() (per-browser preferences) and the speech hooks speech_available()/speak_french(). |
+| `champ_stats.py` | 5 KB | Read-only counts over the farm: row mastery, weakest topics, days since last touch, stage distribution, automated plot counts and the topic/plot lookups the review and proficiency modes share. |
+| `champ_calendar.py` | 8 KB | The real calendar day (study_today), the study-days record and the study calendar panel. |
+| `champ_points.py` | 12 KB | The practice-progress ledger (record_practice and the header score), the study buddy, the golden plot of the day and the daily goals. Every practice mode feeds record_practice(). |
+| `champ_reportlog.py` | 5 KB | The 'My Reports' panel: a small dated feed of every report the player has sent (built on shared/narrative_log.py). |
+| `champ_watering.py` | 10 KB | The one watering rule (water_plot: the first correct answer for a plot each day waters it, a later one nudges it), today's tally, and the coins and plot skins that watering earns. |
+| `champ_growth.py` | 9 KB | Plot-growth credit: which practice surfaces grow plots, the 'Plot growth credited' lines and the markers on each panel. |
+| `champ_practice_base.py` | 4 KB | State shared by the practice panel and its helpers (the plot cells, the confidence tally, the per-row clean-run badge) and close_practice(). |
+| `champ_reports.py` | 6 KB | The 'I think this should count' and pronunciation-concern reports for the practice panel, and the helpers every other mode's report buttons reuse (payload shapes and the dispatch to the page). |
+| `champ_leech.py` | 9 KB | Stubborn plots (leeches): detecting and resting them, the re-teach lines, the session highlights and the weak-items CSV and Anki exports. |
+| `champ_semesters.py` | 10 KB | Semester bands on the farm: grouping the weeks under FREN151 and FREN152 headings, their progress and collapsing. |
+| `champ_arrange.py` | 9 KB | Farm filter and sort: which plots and weeks are shown, in what order, and the CSS classes and tooltip each plot cell gets. |
+| `champ_legend.py` | 15 KB | 'What the colours and icons mean': the list of every indicator on the farm and how a sample of each is drawn. |
+| `champ_water_pool.py` | 6 KB | Which plots each 'Water options' choice can water right now (next, week, topic, wilting, multiple choice, typed, listening) and the constants those sessions use. |
+| `champ_review_base.py` | 10 KB | The Review tab's settings and candidate lists: random word, grammar, marathon, cram and weak-spot candidates. |
+| `champ_review.py` | 20 KB | The Review tab: running a review session (start, answer, next, close), its report buttons, the shareable result and the Review panel's drawing. |
+| `champ_proficiency.py` | 14 KB | Weekly proficiency tests: building a test for a week, answering it, its report buttons and the panel's drawing. |
+| `champ_bonus.py` | 25 KB | Bonus sentence sections: order the tiles, translate each tile, translate the whole sentence; their report buttons and the panel's drawing. |
+| `champ_builder.py` | 7 KB | The freeform sentence builder: put the tiles of any unlocked week's bonus sentence in order. |
+| `champ_listening.py` | 7 KB | Listening practice: the browser's own voice reads a French sentence, the player picks what it means. |
+| `champ_conversation.py` | 13 KB | The conversation simulator: short scripted exchanges that chain phrases from several topics. |
+| `champ_placement.py` | 21 KB | The placement test: a mixed test over the whole syllabus that suggests where to start, plus applying its plan. |
+| `champ_examformats.py` | 7 KB | The exam practice formats panel (clock reading, true or false, rewriting, pronoun answers, reciprocal pronouns, pair questions). The questions themselves come from formats.py. |
+| `champ_phrasebook.py` | 5 KB | The personal phrasebook: bookmark plots, practise just that list. |
+| `champ_dashboard.py` | 15 KB | The progress dashboard, the spaced-repetition explainer, the grammar deep-dive and the cultural notes panel. |
+| `champ_liaison.py` | 8 KB | Liaison and elision practice: a short fixed quiz over hand-written questions. |
+| `champ_achievements.py` | 15 KB | Achievements (checks, progress, panel, unlock toast) and the in-game 'What's New' changelog panel. |
+| `champ_planner.py` | 12 KB | The exam planner: the exam date, minutes a day, the projection of how many plots will be automated, and the header countdown. |
+| `champ_accent.py` | 4 KB | The on-screen accent bar under each typed-answer box. |
+| `champ_prefs.py` | 2 KB | The two settings toggles: accent sensitivity and 'Always multiple choice' (plus the plain-words format schedule). |
+| `champ_shop.py` | 4 KB | The Farm shop panel (skins bought with coins). The coin rules live in champ_watering. |
+| `champ_practice.py` | 19 KB | The main practice panel: opening a plot, answering it, the Next plot and Next day buttons, slip forgiveness and the panel's drawing. |
+| `champ_wateropts.py` | 6 KB | The 'Water options' chooser: starting a session of the chosen kind, the listening buttons and the panel's drawing. |
+| `champ_farm.py` | 13 KB | The farm grid: building it once, drawing every plot cell and the header status tiles. |
+| `champ_renderer.py` | 3 KB | render(): the one function that redraws the whole page. It also hands render() to every earlier module that calls it. |
+| `champ_setup.py` | 18 KB | setup(): wires every button on the page to its handler, hands the farm to the minigames and draws the first screen. |
+| `champ_savegame.py` | 9 KB | Saving: get_state() and load_state() (the shared save widget's contract) and resume_note(). |
+| `game.py` | 6 KB | Entry point and wiring: the minigames/formats imports, the tick aliases the page calls by name, `_PART_NAMES`, the re-export loop, `_GameModule`, and the `setup()` call. Ask for it to add a module. |
+
+**Python, the arcade minigames** (`champ_minigames_*.py`, written by `minigames.py` the same way):
+
+| File | Size | What it holds, and when to ask for it |
+|------|------|---------------------------------------|
+| `champ_minigames_rules.py` | 1 KB | Tuning numbers for the five timed arcade games (durations, lives, base points, patience, combo steps). Pure data. |
+| `champ_minigames_runstate.py` | 8 KB | The minigames' live state: every minigame variable that gets REPLACED while playing (`blitz_active`, `racer_question`, `cafe_stage`, the wiring `_farm` ...), plus `LIVE_NAMES`. |
+| `champ_minigames_core.py` | 14 KB | Shared pieces of every minigame: the wiring game.py hands in (configure), growth credit and ledger helpers, the row-unlock checks, the difficulty setting, labels and the answer-area builder. |
+| `champ_minigames_blitz.py` | 14 KB | Greetings & Basics Blitz (weeks 1-11): a 60-second rapid-fire translation game with lives and a combo. |
+| `champ_minigames_racer.py` | 13 KB | Verb Racer (weeks 12-15): pick the right verb form to outrun a rival. |
+| `champ_minigames_boutique.py` | 17 KB | Boutique Dash (weeks 16-18): serve clothing orders before the customer's patience runs out. |
+| `champ_minigames_cafe.py` | 20 KB | Café Rush (weeks 19-23): serve food orders, with a passé composé twist every few customers. |
+| `champ_minigames_sprint.py` | 13 KB | Passé Composé Sprint (weeks 21-23): a timed fill-the-gap game with lives and a combo. |
+| `champ_minigames_arcade.py` | 9 KB | The base class the four newer games share (panel, start and close, timer, difficulty, summary) plus the speech hooks. |
+| `champ_minigames_games.py` | 24 KB | Word Match, Grammar Gaps, Listening Pick and Word Order Race, each a small subclass of the shared base class. |
+| `champ_minigames_amis.py` | 16 KB | Faux Amis: reading the false-friends list from the live page, caching it, and the game built on it. |
+| `champ_minigames_registry.py` | 8 KB | render() and setup() for all minigames, the list of newer games, the tick functions the page calls every second, and the 'water by minigame' helpers. |
+| `minigames.py` | 6 KB | Entry point of the arcade games: `_PART_NAMES`, the re-export loop and `_MinigamesModule`. `game.py` imports it and calls `configure()`, `configure_speech()` and `setup()` on it. |
+| `formats.py` | 20 KB | The exam practice formats' questions (pure, no page). Not split. |
+
+**State-handling rule.** A module variable that some function REPLACES (`current_question = ...`, `combo_count += 1`) lives only in `champ_runstate.py` (`champ_minigames_runstate.py` for the minigames) and every other module reads and writes it as `runstate.<name>` (each starts with `import champ_runstate as runstate`). Never `from champ_runstate import current_question`: that copies the name once and goes stale (a test checks this). Lists, dicts and sets that are only changed in place stay in the module that owns them. A new rebound variable goes into the state module AND its `LIVE_NAMES` tuple; `game.<name>` reads and writes of those names are forwarded to it. `render()` is defined in `champ_renderer.py` (after every panel's own `render_<panel>()`), so each earlier module that calls it holds a `render = None` placeholder that `champ_renderer.py` fills in when it loads; `minigames` has the same pattern with `champ_minigames_registry.py`. Tests that patch a name (`game_env.module.some_function = fake`) work: the module's `__setattr__` copies the new value into every module that holds that name.
+
+**Page.** `index.html` is the markup (about 75 KB: one page with some forty panels and no code left in it to move; the generated `pc.html` is the same page plus the Desktop shell, so never edit it). Its scripts are separate files loaded in the same order as before: `tutorial-steps.js` (the walkthrough text), `boot.js` (Pyodide boot, the module list and the one-second minigame tick), `page-hooks.js` (speech, preferences, real date, downloads, report sender), `toast-hook.js`, `result-copy.js`, `shortcuts.js`, plus the older `visual-style.js` and `pc.js`. The stylesheet is cut into ordered parts that must stay in this order (the order is the cascade): `style-1-base.css` (layout, status tiles, practice panel, the farm and its legend, info toggles), `style-2-panels.css` (the practice-panel upgrade: hero badges, question card, dashboard, achievements and toast, choice tiles, buttons), and last `style.css` (the console look, then the later additions: study calendar, phrasebook, planner, filters, accent bar, shop skins, semester bands, legend guide, exam formats; it holds the site-wide `[hidden] { display: none !important; }` rule that `shared/tests/test_hidden_attribute_rule.py` looks for, and `scripts/generate-pc-pages.py` anchors on its link). `minigames.css`, `visual-styles.css` and `pc.css` are unchanged. Put new rules in the part for their area. After changing `index.html`, `pc-config.json`, `pc.js` or `pc.css`, regenerate `pc.html` with `python3 scripts/generate-pc-pages.py`.
+
+**Tests read the pieces through `tests/pagefiles.py`:** `style_css()` (the three stylesheet parts), `page_text(page)` (the page plus every local script it loads), `game_source()` (`game.py` plus every `champ_*.py` of the farm) and `minigames_source()`, so a rule or function can move between files without breaking a test. `tests/conftest.py` forgets the `champ_*` modules between tests (each binds `document` and `create_proxy` from that test's fake `js`).
+
+---
+
 ## 1. Concept
 
 A farming/idle-management game where **plots = vocabulary and grammar points** from FREN151 and FREN152, planted and grown in the same order your syllabus teaches them. The healthier a plot, the less manual attention it needs — mirroring how spaced repetition works in real memory: shaky new knowledge needs constant watering, well-committed knowledge runs on autopilot.

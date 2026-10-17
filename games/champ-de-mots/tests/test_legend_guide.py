@@ -5,12 +5,13 @@ samples use the farm's own CSS classes, and these tests walk the other way: ever
 import json
 import re
 from pathlib import Path
+from .pagefiles import game_source, page_text, style_css
 
 GAME_DIR = Path(__file__).resolve().parent.parent
-HTML = (GAME_DIR / "index.html").read_text(encoding="utf-8")
-PC_HTML = (GAME_DIR / "pc.html").read_text(encoding="utf-8")
-CSS = "\n".join((GAME_DIR / name).read_text(encoding="utf-8") for name in ("style.css", "visual-styles.css", "minigames.css"))
-SOURCE = (GAME_DIR / "game.py").read_text(encoding="utf-8")
+HTML = page_text("index.html")
+PC_HTML = page_text("pc.html")
+CSS = style_css() + "\n" + "\n".join((GAME_DIR / name).read_text(encoding="utf-8") for name in ("visual-styles.css", "minigames.css"))
+SOURCE = game_source()
 CONFIG = json.loads((GAME_DIR / "pc-config.json").read_text(encoding="utf-8"))
 
 # Parts of a week row that are controls or layout, not indicators.
@@ -202,6 +203,6 @@ def test_markup_and_desktop_config_wire_the_guide(game_env):
 
 
 def test_the_new_css_has_no_motion():
-    css = (GAME_DIR / "style.css").read_text(encoding="utf-8")
+    css = style_css()
     block = css[css.index("LM-2: the colours-and-icons guide"):]
     assert "transition" not in block and "animation" not in block

@@ -1,9 +1,10 @@
 """L-20: the on-screen accent bar beside every typed-answer box."""
 
 import re
-from pathlib import Path
 
-HTML = (Path(__file__).resolve().parent.parent / "index.html").read_text(encoding="utf-8")
+from .pagefiles import page_text
+
+HTML = page_text("index.html")
 
 
 def _keys(env, bar_id):

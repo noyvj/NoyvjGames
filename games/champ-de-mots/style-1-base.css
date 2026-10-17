@@ -1,0 +1,687 @@
+/*
+ * Le Champ de Mots — the farm's own plant/plot iconography and growth-stage
+ * colours (Seed/Sprout/Budding/Blooming/Automated/Wilting, plus locked-row
+ * styling) are deliberately untouched below: those hues *mean* something
+ * (see this game's own CLAUDE.md, Milestone 2/4/6 build notes) and stay
+ * exactly as shipped. Everything else — panels, buttons, borders, the
+ * title — has been brought in line with the site-wide space theme (see
+ * `shared/space-bg.css`): a starfield/nebula sits behind the page, and the
+ * surrounding chrome now reads as translucent glass over it rather than
+ * solid paper-and-soil panels. The farm's own warm plant colours sitting
+ * inside cool violet-glass chrome is an intentional, slightly odd
+ * combination — the ask was a site-wide space pass, and the farm keeps its
+ * own identity underneath it.
+ *
+ * Everything here is still static by design (§8 / Milestone 7's tested
+ * constraint): stages are sprites and classes, never animated state changes,
+ * so any moment of the farm is a usable screenshot. Nothing motion-related
+ * was added anywhere in this file — hover states below change colour/filter
+ * outright, with no eased property changes.
+ */
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  background: transparent;
+  color: #eaeaf0;
+  display: flex;
+  justify-content: center;
+}
+
+#game {
+  width: 100%;
+  max-width: 900px;
+  padding: 1.5rem 1rem 4.5rem;
+}
+
+.hub-back-link {
+  color: #b9c3e8;
+  font-size: 0.8rem;
+  text-decoration: none;
+  opacity: 0.75;
+}
+
+.hub-back-link:hover {
+  opacity: 1;
+  text-decoration: underline;
+}
+
+h1 {
+  margin: 0.4rem 0 0.25rem;
+  font-size: 1.9rem;
+  letter-spacing: -0.01em;
+  font-weight: 600;
+  background: linear-gradient(120deg, #eaeaf0 20%, #a9c3ff 55%, #eaeaf0 80%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  text-shadow: 0 0 40px rgba(120, 150, 255, 0.25);
+  display: inline-block;
+}
+
+.tagline {
+  margin: 0 0 0.5rem;
+  color: #cfd2e6;
+  opacity: 0.75;
+  font-size: 0.95rem;
+}
+
+.context-blurb {
+  margin: 0 0 1.25rem;
+  padding: 0.6rem 0.75rem;
+  border-left: 3px solid #9bd67f;
+  background: linear-gradient(165deg, rgba(24, 27, 43, 0.7), rgba(14, 16, 28, 0.78));
+  border-radius: 0 10px 10px 0;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  font-size: 0.82rem;
+  color: #cfd2e6;
+}
+
+.section {
+  background: linear-gradient(165deg, rgba(24, 27, 43, 0.78), rgba(14, 16, 28, 0.85));
+  border: 1px solid rgba(140, 160, 255, 0.14);
+  border-radius: 16px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  box-shadow: 0 10px 36px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+.status-line {
+  margin: 0 0 0.35rem;
+  font-size: 0.95rem;
+}
+
+.status-line--due {
+  font-weight: 600;
+  color: #9bd67f;
+  text-shadow: 0 0 16px rgba(155, 214, 127, 0.3);
+}
+
+.status-line--muted {
+  font-size: 0.82rem;
+  color: #cfd2e6;
+  opacity: 0.7;
+}
+
+.row-proficiency-button,
+.row-bonus-button {
+  font-size: 0.7rem;
+  padding: 0.3rem 0.5rem;
+}
+
+.bonus-tile-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  min-height: 2.2rem;
+  margin: 0.4rem 0;
+}
+
+.bonus-tile {
+  font-family: inherit;
+  font-size: 0.85rem;
+  padding: 0.4rem 0.6rem;
+  border-radius: 8px;
+  border: 1px solid rgba(140, 160, 255, 0.18);
+  background: linear-gradient(135deg, #3a4d68, #232f42);
+  color: #eaeaf0;
+  cursor: pointer;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.bonus-tile:hover {
+  filter: brightness(1.12);
+}
+
+.bonus-tile--placed {
+  background: linear-gradient(135deg, #232f42, #171e2c);
+  cursor: default;
+}
+
+.bonus-tile--placed:hover {
+  filter: none;
+}
+
+.proficiency-topic-breakdown {
+  margin-top: 0.4rem;
+}
+
+.proficiency-topic-line {
+  margin: 0.2rem 0;
+  font-size: 0.8rem;
+  color: #cfd2e6;
+  opacity: 0.75;
+}
+
+.review-section .status-line--muted {
+  margin-bottom: 0.6rem;
+}
+
+.review-setting {
+  display: block;
+  font-size: 0.8rem;
+  color: #cfd2e6;
+  opacity: 0.75;
+  margin-top: 0.6rem;
+}
+
+.review-setting input,
+.review-setting select {
+  display: block;
+  margin-top: 0.25rem;
+  font-family: inherit;
+  font-size: 0.85rem;
+  padding: 0.3rem 0.4rem;
+  border-radius: 8px;
+  border: 1px solid rgba(140, 160, 255, 0.18);
+  background: rgba(5, 6, 13, 0.4);
+  color: #eaeaf0;
+}
+
+.controls {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.8rem;
+  flex-wrap: wrap;
+}
+
+.accent-toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-top: 0.7rem;
+  font-size: 0.8rem;
+  color: #cfd2e6;
+  opacity: 0.75;
+}
+
+button {
+  font-family: inherit;
+  cursor: pointer;
+  border-radius: 9px;
+  border: 1px solid transparent;
+  padding: 0.55rem 0.9rem;
+  font-size: 0.88rem;
+  -webkit-tap-highlight-color: transparent;
+}
+
+button:disabled {
+  cursor: default;
+  opacity: 0.55;
+}
+
+.primary {
+  background: linear-gradient(135deg, #6f9945, #47612b);
+  color: #fbf8f1;
+  border-color: rgba(140, 160, 255, 0.14);
+  box-shadow: 0 4px 16px rgba(71, 97, 43, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.12);
+}
+
+.primary:hover:not(:disabled) {
+  filter: brightness(1.1);
+}
+
+.secondary {
+  background: linear-gradient(135deg, #3a4d68, #232f42);
+  color: #eaeaf0;
+  border-color: rgba(140, 160, 255, 0.18);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.secondary:hover:not(:disabled) {
+  filter: brightness(1.12);
+}
+
+/* --- practice panel ------------------------------------------------------ */
+
+.practice {
+  border-color: rgba(163, 181, 122, 0.35);
+  background: linear-gradient(165deg, rgba(26, 31, 27, 0.8), rgba(14, 17, 14, 0.85));
+}
+
+.practice-context {
+  margin: 0 0 0.5rem;
+  font-size: 0.74rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #cfd2e6;
+  opacity: 0.7;
+}
+
+.practice-instruction {
+  margin: 0 0 0.4rem;
+  font-size: 0.85rem;
+  color: #cfd2e6;
+  opacity: 0.8;
+}
+
+.practice-prompt {
+  margin: 0 0 0.6rem;
+  font-size: 1.5rem;
+  line-height: 1.3;
+  font-weight: 600;
+  color: #eaeaf0;
+}
+
+.practice-note {
+  margin: 0 0 0.7rem;
+  padding: 0.5rem 0.6rem;
+  background: rgba(5, 6, 13, 0.4);
+  border: 1px solid rgba(140, 160, 255, 0.12);
+  border-radius: 8px;
+  font-size: 0.78rem;
+  color: #cfd2e6;
+  opacity: 0.85;
+}
+
+.practice-blurb {
+  margin: 0.75rem 0 0;
+  padding: 0.6rem 0.7rem;
+  background: rgba(5, 6, 13, 0.4);
+  border: 1px solid rgba(140, 160, 255, 0.16);
+  border-radius: 8px;
+}
+
+.practice-blurb-line {
+  margin: 0.25rem 0;
+  font-size: 0.8rem;
+  color: #cfd2e6;
+  opacity: 0.85;
+}
+
+.practice-choices {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 0.5rem;
+}
+
+.choice {
+  background: linear-gradient(135deg, #3a4d68, #232f42);
+  border: 1px solid rgba(140, 160, 255, 0.18);
+  color: #eaeaf0;
+  text-align: left;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+.choice:hover:not(:disabled) {
+  filter: brightness(1.12);
+}
+
+.choice--answer {
+  background: linear-gradient(135deg, rgba(163, 181, 122, 0.4), rgba(79, 107, 47, 0.4));
+  border-color: #a3b57a;
+  color: #eaeaf0;
+  font-weight: 600;
+  box-shadow: 0 0 12px rgba(163, 181, 122, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.practice-input {
+  width: 100%;
+  margin-top: 0.2rem;
+  padding: 0.6rem;
+  font-size: 1rem;
+  font-family: inherit;
+  border: 1px solid rgba(140, 160, 255, 0.18);
+  border-radius: 8px;
+  background: rgba(5, 6, 13, 0.4);
+  color: #eaeaf0;
+}
+
+.practice-input + .secondary {
+  margin-top: 0.5rem;
+}
+
+.practice-feedback {
+  margin: 0.75rem 0 0;
+  font-size: 0.9rem;
+  color: #9bd67f;
+  min-height: 1.2em;
+}
+
+.practice-report {
+  margin-top: 0.5rem;
+  display: block;
+}
+
+.practice-close {
+  margin-top: 0.75rem;
+}
+
+/* --- legend and farm ----------------------------------------------------- */
+
+.legend {
+  margin: 0 0 0.9rem;
+  font-size: 0.72rem;
+  line-height: 1.7;
+  color: #cfd2e6;
+  opacity: 0.7;
+}
+
+.farm {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+}
+
+.row {
+  background: linear-gradient(165deg, rgba(24, 27, 43, 0.72), rgba(14, 16, 28, 0.8));
+  border: 1px solid rgba(140, 160, 255, 0.14);
+  border-radius: 12px;
+  padding: 0.55rem 0.7rem 0.65rem;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.03);
+}
+
+.row-head {
+  display: flex;
+  align-items: baseline;
+  gap: 0.6rem;
+  margin-bottom: 0.4rem;
+  flex-wrap: wrap;
+}
+
+.row-label {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #eaeaf0;
+}
+
+.row-chapter {
+  font-size: 0.72rem;
+  color: #cfd2e6;
+  opacity: 0.7;
+  flex: 1;
+}
+
+.row-progress {
+  font-size: 0.7rem;
+  color: #cfd2e6;
+  opacity: 0.7;
+  font-variant-numeric: tabular-nums;
+}
+
+/* A locked row is quiet, not scolding — it just isn't planted yet. Same
+   dashed/faded language as before, re-skinned into the violet-glass chrome
+   rather than the old warm palette; the distinctness itself is unchanged. */
+.row--locked {
+  background: linear-gradient(165deg, rgba(14, 16, 24, 0.6), rgba(9, 10, 17, 0.68));
+  border-style: dashed;
+  border-color: rgba(140, 160, 255, 0.22);
+  box-shadow: none;
+}
+
+.stage-summary {
+  font-size: 0.95rem;
+  letter-spacing: 0.02em;
+  font-variant-numeric: tabular-nums;
+  color: #eaeaf0;
+}
+
+.row-due {
+  font-size: 0.68rem;
+  color: #9bd67f;
+  font-variant-numeric: tabular-nums;
+}
+
+.row-lock {
+  font-size: 0.68rem;
+  color: #cfd2e6;
+  opacity: 0.6;
+  font-style: italic;
+}
+
+/* L28: a small, session-only badge for a row answered perfectly (every
+   plot correct, no misses) this session -- gold, matching this game's
+   existing warm/positive accent language elsewhere rather than inventing
+   a new colour. Text-labelled, not colour-only. */
+.row-perfect-badge {
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: #e0c24c;
+}
+
+.row-plots {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3px;
+}
+
+/*
+ * Plot stage colours below are the farm's own state-encoding and are left
+ * completely unchanged — see this game's CLAUDE.md (Milestone 2, 4, 6):
+ * Seed/Sprout/Budding/Blooming/Automated/Wilting are each visually distinct
+ * on purpose, and locked-plot styling is equally deliberate. Only the
+ * chrome around the farm changed in this pass, never these.
+ */
+
+/* One plot = one fact. Small enough that a whole 23-week syllabus fits on
+   screen at once, which is the point of the farm view. */
+.plot {
+  width: 25px;
+  height: 25px;
+  padding: 0;
+  font-size: 13px;
+  line-height: 1;
+  border-radius: 5px;
+  border: 1px solid #e0d6c2;
+  background: #efe7d7;
+}
+
+.plot--seed {
+  background: #e8dcc6;
+}
+
+.plot--sprout {
+  background: #e2ecd2;
+  border-color: #c3d6a6;
+}
+
+.plot--budding {
+  background: #d3e5bc;
+  border-color: #aac98a;
+}
+
+.plot--blooming {
+  background: #c4dea8;
+  border-color: #94bd6e;
+}
+
+.plot--automated {
+  background: #b6d792;
+  border-color: #7ba756;
+  position: relative;
+}
+
+/* The sprinkler on an automated plot. A cell this small can't carry a second
+   emoji next to the plant, so the auto-waterer is a drop of water in the
+   corner instead — and the tooltip says so in words. */
+.plot--automated::after {
+  content: "";
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #4a86c4;
+}
+
+/* Overdue, not failing: a droop and some colour drained out, nothing more. */
+.plot--wilting {
+  filter: grayscale(0.55);
+  transform: rotate(6deg);
+}
+
+/* Improvement Ideas §2: a known French mix-up (weeds), flagged instead of
+   ordinary wilting for this specific plot -- same corner-dot technique as
+   the automated sprinkler, opposite corner so the two can coexist, in an
+   olive/amber "weeds" tone rather than automated's blue. */
+.plot--weeds {
+  position: relative;
+}
+
+.plot--weeds::after {
+  content: "";
+  position: absolute;
+  bottom: 2px;
+  left: 2px;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #8a7a2e;
+}
+
+.plot--due {
+  box-shadow: inset 0 0 0 1px #b9a77f;
+}
+
+.plot--locked {
+  opacity: 0.35;
+  filter: grayscale(1);
+}
+
+/*
+ * Icon labels — pure CSS, no markup/game.py change (same technique as
+ * games/sol/style.css's "Icon labels" section). This game's plant-growth
+ * sprites (🟤🌱🌿🌷🌻) and locked-row dashed-border/faded treatment are
+ * completely untouched — everything below targets the *other* plain-text
+ * UI (the water counter, the practice/review/proficiency/bonus panels, the
+ * report button, row-header entry points) so it reads as less of a plain
+ * text form and more like a farm. Nothing below moves or eases in any way
+ * — this game's own test suite forbids any motion CSS (Milestone 7's
+ * static-screenshot constraint) and a bare `content:` string is not motion.
+ */
+.status-line--due::before {
+  content: "💧 ";
+}
+
+.row-due::before {
+  content: "💧 ";
+}
+
+#water-next-button::before {
+  content: "💧 ";
+}
+
+#practice-prompt::before {
+  content: "📖 ";
+}
+
+#practice-report-button::before {
+  content: "🚩 ";
+}
+
+#review-toggle-button::before,
+#review-word-button::before,
+#review-grammar-button::before {
+  content: "🔁 ";
+}
+
+.row-proficiency-button::before {
+  content: "📝 ";
+}
+
+.row-bonus-button::before {
+  content: "🧩 ";
+}
+
+.row-lock::before {
+  content: "🔒 ";
+}
+
+/* The water counters read better as small chips than bare coloured text —
+   same rounded/padded/bordered treatment, no layout change, no new
+   elements. Colours reuse the existing due-green already used above. */
+.status-line--due {
+  display: inline-block;
+  padding: 0.3rem 0.7rem;
+  border-radius: 999px;
+  background: rgba(155, 214, 127, 0.12);
+  border: 1px solid rgba(155, 214, 127, 0.35);
+}
+
+.row-due {
+  padding: 0.1rem 0.45rem;
+  border-radius: 999px;
+  background: rgba(155, 214, 127, 0.14);
+  border: 1px solid rgba(155, 214, 127, 0.35);
+}
+
+@media (max-width: 600px) {
+  .plot {
+    width: 21px;
+    height: 21px;
+    font-size: 11px;
+  }
+
+  .practice-prompt {
+    font-size: 1.25rem;
+  }
+}
+
+/* Info toggles — plain <details>/<summary>, zero JS. For a mechanic that
+   isn't self-explanatory from its label alone (what does the accent toggle
+   actually change? what does "wilting" cost you?), a small "i" disclosure
+   sits next to the label; clicking it reveals a short plain-language
+   explanation, collapsed by default so it never competes with the farm for
+   attention. Native <details> handles open/closed state entirely in the
+   browser — no proxy, no event handler, no game.py involvement at all.
+   Colours reuse this file's existing violet-glass palette (see the
+   site-wide space-theme note at the top of this file) rather than
+   introducing new ones, and nothing here animates — same static-only rule
+   as the rest of this stylesheet. */
+.info-toggle {
+  display: inline-block;
+  margin-left: 0.4rem;
+  vertical-align: middle;
+}
+
+.info-toggle summary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.1rem;
+  height: 1.1rem;
+  border-radius: 50%;
+  background: rgba(140, 160, 255, 0.16);
+  border: 1px solid rgba(140, 160, 255, 0.3);
+  color: #cdd8ff;
+  font-size: 0.68rem;
+  font-weight: 700;
+  cursor: pointer;
+  list-style: none;
+  user-select: none;
+}
+
+.info-toggle summary::-webkit-details-marker {
+  display: none;
+}
+
+.info-toggle summary:hover {
+  background: rgba(140, 160, 255, 0.28);
+}
+
+.info-toggle[open] summary {
+  background: rgba(140, 160, 255, 0.32);
+}
+
+.info-toggle p {
+  text-align: left;
+  font-size: 0.78rem;
+  font-weight: 400;
+  opacity: 0.85;
+  line-height: 1.5;
+  margin: 0.5rem 0 0;
+  padding: 0.6rem 0.75rem;
+  background: rgba(5, 6, 13, 0.5);
+  border: 1px solid rgba(140, 160, 255, 0.14);
+  border-radius: 8px;
+}

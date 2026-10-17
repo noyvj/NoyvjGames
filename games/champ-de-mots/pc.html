@@ -72,6 +72,8 @@
 </script>
 <link rel="icon" type="image/svg+xml" href="../../icons/favicon-champ-de-mots.svg">
 <link rel="stylesheet" href="../../shared/ambient-bg.css">
+<link rel="stylesheet" href="style-1-base.css">
+<link rel="stylesheet" href="style-2-panels.css">
 <link rel="stylesheet" href="style.css">
 <link rel="stylesheet" href="../../shared/pc-shell.css">
 <link rel="stylesheet" href="pc.css">
@@ -764,18 +766,7 @@
         <p id="review-summary" class="status-line" hidden></p>
         <div id="result-copy-review" hidden>
           <div id="result-copy"></div>
-          <script>
-            (function () {
-              function resultFields() {
-                try {
-                  var f = window.pyodide && window.pyodide.globals.get("share_result");
-                  if (f) { var text = f(); if (f.destroy) f.destroy(); return JSON.parse(text); }
-                } catch (e) { /* engine not ready */ }
-                return {};
-              }
-              if (window.NoyvjCopyResult) NoyvjCopyResult.mountButton("#result-copy", { getResult: resultFields });
-            })();
-          </script>
+          <script src="result-copy.js"></script>
         </div>
         <button id="review-next-button" class="secondary" hidden>Next</button>
         <button id="review-close-button" class="secondary practice-close">Close review</button>
@@ -1027,66 +1018,7 @@
     dropped rather than shown as an error, since it's a "let a human know"
     nicety, not core gameplay.
   -->
-  <script>
-    // L7a: the real calendar date (device-local, YYYY-MM-DD) for the study
-    // calendar. game.py may not touch a clock itself, so it asks here.
-    // L9: French speech via the browser's own voices; no audio files.
-    window.champSpeechAvailable = function () {
-      return "speechSynthesis" in window && typeof SpeechSynthesisUtterance === "function";
-    };
-    window.champSpeak = function (text, slow) {
-      if (!window.champSpeechAvailable()) return;
-      try {
-        window.speechSynthesis.cancel();
-        const utterance = new SpeechSynthesisUtterance(String(text));
-        utterance.lang = "fr-FR";
-        const voice = window.speechSynthesis.getVoices().find((v) => (v.lang || "").toLowerCase().startsWith("fr"));
-        if (voice) utterance.voice = voice;
-        utterance.rate = slow ? 0.6 : 0.9;
-        window.speechSynthesis.speak(utterance);
-      } catch (e) { /* speech is a nicety; never break the game */ }
-    };
-    // Per-browser preferences (the Always multiple choice setting and every
-    // minigame's difficulty). Not part of the save code; failures are silent.
-    window.champPrefGet = function (key) {
-      try { return window.localStorage.getItem(String(key)); } catch (e) { return null; }
-    };
-    window.champPrefSet = function (key, value) {
-      try { window.localStorage.setItem(String(key), String(value)); } catch (e) { /* a nicety */ }
-    };
-    window.studyToday = function () {
-      const d = new Date();
-      const pad = (n) => String(n).padStart(2, "0");
-      return d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate());
-    };
-    window.championFetchText = function (url) {
-      // Faux Amis: reads the live public list (a GET only; nothing is ever sent).
-      return fetch(url, { credentials: "omit" }).then(function (r) {
-        if (!r.ok) throw new Error("HTTP " + r.status);
-        return r.text();
-      });
-    };
-    window.championDownload = function (filename, text, mime) {
-      try {
-        const blob = new Blob([text], { type: mime + ";charset=utf-8" });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = filename;
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
-        setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
-      } catch (e) { /* a download is a nicety; never break the game */ }
-    };
-    window.submitAnswerReport = function (jsonPayload) {
-      fetch("https://noyvjgames.fastapicloud.dev/answer-reports", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: jsonPayload,
-      }).catch(function () {});
-    };
-  </script>
+  <script src="page-hooks.js"></script>
   <!--
     Achievements retrofit: the unlock toast's auto-hide delay is scheduled
     from here rather than from a Python setTimeout/setInterval call, because
@@ -1099,206 +1031,9 @@
     hide, same Python-decides/JS-owns-timing split as the report sender
     above and the minigame tick loop below.
   -->
-  <script>
-    window.scheduleAchievementToastHide = function (ms) {
-      clearTimeout(window._achievementToastTimer);
-      window._achievementToastTimer = setTimeout(function () {
-        const toast = document.getElementById("achievement-toast");
-        if (!toast) return;
-        toast.classList.remove("achievement-toast--visible");
-        toast.hidden = true;
-      }, ms);
-    };
-  </script>
-  <script>
-    const CHAMP_DE_MOTS_TUTORIAL_STEPS = [
-      {
-        title: "Welcome to Le Champ de Mots",
-        text: "This farm is your FREN151/152 syllabus, laid out one continuous field — every plot is a vocabulary word, phrase, or grammar rule, planted in the order your course teaches it. This quick walkthrough covers how it works — skip it any time, and reopen it later from the Tutorial button up top.",
-      },
-      {
-        selector: "#farm",
-        title: "The Farm",
-        text: "Each row is one taught week, running straight from FREN151 into FREN152. A new row only unlocks once every plot in the previous row has grown to at least Sprout, so the farm's pace stays roughly matched to real syllabus progress instead of letting you plant everything at once.",
-      },
-      {
-        selector: "#water-next-button",
-        title: "Watering a Plot",
-        text: "Click this to water whichever plot is due next — a quick recall prompt (translate, fill-in-the-blank, or multiple choice, depending on the plot). You can also click any individual plot in the grid directly to water that one instead. Water options beside it lists other ways to choose: a week, a topic, the wilting plots, quick multiple choice, typing, listening or a minigame. The first correct answer for a plot each day waters it; later ones that day only nudge it.",
-      },
-      {
-        selector: ".accent-toggle",
-        title: "Accent Sensitivity",
-        text: "This toggle decides whether your typed answers need exact accents (é, è, ç) to count, or whether accents are ignored. It only affects typed answers — multiple-choice questions are unaffected either way.",
-      },
-      {
-        selector: "#legend",
-        title: "Growth Stages",
-        text: "A plot climbs from Seed to Sprout to Budding to Blooming to Automated as it's recalled correctly over spaced-out visits — Automated plots need only rare maintenance checks. A plot that's gone overdue for review just droops a little; that's a gentle nudge, not a penalty, and one correct answer clears it. The ? Colours and icons button beside the farm lists every other mark you can see.",
-      },
-      {
-        selector: "#next-day-button",
-        title: "Advancing the Day",
-        text: "Time here only moves when you click this — there's no real clock running in the background. Advancing the day is what makes spaced-out reviews come due, so move the farm forward at whatever pace suits you.",
-      },
-      {
-        selector: ".row-proficiency-button",
-        title: "Weekly Proficiency Tests",
-        text: "Every unlocked week has its own proficiency test button on its row header — a longer, one-off quiz covering everything taught that week. It's purely informational: taking it never changes any plot's growth or schedule.",
-      },
-      {
-        selector: ".row-bonus-button",
-        title: "Bonus Sentence Sections",
-        text: "Each week also offers a bonus sentence-building section: order the word tiles, translate each tile, then translate the whole sentence. It's optional extra practice, built only from that week's own vocabulary and grammar.",
-      },
-      {
-        selector: "#review-section",
-        title: "Review Tab",
-        text: "Opt-in cross-section practice — Random Word Review and Grammar Review pull questions from any unlocked week, filtered to a minimum growth stage you choose. The first correct answer for a plot each day waters it fully, and further correct answers that day only nudge it. A wrong answer changes nothing.",
-      },
-      {
-        title: "You're ready",
-        text: "That's the whole field: water what's due, let accurate recall grow each plant and stretch out its interval, and advance the day at your own pace. Nothing here is punishing — a plot can droop, but it never dies, and there's no score being kept against you. Good luck out there.",
-      },
-    ];
-
-    async function main() {
-      const pyodide = await loadPyodide();
-      window.pyodide = pyodide; // exposed for the shared save widget
-      // The catalog is handed to Python as a window global rather than read
-      // from the Pyodide filesystem — no build step, one fetch, and the
-      // pytest harness can stand in for it with the same attribute.
-      const [
-        catalogJson,
-        supplementaryNotesJson,
-        achievementsJson,
-        changelogJson,
-        minigamesCode,
-        formatsCode,
-        narrativeLogCode,
-        code,
-      ] = await Promise.all([
-        fetch("fren_combined_catalog.json").then((response) => response.text()),
-        fetch("fren_supplementary_notes.json").then((response) => response.text()),
-        fetch("achievements.json").then((response) => response.text()),
-        fetch("changelog.json").then((response) => response.text()),
-        fetch("minigames.py").then((response) => response.text()),
-        fetch("formats.py").then((response) => response.text()),
-        // Shared narrative-log widget (Z11, see shared/narrative_log.py):
-        // this game's "My Reports" panel is the third integration, after
-        // Continuum's own Chronicle and Thaw's scientist's log. Written
-        // into the Pyodide filesystem the same way minigames.py is below,
-        // so game.py's `import narrative_log` resolves normally.
-        fetch("../../shared/narrative_log.py").then((response) => response.text()),
-        fetch("game.py").then((response) => response.text()),
-      ]);
-      window.CATALOG_JSON = catalogJson;
-      window.SUPPLEMENTARY_NOTES_JSON = supplementaryNotesJson;
-      // ACHIEVEMENTS-SYSTEM-DESIGN.md §2: achievements.json is the single
-      // source of truth for this game's achievement catalog, read from
-      // Python the same way the catalog/supplementary-notes files already
-      // are (_read_json_asset()'s window-global-then-filesystem-fallback).
-      window.ACHIEVEMENTS_JSON = achievementsJson;
-      // "What's New" changelog panel (origin K16): same loading contract,
-      // one more window global handed to game.py's _read_json_asset().
-      window.CHANGELOG_JSON = changelogJson;
-      // Milestones 27-30: the arcade minigame family is its own importable
-      // module (see minigames.py's own docstring), not JSON data -- writing
-      // its source onto Pyodide's virtual filesystem before running game.py
-      // is what makes game.py's own `import minigames` resolve normally in
-      // the browser, the same way it already resolves under pytest via a
-      // real file on disk.
-      pyodide.FS.writeFile("minigames.py", minigamesCode);
-      pyodide.FS.writeFile("formats.py", formatsCode);
-      pyodide.FS.writeFile("narrative_log.py", narrativeLogCode);
-      await pyodide.runPythonAsync(code);
-
-      // Milestones 27-30: each minigame's on-screen countdown is Python
-      // state (a plain counter), never a Python clock -- see minigames.py's
-      // own docstring. This is the one JS-owned setInterval that actually
-      // drives real-world timing for all of them; every tick function is a
-      // documented no-op whenever that particular minigame isn't an active
-      // running session, so ticking all of them once a second here (rather
-      // than starting/stopping a separate interval per game) is harmless.
-      // shared/pause-hidden.js sets this while the tab is hidden: the whole
-      // one-second tick (and so every countdown) is held, never caught up.
-      window.CHAMP_MINIGAMES_HELD = false;
-      setInterval(() => {
-        if (window.CHAMP_MINIGAMES_HELD) return;
-        const blitzTick = pyodide.globals.get("blitz_tick");
-        if (blitzTick) blitzTick();
-        const sprintTick = pyodide.globals.get("sprint_tick");
-        if (sprintTick) sprintTick();
-        const racerTick = pyodide.globals.get("racer_tick");
-        if (racerTick) racerTick();
-        const boutiqueTick = pyodide.globals.get("boutique_tick");
-        if (boutiqueTick) boutiqueTick();
-        const cafeTick = pyodide.globals.get("cafe_tick");
-        if (cafeTick) cafeTick();
-        for (const name of ["pairs_tick", "gaps_tick", "listenpick_tick", "wordorder_tick", "amis_tick"]) {
-          const tick = pyodide.globals.get(name);
-          if (tick) tick();
-        }
-      }, 1000);
-
-      // Z-28: hold the countdowns while the tab is hidden. pause() reports
-      // whether a timed run was actually in progress (then the return note
-      // shows); the tick maths itself is untouched.
-      if (window.NoyvjPauseHidden) {
-        window.NoyvjPauseHidden.init({
-          gameId: "champ-de-mots",
-          hooks: {
-            pause: function () {
-              window.CHAMP_MINIGAMES_HELD = true;
-              try {
-                const running = pyodide.globals.get("minigame_run_active");
-                if (!running) return false;
-                const yes = !!running();
-                if (running.destroy) running.destroy();
-                return yes;
-              } catch (e) { return false; }
-            },
-            resume: function () { window.CHAMP_MINIGAMES_HELD = false; },
-          },
-        });
-      }
-
-      // The first-run visual-style picker (visual-style.js) goes first; the
-      // tutorial only starts once it has been answered or skipped.
-      const startTutorial = function () {
-        if (window.GameTutorial) {
-          GameTutorial.init(window.CHAMP_DE_MOTS_PC_TUTORIAL_STEPS || CHAMP_DE_MOTS_TUTORIAL_STEPS, { gameId: "champ-de-mots" });
-        }
-      };
-      if (window.ChampDeMotsVisualStyle) {
-        window.ChampDeMotsVisualStyle.whenPickerDone(startTutorial);
-      } else {
-        startTutorial();
-      }
-      if (window.MobileHud) {
-        MobileHud.init([
-          { selector: "#day-display", label: "Day" },
-          { selector: "#due-display", label: "Ready" },
-        ]);
-      }
-      // shared/mobile-dock.js: the farm grid (#farm, 722 cells) sits far
-      // below every panel that reacts to a plot/row click -- practice
-      // questions, proficiency tests and bonus sections are all opened
-      // from something inside #farm but rendered near the top of the
-      // page. Docking all three to a fixed bottom bar on narrow screens
-      // keeps water/answer/close reachable without scrolling between the
-      // farm and the panel, same pattern Canopy already established for
-      // its #action-panel. #review-panel is deliberately left out: its
-      // own trigger buttons already live inside #review-section right
-      // next to it, so there's no far-apart pair to fix there.
-      if (window.MobileDock) {
-        MobileDock.init("#practice-panel");
-        MobileDock.init("#proficiency-panel");
-        MobileDock.init("#bonus-panel");
-      }
-    }
-    main();
-  </script>
+  <script src="toast-hook.js"></script>
+  <script src="tutorial-steps.js"></script>
+  <script src="boot.js"></script>
   <!--
     SAVE-BUTTON-INTEGRATION.md: shared save widget, the same drop-in every
     game uses. game.py exposes get_state()/load_state(); the widget itself is
@@ -1316,37 +1051,7 @@
   <!-- Z4 (site-wide goal): "?" shows a keyboard-shortcuts help overlay,
        Esc closes whichever panel is open. See shared/keyboard-shortcuts.js. -->
   <script src="../../shared/keyboard-shortcuts.js"></script>
-  <script>
-    window.KeyboardShortcuts.init({
-      panels: [
-        { toggle: "howto-toggle-button", panel: "howto-panel" },
-        { toggle: "settings-toggle-button", panel: "settings-panel" },
-        { toggle: "dashboard-toggle-button", panel: "dashboard-panel" },
-        { toggle: "calendar-toggle-button", panel: "calendar-panel" },
-        { toggle: "planner-toggle-button", panel: "planner-panel" },
-        { toggle: "phrasebook-toggle-button", panel: "phrasebook-panel" },
-        { toggle: "achievements-toggle-button", panel: "achievements-panel" },
-        { toggle: "changelog-toggle-button", panel: "changelog-panel" },
-        { toggle: "legend-toggle-button", panel: "legend-panel" },
-        { toggle: "report-log-toggle-button", panel: "report-log-panel" },
-        { toggle: "blitz-toggle-button", panel: "blitz-panel" },
-        { toggle: "racer-toggle-button", panel: "racer-panel" },
-        { toggle: "boutique-toggle-button", panel: "boutique-panel" },
-        { toggle: "cafe-toggle-button", panel: "cafe-panel" },
-        { toggle: "sprint-toggle-button", panel: "sprint-panel" },
-        { toggle: "pairs-toggle-button", panel: "pairs-panel" },
-        { toggle: "gaps-toggle-button", panel: "gaps-panel" },
-        { toggle: "listenpick-toggle-button", panel: "listenpick-panel" },
-        { toggle: "wordorder-toggle-button", panel: "wordorder-panel" },
-        { toggle: "amis-toggle-button", panel: "amis-panel" },
-        { toggle: "water-options-toggle-button", panel: "water-options-panel" },
-        { toggle: "shop-toggle-button", panel: "shop-panel" },
-        { toggle: "liaison-toggle-button", panel: "liaison-panel" },
-        { toggle: "review-toggle-button", panel: "review-panel" },
-        { toggle: "cultural-notes-toggle-button", panel: "cultural-notes-panel" },
-      ],
-    });
-  </script>
+  <script src="shortcuts.js"></script>
   <script>
     if ("serviceWorker" in navigator) {
       navigator.serviceWorker.register("../../sw.js");
