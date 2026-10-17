@@ -2,7 +2,7 @@
 // the precache list; ordinary content deploys don't need it, because
 // same-origin requests are network-first (see the fetch handler below) and
 // so always pick up fresh files whenever the player is online.
-const SW_VERSION = 70;
+const SW_VERSION = 71;
 const CACHE_NAME = "site-cache-v" + SW_VERSION;
 // How long a same-origin network request may take before we give up and
 // serve the cached copy instead (a slow/flaky connection shouldn't hang).
@@ -125,6 +125,45 @@ const PRECACHE_URLS = [
   "games/sol/index.html",
   "games/sol/style.css",
   "games/sol/game.py",
+  "games/sol/boot.js",
+  "games/sol/compare.js",
+  "games/sol/copy-wiring.js",
+  "games/sol/goals-mount.js",
+  "games/sol/hold-repeat.js",
+  "games/sol/settings.js",
+  "games/sol/shortcuts.js",
+  "games/sol/sol_achievements.py",
+  "games/sol/sol_actions.py",
+  "games/sol/sol_capsules.py",
+  "games/sol/sol_charter.py",
+  "games/sol/sol_charter_panel.py",
+  "games/sol/sol_codex.py",
+  "games/sol/sol_doctrines.py",
+  "games/sol/sol_econ.py",
+  "games/sol/sol_ghost.py",
+  "games/sol/sol_handlers.py",
+  "games/sol/sol_headless.py",
+  "games/sol/sol_observatory.py",
+  "games/sol/sol_overview.py",
+  "games/sol/sol_panels.py",
+  "games/sol/sol_planner.py",
+  "games/sol/sol_rhythm.py",
+  "games/sol/sol_rules.py",
+  "games/sol/sol_run.py",
+  "games/sol/sol_runmods.py",
+  "games/sol/sol_runstate.py",
+  "games/sol/sol_savestate.py",
+  "games/sol/sol_scarcity.py",
+  "games/sol/sol_scarcity_panel.py",
+  "games/sol/sol_scarcity_run.py",
+  "games/sol/sol_session.py",
+  "games/sol/sol_sim.py",
+  "games/sol/sol_statsview.py",
+  "games/sol/sol_story.py",
+  "games/sol/sol_util.py",
+  "games/sol/style-1-base.css",
+  "games/sol/style-2-panels.css",
+  "games/sol/tutorial-steps.js",
   "games/sol/challenges.py",
   // Climate quartet + Info Page games (added when the precache list was
   // discovered to have never been extended past SOL).

@@ -11,6 +11,11 @@
      "precached": false
     },
     {
+     "path": "games/sol/boot.js",
+     "bytes": 3781,
+     "precached": true
+    },
+    {
      "path": "games/sol/challenges.py",
      "bytes": 13604,
      "precached": true
@@ -23,21 +28,31 @@
     {
      "path": "games/sol/compare.js",
      "bytes": 2701,
-     "precached": false
+     "precached": true
+    },
+    {
+     "path": "games/sol/copy-wiring.js",
+     "bytes": 2318,
+     "precached": true
     },
     {
      "path": "games/sol/game.py",
-     "bytes": 375122,
+     "bytes": 26328,
+     "precached": true
+    },
+    {
+     "path": "games/sol/goals-mount.js",
+     "bytes": 591,
      "precached": true
     },
     {
      "path": "games/sol/hold-repeat.js",
      "bytes": 5312,
-     "precached": false
+     "precached": true
     },
     {
      "path": "games/sol/index.html",
-     "bytes": 94634,
+     "bytes": 85123,
      "precached": true
     },
     {
@@ -52,7 +67,7 @@
     },
     {
      "path": "games/sol/pc.html",
-     "bytes": 98955,
+     "bytes": 89444,
      "precached": true
     },
     {
@@ -63,7 +78,157 @@
     {
      "path": "games/sol/settings.js",
      "bytes": 7125,
-     "precached": false
+     "precached": true
+    },
+    {
+     "path": "games/sol/shortcuts.js",
+     "bytes": 1402,
+     "precached": true
+    },
+    {
+     "path": "games/sol/sol_achievements.py",
+     "bytes": 13110,
+     "precached": true
+    },
+    {
+     "path": "games/sol/sol_actions.py",
+     "bytes": 13825,
+     "precached": true
+    },
+    {
+     "path": "games/sol/sol_capsules.py",
+     "bytes": 14477,
+     "precached": true
+    },
+    {
+     "path": "games/sol/sol_charter.py",
+     "bytes": 11828,
+     "precached": true
+    },
+    {
+     "path": "games/sol/sol_charter_panel.py",
+     "bytes": 8659,
+     "precached": true
+    },
+    {
+     "path": "games/sol/sol_codex.py",
+     "bytes": 9856,
+     "precached": true
+    },
+    {
+     "path": "games/sol/sol_doctrines.py",
+     "bytes": 7192,
+     "precached": true
+    },
+    {
+     "path": "games/sol/sol_econ.py",
+     "bytes": 23589,
+     "precached": true
+    },
+    {
+     "path": "games/sol/sol_ghost.py",
+     "bytes": 15813,
+     "precached": true
+    },
+    {
+     "path": "games/sol/sol_handlers.py",
+     "bytes": 29211,
+     "precached": true
+    },
+    {
+     "path": "games/sol/sol_headless.py",
+     "bytes": 16713,
+     "precached": true
+    },
+    {
+     "path": "games/sol/sol_observatory.py",
+     "bytes": 21970,
+     "precached": true
+    },
+    {
+     "path": "games/sol/sol_overview.py",
+     "bytes": 8726,
+     "precached": true
+    },
+    {
+     "path": "games/sol/sol_panels.py",
+     "bytes": 6155,
+     "precached": true
+    },
+    {
+     "path": "games/sol/sol_planner.py",
+     "bytes": 10357,
+     "precached": true
+    },
+    {
+     "path": "games/sol/sol_rhythm.py",
+     "bytes": 13717,
+     "precached": true
+    },
+    {
+     "path": "games/sol/sol_rules.py",
+     "bytes": 25660,
+     "precached": true
+    },
+    {
+     "path": "games/sol/sol_run.py",
+     "bytes": 10412,
+     "precached": true
+    },
+    {
+     "path": "games/sol/sol_runmods.py",
+     "bytes": 12241,
+     "precached": true
+    },
+    {
+     "path": "games/sol/sol_runstate.py",
+     "bytes": 12011,
+     "precached": true
+    },
+    {
+     "path": "games/sol/sol_savestate.py",
+     "bytes": 24846,
+     "precached": true
+    },
+    {
+     "path": "games/sol/sol_scarcity.py",
+     "bytes": 5311,
+     "precached": true
+    },
+    {
+     "path": "games/sol/sol_scarcity_panel.py",
+     "bytes": 16836,
+     "precached": true
+    },
+    {
+     "path": "games/sol/sol_scarcity_run.py",
+     "bytes": 7503,
+     "precached": true
+    },
+    {
+     "path": "games/sol/sol_session.py",
+     "bytes": 3272,
+     "precached": true
+    },
+    {
+     "path": "games/sol/sol_sim.py",
+     "bytes": 6815,
+     "precached": true
+    },
+    {
+     "path": "games/sol/sol_statsview.py",
+     "bytes": 12320,
+     "precached": true
+    },
+    {
+     "path": "games/sol/sol_story.py",
+     "bytes": 9507,
+     "precached": true
+    },
+    {
+     "path": "games/sol/sol_util.py",
+     "bytes": 9988,
+     "precached": true
     },
     {
      "path": "games/sol/sources.json",
@@ -71,8 +236,23 @@
      "precached": false
     },
     {
+     "path": "games/sol/style-1-base.css",
+     "bytes": 23737,
+     "precached": true
+    },
+    {
+     "path": "games/sol/style-2-panels.css",
+     "bytes": 23216,
+     "precached": true
+    },
+    {
      "path": "games/sol/style.css",
-     "bytes": 59540,
+     "bytes": 13808,
+     "precached": true
+    },
+    {
+     "path": "games/sol/tutorial-steps.js",
+     "bytes": 2811,
      "precached": true
     }
    ],
@@ -125,16 +305,6 @@
     {
      "path": "shared/error-boundary.js",
      "bytes": 9714,
-     "precached": true
-    },
-    {
-     "path": "shared/export_progress.py",
-     "bytes": 4954,
-     "precached": false
-    },
-    {
-     "path": "shared/ghost.py",
-     "bytes": 13517,
      "precached": true
     },
     {
@@ -248,11 +418,6 @@
      "precached": true
     },
     {
-     "path": "shared/seed.py",
-     "bytes": 9788,
-     "precached": true
-    },
-    {
      "path": "shared/site-settings.js",
      "bytes": 6290,
      "precached": false
@@ -330,7 +495,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14984885,
+   "bytes": 14982854,
    "bytes_complete": true
   },
   "canopy": {
@@ -3966,6 +4131,11 @@
      "precached": false
     },
     {
+     "path": "games/champ-de-mots/study-table.html",
+     "bytes": 201958,
+     "precached": false
+    },
+    {
      "path": "games/champ-de-mots/style.css",
      "bytes": 51904,
      "precached": true
@@ -4215,7 +4385,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 15613984,
+   "bytes": 15815942,
    "bytes_complete": true
   },
   "continuum": {
