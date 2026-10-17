@@ -72,6 +72,26 @@ function Sync-WithGitHub {
     Write-Host "  Pushed $pushed branch(es) to GitHub."
 }
 
+# Two ways the run silently stopped (2026-10-16): a click in this window starts text selection ("QuickEdit"),
+# which freezes the script until a key is pressed (nothing ran from 22:00 to 03:08), and with nothing running
+# the laptop then went into standby. So: QuickEdit off for this window only, and ask Windows not to sleep while
+# the queue runs (the same request a video player makes; it ends when this window closes). No system setting
+# is changed.
+try {
+    Add-Type -Name Win -Namespace LocalAiQueue -MemberDefinition @'
+[DllImport("kernel32.dll")] public static extern IntPtr GetStdHandle(int h);
+[DllImport("kernel32.dll")] public static extern bool GetConsoleMode(IntPtr h, out uint m);
+[DllImport("kernel32.dll")] public static extern bool SetConsoleMode(IntPtr h, uint m);
+[DllImport("kernel32.dll")] public static extern uint SetThreadExecutionState(uint f);
+'@
+    $stdin = [LocalAiQueue.Win]::GetStdHandle(-10)
+    $mode = [uint32]0
+    if ([LocalAiQueue.Win]::GetConsoleMode($stdin, [ref]$mode)) {
+        [void][LocalAiQueue.Win]::SetConsoleMode($stdin, (($mode -band (-bnot [uint32]0x40)) -bor [uint32]0x80))   # QuickEdit off, extended flags on
+    }
+    [void][LocalAiQueue.Win]::SetThreadExecutionState([uint32]"0x80000001")   # ES_CONTINUOUS | ES_SYSTEM_REQUIRED
+} catch { Write-Host "Could not turn off QuickEdit or keep the laptop awake: $_" -ForegroundColor Yellow }
+
 $syncEvery = [int](Setting "sync_every" "50")
 $results = @()
 $sinceSync = 0
