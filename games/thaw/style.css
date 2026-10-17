@@ -1685,18 +1685,8 @@ html[data-lite="true"] .mascot .mascot-face { animation: none; }
 @media (prefers-reduced-motion: reduce) {
   .crate-visual.crate-waiting, .crate-visual.crate-opening { animation: none; }
 }
-/* R4-THMO-4: escalating haptic feedback visual cue on mobile. */
-@media (max-width: 600px) {
-  .threshold-crossed-pulse {
-    animation: haptic-pulse 0.9s ease;
-  }
-  @keyframes haptic-pulse {
-    0% { background-color: transparent; }
-    20% { background-color: rgba(224, 103, 76, 0.25); }
-    100% { background-color: transparent; }
-  }
-}
-
+:root[data-reduced-motion="true"] .crate-visual.crate-waiting,
+:root[data-reduced-motion="true"] .crate-visual.crate-opening,
 html[data-lite="true"] .crate-visual.crate-waiting,
 html[data-lite="true"] .crate-visual.crate-opening { animation: none; }
 
@@ -1825,4 +1815,16 @@ html[data-lite="true"] .crate-visual.crate-opening { animation: none; }
     height: auto;
     max-height: 5rem;
   }
+}
+
+/* R4-THMO-4: the same milestone crossing that buzzes a phone tints the temperature line for a moment. Never with Reduce motion,
+   lite mode or the OS setting (the script does not add the class then either). */
+@keyframes haptic-pulse {
+  0% { background-color: transparent; }
+  20% { background-color: rgba(224, 103, 76, 0.25); }
+  100% { background-color: transparent; }
+}
+html:not([data-reduced-motion="true"]):not([data-lite="true"]) .threshold-crossed-pulse { animation: haptic-pulse 0.9s ease; }
+@media (prefers-reduced-motion: reduce) {
+  .threshold-crossed-pulse { animation: none !important; }
 }

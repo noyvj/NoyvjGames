@@ -182,3 +182,56 @@ def test_focus_buttons_are_phone_only(base):
             assert not page.is_visible("#focus-mode-dots"), page_name
         browser.close()
     assert errors == []
+
+
+def _advance_to(page, start_rise):
+    """Puts Region A at `start_rise` degrees and redraws; the next Advance Round click is then a real player action."""
+    page.evaluate("(t) => { window.pyodide.runPython('region.temperature = ' + t + '\\nrender()'); }", start_rise)
+    page.wait_for_timeout(100)
+    page.evaluate("window.__buzz = []")
+
+
+def test_haptics_buzz_once_per_upward_milestone_crossing_and_can_be_switched_off(base):
+    errors = []
+    with pw.sync_playwright() as p:
+        browser = p.chromium.launch()
+        ctx, page = _open(browser, base, errors)
+        # instant digits so the readout moves in one step
+        page.evaluate("document.documentElement.setAttribute('data-instant-digits', 'true')")
+        _advance_to(page, 8.4)
+        page.click("#advance-round-button")           # 8.4 -> about 9.4: no milestone
+        page.wait_for_timeout(300)
+        assert page.evaluate("window.__buzz") == []
+        _advance_to(page, 9.6)
+        page.click("#advance-round-button")           # crosses +10
+        page.wait_for_timeout(300)
+        buzz = page.evaluate("window.__buzz")
+        assert len(buzz) == 1 and buzz[0] == [120]
+        assert page.evaluate("document.querySelector('#temperature-display').classList.contains('threshold-crossed-pulse')")
+        page.wait_for_timeout(1000)
+        _advance_to(page, 14.6)
+        page.click("#advance-round-button")           # crosses +15: a longer pattern
+        page.wait_for_timeout(300)
+        longer = page.evaluate("window.__buzz")
+        assert len(longer) == 1 and len(longer[0]) > 1 and sum(longer[0]) > 120
+        # the off switch (Settings flag) stops it
+        page.evaluate("document.documentElement.setAttribute('data-no-haptics', 'true')")
+        _advance_to(page, 19.6)
+        page.click("#advance-round-button")
+        page.wait_for_timeout(300)
+        assert page.evaluate("window.__buzz") == []
+        # reduced motion stops it, and a big jump (a save loading) never buzzes
+        page.evaluate("document.documentElement.setAttribute('data-no-haptics', 'false')")
+        page.evaluate("document.documentElement.setAttribute('data-reduced-motion', 'true')")
+        _advance_to(page, 24.6)
+        page.click("#advance-round-button")
+        page.wait_for_timeout(300)
+        assert page.evaluate("window.__buzz") == []
+        assert not page.evaluate("document.querySelector('#temperature-display').classList.contains('threshold-crossed-pulse')")
+        page.evaluate("document.documentElement.setAttribute('data-reduced-motion', 'false')")
+        _advance_to(page, 2.0)
+        page.evaluate("window.pyodide.runPython('region.temperature = 12.0\\nrender()')")
+        page.wait_for_timeout(200)
+        assert page.evaluate("window.__buzz") == []
+        browser.close()
+    assert errors == []
