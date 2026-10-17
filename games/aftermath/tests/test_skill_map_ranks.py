@@ -7,6 +7,7 @@ import json
 from pathlib import Path
 
 import skill_tree as shared
+from .pagefiles import game_css, page_text
 
 GAME_DIR = Path(__file__).resolve().parent.parent
 
@@ -362,7 +363,7 @@ def test_moving_a_point_reveals_too(game_env):
 
 
 def test_the_reveal_has_a_static_highlight_and_the_animation_respects_reduced_motion():
-    css = (GAME_DIR / "style.css").read_text(encoding="utf-8")
+    css = game_css()
     static = [b for b in css.split("}") if ".skill-map-node--just-bought {" in b and "outline" in b]
     assert static, "a highlight that does not depend on motion"
     assert 'html[data-reduced-motion="true"] .skill-map-node--just-bought' in css
@@ -585,8 +586,8 @@ def test_ranks_are_not_needed_to_unlock_anything(game_env):
 
 # ------------------------------------------------------------------------------ the pages
 def test_both_pages_carry_the_map_the_rank_lines_and_the_shared_module():
-    classic = (GAME_DIR / "index.html").read_text(encoding="utf-8")
-    desktop = (GAME_DIR / "pc.html").read_text(encoding="utf-8")
+    classic = page_text("index.html")
+    desktop = page_text("pc.html")
     assert '"skill_tree.py"' in classic and '"skill_tree.py"' in desktop
     for page in (classic, desktop):
         for element_id in ("skill-map-panel", "skill-map-viewport", "skill-map-canvas", "skill-map-detail", "skill-map-reveal",

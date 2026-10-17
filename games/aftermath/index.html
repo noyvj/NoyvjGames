@@ -67,6 +67,10 @@
 </script>
 <link rel="icon" type="image/svg+xml" href="../../icons/favicon-aftermath.svg">
 <link rel="stylesheet" href="../../shared/ambient-bg.css">
+<link rel="stylesheet" href="style-1-base.css">
+<link rel="stylesheet" href="style-2-console.css">
+<link rel="stylesheet" href="style-3-panels.css">
+<link rel="stylesheet" href="style-4-tools.css">
 <link rel="stylesheet" href="style.css">
   <link rel="stylesheet" href="../../shared/theme-light-games.css">
   <script src="../../shared/theme.js" data-floating-toggle></script>
@@ -739,113 +743,8 @@
     <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
   </div>
 
-  <script>
-    const AFTERMATH_TUTORIAL_STEPS = [
-      {
-        title: "Welcome to Aftermath",
-        text: "This settlement faces a fixed sequence of extreme-weather and other resilience shocks every run. Between events you choose whether to spend resources on resilience (survive the next hit better) or growth (earn more to spend). Runs are short and repeat — a permanent skill tree carries lessons forward, so every run leaves the next one a little more capable, even a bad one.",
-      },
-      {
-        selector: "#status",
-        title: "Facing a Run",
-        text: "Each run works through a fixed sequence of 7 events — floods, heatwaves, and storms, non-weather shocks like supply-chain disruption and infrastructure failure, and a social shock (civil unrest). The Heat season scenario, chosen before a run starts, adds a fourth kind of shock: a heat-health emergency, where the heat itself endangers people. Severity (mild/typical/severe, and now shown as an exact multiplier before you commit) isn't random: it's a fixed pattern tied to the run number, so replaying the same run always poses the same challenge. Your very first run is always typical difficulty.",
-      },
-      {
-        selector: "#resilience-invest-button",
-        title: "Invest in Resilience",
-        text: "Spend resources to raise this run's resilience capacity. Each point adds a flat 5% mitigation, cutting the damage the next event deals — capped at 85% total, so some damage always gets through. This investment resets to zero at the start of every new run.",
-      },
-      {
-        selector: "#growth-invest-button",
-        title: "Invest in Growth",
-        text: "Spend resources to raise this run's growth capacity instead. Each point adds a flat 8 resources of passive income every time you face an event — it does nothing to reduce damage, so it's a bet that the extra income outweighs skipping a point of mitigation.",
-      },
-      {
-        selector: "#mitigation-bar",
-        title: "Mitigation",
-        text: "This meter shows the share of event damage you're currently avoiding, built from your Resilience investment (plus a flat +10% once you unlock Early Warning Systems in the skill tree). It's capped at 85% — no matter how invested you are, an event can always do at least some damage.",
-      },
-      {
-        selector: "#resolve-event-button",
-        title: "Face Next Event",
-        text: "Resolves the next scheduled event: growth income is added first, then the event's damage — reduced by your current mitigation — is subtracted from your resources. There's no way to skip or delay an event once you've committed to a run.",
-      },
-      {
-        selector: "#skill-tree",
-        title: "Resilience Knowledge & Skill Tree",
-        text: "Knowledge points are earned at the end of every run (your leftover resources divided by 20, rounded — but never zero, even after a terrible run). Spend them here on permanent skills that pre-equip every future run with a head start. Unlike Resilience/Growth investment, these carry forward forever.",
-      },
-      {
-        selector: "#progress-comparison-display",
-        title: "How Far You've Come",
-        text: "Once you've completed at least two runs, this line compares your very first run's score to your most recent — same fixed event sequence, so a higher score really does mean you handled it better. This settlement also remembers, in its own words up top, which kinds of events it has weathered before.",
-      },
-      {
-        selector: "#new-run-button",
-        title: "Starting a New Run",
-        text: "Once all 7 scheduled events are resolved, this button appears. Starting a new run resets your resources, resilience, and growth back to a fresh baseline — but reads your current skill tree, so any skills you've unlocked since the last run apply automatically from the very first event.",
-      },
-      {
-        title: "You're ready",
-        text: "That's the loop: allocate resources between resilience and growth, face each scheduled event, and let a permanent skill tree carry what you learn into the next run. No single run has to go perfectly — resilience is cumulative, and nothing is ever wasted. Good luck out there.",
-      },
-    ];
-
-    async function main() {
-      const pyodide = await loadPyodide();
-      window.pyodide = pyodide; // exposed for the save/load bridge below
-      // Shared info-page widget (see shared/info_page.py) -- written into
-      // Pyodide's virtual filesystem before game.py runs so `import
-      // info_page` resolves normally, same pattern as Continuum's
-      // ENGINE_MODULES loop.
-      const infoPageSource = await (await fetch("../../shared/info_page.py")).text();
-      pyodide.FS.writeFile("info_page.py", infoPageSource, { encoding: "utf8" });
-      // Shared "export my progress" helper (Z8, see shared/export_progress.py)
-      // -- same fetch-then-write-into-Pyodide-FS pattern as info_page.py just
-      // above, so `import export_progress` resolves normally from game.py.
-      const exportProgressSource = await (await fetch("../../shared/export_progress.py")).text();
-      pyodide.FS.writeFile("export_progress.py", exportProgressSource, { encoding: "utf8" });
-      // E-4: the shared run-code module needs seed.py next to it (alphabet, prefix rule, hash).
-      // E-2/E-11/GE-16: skill_tree.py is the shared skill-tree rules module (W-3), used for the skill map's states, tiers and checks.
-      // Z-3d: ghost.py is the shared best-run ghost (Recorder, load, compare, summary).
-      for (const f of ["seed.py", "run_code.py", "skill_tree.py", "ghost.py"]) {
-        const src = await (await fetch("../../shared/" + f)).text();
-        pyodide.FS.writeFile(f, src, { encoding: "utf8" });
-      }
-      // Achievements catalog (ACHIEVEMENTS-SYSTEM-DESIGN.md §2) -- fetched
-      // and handed to Python as a window global before game.py runs, same
-      // three-line convention every other achievements-rollout game uses.
-      // "What's New" changelog (K16, planning/TODO.md) -- same fetch
-      // convention as achievements.json above.
-      const [achievementsJson, changelogJson, code] = await Promise.all([
-        fetch("achievements.json").then((response) => response.text()),
-        fetch("changelog.json").then((response) => response.text()),
-        fetch("game.py").then((response) => response.text()),
-      ]);
-      window.ACHIEVEMENTS_JSON = achievementsJson;
-      window.CHANGELOG_JSON = changelogJson;
-      await pyodide.runPythonAsync(code);
-
-      if (window.GameTutorial) {
-        GameTutorial.init(window.AFTERMATH_PC_TUTORIAL_STEPS || AFTERMATH_TUTORIAL_STEPS, { gameId: "aftermath" });
-      }
-      if (window.MobileHud) {
-        MobileHud.init([
-          { selector: "#resources-display", label: "" },
-          { selector: "#resilience-display", label: "" },
-          { selector: "#growth-display", label: "" },
-        ]);
-      }
-      if (window.MobileDock) {
-        // E1 (planning/TODO.md's mobile-dock rollout): docks the whole
-        // Resilience/Growth/Face-Next-Event/Start-New-Run cluster as one
-        // unit on mobile, same shared/mobile-dock.js mechanism Canopy's
-        // #action-panel and Grid's #advance-round-button already use.
-        MobileDock.init("#actions-dock");
-      }
-    }
-    main();
-  </script>
+  <script src="tutorial-steps.js"></script>
+  <script src="boot.js"></script>
   <!--
     SAVE-BUTTON-INTEGRATION.md: shared save widget, per the SOL reference
     integration. game.py exposes get_state()/load_state() covering the
@@ -859,294 +758,30 @@
   <script src="../../shared/announcer.js"></script>
   <script src="../../shared/last-played.js" data-game-id="aftermath"></script>
   <script src="../../shared/seasonal-events.js"></script>
-  <script>
-    // N-2: the first seasonal event end to end. Halloween (about 25 Oct to 1 Nov, ?event-date=2026-10-31 to test):
-    // finish one run with resources left, earn the "halloween-<year>" badge. game.py calls
-    // aftermathRunFinished(resourcesLeft) when a real run completes and keeps the badge list in its save.
-    (function () {
-      if (!window.NoyvjSeasonal) return;
-      var PREFIX = "aftermath-season:";
-      function count(badgeId) { try { return Number(localStorage.getItem(PREFIX + badgeId)) || 0; } catch (e) { return 0; } }
-      function py(name, arg) {
-        try {
-          var fn = window.pyodide && window.pyodide.globals.get(name);
-          if (fn) { fn(arg); if (fn.destroy) fn.destroy(); }
-        } catch (e) { /* the badge is still kept on this device */ }
-      }
-      var events = NoyvjSeasonal.init({
-        game: "aftermath",
-        events: { halloween: { title: "Night of Storms", text: "The storms are loud this week.", task: "Finish one run with resources left", goal: 1, unit: "run" } },
-        progress: function (id, ctx) { return count(ctx.badgeId); },
-        onGrant: function (badge, all) { py("set_event_badges", JSON.stringify(all)); },
-      });
-      window.aftermathRunFinished = function (resourcesLeft) {
-        if (!(resourcesLeft > 0)) return;
-        events.active().forEach(function (e) {
-          if (e.earned) return;
-          try { localStorage.setItem(PREFIX + e.badgeId, String(count(e.badgeId) + 1)); } catch (x) { /* storage blocked */ }
-        });
-        events.refresh();
-      };
-      window.aftermathAdoptBadges = function (json) { try { events.adoptBadges(JSON.parse(json)); } catch (e) { /* ignore */ } };
-    })();
-  </script>
+  <script src="seasonal-event.js"></script>
   <script src="../../shared/whats-new-banner.js" data-game-id="aftermath"></script>
   <script src="../../shared/achievement-stats.js" data-game-id="aftermath"></script>
 <!-- wiring-oct8:start -->
   <!-- Z-20 shared Copy result button, Z-27 achievement Share buttons, Y-29 Credits link (2026-10-08). -->
   <script src="../../shared/copy-result.js" data-game-id="aftermath"></script>
   <script src="../../shared/achievement-share.js" data-game-id="aftermath" data-game-name="Aftermath"></script>
-  <script>
-    (function () {
-      // copy_result_fields() in game.py returns the headline numbers; read at click time.
-      function fields() {
-        try {
-          var fn = window.pyodide.globals.get("copy_result_fields");
-          var result = fn();
-          var out = result.toJs({ dict_converter: Object.fromEntries });
-          result.destroy();
-          fn.destroy();
-          return out;
-        } catch (e) {
-          return {};
-        }
-      }
-      // Mounts the button inside the summary panel and puts it back if the game rebuilds the panel.
-      function mountCopy(panelId, beforeSelector) {
-        var panel = document.getElementById(panelId);
-        if (!panel || !window.NoyvjCopyResult) return;
-        function ensure() {
-          if (panel.querySelector(":scope > .run-end-copy")) return;
-          var host = document.createElement("div");
-          host.className = "run-end-copy";
-          host.setAttribute("data-copy-result-for", panelId);
-          var anchor = beforeSelector ? panel.querySelector(beforeSelector) : null;
-          if (anchor && anchor.parentNode === panel) panel.insertBefore(host, anchor);
-          else panel.appendChild(host);
-          NoyvjCopyResult.mountButton(host, { getResult: fields });
-        }
-        ensure();
-        new MutationObserver(ensure).observe(panel, { childList: true });
-      }
-      // A small Credits link at the foot of the how-to and info panels, kept if the game rewrites them.
-      function addCredits(panelId) {
-        var panel = document.getElementById(panelId);
-        if (!panel) return;
-        function ensure() {
-          if (panel.querySelector(":scope > .game-credits-link")) return;
-          var p = document.createElement("p");
-          p.className = "game-credits-link";
-          p.style.cssText = "margin:0.25rem 0 0;font-size:0.8rem";
-          var a = document.createElement("a");
-          a.href = "../../credits.html";
-          a.textContent = "Credits and thanks";
-          a.style.cssText = "display:inline-flex;align-items:center;min-height:44px;color:inherit;text-decoration:underline";
-          p.appendChild(a);
-          panel.appendChild(p);
-        }
-        ensure();
-        new MutationObserver(ensure).observe(panel, { childList: true });
-      }
-      mountCopy("run-summary-actions");
-      addCredits("howto-panel");
-      addCredits("info-page-panel");
-    })();
-  </script>
+  <script src="copy-wiring.js"></script>
 <!-- wiring-oct8:end -->
   <script src="../../shared/seed.js"></script>
-  <script>
-    // Z-5c: the "Today's run" button. The seed is the UTC date's shared seed; game.py's start_todays_run decides whether a run
-    // can start now (only between runs) and says so. Finishing the run records it (game.py).
-    (function () {
-      if (!window.NoyvjSeed || !window.NoyvjSeed.daily) return;
-      window.NoyvjSeed.daily.mountButton("#todays-run-slot", {
-        game: "aftermath",
-        onStart: function (seed) {
-          var note = document.getElementById("todays-run-note");
-          try {
-            var fn = window.pyodide.globals.get("start_todays_run");
-            note.textContent = fn(seed);
-            fn.destroy();
-          } catch (e) {
-            note.textContent = "The game is still starting up. Try again in a moment.";
-          }
-        }
-      });
-    })();
-  </script>
-  <!-- E-4: shared run-code boxes. game.py owns every rule (run_code_fields, start_challenge); this only mounts the boxes. -->
-  <script>
-    (function () {
-      if (!window.NoyvjRunCode) return;
-      var modes = {};
-      var describe = { unit: "resources", stats: ["adjusted", "damage taken"], modes: modes };
-      function py(name) {
-        try { return window.pyodide && window.pyodide.globals.get(name); } catch (e) { return null; }
-      }
-      function plain(proxy) {
-        if (proxy == null) return null;
-        var value = proxy.toJs ? proxy.toJs({ dict_converter: Object.fromEntries }) : proxy;
-        if (proxy.destroy) proxy.destroy();
-        return value;
-      }
-      function currentRun() {
-        var fn = py("run_code_fields");
-        if (!fn) return {};
-        var out = plain(fn());
-        fn.destroy();
-        return out || {};
-      }
-      var copy = NoyvjRunCode.mountCopy("#run-end-code", {
-        game: "aftermath", describe: describe, label: "Your run code", buttonLabel: "Copy run code",
-        getRun: currentRun,
-      });
-      var lastRun = JSON.stringify(currentRun());
-      NoyvjRunCode.mountPaste("#friends-ghost", {
-        game: "aftermath", describe: describe, label: "Paste a friend's run code", buttonLabel: "View run",
-        onPlaySeed: function (seed, ghost) {
-          var fn = py("start_challenge");
-          if (fn) { fn(ghost.code); fn.destroy(); }
-        },
-      });
-      // game.py calls this after every render: it refreshes the copy box and fills in the mode names.
-      window.aftermathRunCodeUpdate = function () {
-        if (!Object.keys(modes).length) {
-          var names = py("run_code_mode_names");
-          if (names) { Object.assign(modes, plain(names())); names.destroy(); }
-        }
-        // Only rebuild the box when the run changed, so its "Copied" note is not wiped by every click.
-        var now = JSON.stringify(currentRun());
-        if (copy && now !== lastRun) { lastRun = now; copy.update(); }
-      };
-    })();
-  </script>
+  <script src="todays-run.js"></script>
+  <script src="run-code-boxes.js"></script>
   <script src="../../shared/community-index.js" data-game-id="aftermath" data-target="#community-index" data-template="Community resilience index: across {count} players, a skill tree holds an average of {skill_tree_strength:mean} resilience skills (median {skill_tree_strength:p50})."></script>
-  <!--
-    R-31: community resilience figure for the Mutual aid setting. Plain JS like the feedback prompt: a
-    read-only fetch of the same stats summary the line above uses (GET /stats/games/aftermath), handed to
-    game.py's set_community_resilience(mean), which owns every rule (threshold, the fixed event and amount,
-    the cached copy). No figure (offline, fewer than three saves, a failed request) hands in nothing at all,
-    so the last cached figure keeps standing; a summary that has no usable figure hands in null. Skipped
-    while "reduce data" is on (hub setting, or the browser's Data Saver): the cached figure is used instead.
-  -->
-  <script>
-    (function () {
-      var API = "https://noyvjgames.fastapicloud.dev";
-      function reduceData() {
-        var choice = null;
-        try { choice = localStorage.getItem("hub_reduce_data"); } catch (e) { /* storage blocked */ }
-        if (choice === "1") return true;
-        if (choice === "0") return false;
-        var conn = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
-        return Boolean(conn && conn.saveData);
-      }
-      if (reduceData()) return;
-      function hand(mean) {
-        var tries = 0;
-        var timer = setInterval(function () {
-          tries += 1;
-          try {
-            var fn = window.pyodide && window.pyodide.globals.get("set_community_resilience");
-            if (fn) { clearInterval(timer); fn(mean); if (fn.destroy) fn.destroy(); return; }
-          } catch (e) { /* the game is not ready yet */ }
-          if (tries > 240) clearInterval(timer);
-        }, 500);
-      }
-      fetch(API + "/stats/games/aftermath")
-        .then(function (r) { return r.ok ? r.json() : null; })
-        .then(function (summary) {
-          if (!summary) return;
-          var field = !summary.suppressed && summary.fields && summary.fields.skill_tree_strength;
-          hand(field && typeof field.mean === "number" ? field.mean : null);
-        })
-        .catch(function () { /* keep whatever figure is cached */ });
-    })();
-  </script>
+  <script src="community-resilience.js"></script>
   <script src="../../shared/leaderboard.js" data-game-id="aftermath" data-board="hardest_schedule" data-order="desc" data-title="hardest schedule survived" data-unit="x severity" data-mount="#leaderboard-mount"></script>
   <!-- Z4 (site-wide goal): "?" shows a keyboard-shortcuts help overlay,
        Esc closes whichever panel is open. See shared/keyboard-shortcuts.js. -->
   <script src="../../shared/keyboard-shortcuts.js"></script>
-  <script>
-    window.KeyboardShortcuts.init({
-      extra: [
-        "1 / 2 — invest in Resilience / Growth (at the chosen step)",
-        "Enter — Face Next Event (when no button is focused)",
-        "U — undo your last investment click",
-        "T — jump to the skill tree",
-        "M — open the skill map (arrows move between skills, Enter selects, + and - zoom, 0 fits, Esc clears)",
-        "Up / Down arrows — move between skills in the tree; Enter unlocks, P pins",
-        "H — open or close Past Runs",
-        "C — open or close the Disaster Codex",
-        "S — open or close Lifetime Stats",
-      ],
-      panels: [
-        { toggle: "howto-toggle-button", panel: "howto-panel" },
-        { toggle: "settings-toggle-button", panel: "settings-panel" },
-        { toggle: "info-page-toggle-button", panel: "info-page-panel" },
-        { toggle: "achievements-toggle-button", panel: "achievements-panel" },
-        { toggle: "past-runs-toggle-button", panel: "past-runs-panel" },
-        { toggle: "codex-toggle-button", panel: "codex-panel" },
-        { toggle: "stats-toggle-button", panel: "stats-panel" },
-        { toggle: "changelog-toggle-button", panel: "changelog-panel" },
-      ],
-    });
-  </script>
+  <script src="shortcuts.js"></script>
   <script>
     if ("serviceWorker" in navigator) {
       navigator.serviceWorker.register("../../sw.js");
     }
   </script>
-  <!--
-    Milestone 6 feedback prompt: plain JS, not Pyodide/game.py — same
-    documented exception as Canopy/Grid/Tide (trivial POST to the shared
-    ratings API, not game state, so no Python/pytest coverage needed).
-    Reuses the schema Canopy already extended with a `response` field;
-    no backend changes needed here.
-  -->
-  <script>
-    (function () {
-      const RATINGS_API_BASE = "https://noyvjgames.fastapicloud.dev";
-      const yesButton = document.getElementById("feedback-yes-button");
-      const noButton = document.getElementById("feedback-no-button");
-      const submitButton = document.getElementById("feedback-submit-button");
-      const commentBox = document.getElementById("feedback-comment");
-      const statusEl = document.getElementById("feedback-status");
-      let answer = null;
-
-      function selectAnswer(value) {
-        answer = value;
-        yesButton.classList.toggle("selected", value === "yes");
-        noButton.classList.toggle("selected", value === "no");
-        submitButton.disabled = false;
-        submitButton.textContent = "Submit feedback";
-      }
-
-      yesButton.addEventListener("click", () => selectAnswer("yes"));
-      noButton.addEventListener("click", () => selectAnswer("no"));
-
-      submitButton.addEventListener("click", async () => {
-        if (!answer) return;
-        const comment = commentBox.value.trim();
-        const response = comment ? `${answer} — ${comment}` : answer;
-
-        submitButton.disabled = true;
-        submitButton.textContent = "Submitting...";
-        try {
-          const res = await fetch(`${RATINGS_API_BASE}/ratings`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ game_slug: "aftermath", response }),
-          });
-          if (!res.ok) throw new Error(`status ${res.status}`);
-          statusEl.textContent = "Thanks for the feedback!";
-          submitButton.textContent = "Submitted — thanks!";
-        } catch (err) {
-          statusEl.textContent = "Feedback submission failed — try again.";
-          submitButton.disabled = false;
-          submitButton.textContent = "Submit feedback";
-        }
-      });
-    })();
-  </script>
+  <script src="feedback.js"></script>
 </body>
 </html>

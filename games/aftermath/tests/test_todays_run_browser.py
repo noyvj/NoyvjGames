@@ -44,15 +44,16 @@ def base():
     server.shutdown()
 
 
+# The game module is __main__ in Pyodide; `run` is a live name kept in aftermath_runstate, which __main__ forwards (a bare `run` is not in its dict).
 READY = "!!window.pyodide && !!window.pyodide.globals.get('start_todays_run') && !!document.querySelector('#todays-run-slot button')"
 
 FINISH = """() => {
     for (let i = 0; i < 9; i++) {
-        const done = window.pyodide.runPython('run.is_complete()');
+        const done = window.pyodide.runPython('__import__("__main__").run.is_complete()');
         if (done) break;
         document.getElementById('resolve-event-button').click();
     }
-    return window.pyodide.runPython('run.is_complete()');
+    return window.pyodide.runPython('__import__("__main__").run.is_complete()');
 }"""
 
 
@@ -97,8 +98,8 @@ def test_todays_run_starts_the_dated_schedule_and_finishing_it_counts_once(base,
         assert "Play today's run" in page.inner_text("#todays-run-slot") and today in page.inner_text("#todays-run-slot")
         press(page)
         assert "Today's run started" in page.inner_text("#todays-run-note")
-        assert page.evaluate("window.pyodide.runPython('run.challenge[\"daily_seed\"]')") == today
-        assert page.evaluate("window.pyodide.runPython('run.event_index')") == 0
+        assert page.evaluate("window.pyodide.runPython('__import__(\"__main__\").run.challenge[\"daily_seed\"]')") == today
+        assert page.evaluate("window.pyodide.runPython('__import__(\"__main__\").run.event_index')") == 0
         assert page.evaluate("NoyvjSeed.current()") == today
         assert page.evaluate("localStorage.getItem('noyvj-daily-v1')") is None     # starting is not finishing
 
@@ -106,7 +107,7 @@ def test_todays_run_starts_the_dated_schedule_and_finishing_it_counts_once(base,
         page.evaluate("document.getElementById('resolve-event-button').click()")
         press(page)
         assert "Nothing was changed" in page.inner_text("#todays-run-note")
-        assert page.evaluate("window.pyodide.runPython('run.event_index')") == 1
+        assert page.evaluate("window.pyodide.runPython('__import__(\"__main__\").run.event_index')") == 1
 
         # finishing it on today's seed counts once
         assert page.evaluate(FINISH) is True

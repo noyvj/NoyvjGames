@@ -1,0 +1,595 @@
+/* Aftermath styles, part 2 of 5: console design pass 2 (nameplates, screens, switches), achievements, What's New, toasts, mobile dock, event categories and severity, legacy, past-run cards, skill badges and scars. Loaded in order by index.html: style-1 ... style-4, then style.css. */
+/* ============================================================
+   Design pass 2 — embed controls & readouts into the console
+   (2026-09-06). Mirrors the technique piloted in games/sol/style.css
+   ("Design pass 2 — embed controls & readouts into the console"), in
+   Aftermath's own ember/settlement palette rather than SOL's cool
+   blues: short captions get a mounted nameplate look, the run's
+   numeric stat chips get a recessed glass-screen look, and every
+   button gets a beveled switch face plus a status LED genuinely wired
+   to its own :disabled state. Pure CSS on existing selectors — no new
+   elements, no id/class changes, nothing game.py touches.
+   ============================================================ */
+
+/* --- Nameplates: short captions (the mitigation gauge's caption, each
+   skill row's descriptor) read as a small plate mounted on the
+   console rather than plain floating text. */
+.meter-label,
+.skill-status {
+  display: inline-block;
+  padding: 0.3rem 0.7rem;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(0, 0, 0, 0.28));
+  border: 1px solid rgba(255, 179, 102, 0.18);
+  border-radius: 6px;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06), inset 0 -1px 2px rgba(0, 0, 0, 0.3), 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+/* --- Recessed digital-screen readouts: the core run-stat chips (already
+   pill-shaped from the earlier icon-label pass) and the resilience-
+   knowledge currency counter sit behind dark glass cut into the console
+   face, with a faint scanline texture and inner ember glow, instead of
+   floating as a flat tinted pill. */
+#resources-display,
+#resilience-display,
+#growth-display,
+#knowledge-points-display {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.3rem 0.75rem;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  background:
+    repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.02) 0, rgba(255, 255, 255, 0.02) 1px, transparent 1px, transparent 3px),
+    radial-gradient(ellipse at 50% 20%, rgba(255, 170, 90, 0.14), transparent 70%),
+    rgba(10, 5, 3, 0.65);
+  border: 1px solid rgba(255, 179, 102, 0.2);
+  box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.6), inset 0 0 18px rgba(200, 110, 50, 0.14);
+}
+
+/* --- Physical console switches: every button (resilience/growth
+   invest, resolve-event/new-run, skill unlocks, info toggle, feedback)
+   gets a stronger bevel plus a small status LED that genuinely reflects
+   the button's own :disabled state — glowing amber while actionable,
+   dim and dark when not, not just decoration. */
+button.secondary,
+button.primary {
+  position: relative;
+  box-shadow:
+    0 4px 16px rgba(0, 0, 0, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.16),
+    inset 0 -3px 6px rgba(0, 0, 0, 0.28),
+    0 0 0 3px rgba(0, 0, 0, 0.22);
+}
+
+button.secondary::after,
+button.primary::after {
+  content: "";
+  position: absolute;
+  top: 0.55rem;
+  right: 0.65rem;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #ffb454;
+  box-shadow: 0 0 6px 1px rgba(255, 180, 84, 0.85);
+}
+
+button.secondary:disabled::after,
+button.primary:disabled::after {
+  background: #5a4a42;
+  box-shadow: none;
+}
+
+/* ============================================================
+   Achievements (ACHIEVEMENTS-SYSTEM-DESIGN.md) — same card language
+   used across the hub's shared achievements pattern (SOL/Canopy/Grid's
+   reference integrations), on Aftermath's existing glass-panel/
+   rgba(140,160,255,...) palette. Internals are free per-game once
+   you're inside the game, but there's no reason to invent a new visual
+   language here when the existing one already fits. */
+#achievements-panel { border-left-color: #d4af37; }
+
+.achievements-panel {
+  text-align: left;
+  display: grid;
+  gap: 0.65rem;
+}
+
+.achievement-card {
+  padding: 0.6rem 0.75rem;
+  border: 1px solid rgba(140, 160, 255, 0.18);
+  border-radius: 10px;
+  background: rgba(5, 6, 13, 0.4);
+}
+
+.achievement-card--earned {
+  border-color: rgba(212, 175, 55, 0.55);
+  background: linear-gradient(165deg, rgba(212, 175, 55, 0.14), rgba(5, 6, 13, 0.4));
+}
+
+.achievement-card-label {
+  margin: 0 0 0.2rem;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.achievement-card-description {
+  margin: 0;
+  font-size: 0.8rem;
+  opacity: 0.8;
+  line-height: 1.4;
+}
+
+.achievement-card-progress {
+  margin: 0.3rem 0 0;
+  font-size: 0.75rem;
+  opacity: 0.65;
+}
+
+/* Z27b: cross-player "Earned by N% of players" line, filled in by
+   shared/achievement-stats.js once the aggregate-stats endpoint responds
+   -- same muted small-text treatment as .achievement-card-progress, kept
+   distinct via italics so the two never look identical if both appear on
+   the same card. */
+.achievement-earn-rate {
+  margin: 0.3rem 0 0;
+  font-size: 0.72rem;
+  opacity: 0.55;
+  font-style: italic;
+}
+
+/* Same gotcha SOL's/Trade Empire's/Continuum's own achievements CSS
+   documents: `display: grid` above otherwise wins the cascade over the
+   browser's default `[hidden] { display: none }` UA rule (author-origin
+   styles beat user-agent-origin styles regardless of specificity), so
+   without this override the panel stayed visible as an empty box before
+   its first open, and stayed visible with its last-rendered content
+   forever after being toggled closed. */
+.achievements-panel[hidden] {
+  display: none;
+}
+
+.achievements-hub-link {
+  display: block;
+  margin-top: 0.3rem;
+  text-align: center;
+  font-size: 0.8rem;
+  color: #a9c3ff;
+  text-decoration: none;
+}
+
+.achievements-hub-link:hover {
+  text-decoration: underline;
+}
+
+/* ============================================================
+   K16 (planning/TODO.md "What's New" changelog, site-wide goal): a
+   curated highlights list, same card language as the achievements panel
+   above and the past-run-card list below -- no earned/unearned state,
+   just a date + one-line summary per entry, newest first. */
+#changelog-panel { border-left-color: #a9c3ff; }
+
+.changelog-panel {
+  text-align: left;
+  display: grid;
+  gap: 0.5rem;
+}
+
+/* Same [hidden]-vs-`display: grid` gotcha as .achievements-panel above. */
+.changelog-panel[hidden] {
+  display: none;
+}
+
+.changelog-entry {
+  padding: 0.55rem 0.75rem;
+  border: 1px solid rgba(140, 160, 255, 0.18);
+  border-radius: 10px;
+  background: rgba(5, 6, 13, 0.4);
+}
+
+.changelog-entry-date {
+  margin: 0 0 0.2rem;
+  font-weight: 600;
+  font-size: 0.78rem;
+  opacity: 0.7;
+}
+
+.changelog-entry-text {
+  margin: 0;
+  font-size: 0.85rem;
+  line-height: 1.4;
+}
+
+/* Unlock toast: fixed near the top of the viewport so it's visible
+   regardless of scroll position (including while #actions-dock is
+   mobile-docked at the bottom), auto-hidden by game.py's own timeout.
+   Hidden by default via the `hidden` attribute in index.html; game.py
+   also explicitly sets `.hidden = True` in setup(). */
+.achievement-toast {
+  position: fixed;
+  top: 12px;
+  left: 50%;
+  transform: translateX(-50%) translateY(-12px);
+  z-index: 400; /* above panels/ad-bar, below the save widget (9999) */
+  max-width: 90vw;
+  padding: 0.6rem 1rem;
+  border-radius: 999px;
+  background: linear-gradient(135deg, rgba(184, 145, 30, 0.95), rgba(140, 105, 20, 0.95));
+  border: 1px solid rgba(245, 214, 130, 0.5);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  color: #fff8e6;
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-align: center;
+  opacity: 0;
+  transition: opacity 200ms ease, transform 200ms ease;
+}
+
+.achievement-toast.visible {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+.achievement-toast p {
+  margin: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .achievement-toast {
+    transition: none;
+  }
+}
+
+/* ============================================================
+   Mobile dock — Resilience/Growth/Face Next Event/Start New Run (E1,
+   planning/TODO.md's mobile-dock rollout). Same shared/mobile-dock.js +
+   fixed-bottom-bar pattern as Canopy's #action-panel and Grid's
+   #advance-round-button: the whole act-on-your-run cluster physically
+   moves to a fixed bar pinned above the ad bar on narrow screens, so a
+   player scrolled down past #status never has to scroll further to
+   invest or resolve the next event. #actions keeps its own internal
+   flex layout (resilience/growth tiles); this only positions the outer
+   wrapper as a unit. Gated on `.mobile-docked` (only added once
+   mobile-dock.js has actually reparented the element to <body>) rather
+   than a bare `@media` id selector, so a JS failure leaves the panel in
+   its normal document position instead of `position: fixed` anchoring
+   against #game's `backdrop-filter` ancestor (see mobile-dock.js's own
+   docstring on that quirk). */
+@media (max-width: 640px) {
+  #actions-dock.mobile-docked {
+    position: fixed;
+    left: 1rem;
+    right: 1rem;
+    bottom: 50px; /* sits directly above the fixed ad-bar */
+    z-index: 150; /* above the ad-bar (100), below the save widget (9999) */
+    max-width: 480px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    box-shadow: 0 -8px 28px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.03);
+  }
+
+  /* Reserve room at the bottom of the scrollable page so the last real
+     content (feedback prompt) never ends up hidden behind the
+     now-floating actions cluster + ad bar. */
+  /* html body outranks ad-bar.css's plain body rule (V-AB-2) */
+  html body {
+    padding-bottom: 280px; /* the step/undo row made the docked cluster about 45px taller */
+  }
+}
+
+/* ============================================================
+   E6: a third event category — social shocks (civil_unrest) — gets its
+   own hue, same "identity color + soft glow" treatment as the pre-existing
+   weather/non-weather categories above. */
+.event-category--social {
+  color: #c07fd8;
+  text-shadow: 0 0 10px rgba(192, 127, 216, 0.35);
+}
+
+#last-event-display.event-category--social ~ .settlement-visual .settlement-damage,
+#last-event-display.event-category--health ~ .settlement-visual .settlement-damage {
+  opacity: 1;
+}
+
+/* FY-3: a fourth event category -- health shocks (heat_mortality), a teal
+   identity hue distinct from blue, amber and violet; the icon and the label
+   text always travel with it, so colour is never the only cue. */
+.event-category--health {
+  color: #4fc9b0;
+  text-shadow: 0 0 10px rgba(79, 201, 176, 0.35);
+}
+
+/* ============================================================
+   E19: distinct visual intensity per event severity, layered on top of
+   whichever event-category color is already set (last-event-display,
+   expected-damage-display, and each per-run breakdown line in
+   .past-run-event all carry both classes together). Mild fades out
+   slightly; severe pulses harder without changing the category's hue. */
+.severity--mild {
+  opacity: 0.7;
+}
+
+.severity--severe {
+  animation: severity-severe-pulse 1.4s ease-in-out infinite;
+}
+
+@keyframes severity-severe-pulse {
+  0%, 100% { text-shadow: 0 0 6px rgba(255, 120, 90, 0.35); }
+  50% { text-shadow: 0 0 16px rgba(255, 120, 90, 0.85); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .severity--severe {
+    animation: none;
+    text-shadow: 0 0 14px rgba(255, 120, 90, 0.7);
+  }
+}
+
+/* ============================================================
+   E4: legacy-history chips — one per event type this settlement has ever
+   weathered, additive to the existing .legacy-display flavor line. */
+.legacy-history-panel {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin: -0.75rem 0 1rem;
+}
+
+.legacy-history-chip {
+  font-size: 0.7rem;
+  padding: 0.15rem 0.5rem;
+  border-radius: 999px;
+  background: rgba(140, 160, 255, 0.1);
+  border: 1px solid rgba(140, 160, 255, 0.2);
+  opacity: 0.75;
+}
+
+/* ============================================================
+   E7/E11: past-run review cards and the live end-of-run summary panel
+   share the same event-breakdown-line styling. */
+.past-run-card {
+  padding: 0.6rem 0.75rem;
+  border: 1px solid rgba(140, 160, 255, 0.18);
+  border-radius: 10px;
+  background: rgba(5, 6, 13, 0.4);
+  margin-bottom: 0.6rem;
+}
+
+.past-run-card:last-child {
+  margin-bottom: 0;
+}
+
+.past-run-title {
+  margin: 0 0 0.4rem;
+  font-weight: 600;
+  font-size: 0.85rem;
+}
+
+.past-run-event {
+  margin: 0 0 0.2rem;
+  font-size: 0.78rem;
+  opacity: 0.85;
+}
+
+.past-run-event:last-child {
+  margin-bottom: 0;
+}
+
+.run-summary-panel {
+  margin: 0.4rem 0 0.6rem;
+  padding: 0.6rem 0.75rem;
+  border: 1px solid rgba(76, 156, 110, 0.3);
+  border-radius: 10px;
+  background: linear-gradient(165deg, rgba(76, 156, 110, 0.1), rgba(5, 6, 13, 0.4));
+}
+
+.run-summary-stats {
+  margin: 0 0 0.4rem;
+  font-size: 0.82rem;
+  font-weight: 600;
+  opacity: 0.9;
+}
+
+/* ============================================================
+   E10: a brief confirmation flash on the resources readout when an
+   investment is actually spent. */
+.invest-flash {
+  animation: invest-flash-pulse 400ms ease-out;
+}
+
+@keyframes invest-flash-pulse {
+  0% { color: #8ee6ac; text-shadow: 0 0 12px rgba(142, 230, 172, 0.9); }
+  100% { color: inherit; text-shadow: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .invest-flash {
+    animation: none;
+  }
+}
+
+/* ============================================================
+   E14: skill-unlock toast — same fixed-pill shape/timing as the
+   achievement-unlock toast, but a distinct violet identity so the two are
+   never confused for each other at a glance. */
+.skill-unlock-toast {
+  top: 64px; /* stacks below the achievement toast if both ever fire close together */
+  background: linear-gradient(135deg, rgba(94, 74, 178, 0.95), rgba(60, 46, 122, 0.95));
+  border-color: rgba(180, 160, 245, 0.5);
+  color: #f1ecff;
+}
+
+/* ============================================================
+   E18: extended-run-mode toggle, styled to sit comfortably alongside the
+   primary action buttons in #actions-dock. */
+.extended-run-toggle-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  justify-content: center;
+  font-size: 0.8rem;
+  opacity: 0.85;
+  padding: 0.3rem 0;
+}
+
+/* ============================================================
+   E15: a small settlement-art badge per unlocked skill. Positioned along
+   the settlement's rooftop line; invisible until game.py adds
+   settlement-badge--earned for that skill. Five fixed slots avoid any
+   two badges overlapping regardless of which subset is unlocked. */
+.settlement-badge {
+  position: absolute;
+  bottom: 24px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: radial-gradient(circle, #ffe9a8, #d4af37 70%);
+  box-shadow: 0 0 8px rgba(212, 175, 55, 0.9);
+  opacity: 0;
+  transform: scale(0.4);
+  transition: opacity 0.4s ease, transform 0.4s ease;
+}
+
+.settlement-badge--earned {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.settlement-badge--reinforced_infrastructure { left: 12%; }
+.settlement-badge--community_reserves { left: 32%; }
+.settlement-badge--early_warning { left: 50%; }
+.settlement-badge--adaptive_growth { left: 68%; }
+.settlement-badge--mutual_aid_network { left: 86%; }
+
+@media (prefers-reduced-motion: reduce) {
+  .settlement-badge {
+    transition: none;
+  }
+}
+
+/* ============================================================
+   V-CD-6: legacy weathering scars -- a real visual marker tied to
+   legacy_event_counts (cross-run history), sitting on the settlement's
+   own ground line so it never collides with the rooftop skill badges
+   above. Distinct from .settlement-damage above (which only reacts to
+   the *current* run's most recent event) and from the E4 legacy-history
+   chip row (text-only, in legacy-history-panel below) -- this is the
+   settlement itself visibly showing what it has weathered. One scar per
+   event *category* (not per exact event type -- six more rooftop-style
+   dots on top of the eight skill/toughest badges already there would be
+   exactly the "everything looks very crowded" failure mode the UI
+   decluttering pass above flagged), reusing the same
+   weather/non-weather/social hue identity a player already recognizes
+   from event-category--weather/non-weather/social elsewhere on the page.
+   Escalates through three tiers (game.py's legacy_scar_tier()) as that
+   category's aggregated legacy_event_counts total climbs; tier 0 stays
+   fully transparent so a fresh settlement's ground is unmarked. */
+.settlement-legacy-scar {
+  position: absolute;
+  bottom: 2px;
+  width: 13%;
+  height: 12px;
+  border-radius: 2px;
+  opacity: 0;
+  transform: scaleX(0.4);
+  transform-origin: center bottom;
+  transition: opacity 0.5s ease, transform 0.5s ease, box-shadow 0.5s ease;
+  background: repeating-linear-gradient(100deg, currentColor 0 2px, transparent 2px 5px);
+}
+
+.settlement-legacy-scar--weather { left: 14%; color: #6fa8d8; }
+.settlement-legacy-scar--non-weather { left: 44%; color: #d8a24c; }
+.settlement-legacy-scar--social { left: 74%; color: #c07fd8; }
+.settlement-legacy-scar--health { left: 59%; color: #4fc9b0; }
+
+.settlement-legacy-scar--tier-1 { opacity: 0.45; transform: scaleX(0.7); }
+.settlement-legacy-scar--tier-2 { opacity: 0.75; transform: scaleX(1); }
+
+.settlement-legacy-scar--tier-3 {
+  opacity: 1;
+  transform: scaleX(1);
+  box-shadow: 0 0 8px currentColor;
+  animation: legacy-scar-pulse 3.5s ease-in-out infinite;
+}
+
+@keyframes legacy-scar-pulse {
+  0%, 100% { filter: brightness(1); }
+  50% { filter: brightness(1.6); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .settlement-legacy-scar {
+    transition: none;
+  }
+
+  .settlement-legacy-scar--tier-3 {
+    animation: none;
+  }
+}
+
+/* ============================================================
+   E12: export/import progress-code panel. */
+.progress-code-label {
+  margin: 0 0 0.6rem;
+  font-size: 0.8rem;
+  opacity: 0.8;
+}
+
+.progress-code-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: flex-start;
+  margin-bottom: 0.5rem;
+}
+
+.progress-code-textarea {
+  flex: 1;
+  min-width: 180px;
+  min-height: 2.4rem;
+  resize: vertical;
+  font-family: monospace;
+  font-size: 0.72rem;
+  padding: 0.4rem 0.5rem;
+  border-radius: 8px;
+  border: 1px solid rgba(140, 160, 255, 0.2);
+  background: rgba(5, 6, 13, 0.5);
+  color: inherit;
+}
+
+.progress-code-status {
+  margin: 0.3rem 0 0;
+  font-size: 0.78rem;
+  opacity: 0.8;
+}
+
+/* UI decluttering pass (planning/TODO.md closing task): the panel above is
+   now a <details> collapsed by default -- this just styles the <summary>
+   to read as a section heading (matching .settings-panel-heading's size)
+   rather than the browser's default disclosure triangle + inline text. */
+.progress-code-toggle > summary {
+  cursor: pointer;
+  font-size: 0.95rem;
+  opacity: 0.9;
+  list-style: none;
+}
+
+.progress-code-toggle > summary::-webkit-details-marker {
+  display: none;
+}
+
+.progress-code-toggle > summary::before {
+  content: "▸ ";
+  display: inline-block;
+  opacity: 0.7;
+}
+
+.progress-code-toggle[open] > summary::before {
+  content: "▾ ";
+}
+
+.progress-code-toggle[open] > summary {
+  margin-bottom: 0.75rem;
+}
