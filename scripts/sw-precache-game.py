@@ -42,7 +42,8 @@ def main():
         return
     anchor = re.search(r'^(\s*)"games/%s/game\.py",\n' % re.escape(slug), text, re.M)
     if not anchor:
-        sys.exit(f"no games/{slug}/game.py line in sw.js to anchor on")
+        sys.exit(f"no games/{slug}/game.py line in sw.js to anchor on. Continuum, for one, is NOT precached beyond its index, "
+                 "style and peers files (its engine files are runtime-cached): add the new stylesheet parts by hand.")
     block = "".join(f'{anchor.group(1)}"{f}",\n' for f in missing)
     text = text[: anchor.end()] + block + text[anchor.end():]
     text = re.sub(r"const SW_VERSION = (\d+);", lambda m: f"const SW_VERSION = {int(m.group(1)) + 1};", text, count=1)

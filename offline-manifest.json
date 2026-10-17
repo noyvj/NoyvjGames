@@ -4991,6 +4991,11 @@
      "precached": false
     },
     {
+     "path": "games/continuum/answer-report.js",
+     "bytes": 673,
+     "precached": false
+    },
+    {
      "path": "games/continuum/archive.py",
      "bytes": 12839,
      "precached": false
@@ -5003,6 +5008,11 @@
     {
      "path": "games/continuum/beyond.py",
      "bytes": 15306,
+     "precached": false
+    },
+    {
+     "path": "games/continuum/boot.js",
+     "bytes": 9350,
      "precached": false
     },
     {
@@ -5031,8 +5041,198 @@
      "precached": false
     },
     {
+     "path": "games/continuum/community-compare.js",
+     "bytes": 2662,
+     "precached": false
+    },
+    {
      "path": "games/continuum/consulting.py",
      "bytes": 9731,
+     "precached": false
+    },
+    {
+     "path": "games/continuum/continuum_achievements.py",
+     "bytes": 15311,
+     "precached": false
+    },
+    {
+     "path": "games/continuum/continuum_advance.py",
+     "bytes": 6849,
+     "precached": false
+    },
+    {
+     "path": "games/continuum/continuum_advisors.py",
+     "bytes": 6292,
+     "precached": false
+    },
+    {
+     "path": "games/continuum/continuum_archive.py",
+     "bytes": 34918,
+     "precached": false
+    },
+    {
+     "path": "games/continuum/continuum_base.py",
+     "bytes": 13769,
+     "precached": false
+    },
+    {
+     "path": "games/continuum/continuum_beyond.py",
+     "bytes": 6283,
+     "precached": false
+    },
+    {
+     "path": "games/continuum/continuum_challenge.py",
+     "bytes": 13928,
+     "precached": false
+    },
+    {
+     "path": "games/continuum/continuum_citizens.py",
+     "bytes": 11730,
+     "precached": false
+    },
+    {
+     "path": "games/continuum/continuum_clock.py",
+     "bytes": 2858,
+     "precached": false
+    },
+    {
+     "path": "games/continuum/continuum_dynasty.py",
+     "bytes": 16375,
+     "precached": false
+    },
+    {
+     "path": "games/continuum/continuum_extras.py",
+     "bytes": 2080,
+     "precached": false
+    },
+    {
+     "path": "games/continuum/continuum_founders.py",
+     "bytes": 6329,
+     "precached": false
+    },
+    {
+     "path": "games/continuum/continuum_geography.py",
+     "bytes": 4199,
+     "precached": false
+    },
+    {
+     "path": "games/continuum/continuum_hamlet.py",
+     "bytes": 28010,
+     "precached": false
+    },
+    {
+     "path": "games/continuum/continuum_heritage.py",
+     "bytes": 5805,
+     "precached": false
+    },
+    {
+     "path": "games/continuum/continuum_infopanels.py",
+     "bytes": 8425,
+     "precached": false
+    },
+    {
+     "path": "games/continuum/continuum_orders.py",
+     "bytes": 12038,
+     "precached": false
+    },
+    {
+     "path": "games/continuum/continuum_panels.py",
+     "bytes": 13544,
+     "precached": false
+    },
+    {
+     "path": "games/continuum/continuum_peers.py",
+     "bytes": 3900,
+     "precached": false
+    },
+    {
+     "path": "games/continuum/continuum_progress.py",
+     "bytes": 14212,
+     "precached": false
+    },
+    {
+     "path": "games/continuum/continuum_renderer.py",
+     "bytes": 6133,
+     "precached": false
+    },
+    {
+     "path": "games/continuum/continuum_research_nodes_early.py",
+     "bytes": 12503,
+     "precached": false
+    },
+    {
+     "path": "games/continuum/continuum_research_nodes_late.py",
+     "bytes": 14071,
+     "precached": false
+    },
+    {
+     "path": "games/continuum/continuum_research_nodes_mid.py",
+     "bytes": 12422,
+     "precached": false
+    },
+    {
+     "path": "games/continuum/continuum_research_tree.py",
+     "bytes": 10807,
+     "precached": false
+    },
+    {
+     "path": "games/continuum/continuum_runstate.py",
+     "bytes": 7704,
+     "precached": false
+    },
+    {
+     "path": "games/continuum/continuum_savestate.py",
+     "bytes": 4958,
+     "precached": false
+    },
+    {
+     "path": "games/continuum/continuum_scenario.py",
+     "bytes": 8029,
+     "precached": false
+    },
+    {
+     "path": "games/continuum/continuum_setup.py",
+     "bytes": 11572,
+     "precached": false
+    },
+    {
+     "path": "games/continuum/continuum_sim_city.py",
+     "bytes": 33214,
+     "precached": false
+    },
+    {
+     "path": "games/continuum/continuum_sim_numbers.py",
+     "bytes": 19242,
+     "precached": false
+    },
+    {
+     "path": "games/continuum/continuum_sim_tables.py",
+     "bytes": 17594,
+     "precached": false
+    },
+    {
+     "path": "games/continuum/continuum_techdebt.py",
+     "bytes": 4087,
+     "precached": false
+    },
+    {
+     "path": "games/continuum/continuum_timelapse.py",
+     "bytes": 6365,
+     "precached": false
+    },
+    {
+     "path": "games/continuum/continuum_views.py",
+     "bytes": 12801,
+     "precached": false
+    },
+    {
+     "path": "games/continuum/copy-result-wiring.js",
+     "bytes": 1034,
+     "precached": false
+    },
+    {
+     "path": "games/continuum/daily-leaderboard.js",
+     "bytes": 456,
      "precached": false
     },
     {
@@ -5072,7 +5272,7 @@
     },
     {
      "path": "games/continuum/game.py",
-     "bytes": 264456,
+     "bytes": 4542,
      "precached": false
     },
     {
@@ -5097,7 +5297,7 @@
     },
     {
      "path": "games/continuum/index.html",
-     "bytes": 86421,
+     "bytes": 66998,
      "precached": true
     },
     {
@@ -5152,7 +5352,7 @@
     },
     {
      "path": "games/continuum/pc.html",
-     "bytes": 91090,
+     "bytes": 71667,
      "precached": true
     },
     {
@@ -5176,13 +5376,23 @@
      "precached": false
     },
     {
+     "path": "games/continuum/register-sw.js",
+     "bytes": 89,
+     "precached": false
+    },
+    {
+     "path": "games/continuum/render3d-scenes.js",
+     "bytes": 28462,
+     "precached": false
+    },
+    {
      "path": "games/continuum/render3d.js",
-     "bytes": 56468,
+     "bytes": 30224,
      "precached": false
     },
     {
      "path": "games/continuum/research.py",
-     "bytes": 54205,
+     "bytes": 6530,
      "precached": false
     },
     {
@@ -5206,8 +5416,13 @@
      "precached": false
     },
     {
+     "path": "games/continuum/shortcuts.js",
+     "bytes": 1512,
+     "precached": false
+    },
+    {
      "path": "games/continuum/sim.py",
-     "bytes": 72774,
+     "bytes": 5874,
      "precached": false
     },
     {
@@ -5221,8 +5436,18 @@
      "precached": false
     },
     {
+     "path": "games/continuum/style-1-base.css",
+     "bytes": 23004,
+     "precached": true
+    },
+    {
+     "path": "games/continuum/style-2-console.css",
+     "bytes": 29135,
+     "precached": true
+    },
+    {
      "path": "games/continuum/style.css",
-     "bytes": 86248,
+     "bytes": 35316,
      "precached": true
     },
     {
@@ -5253,6 +5478,11 @@
     {
      "path": "games/continuum/transition.py",
      "bytes": 20101,
+     "precached": false
+    },
+    {
+     "path": "games/continuum/tutorial-steps.js",
+     "bytes": 5398,
      "precached": false
     },
     {
@@ -5303,11 +5533,6 @@
      "precached": true
     },
     {
-     "path": "shared/comparison_chart.py",
-     "bytes": 13310,
-     "precached": false
-    },
-    {
      "path": "shared/confirm-dialog.js",
      "bytes": 10900,
      "precached": false
@@ -5343,11 +5568,6 @@
      "precached": true
     },
     {
-     "path": "shared/info_page.py",
-     "bytes": 3410,
-     "precached": true
-    },
-    {
      "path": "shared/last-played.js",
      "bytes": 6774,
      "precached": false
@@ -5380,11 +5600,6 @@
     {
      "path": "shared/mobile-hud.js",
      "bytes": 4491,
-     "precached": false
-    },
-    {
-     "path": "shared/narrative_log.py",
-     "bytes": 8585,
      "precached": false
     },
     {
@@ -5453,11 +5668,6 @@
      "precached": true
     },
     {
-     "path": "shared/seed.py",
-     "bytes": 9788,
-     "precached": true
-    },
-    {
      "path": "shared/site-settings.js",
      "bytes": 6290,
      "precached": false
@@ -5470,11 +5680,6 @@
     {
      "path": "shared/skill-tree.js",
      "bytes": 23289,
-     "precached": true
-    },
-    {
-     "path": "shared/skill_tree.py",
-     "bytes": 10981,
      "precached": true
     },
     {
@@ -5540,7 +5745,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 16257591,
+   "bytes": 16231138,
    "bytes_complete": true
   },
   "signal": {

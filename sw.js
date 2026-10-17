@@ -2,7 +2,7 @@
 // the precache list; ordinary content deploys don't need it, because
 // same-origin requests are network-first (see the fetch handler below) and
 // so always pick up fresh files whenever the player is online.
-const SW_VERSION = 74;
+const SW_VERSION = 75;
 const CACHE_NAME = "site-cache-v" + SW_VERSION;
 // How long a same-origin network request may take before we give up and
 // serve the cached copy instead (a slow/flaky connection shouldn't hang).
@@ -887,6 +887,8 @@ const PRECACHE_URLS = [
   "games/continuum/index.html",
   "games/continuum/peers.js",
   "games/continuum/peers.py",
+  "games/continuum/style-1-base.css",
+  "games/continuum/style-2-console.css",
   "games/continuum/style.css",
   "games/continuum/pc.html",
   "games/continuum/pc.css",
