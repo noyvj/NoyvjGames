@@ -1,9 +1,10 @@
 """L-24: the farm grid's filter ("show") and sort controls."""
 
 import re
-from pathlib import Path
 
-HTML = (Path(__file__).resolve().parent.parent / "index.html").read_text(encoding="utf-8")
+from .pagefiles import page_text
+
+HTML = page_text("index.html")
 
 
 def _select_options(select_id):

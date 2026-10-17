@@ -4,6 +4,7 @@ the existing watering and nudge paths."""
 
 import re
 from pathlib import Path
+from .pagefiles import page_text, style_css
 
 GAME_DIR = Path(__file__).resolve().parent.parent
 
@@ -35,7 +36,7 @@ def _watered(module, plot):
 def test_every_question_activity_has_a_marker_in_both_pages_and_the_table():
     assert set(ACTIVITIES) == GROWS | NO_GROW
     for name in ("index.html", "pc.html"):
-        html = (GAME_DIR / name).read_text(encoding="utf-8")
+        html = page_text(name)
         for key in ACTIVITIES:
             assert f'id="growth-marker-{key}"' in html, (name, key)
 
@@ -62,7 +63,7 @@ def test_marker_text_says_grows_or_does_not_grow_and_says_how(game_env):
 
 
 def test_marker_is_a_text_and_shape_cue_not_colour_only():
-    css = (GAME_DIR / "style.css").read_text(encoding="utf-8")
+    css = style_css()
     block = css[css.index(".growth-marker {"):]
     assert "border: 1px solid currentColor" in block  # a ring that follows the text
     assert '.growth-marker[data-growth="none"] { border-style: dashed; }' in block  # a different shape too

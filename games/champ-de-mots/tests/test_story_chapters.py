@@ -4,6 +4,7 @@ import json
 import pathlib
 import sys
 import types
+from .pagefiles import page_text
 
 HERE = pathlib.Path(__file__).resolve().parent.parent
 
@@ -55,7 +56,7 @@ def test_story_text_has_no_guilt_framing():
 
 
 def test_page_loads_the_story_and_lists_it_as_a_story_element():
-    html = (HERE / "index.html").read_text()
+    html = page_text("index.html")
     assert 'shared/story-chapters.js" data-game-id="champ-de-mots" data-story="story.json"' in html
     assert 'data-story-selectors="#story-chapters"' in html
 

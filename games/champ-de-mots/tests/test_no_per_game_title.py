@@ -1,5 +1,8 @@
+from .pagefiles import page_text
 """AN-16: the per-game player title (L-26) was replaced by account-wide titles on the profile page.
 The practice score stays; nothing about a title is drawn, computed or saved here any more."""
+
+
 
 
 def test_per_game_title_code_is_gone(game_env):
@@ -22,4 +25,4 @@ def test_no_title_in_the_saved_state_or_the_pages():
     import pathlib
     here = pathlib.Path(__file__).resolve().parent.parent
     for name in ("index.html", "pc.html", "pc-config.json"):
-        assert "player-title" not in (here / name).read_text(encoding="utf-8"), name
+        assert "player-title" not in (page_text(name) if name.endswith(".html") else (here / name).read_text(encoding="utf-8")), name

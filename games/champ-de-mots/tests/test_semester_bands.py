@@ -5,8 +5,9 @@ collapsed band is a per-browser preference, never part of the save."""
 import sys
 import types
 from pathlib import Path
+from .pagefiles import page_text, style_css
 
-HTML = (Path(__file__).resolve().parent.parent / "index.html").read_text(encoding="utf-8")
+HTML = page_text("index.html")
 
 
 def _rows_in(env, element_id):
@@ -168,7 +169,7 @@ def test_collapsing_does_not_change_scheduling(game_env):
 
 def test_markup_has_the_summary_and_css_has_the_band_rules_without_motion():
     assert 'id="semester-summary"' in HTML
-    css = (Path(__file__).resolve().parent.parent / "style.css").read_text(encoding="utf-8")
+    css = style_css()
     block = css[css.index("LM-1: semester bands"):]
     for needle in (".semester-head", ".semester-rows", ".semester + .semester"):
         assert needle in block

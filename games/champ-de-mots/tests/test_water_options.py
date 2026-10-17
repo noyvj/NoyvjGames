@@ -2,6 +2,8 @@
 option's live count, and the review-panel sessions it starts. Every option
 uses the one watering rule."""
 
+from .pagefiles import page_text
+
 
 def _open(game_env):
     game_env.elements["water-options-toggle-button"].dispatch("click", None)
@@ -266,7 +268,7 @@ def test_both_pages_carry_every_chooser_id():
         "review-water-note", "practice-water-note",
     ] + [f"water-opt-{k}-{p}" for k in ("next", "row", "topic", "wilting", "mc", "typed", "listen") for p in ("button", "count")]
     for name in ("index.html", "pc.html"):
-        html = (root / name).read_text(encoding="utf-8")
+        html = page_text(name)
         for element_id in ids:
             assert f'id="{element_id}"' in html, (name, element_id)
     pc = (root / "pc-config.json").read_text(encoding="utf-8")

@@ -13,11 +13,20 @@ screenshot constraints aren't violated by the new files.
 """
 
 from pathlib import Path
+from .pagefiles import game_source, page_text, style_css
 
 GAME_DIR = Path(__file__).resolve().parent.parent
 
 
 def _source(name):
+    """What the shipped file held before the split: game.py is the game's Python as a whole, style.css its three
+    stylesheet parts, index.html the page plus the scripts it loads."""
+    if name == "game.py":
+        return game_source()
+    if name == "style.css":
+        return style_css()
+    if name == "index.html":
+        return page_text(name)
     return (GAME_DIR / name).read_text(encoding="utf-8")
 
 
@@ -187,7 +196,7 @@ def test_game_py_notifies_the_switcher_from_render_review():
     assert "def _notify_visual_style_context(context):" in source
     assert 'ChampDeMotsVisualStyle' in source
     render_review = source[source.index("def render_review():"):]
-    assert '_notify_visual_style_context("review" if review_mode is not None else "farm")' in render_review[:200]
+    assert '_notify_visual_style_context("review" if runstate.review_mode is not None else "farm")' in render_review[:200]
 
 
 def test_settings_note_explains_the_two_contexts():

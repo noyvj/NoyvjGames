@@ -7,6 +7,7 @@ that pair — including through a real `json.dumps`, since the widget POSTs it.
 """
 
 import json
+from .pagefiles import page_text
 
 
 EXPECTED_KEYS = {
@@ -256,8 +257,6 @@ def test_load_state_falls_back_to_seed_stage_for_an_unrecognized_stage_string(ga
 def test_the_page_includes_the_shared_save_widget_unchanged(game_env):
     """SAVE-BUTTON-INTEGRATION.md §4: the one drop-in line, with this game's
     id, and window.pyodide exposed for it by the boot script."""
-    from pathlib import Path
-
-    html = (Path(__file__).resolve().parent.parent / "index.html").read_text(encoding="utf-8")
+    html = page_text("index.html")
     assert '<script src="../../shared/save-widget.js" data-game-id="champ-de-mots"></script>' in html
     assert "window.pyodide = pyodide;" in html
