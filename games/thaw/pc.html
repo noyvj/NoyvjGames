@@ -574,31 +574,51 @@
         <span class="invest-forecast" id="monitor-forecast"></span>
       </div>
 
-      <!-- R4-THMO-2: Mobile investment bar for splitting funds on small screens -->
-      <div id="mobile-invest-bar" class="mobile-invest-bar">
-        <div class="mobile-invest-track" id="mobile-invest-track">
-          <div class="mobile-invest-fill"></div>
-          <div class="mobile-invest-handle handle-a" data-index="0"></div>
-          <div class="mobile-invest-handle handle-b" data-index="1"></div>
+      <!-- R4-THMO-2: phones only (style.css): plan how to split Region A's funds with a draggable bar and big plus and minus
+           buttons, then press one button to make the investments through the normal Invest buttons above. Nothing is spent until then. -->
+      <details id="mobile-invest-details" class="mobile-invest-details">
+        <summary>Plan a split with a bar</summary>
+        <div id="mobile-invest-bar" class="mobile-invest-bar">
+          <p id="mobile-invest-summary" class="comparison-message" role="status" aria-live="polite"></p>
+          <div id="mobile-invest-track" class="mobile-invest-track">
+            <div class="mobile-invest-fill mobile-invest-fill--output"></div>
+            <div class="mobile-invest-fill mobile-invest-fill--preserve"></div>
+            <div class="mobile-invest-fill mobile-invest-fill--monitor"></div>
+            <div id="mobile-invest-handle-a" class="mobile-invest-handle" role="slider" tabindex="0" aria-label="Output spending: drag, or use the arrow keys"></div>
+            <div id="mobile-invest-handle-b" class="mobile-invest-handle" role="slider" tabindex="0" aria-label="Preservation spending: drag, or use the arrow keys"></div>
+          </div>
+          <div class="mobile-invest-segments">
+          <div class="mobile-invest-seg mobile-invest-seg--output" data-cat="output">
+            <span class="mobile-invest-name">Output</span>
+            <span class="mobile-invest-count" aria-hidden="true">0</span>
+            <span class="mobile-invest-stepper">
+              <button type="button" class="secondary mobile-invest-step" data-dir="-1" aria-label="One less Output">&minus;</button>
+              <button type="button" class="secondary mobile-invest-step" data-dir="1" aria-label="One more Output">+</button>
+            </span>
+          </div>
+          <div class="mobile-invest-seg mobile-invest-seg--preserve" data-cat="preserve">
+            <span class="mobile-invest-name">Preservation</span>
+            <span class="mobile-invest-count" aria-hidden="true">0</span>
+            <span class="mobile-invest-stepper">
+              <button type="button" class="secondary mobile-invest-step" data-dir="-1" aria-label="One less Preservation">&minus;</button>
+              <button type="button" class="secondary mobile-invest-step" data-dir="1" aria-label="One more Preservation">+</button>
+            </span>
+          </div>
+          <div class="mobile-invest-seg mobile-invest-seg--monitor" data-cat="monitor">
+            <span class="mobile-invest-name">Monitoring</span>
+            <span class="mobile-invest-count" aria-hidden="true">0</span>
+            <span class="mobile-invest-stepper">
+              <button type="button" class="secondary mobile-invest-step" data-dir="-1" aria-label="One less Monitoring">&minus;</button>
+              <button type="button" class="secondary mobile-invest-step" data-dir="1" aria-label="One more Monitoring">+</button>
+            </span>
+          </div>
+          </div>
+          <div class="mobile-invest-actions">
+            <button type="button" id="mobile-invest-apply" class="secondary" disabled>Invest the plan</button>
+            <button type="button" id="mobile-invest-clear" class="secondary" disabled>Clear plan</button>
+          </div>
         </div>
-        <div class="mobile-invest-segments">
-          <div class="mobile-invest-seg" data-cat="output">
-            <span class="mobile-invest-count">0</span>
-            <button class="mobile-invest-step" data-dir="-1">−</button>
-            <button class="mobile-invest-step" data-dir="1">+</button>
-          </div>
-          <div class="mobile-invest-seg" data-cat="preserve">
-            <span class="mobile-invest-count">0</span>
-            <button class="mobile-invest-step" data-dir="-1">−</button>
-            <button class="mobile-invest-step" data-dir="1">+</button>
-          </div>
-          <div class="mobile-invest-seg" data-cat="monitor">
-            <span class="mobile-invest-count">0</span>
-            <button class="mobile-invest-step" data-dir="-1">−</button>
-            <button class="mobile-invest-step" data-dir="1">+</button>
-          </div>
-        </div>
-      </div>
+      </details>
     </div>
 
     <!-- R4-THMO-7: one-region focus mode for phones (CSS shows the buttons under 600px). "All" is the normal view. -->

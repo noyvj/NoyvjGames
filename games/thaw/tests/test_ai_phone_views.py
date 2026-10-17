@@ -73,7 +73,7 @@ def test_the_css_does_not_remove_the_reduced_motion_rules_for_the_crate():
 def test_the_phone_rules_sit_inside_a_narrow_screen_or_short_landscape_query():
     css = _read("style.css")
     # a base rule may only hide these; the visible layout comes from a query
-    for selector in ("#focus-mode-dots", "#mobile-invest-details", ".landscape-board", ".info-page-dots", ".archive-sheet-close"):
+    for selector in ("#focus-mode-dots", ".mobile-invest-details", ".landscape-board", ".info-page-dots"):
         base_rules = re.findall(r"(?m)^%s\s*\{([^}]*)\}" % re.escape(selector), css)
         assert base_rules, selector
         assert all("display: none" in rule for rule in base_rules), selector
@@ -114,8 +114,10 @@ READY = "!!window.pyodide && !!window.pyodide.globals.get('get_state') && docume
 INIT_VIBRATE = "window.__buzz = []; navigator.vibrate = function (p) { window.__buzz.push(p); return true; };"
 
 
+# is_mobile stays off on purpose: Thaw's wide board table makes a mobile-emulated layout viewport larger than the screen, which
+# shifts every pointer coordinate; has_touch alone still gives real touch events at a 360px width.
 def _open(browser, base, errors, width=360, height=740, page_name="index.html", touch=True):
-    ctx = browser.new_context(viewport={"width": width, "height": height}, has_touch=touch, is_mobile=touch, service_workers="block")
+    ctx = browser.new_context(viewport={"width": width, "height": height}, has_touch=touch, is_mobile=False, service_workers="block")
     ctx.route("**/*fastapicloud*/**", lambda route: route.abort())
     ctx.add_init_script(INIT_VIBRATE)
     page = ctx.new_page()
@@ -136,15 +138,25 @@ def _drag(ctx, page, x0, y0, x1, y1, steps=8):
     page.wait_for_timeout(200)
 
 
+def _mid(page, selector):
+    """Scrolls the element to the middle of the screen so the sticky HUD and floating buttons are not on top of it."""
+    page.locator(selector).evaluate("e => e.scrollIntoView({block: 'center'})")
+    page.wait_for_timeout(80)
+
+
+def _tap(page, selector):
+    _mid(page, selector)
+    page.click(selector)
+
+
 def _centre(page, selector):
-    page.locator(selector).scroll_into_view_if_needed()
-    page.wait_for_timeout(100)
+    _mid(page, selector)
     box = page.locator(selector).bounding_box()
     return box["x"] + box["width"] / 2.0, box["y"] + box["height"] / 2.0
 
 
 def _set_funds_and_render(page, funds):
-    page.evaluate("(f) => { window.pyodide.runPython('region.funds = %s\\nrender()' % f); }", funds)
+    page.evaluate("(f) => { window.pyodide.runPython('region.funds = ' + f + '\\nrender()'); }", funds)
 
 
 def test_focus_mode_is_off_by_default_then_focuses_and_remembers(base):
@@ -333,5 +345,80 @@ def test_landscape_board_is_not_part_of_the_desktop_pages(base):
         for page_name in PAGES:
             ctx, page = _open(browser, base, errors, 1440, 900, page_name, touch=False)
             assert not page.is_visible("#landscape-board"), page_name
+        browser.close()
+    assert errors == []
+
+
+def _plan(page):
+    return page.evaluate("Array.from(document.querySelectorAll('.mobile-invest-count')).map(e => parseInt(e.textContent, 10))")
+
+
+def _counts(page):
+    return page.evaluate("['output', 'preserve', 'monitor'].map(c => parseInt(document.getElementById(c + '-count').textContent, 10))")
+
+
+def test_mobile_invest_bar_plans_a_split_and_invests_through_the_real_buttons(base):
+    errors = []
+    with pw.sync_playwright() as p:
+        browser = p.chromium.launch()
+        ctx, page = _open(browser, base, errors)
+        _set_funds_and_render(page, 300)
+        _tap(page, "#mobile-invest-details > summary")
+        assert page.is_visible("#mobile-invest-bar") and page.is_visible("#output-invest-button")   # the normal rows stay
+        assert _plan(page) == [0, 0, 0] and page.is_disabled("#mobile-invest-apply")
+        # big plus buttons: 2 Output (40) + 1 Preservation (25) + 1 Monitoring (20) = 85
+        for cat, times in (("output", 2), ("preserve", 1), ("monitor", 1)):
+            for _ in range(times):
+                _tap(page, ".mobile-invest-seg[data-cat=%s] [data-dir='1']" % cat)
+        assert _plan(page) == [2, 1, 1]
+        assert "85 of 300" in page.inner_text("#mobile-invest-summary")
+        _tap(page, ".mobile-invest-seg[data-cat=output] [data-dir='-1']")
+        assert _plan(page) == [1, 1, 1]
+        assert _counts(page) == [0, 0, 0]                                       # nothing is spent while planning
+        assert page.inner_text("#funds-display") == "Funds: 300"
+        # the bar itself: a real finger drag of the first handle changes the Output share
+        x, y = _centre(page, "#mobile-invest-handle-a")
+        track = page.locator("#mobile-invest-track").bounding_box()
+        _drag(ctx, page, x, y, track["x"] + track["width"] * 0.5, y)
+        planned = _plan(page)
+        assert planned[0] >= 5 and planned[1:] == [1, 1], planned               # about half of 300 funds is 7 units of 20
+        assert int(page.get_attribute("#mobile-invest-handle-a", "aria-valuenow")) == planned[0]
+        _tap(page, "#mobile-invest-clear")
+        assert _plan(page) == [0, 0, 0]
+        for _ in range(2):
+            _tap(page, ".mobile-invest-seg[data-cat=preserve] [data-dir='1']")
+        _tap(page, ".mobile-invest-seg[data-cat=monitor] [data-dir='1']")
+        _tap(page, "#mobile-invest-apply")
+        assert _counts(page) == [0, 2, 1]                                       # the game's own capacity counters moved
+        assert page.inner_text("#funds-display") == "Funds: 230"
+        assert _plan(page) == [0, 0, 0] and page.is_disabled("#mobile-invest-apply")
+        # keyboard path for the handles
+        page.focus("#mobile-invest-handle-a")
+        page.keyboard.press("ArrowRight")
+        page.keyboard.press("ArrowRight")
+        assert _plan(page)[0] == 2
+        # a plan can never ask for more than the funds
+        _set_funds_and_render(page, 60)
+        for _ in range(10):
+            if page.is_enabled(".mobile-invest-seg[data-cat=monitor] [data-dir='1']"):
+                _tap(page, ".mobile-invest-seg[data-cat=monitor] [data-dir='1']")
+        assert sum(c * k for c, k in zip(_plan(page), (20, 25, 20))) <= 60
+        _set_funds_and_render(page, 20)                                         # funds fall: the plan shrinks, never errors
+        assert sum(c * k for c, k in zip(_plan(page), (20, 25, 20))) <= 20
+        for box in page.locator(".mobile-invest-step, #mobile-invest-apply, #mobile-invest-clear").all():
+            b = box.bounding_box()
+            assert b["height"] >= 44, b
+        browser.close()
+    assert errors == []
+
+
+def test_mobile_invest_bar_is_phone_only_and_replaces_nothing(base):
+    errors = []
+    with pw.sync_playwright() as p:
+        browser = p.chromium.launch()
+        for page_name in PAGES:
+            ctx, page = _open(browser, base, errors, 1440, 900, page_name, touch=False)
+            assert not page.is_visible("#mobile-invest-details"), page_name
+            assert page.is_visible("#output-invest-button"), page_name
         browser.close()
     assert errors == []

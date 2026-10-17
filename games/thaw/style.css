@@ -1729,57 +1729,35 @@ html[data-lite="true"] .crate-visual.crate-opening { animation: none; }
 }
 html[data-reduced-motion="true"] .info-page-dot { transition: none; }
 
-/* R4-THMO-2: Mobile investment bar (max-width: 600px) */
+/* R4-THMO-2: phones only: plan a split of Region A's funds with a bar (the normal Invest rows stay as they are). */
+.mobile-invest-details { display: none; }
 @media (max-width: 600px) {
-  #investments > .invest-row { display: none; }
-  #mobile-invest-bar { display: block; margin-top: 0.5rem; }
-  .mobile-invest-track { position: relative; height: 28px; background: rgba(140, 160, 255, 0.1); border-radius: 14px; margin-bottom: 0.8rem; touch-action: none; }
-  .mobile-invest-fill { position: absolute; top: 0; bottom: 0; background: linear-gradient(90deg, #6fae8a, #3a7a9c); border-radius: 14px; pointer-events: none; }
-  .mobile-invest-handle { position: absolute; top: -5px; width: 32px; height: 38px; background: #e8e9f0; border-radius: 8px; cursor: grab; touch-action: none; box-shadow: 0 2px 8px rgba(0,0,0,0.3); z-index: 2; }
-  .mobile-invest-handle:active { cursor: grabbing; background: #fff; }
-  .mobile-invest-segments { display: flex; gap: 0.4rem; justify-content: space-between; }
-  .mobile-invest-seg { flex: 1; text-align: center; background: rgba(30, 33, 48, 0.6); border-radius: 10px; padding: 0.5rem 0.2rem; border: 1px solid rgba(140, 160, 255, 0.14); }
-  .mobile-invest-count { display: block; font-size: 1.3rem; font-weight: 600; margin-bottom: 0.3rem; color: #e8e9f0; }
-  .mobile-invest-step { width: 2.4rem; height: 2.4rem; border-radius: 50%; border: 1px solid rgba(140, 160, 255, 0.2); background: rgba(140, 160, 255, 0.1); color: #e8e9f0; font-size: 1.1rem; cursor: pointer; margin: 0 0.1rem; touch-action: manipulation; }
-  .mobile-invest-step:active { background: rgba(140, 160, 255, 0.3); }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .mobile-invest-handle { transition: none; }
-}
-
-/* R4-THMO-10: pull-down archive bottom sheet (mobile only) */
-@media (max-width: 600px) {
-  #archive-panel {
-    position: fixed;
-    left: 0; right: 0; bottom: -75vh;
-    height: 75vh;
-    max-height: 80vh;
-    z-index: 100;
-    border-radius: 16px 16px 0 0;
-    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.4);
-    transition: bottom 0.3s ease;
-    padding: 1rem;
-    overflow-y: auto;
-    background: linear-gradient(165deg, rgba(24, 27, 43, 0.95), rgba(14, 16, 28, 0.98));
-    border: 1px solid rgba(140, 160, 255, 0.14);
-    border-bottom: none;
-  }
-  #archive-panel::before {
-    content: "";
-    display: block;
-    width: 3rem;
-    height: 4px;
-    background: rgba(255, 255, 255, 0.3);
-    border-radius: 2px;
-    margin: 0 auto 1rem;
-  }
-  #archive-panel.archive-sheet-open {
-    bottom: 0;
-  }
-  @media (prefers-reduced-motion: reduce) {
-    #archive-panel { transition-duration: 0.01ms; }
-  }
+  html:not([data-layout="pc"]) .mobile-invest-details { display: block; margin-top: 0.6rem; }
+  .mobile-invest-details > summary { min-height: 44px; display: flex; align-items: center; cursor: pointer; font-size: 0.9rem; }
+  .mobile-invest-track { position: relative; height: 28px; margin: 36px 22px 44px; background: rgba(140, 160, 255, 0.12); border: 1px solid rgba(140, 160, 255, 0.25); border-radius: 14px; touch-action: none; }
+  .mobile-invest-fill { position: absolute; top: 0; bottom: 0; pointer-events: none; }
+  .mobile-invest-fill--output { background: #5f8f6b; border-radius: 14px 0 0 14px; }
+  .mobile-invest-fill--preserve { background: #3f86a8; background-image: repeating-linear-gradient(45deg, rgba(255,255,255,0.22) 0 4px, transparent 4px 8px); }
+  .mobile-invest-fill--monitor { background: #a8863f; background-image: repeating-linear-gradient(-45deg, rgba(0,0,0,0.25) 0 4px, transparent 4px 8px); }
+  /* The two handles hang on opposite sides of the bar (Output's above, Preservation's below) so their 44px touch areas never overlap. */
+  .mobile-invest-handle { position: absolute; width: 44px; height: 44px; margin-left: -22px; touch-action: none; cursor: grab; }
+  #mobile-invest-handle-a { top: -30px; }
+  #mobile-invest-handle-b { top: 14px; }
+  .mobile-invest-handle::before { content: ""; position: absolute; left: 21px; width: 3px; height: 14px; background: #e8e9f0; box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.4); }
+  #mobile-invest-handle-a::before { top: 30px; }
+  #mobile-invest-handle-b::before { top: 0; }
+  .mobile-invest-handle::after { content: ""; position: absolute; left: 8px; right: 8px; height: 24px; background: #e8e9f0; border-radius: 8px; box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.4), 0 2px 6px rgba(0, 0, 0, 0.3); }
+  #mobile-invest-handle-a::after { top: 4px; }
+  #mobile-invest-handle-b::after { top: 18px; }
+  .mobile-invest-handle:focus-visible { outline: 2px solid #8fd8ff; outline-offset: 0; border-radius: 8px; }
+  .mobile-invest-segments { display: flex; gap: 0.4rem; }
+  .mobile-invest-seg { flex: 1; min-width: 0; text-align: center; background: rgba(140, 160, 255, 0.1); border-radius: 10px; padding: 0.4rem 0.2rem; border: 1px solid rgba(140, 160, 255, 0.3); }
+  .mobile-invest-name { display: block; font-size: 0.75rem; opacity: 0.85; }
+  .mobile-invest-count { display: block; font-size: 1.3rem; font-weight: 600; margin: 0.1rem 0 0.3rem; font-variant-numeric: tabular-nums; }
+  .mobile-invest-stepper { display: flex; gap: 0.3rem; justify-content: center; }
+  .mobile-invest-step { min-width: 44px; min-height: 44px; border-radius: 50%; font-size: 1.2rem; padding: 0; touch-action: manipulation; }
+  .mobile-invest-actions { display: flex; gap: 0.5rem; margin-top: 0.6rem; }
+  .mobile-invest-actions button { flex: 1; min-height: 44px; font-size: 0.9rem; }
 }
 
 /* R4-THMO-5: a phone turned sideways (a short landscape screen) shows the four regions as a 2 by 2 board of mini graphs. */
