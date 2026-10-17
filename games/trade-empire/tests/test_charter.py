@@ -681,8 +681,8 @@ def test_the_summary_mentions_the_charter(game_env):
 
 
 def test_the_index_declares_the_panel_the_buttons_and_the_shortcut(game_env):
-    from pathlib import Path
-    html = (Path(__file__).resolve().parent.parent / "index.html").read_text(encoding="utf-8")
+    from .pagefiles import page_text
+    html = page_text("index.html")
     m = game_env.module
     for perk_id in m.CHARTER_PERKS:
         assert f'id="charter-perk-{perk_id}-buy-button"' in html

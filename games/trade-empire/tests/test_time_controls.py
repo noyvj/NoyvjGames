@@ -127,7 +127,8 @@ def test_fast_forward_is_more_ticks_never_a_different_tick(game_env):
 
 
 def test_the_tick_and_the_rules_never_read_the_speed():
-    source = (GAME_DIR / "game.py").read_text(encoding="utf-8")
+    from .pagefiles import game_source
+    source = game_source()
     code = re.sub(r"def _start_tick_loop\(\):.*?return \"interval\"\n", "", source, flags=re.S)
     assert "NoyvjTime" not in code, "only _start_tick_loop may talk to the time controller"
 

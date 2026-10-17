@@ -7,7 +7,13 @@ import pytest
 
 from .fakes import FakeDocument, FakeElement, FakeTimers, create_proxy
 
-GAME_PY = Path(__file__).resolve().parent.parent / "game.py"
+GAME_DIR = Path(__file__).resolve().parent.parent
+GAME_PY = GAME_DIR / "game.py"
+
+# game.py is split into trade_*.py modules in the same folder (see "File map" in CLAUDE.md), so the game
+# folder has to be importable, the same way the Pyodide boot script (boot.js) writes them next to game.py.
+if str(GAME_DIR) not in sys.path:
+    sys.path.insert(0, str(GAME_DIR))
 # game.py imports the shared seed module (shared/seed.py, Z-1b), which Pyodide gets from its virtual filesystem.
 SHARED_DIR = Path(__file__).resolve().parent.parent.parent.parent / "shared"
 if str(SHARED_DIR) not in sys.path:
@@ -292,6 +298,16 @@ def _install_pyodide_fakes(elements, timers):
 def _remove_pyodide_fakes():
     for name in ("js", "pyodide", "pyodide.ffi", "game"):
         sys.modules.pop(name, None)
+    _forget_game_modules()
+
+
+def _forget_game_modules():
+    # game.py is split into trade_*.py modules next to it; each binds `document`, `setTimeout` and friends from the
+    # fake `js` at import, so every test needs fresh copies, exactly as it needs a fresh game.py.
+    for name, module in list(sys.modules.items()):
+        path = getattr(module, "__file__", None)
+        if path and Path(path).resolve().parent == GAME_DIR:
+            sys.modules.pop(name, None)
 
 
 @pytest.fixture

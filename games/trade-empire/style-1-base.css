@@ -1,0 +1,602 @@
+/* Trade Empire styles, part 1 of 3: text scale, page shell, map, ships, colonies, market, research and the base panels. Loaded in order by index.html: style-1-base.css, style-2-visuals.css, then style.css. */
+* {
+  box-sizing: border-box;
+}
+
+/* Settings panel (site-wide goal, TODO.md origin A9): text scaling.
+   settings.js sets --text-scale on the root element and persists it to
+   localStorage; every font-size in this file is already in `rem`
+   (confirmed by grep before relying on this), so scaling the root
+   font-size scales the whole game uniformly with zero other changes.
+   Default 1 here means a page that never runs settings.js (or loads
+   before it finishes) still renders at exactly the size the game
+   always has -- same convention Continuum's Phase 5 accessibility.js
+   established first. */
+:root {
+  --text-scale: 1;
+}
+
+html {
+  font-size: calc(16px * var(--text-scale, 1));
+}
+
+/* Settings panel: manual "reduce motion" override. The existing
+   `@media (prefers-reduced-motion: reduce)` rules elsewhere in this
+   file already respect the OS-level setting; this adds a player-facing
+   in-game toggle (settings.js adds/removes `.reduce-motion` on <html>)
+   for someone who wants the same effect without changing a system-wide
+   setting. Forces every animation/transition already in this file to
+   be effectively instantaneous rather than duplicating each one. */
+.reduce-motion,
+.reduce-motion * {
+  animation-duration: 0.001ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.001ms !important;
+  scroll-behavior: auto !important;
+}
+
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  background: transparent;
+  color: #e8e9f0;
+  display: flex;
+  justify-content: center;
+}
+
+#game {
+  width: 100%;
+  max-width: 480px;
+  padding: 1.5rem 1rem 2rem;
+}
+
+h1 {
+  margin: 0 0 0.25rem;
+  font-size: 1.75rem;
+  background: linear-gradient(120deg, #e8e9f0 20%, #a9c3ff 55%, #e8e9f0 80%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  text-shadow: 0 0 30px rgba(120, 150, 255, 0.25);
+  width: fit-content;
+}
+
+.tagline {
+  margin: 0 0 0.75rem;
+  opacity: 0.75;
+  font-size: 0.95rem;
+}
+
+.context-blurb {
+  margin: 0 0 1.25rem;
+  opacity: 0.65;
+  font-size: 0.85rem;
+  line-height: 1.5;
+}
+
+.section {
+  background: linear-gradient(165deg, rgba(24, 27, 43, 0.78), rgba(14, 16, 28, 0.85));
+  border: 1px solid rgba(140, 160, 255, 0.14);
+  border-radius: 18px;
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  box-shadow: 0 10px 36px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  padding: 1rem;
+  margin-bottom: 1rem;
+}
+
+.research-points {
+  margin: 0 0 0.75rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #7fc4d6;
+}
+
+.research-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.6rem;
+}
+
+.research-row:last-child {
+  margin-bottom: 0;
+}
+
+.research-status {
+  font-size: 0.8rem;
+  opacity: 0.85;
+  flex: 1;
+}
+
+.research-row button.secondary {
+  flex: 0 0 auto;
+  width: auto;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.8rem;
+  background: linear-gradient(135deg, #3d84a1, #1f4655);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12);
+}
+
+.research-row button.secondary:active:not(:disabled) {
+  background: linear-gradient(135deg, #1c3540, #101f26);
+}
+
+/* Research-nodes disclosure (UI decluttering pass, TODO.md closing task)
+   — collapses the panel's 6 node rows behind one summary line, same
+   <details>/<summary> idiom as Tide's .ticker-history-toggle. Collapsed
+   by default: see index.html's comment for why (a rare, deliberate
+   action per this game's own J19 audit, not a per-turn check). */
+.research-nodes-toggle {
+  margin-top: 0.4rem;
+}
+
+.research-nodes-toggle summary {
+  font-size: 0.78rem;
+  opacity: 0.65;
+  cursor: pointer;
+  user-select: none;
+  list-style: none;
+}
+
+.research-nodes-toggle summary::-webkit-details-marker {
+  display: none;
+}
+
+.research-nodes-toggle summary:hover {
+  opacity: 0.9;
+}
+
+.research-nodes-toggle[open] summary {
+  margin-bottom: 0.6rem;
+}
+
+.research-nodes-toggle .research-row:first-of-type {
+  margin-top: 0.2rem;
+}
+
+.map-canvas {
+  display: block;
+  width: 100%;
+  max-width: 300px;
+  height: auto;
+  margin: 0 auto;
+  background: rgba(5, 6, 13, 0.65);
+  border: 1px solid rgba(140, 160, 255, 0.14);
+  border-radius: 8px;
+  box-shadow: inset 0 1px 6px rgba(0, 0, 0, 0.4);
+}
+
+.map-caption {
+  margin: 0.5rem 0 0;
+  font-size: 0.75rem;
+  opacity: 0.6;
+  text-align: center;
+}
+
+.market-price {
+  margin: 0 0 0.3rem;
+  font-size: 0.85rem;
+  opacity: 0.85;
+}
+
+.market-price--crashed {
+  color: #e0674c;
+}
+
+.panel-label {
+  margin: 0 0 0.6rem;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  opacity: 0.6;
+}
+
+.fleet-priority-status {
+  font-size: 0.8rem;
+  opacity: 0.85;
+  margin: 0 0 0.6rem;
+}
+
+#endgame-panel {
+  border-color: rgba(127, 214, 163, 0.35);
+}
+
+.endgame-message {
+  font-size: 0.85rem;
+  margin: 0 0 0.6rem;
+}
+
+.endgame-worlds {
+  font-size: 0.8rem;
+  opacity: 0.85;
+  margin: 0;
+  color: #7fd9a4;
+}
+
+.colony-row {
+  margin-bottom: 0.75rem;
+}
+
+.colony-row:last-child {
+  margin-bottom: 0;
+}
+
+.colony-name {
+  margin: 0 0 0.1rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.colony-flavor {
+  margin: 0 0 0.3rem;
+  font-size: 0.75rem;
+  opacity: 0.6;
+  line-height: 1.4;
+}
+
+.colony-development {
+  margin: 0;
+  font-size: 0.7rem;
+  opacity: 0.5;
+}
+
+.colony-need {
+  margin: 0 0 0.3rem;
+  font-size: 0.8rem;
+  opacity: 0.85;
+}
+
+.meter {
+  width: 100%;
+  height: 6px;
+  border-radius: 3px;
+  background: rgba(5, 6, 13, 0.6);
+  overflow: hidden;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.4);
+}
+
+.meter-fill {
+  height: 100%;
+  width: 50%;
+  background: #7fd6a3;
+  box-shadow: 0 0 8px rgba(127, 214, 163, 0.55);
+  transition: width 0.2s ease;
+}
+
+.ship-label {
+  margin: 0 0 0.4rem;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  opacity: 0.6;
+}
+
+.ship-status {
+  margin: 0 0 1rem;
+  font-size: 1rem;
+  line-height: 1.5;
+}
+
+.action-buttons {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.depart-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.depart-buttons button.secondary {
+  background: linear-gradient(135deg, #3d6b52, #1c3326);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12);
+}
+
+.depart-buttons button.secondary:active:not(:disabled) {
+  background: linear-gradient(135deg, #1a2e20, #0f1a14);
+}
+
+button.secondary {
+  flex: 1;
+  font-size: 0.95rem;
+  padding: 0.85rem 1rem;
+  border: none;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #3d5268, #1c2836);
+  color: white;
+  cursor: pointer;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12);
+  transition: background 0.08s ease, filter 0.08s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+button.secondary:hover:not(:disabled) {
+  filter: brightness(1.1);
+}
+
+button.secondary:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+button.secondary:active:not(:disabled) {
+  background: linear-gradient(135deg, #1c2836, #10161e);
+}
+
+.profit-display {
+  margin: 0 0 0.5rem;
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #7fd6a3;
+  position: relative; /* J22 -- containing block for .sale-spark-container */
+}
+
+/* J22 — a small one-shot particle/spark burst on a high-value sale.
+   game.py's _spark_burst_high_value_sale() appends SALE_SPARK_COUNT of
+   these as children of #sale-spark-container (a zero-size overlay
+   centered on the profit badge, NOT a child of #profit-display-text --
+   render() overwrites that span's innerText every tick, which would
+   wipe out any children appended there before their animation ever got
+   a frame to paint) and removes them again once this animation
+   finishes; the animation itself does all the visual work, Python only
+   creates/times/removes the elements. Six fixed directions (evenly
+   spread, roughly a clock face) rather than randomized inline styles,
+   so the effect is deterministic and testable. */
+.sale-spark-container {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+}
+
+.sale-spark {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #ffe9a8;
+  box-shadow: 0 0 5px 1px rgba(255, 233, 168, 0.85);
+  pointer-events: none;
+  opacity: 0;
+  animation: te-sale-spark 700ms ease-out forwards;
+}
+
+.sale-spark-0 { --spark-x: 0px; --spark-y: -26px; }
+.sale-spark-1 { --spark-x: 22px; --spark-y: -14px; }
+.sale-spark-2 { --spark-x: 22px; --spark-y: 14px; }
+.sale-spark-3 { --spark-x: 0px; --spark-y: 26px; }
+.sale-spark-4 { --spark-x: -22px; --spark-y: 14px; }
+.sale-spark-5 { --spark-x: -22px; --spark-y: -14px; }
+
+@keyframes te-sale-spark {
+  0% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+  100% {
+    opacity: 0;
+    transform: translate(calc(-50% + var(--spark-x)), calc(-50% + var(--spark-y))) scale(0.4);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sale-spark { animation: none; opacity: 0; display: none; }
+}
+
+.sale-log {
+  margin: 0;
+  font-size: 0.85rem;
+  opacity: 0.75;
+}
+
+.automation-slots {
+  margin: 0 0 0.5rem;
+  font-size: 0.8rem;
+  opacity: 0.7;
+}
+
+.automate-button {
+  background: linear-gradient(135deg, #5f4a90, #2e2246);
+}
+
+.automate-button:active:not(:disabled) {
+  background: linear-gradient(135deg, #241b38, #160f22);
+}
+
+.hub-back-link {
+  display: inline-block;
+  margin-bottom: 0.6rem;
+  font-size: 0.85rem;
+  color: inherit;
+  opacity: 0.65;
+  text-decoration: none;
+}
+
+.hub-back-link:hover {
+  opacity: 1;
+  text-decoration: underline;
+}
+
+/* Icon labels — pure CSS, no markup/game.py change. `.panel-label` is one
+   shared class across every section (Research/Trade routes/Market/Colonies/
+   Fleet priority/Kepler Cluster/Galaxy at scale), so each section's copy is
+   reached by scoping through its own panel id (`#research-panel >
+   .panel-label`, etc.) rather than touching the shared class itself — other
+   text on the page may reuse `.panel-label` later without inheriting an
+   unrelated icon. Per-row items (research nodes, ship depart/load/automate
+   buttons) share a naming convention across every ship/node, so one
+   `[id^=...]`/`[id$=...]`/`[id*=...]` attribute-selector per row type reaches
+   every instance at once. Breaks up the numbers-and-sentences readout with a
+   small icon per concept, so this reads less like a text adventure and more
+   like a dashboard at a glance. Canvas-drawn map colors, ship dot colors, and
+   `.market-price--crashed`'s red are untouched — not selectors this section
+   affects anyway (canvas isn't plain HTML text, and the crashed modifier is
+   a color-only rule left exactly as it was). */
+#research-panel > .panel-label::before {
+  content: "🔬 ";
+}
+
+#map-panel > .panel-label::before {
+  content: "🗺️ ";
+}
+
+#market-panel > .panel-label::before {
+  content: "💰 ";
+}
+
+#colonies-panel > .panel-label::before,
+#expansion-colonies-panel > .panel-label::before,
+#expansion2-colonies-panel > .panel-label::before {
+  content: "🪐 ";
+}
+
+#fleet-priority-panel > .panel-label::before {
+  content: "🛰️ ";
+}
+
+#endgame-panel > .panel-label::before {
+  content: "🏆 ";
+}
+
+.research-points::before {
+  content: "🔬 ";
+}
+
+[id^="research-"][id$="-status"]::before {
+  content: "🔬 ";
+}
+
+[id$="-unlock-button"]::before {
+  content: "🔬 ";
+}
+
+.market-price::before {
+  content: "💰 ";
+}
+
+.colony-name::before {
+  content: "🪐 ";
+}
+
+.colony-need::before {
+  content: "🎯 ";
+}
+
+.colony-development::before {
+  content: "🏗️ ";
+}
+
+.ship-label::before {
+  content: "🚀 ";
+}
+
+.ship-status::before {
+  content: "🚀 ";
+}
+
+[id$="-load-button"]::before {
+  content: "📦 ";
+}
+
+[id*="-depart-"][id$="-button"]::before {
+  content: "🚀 ";
+}
+
+.automate-button::before {
+  content: "🤖 ";
+}
+
+.fleet-priority-status::before {
+  content: "🛰️ ";
+}
+
+#fleet-priority-button::before {
+  content: "🛰️ ";
+}
+
+.profit-display::before {
+  content: "💰 ";
+}
+
+.automation-slots::before {
+  content: "⚙️ ";
+}
+
+.sale-log::before {
+  content: "🧾 ";
+}
+
+/* Small chip treatment for two short, prominent stat readouts — a pill
+   badge reads better here than a plain line of text among longer sentences
+   in the same panels. Only display/padding/background/border are added;
+   the original color/margin rules for these two selectors, defined above,
+   are untouched. */
+.research-points,
+.automation-slots {
+  display: inline-block;
+  padding: 0.3rem 0.7rem;
+  border-radius: 999px;
+  background: rgba(140, 160, 255, 0.08);
+  border: 1px solid rgba(140, 160, 255, 0.16);
+}
+
+/* Info toggles — plain <details>/<summary>, zero JS. For a mechanic that
+   isn't self-explanatory from its label alone (what does funding research
+   actually unlock? why is a planet's ecology dropping?), a small "ⓘ"
+   disclosure sits next to the label; clicking it reveals a short plain-
+   language explanation, collapsed by default so it never competes with
+   the numbers for attention. Native <details> handles open/closed state
+   entirely in the browser — no proxy, no event handler, no game.py
+   involvement at all. */
+.info-toggle {
+  display: inline-block;
+  margin-left: 0.4rem;
+  vertical-align: middle;
+}
+
+.info-toggle summary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.1rem;
+  height: 1.1rem;
+  border-radius: 50%;
+  background: rgba(140, 160, 255, 0.16);
+  border: 1px solid rgba(140, 160, 255, 0.3);
+  color: #cdd8ff;
+  font-size: 0.68rem;
+  font-weight: 700;
+  cursor: pointer;
+  list-style: none;
+  user-select: none;
+}
+
+.info-toggle summary::-webkit-details-marker {
+  display: none;
+}
+
+.info-toggle summary:hover {
+  background: rgba(140, 160, 255, 0.28);
+}
+
+.info-toggle[open] summary {
+  background: rgba(140, 160, 255, 0.32);
+}
+
+.info-toggle p {
+  text-align: left;
+  font-size: 0.78rem;
+  font-weight: 400;
+  opacity: 0.85;
+  line-height: 1.5;
+  margin: 0.5rem 0 0;
+  padding: 0.6rem 0.75rem;
+  background: rgba(5, 6, 13, 0.5);
+  border: 1px solid rgba(140, 160, 255, 0.14);
+  border-radius: 8px;
+}

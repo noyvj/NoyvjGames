@@ -242,10 +242,9 @@ def test_buttons_start_restart_and_leave(game_env):
 
 
 def test_the_restart_hotkey_is_listed_in_the_help_and_wired_on_both_pages():
-    from pathlib import Path
-    base = Path(__file__).resolve().parent.parent
+    from .pagefiles import page_text
     for page in ("index.html", "pc.html"):
-        html = (base / page).read_text(encoding="utf-8")
+        html = page_text(page)
         assert "R — restart the Trade Crisis you are playing" in html, page
         assert 'getElementById("crisis-restart-button")' in html and 'e.key !== "r"' in html, page
 

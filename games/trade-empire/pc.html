@@ -69,6 +69,8 @@
 </script>
 <link rel="icon" type="image/svg+xml" href="../../icons/favicon-trade-empire.svg">
 <link rel="stylesheet" href="../../shared/space-bg.css">
+<link rel="stylesheet" href="style-1-base.css">
+<link rel="stylesheet" href="style-2-visuals.css">
 <link rel="stylesheet" href="style.css">
 <link rel="stylesheet" href="../../shared/pc-shell.css">
 <link rel="stylesheet" href="pc.css">
@@ -179,18 +181,7 @@
     <div id="achievement-toast" class="achievement-toast" hidden></div>
     <div id="summary-panel" class="section summary-panel" hidden>
       <div id="summary-copy-result"></div>
-      <script>
-        (function () {
-          function resultFields() {
-            try {
-              var f = window.pyodide && window.pyodide.globals.get("share_result");
-              if (f) { var text = f(); if (f.destroy) f.destroy(); return JSON.parse(text); }
-            } catch (e) { /* engine not ready */ }
-            return {};
-          }
-          if (window.NoyvjCopyResult) NoyvjCopyResult.mountButton("#summary-copy-result", { getResult: resultFields });
-        })();
-      </script>
+      <script src="summary-copy.js"></script>
     </div>
     <!-- O-1/O-3: the charter panel -- the permanent perk tree (bought with
          charter points earned by renewing) and the lifetime ledger. Static
@@ -1313,104 +1304,8 @@
     <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
   </div>
 
-  <script>
-    const TRADE_EMPIRE_TUTORIAL_STEPS = [
-      {
-        title: "Welcome to Trade Empire",
-        text: "You're running a private interstellar trading corporation: four ships, five colonies, two need-cycles, and nobody but you — until automation — deciding who ships what to whom. This walkthrough covers every system in the game. Skip it any time, and reopen it later from the Tutorial button up top.",
-      },
-      {
-        selector: "#map-panel",
-        title: "The trade network",
-        text: "Colonies are nodes, routes are lines — this map shows who's connected to whom. Every colony ships to whichever other colony needs what it produces. Automated ships render as moving dots along these lines once they're underway.",
-      },
-      {
-        selector: "#ship-1-panel",
-        title: "Load cargo & depart",
-        text: "Each ship can load whatever its docked colony currently produces, up to its cargo capacity, then depart for another colony. On arrival, its cargo auto-sells at the current market price and delivers to whichever colony needs that good, raising that colony's need satisfaction. All four ships work independently.",
-      },
-      {
-        selector: "#market-panel",
-        title: "Market prices",
-        text: "Selling a good repeatedly crashes its price — every unit sold nudges it down, and it only recovers gradually if you leave it alone. A price that drops below 70% of baseline shows as crashed, in red. Spreading sales across goods keeps prices higher than dumping everything through one route.",
-      },
-      {
-        selector: "#colonies-panel",
-        title: "Colony needs & development",
-        text: "A colony's output scales from 0.5x up to 1.5x with how well its need is being met — an under-supplied colony produces less to trade, and need satisfaction decays over time if you stop delivering. Keep a colony fed for long enough and it develops to Level 2, gaining a second need that reaches into the other supply cycle.",
-      },
-      {
-        selector: "#research-panel",
-        title: "Research",
-        text: "Research points build up passively over time, completely separate from trading profit — a second currency spent only on permanent, fleet-wide upgrades: more automation slots, faster ships, bigger cargo holds, and eventually access to a whole new cluster of colonies.",
-      },
-      {
-        selector: ".automate-button",
-        title: "Automating a ship",
-        text: "Pay a one-time credit cost to automate a ship and it starts loading and departing on its own along a fixed route — no more clicking required. Only a limited number of ships can be automated at once; research an Automation Expansion to raise the cap.",
-      },
-      {
-        selector: "#ledger",
-        title: "Profit & automation slots",
-        text: "Total profit is the one wallet in this game — it pays for automation and gets spent nowhere else. This ledger also tracks how many of your automation slots are currently in use, and logs your most recent sale.",
-      },
-      {
-        selector: "#fleet-priority-panel",
-        title: "Fleet priority",
-        text: "Only affects automated ships that are idle and empty. Switch this on and they'll abandon their fixed shuttle route to reposition toward whichever producer feeds the fleet's most under-served colony — real prioritization across your whole automated fleet, not just per-route toggles.",
-      },
-      {
-        selector: "#expansion-colonies-panel",
-        title: "The Kepler Cluster",
-        text: "Unlock the Galaxy Expansion research node and a second, self-contained three-colony need-triangle opens up — three brand-new goods, reachable by any ship. A developed Kepler colony's second need reaches back into the home system, linking the two clusters together. Deeper research keeps going: Outer Reaches opens the Rift Colonies, and Deep Survey then Umbral Reach (the costliest node in the tree) opens a fourth cluster, the Umbral Deep.",
-      },
-      {
-        selector: "#endgame-panel",
-        title: "Reaching full scale",
-        text: "Max out your automation slots, switch Fleet Priority on, and unlock Galaxy Expansion, and you'll reach the endgame state: a background galaxy of worlds that grows on its own and trickles in extra passive revenue. The economy keeps running afterward — there's no hard stop. When you're ready you can renew the charter: it resets the world for charter points that buy permanent perks, and opens the optional harder charter.",
-      },
-      {
-        title: "You're ready to trade",
-        text: "That's the full loop: load, depart, sell, keep colonies fed, research upgrades, automate what you can, and let Fleet Priority handle the rest once you've earned it. Good luck building your galaxy.",
-      },
-    ];
-
-    async function main() {
-      const pyodide = await loadPyodide();
-      window.pyodide = pyodide; // exposed for the save/load bridge below
-      // ACHIEVEMENTS-SYSTEM-DESIGN.md's loading contract: fetch the static
-      // catalog and hand it to Python as a window global *before* game.py
-      // runs, same pattern SOL (the reference integration) established.
-      // Shared seeded-run helper (shared/seed.py, Z-1): game.py's `import seed` resolves from Pyodide's filesystem.
-      const seedSource = await (await fetch("../../shared/seed.py")).text();
-      pyodide.FS.writeFile("seed.py", seedSource, { encoding: "utf8" });
-      // Z-3e5: shared best-charter ghost (shared/ghost.py): one credits number per tick is recorded and compared through it.
-      const ghostSource = await (await fetch("../../shared/ghost.py")).text();
-      pyodide.FS.writeFile("ghost.py", ghostSource, { encoding: "utf8" });
-      const [achievementsJson, changelogJson, code] = await Promise.all([
-        fetch("achievements.json").then((response) => response.text()),
-        fetch("changelog.json").then((response) => response.text()),
-        fetch("game.py").then((response) => response.text()),
-      ]);
-      window.ACHIEVEMENTS_JSON = achievementsJson;
-      window.CHANGELOG_JSON = changelogJson;
-      await pyodide.runPythonAsync(code);
-
-      if (window.GameTutorial) {
-        GameTutorial.init(window.TRADE_EMPIRE_PC_TUTORIAL_STEPS || TRADE_EMPIRE_TUTORIAL_STEPS, { gameId: "trade-empire" });
-      }
-      if (window.MobileHud) {
-        MobileHud.init([
-          { selector: "#profit-display", label: "" },
-          { selector: "#automation-slots-display", label: "" },
-        ]);
-      }
-      if (window.MobileDock) {
-        MobileDock.init("#mobile-needs-strip");
-      }
-    }
-    main();
-  </script>
+  <script src="tutorial-steps.js"></script>
+  <script src="boot.js"></script>
   <!--
     SAVE-BUTTON-INTEGRATION.md: game.py exposes get_state()/load_state()
     per the shared contract; the widget itself is untouched per-game, same
@@ -1433,34 +1328,8 @@
   <script src="../../shared/time-controls.js" data-game-id="trade-empire" data-container="#time-controls"></script>
   <script src="../../shared/pause-hidden.js" data-game-id="trade-empire"></script>
   <script src="../../shared/keyboard-shortcuts.js"></script>
-  <script>
-    /* J-10: R restarts the Trade Crisis being played (the button is only visible while one runs). */
-    document.addEventListener("keydown", function (e) {
-      if (e.key !== "r" && e.key !== "R") return;
-      if (e.ctrlKey || e.metaKey || e.altKey) return;
-      var t = e.target;
-      if (t && (t.tagName === "INPUT" || t.tagName === "TEXTAREA" || t.tagName === "SELECT" || t.isContentEditable)) return;
-      var b = document.getElementById("crisis-restart-button");
-      if (b && !b.hidden && !b.disabled) { e.preventDefault(); b.click(); }
-    });
-  </script>
-  <script>
-    window.KeyboardShortcuts.init({
-      extra: ["Space — pause or resume time", "[ and ] — slower or faster (1x, 2x, 4x)", "R — restart the Trade Crisis you are playing"],
-      panels: [
-        { toggle: "howto-toggle-button", panel: "howto-panel" },
-        { toggle: "achievements-toggle-button", panel: "achievements-panel" },
-        { toggle: "changelog-toggle-button", panel: "changelog-panel" },
-        { toggle: "settings-toggle-button", panel: "settings-panel" },
-        { toggle: "summary-toggle-button", panel: "summary-panel" },
-        { toggle: "charter-toggle-button", panel: "charter-panel" },
-        { toggle: "captains-toggle-button", panel: "captains-panel" },
-        { toggle: "lab-toggle-button", panel: "lab-panel" },
-        { toggle: "desk-toggle-button", panel: "desk-panel" },
-        { toggle: "chain-toggle-button", panel: "chain-panel" },
-      ],
-    });
-  </script>
+  <script src="crisis-key.js"></script>
+  <script src="shortcuts.js"></script>
   <script>
     if ("serviceWorker" in navigator) {
       navigator.serviceWorker.register("../../sw.js");

@@ -252,8 +252,9 @@ def test_the_settings_checkbox_hides_the_note_and_the_stored_ghost_stays(game_en
 
 def test_the_settings_page_has_the_ghost_checkbox_wired():
     from pathlib import Path
+    from .pagefiles import game_css, page_text
     root = Path(__file__).resolve().parent.parent
-    html, js, css = (root / "index.html").read_text(encoding="utf-8"), (root / "settings.js").read_text(encoding="utf-8"), (root / "style.css").read_text(encoding="utf-8")
+    html, js, css = page_text("index.html"), (root / "settings.js").read_text(encoding="utf-8"), game_css()
     assert 'id="ghost-checkbox"' in html and 'id="ghost-note"' in html and 'fetch("../../shared/ghost.py")' in html
     assert "ghost-off" in js and "trade-empire-ghost-off" in js and "ghost-checkbox" in js and ".ghost-off .ghost-note" in css
 
