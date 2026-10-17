@@ -11,6 +11,7 @@ import review as rv
 from setdata import load_set_dict
 
 from .conftest import strip_extras
+from .pagefiles import app_text
 
 GAME_DIR = Path(__file__).resolve().parent.parent
 FIXTURES = Path(__file__).resolve().parent / "fixtures"
@@ -79,7 +80,7 @@ def test_the_schedule_never_reads_a_clock_or_a_random_state():
         source = (GAME_DIR / name).read_text(encoding="utf-8")
         assert not re.search(r"^\s*(import|from)\s+(random|time|datetime|calendar)\b", source, re.M), name
         assert not re.search(r"\b(time\.time|datetime\.|setTimeout|setInterval|Date\.now|new Date)\b", source), name
-    assert "Date.now" not in (GAME_DIR / "app.js").read_text(encoding="utf-8")
+    assert "Date.now" not in app_text()
 
 
 def test_items_exist_only_for_what_the_player_has_learned(sample):
@@ -397,8 +398,8 @@ def test_no_player_visible_review_text_uses_pressure_words():
     for name in ("review.py", "game.py", "core.py", "views.py", "actions.py"):
         for s in _string_literals(GAME_DIR / name):
             assert not banned.search(s), (name, s)
-    for name in ("index.html", "app.js"):
-        text = (GAME_DIR / name).read_text(encoding="utf-8")
+    for name in ("index.html", "app scripts"):
+        text = (GAME_DIR / name).read_text(encoding="utf-8") if name == "index.html" else app_text()
         assert not banned.search(text), (name, banned.search(text).group(0))
     explainer = " ".join(__import__("game")._review_explainer())
     assert "no clock" in explainer and "moves only when you press Let a day pass" in explainer and "Answering never changes your archive" in explainer
@@ -406,7 +407,7 @@ def test_no_player_visible_review_text_uses_pressure_words():
 
 def test_there_is_no_timer_or_animation_added_for_review():
     css = (GAME_DIR / "style.css").read_text(encoding="utf-8")
-    app = (GAME_DIR / "app.js").read_text(encoding="utf-8")
+    app = app_text()
     assert not re.search(r"\b(setInterval|requestAnimationFrame)\b", app)
     review_css = css.split("/* Review: one question at a time")[1].split("@keyframes")[0]
     assert "animation" not in review_css and "transition" not in review_css
