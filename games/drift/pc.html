@@ -104,7 +104,8 @@
 </head>
 <body>
   <div class="ambient-bg ambient-bg--dusk" aria-hidden="true"><div class="ambient-bg-blobs"></div><div class="ambient-bg-accent"></div></div>
-  <div id="game">
+  <div id="mobile-swipe-container">
+    <div id="game">
     <a href="../../index.html" class="hub-back-link">&larr; All games</a>
     <h1>Drift</h1>
 
@@ -577,20 +578,6 @@
 
     <p id="community-index" class="comparison-message" hidden></p>
 
-    <div id="neighbor-panel" class="section" hidden>
-      <p class="meter-label">Neighbouring district
-        <details class="info-toggle"><summary>i</summary><p>A second region with a different starting profile: plenty of housing, no integration services, little money and a higher background pressure. It runs alongside yours every round with its own funds and its own investments. When your region is calm and holds a cushion of funds you can send it support. If you leave it in critical strain, extra people reach your region every round.</p></details>
-      </p>
-      <p id="neighbor-display" class="comparison-message"></p>
-      <button id="neighbor-open-button" class="secondary" type="button">Open neighbouring district</button>
-      <div class="invest-row">
-        <button id="neighbor-housing-button" class="secondary" type="button" hidden>Housing</button>
-        <button id="neighbor-services-button" class="secondary" type="button" hidden>Integration Services</button>
-        <button id="neighbor-infrastructure-button" class="secondary" type="button" hidden>Infrastructure</button>
-        <button id="neighbor-support-button" class="secondary" type="button" hidden>Send support</button>
-      </div>
-    </div>
-
     <div id="capacity-tools" class="section">
       <details class="context-toggle">
         <summary>Reallocate committed capacity</summary>
@@ -748,6 +735,20 @@
       <textarea id="feedback-framing-comment" class="feedback-comment" placeholder="Anything about this game's own framing or tone feel off? (optional)"></textarea>
       <button id="feedback-submit-button" class="secondary" disabled>Select Yes or No first</button>
       <p id="feedback-status" class="feedback-status"></p>
+    </div>
+    </div>
+    <div id="neighbor-panel" class="section" hidden>
+      <p class="meter-label">Neighbouring district
+        <details class="info-toggle"><summary>i</summary><p>A second region with a different starting profile: plenty of housing, no integration services, little money and a higher background pressure. It runs alongside yours every round with its own funds and its own investments. When your region is calm and holds a cushion of funds you can send it support. If you leave it in critical strain, extra people reach your region every round.</p></details>
+      </p>
+      <p id="neighbor-display" class="comparison-message"></p>
+      <button id="neighbor-open-button" class="secondary" type="button">Open neighbouring district</button>
+      <div class="invest-row">
+        <button id="neighbor-housing-button" class="secondary" type="button" hidden>Housing</button>
+        <button id="neighbor-services-button" class="secondary" type="button" hidden>Integration Services</button>
+        <button id="neighbor-infrastructure-button" class="secondary" type="button" hidden>Infrastructure</button>
+        <button id="neighbor-support-button" class="secondary" type="button" hidden>Send support</button>
+      </div>
     </div>
   </div>
 
