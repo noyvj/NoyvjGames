@@ -135,3 +135,11 @@ Recommended: no, the shared confirm is fine. Say "yes" for a bottom sheet.
 ### Rs1. Robot Script: the new bottom keypad lets you hold a step's letter and drag it to reorder, but repeat, until and if blocks still use their up and down arrow buttons. Should block steps also get the drag grip?
 
 Recommended: yes, later. Say "no" to keep the arrows for blocks.
+
+### Le1. Lexis: the transmission cards idea (R4-LEMO-1) asked for "tap to pause", but nothing in Lexis is timed so there is nothing to pause; is leaving it out fine?
+
+Recommended: yes. Say "no" and say what you want paused.
+
+### Le2. Lexis: should the Evidence board (R4-PX-19) get real message fragments on planets 2 and 3 and an actual identification step, as a new item?
+
+Recommended: yes, later. Say "no" to leave it as the Pulse-planet pin board.

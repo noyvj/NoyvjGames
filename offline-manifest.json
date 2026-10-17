@@ -4081,7 +4081,7 @@
     },
     {
      "path": "games/lexis/app.js",
-     "bytes": 55435,
+     "bytes": 63203,
      "precached": true
     },
     {
@@ -4131,7 +4131,7 @@
     },
     {
      "path": "games/lexis/game.py",
-     "bytes": 18221,
+     "bytes": 20173,
      "precached": true
     },
     {
@@ -4146,7 +4146,7 @@
     },
     {
      "path": "games/lexis/index.html",
-     "bytes": 22219,
+     "bytes": 23877,
      "precached": true
     },
     {
@@ -4176,22 +4176,22 @@
     },
     {
      "path": "games/lexis/pc-config.json",
-     "bytes": 1780,
+     "bytes": 1880,
      "precached": false
     },
     {
      "path": "games/lexis/pc.css",
-     "bytes": 7546,
+     "bytes": 9331,
      "precached": true
     },
     {
      "path": "games/lexis/pc.html",
-     "bytes": 24717,
+     "bytes": 26499,
      "precached": true
     },
     {
      "path": "games/lexis/pc.js",
-     "bytes": 17559,
+     "bytes": 22694,
      "precached": true
     },
     {
@@ -4211,7 +4211,7 @@
     },
     {
      "path": "games/lexis/settings.js",
-     "bytes": 5981,
+     "bytes": 6710,
      "precached": true
     },
     {
@@ -4231,7 +4231,7 @@
     },
     {
      "path": "games/lexis/style.css",
-     "bytes": 18389,
+     "bytes": 21953,
      "precached": true
     },
     {
@@ -4439,7 +4439,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14390109,
+   "bytes": 14414582,
    "bytes_complete": true
   },
   "heist-committee": {

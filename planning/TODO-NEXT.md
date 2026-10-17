@@ -1,6 +1,6 @@
 # Next TODO list (from the Round 4 ideas, started 2026-10-12)
 
-**Progress: 124/921 items checked off (13.5%).** This is the NEXT list, written alongside the live `planning/TODO.md` (which is untouched). It becomes the live list once the current one is archived. Run `python3 scripts/todo-progress.py planning/TODO-NEXT.md` after ticking items.
+**Progress: 128/921 items checked off (13.9%).** This is the NEXT list, written alongside the live `planning/TODO.md` (which is untouched). It becomes the live list once the current one is archived. Run `python3 scripts/todo-progress.py planning/TODO-NEXT.md` after ticking items.
 
 How it is built: one section per Round 4 section on the ideas sheet (`planning/IMPROVEMENT-IDEAS-ROUND-4.md`), in the sheet's order, ids `R4-<section code>-<number>`. Only ideas you answered "yes" to are items, with your note where you wrote one. A section that is not fully answered keeps its heading and ends with one item to add the rest once you have answered them. "No" answers are dropped (listed under the heading); "later" answers are parked in `planning/LATER.md`.
 
@@ -10,14 +10,13 @@ How it is built: one section per Round 4 section on the ideas sheet (`planning/I
 
 | Section | Done | % | |
 |---|---:|---:|---|
-| LEPC. Lexis: PC view | 8/10 | 80% | ████████░░ |
+| LEMO. Lexis: mobile view | 9/10 | 90% | █████████░ |
 | PBPC. Pocket Bazaar: PC view | 8/10 | 80% | ████████░░ |
 | PBMO. Pocket Bazaar: mobile view | 8/10 | 80% | ████████░░ |
 | SMPC. Station Medic: PC view | 8/10 | 80% | ████████░░ |
 | SMMO. Station Medic: mobile view | 8/10 | 80% | ████████░░ |
 | SIPC. Signal: PC view | 7/10 | 70% | ███████░░░ |
 | SIMO. Signal: mobile view | 7/10 | 70% | ███████░░░ |
-| LEMO. Lexis: mobile view | 7/10 | 70% | ███████░░░ |
 | LHMO. Lighthouse: mobile view | 7/10 | 70% | ███████░░░ |
 | HCPC. Heist Committee: PC view | 6/10 | 60% | ██████░░░░ |
 | HCMO. Heist Committee: mobile view | 6/10 | 60% | ██████░░░░ |
@@ -111,7 +110,8 @@ How it is built: one section per Round 4 section on the ideas sheet (`planning/I
 | OC. Overclock: general ideas | 0/1 | 0% | ░░░░░░░░░░ |
 | OCP. Overclock: made for you | 0/1 | 0% | ░░░░░░░░░░ |
 | AU. Sound | 0/1 | 0% | ░░░░░░░░░░ |
-| **All sections** | **124/921** | **13.5%** | █░░░░░░░░░ |
+| **Done: 1 sections at 100%** (LEPC) | 10/10 | 100% | ██████████ |
+| **All sections** | **128/921** | **13.9%** | █░░░░░░░░░ |
 
 <!-- PROGRESS-CHART:END -->
 
@@ -1022,8 +1022,8 @@ Parked in LATER.md (you said later): PX-25.
 
 10 ideas on the sheet: 10 yes, 0 no, 0 later, 0 not answered yet.
 
-- [ ] R4-LEPC-1: (big) Hover any sign to light up every place it appears in the scenes, notebook and crew log at once. You can spot patterns by pointing.
-- [ ] R4-LEPC-2: (big) Show scene player, notebook and transmit bar as three docked panes with draggable dividers on wide screens. You can watch, note and compose together.
+- [x] R4-LEPC-1: (big) Hover any sign to light up every place it appears in the scenes, notebook and crew log at once. You can spot patterns by pointing.
+- [x] R4-LEPC-2: (big) Show scene player, notebook and transmit bar as three docked panes with draggable dividers on wide screens. You can watch, note and compose together.
 - [x] R4-LEPC-3: (small) Let you drag signs from the notebook into the transmit bar and reorder them by dragging. Building a message feels hands-on.
 - [x] R4-LEPC-4: (small) Press / to search the notebook by sign shape or your own note, and arrow keys to move through the matches. You find an entry with the keyboard only.
 - [x] R4-LEPC-5: (small) Add a right-click menu on a sign with Add note, Show scenes and Copy to transmit. Common jobs sit at the cursor.
@@ -1037,10 +1037,10 @@ Parked in LATER.md (you said later): PX-25.
 
 10 ideas on the sheet: 10 yes, 0 no, 0 later, 0 not answered yet.
 
-- [ ] R4-LEMO-1: (big) Play scenes as full-screen vertical cards where you swipe up for the next scene and tap to pause. Watching feels like a phone story.
+- [x] R4-LEMO-1: (big) Play scenes as full-screen vertical cards where you swipe up for the next scene and tap to pause. Watching feels like a phone story.
 - [x] R4-LEMO-2: (small) Pull the notebook up as a bottom sheet with a peek height that leaves the scene visible above. You can read and watch together.
 - [x] R4-LEMO-3: (small) Make the transmit pad two big buttons for tick and bar, with a short buzz for a tick and a long buzz for a bar, where the browser allows. Composing a signal feels physical.
-- [ ] R4-LEMO-4: (big) Add a portrait sign keyboard at the bottom with your known signs in a grid, tapped to build a message. Composing is a thumb job.
+- [x] R4-LEMO-4: (big) Add a portrait sign keyboard at the bottom with your known signs in a grid, tapped to build a message. Composing is a thumb job.
 - [x] R4-LEMO-5: (small) Let you long-press a sign in a scene to copy it into the transmit line. A sign moves from watching to speaking in one gesture.
 - [x] R4-LEMO-6: (small) Resume a scene at the exact frame you paused on. A short visit never loses your place.
 - [ ] R4-LEMO-7: (small) Add a home-screen card with planets contacted, signs decoded and the next goal. You can see progress at a glance.

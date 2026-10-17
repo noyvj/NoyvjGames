@@ -133,6 +133,16 @@
        "n": "Rs1",
        "text": "**Robot Script: the new bottom keypad lets you hold a step's letter and drag it to reorder, but repeat, until and if blocks still use their up and down arrow buttons. Should block steps also get the drag grip?** Recommended: yes, later. Say \"no\" to keep the arrows for blocks.",
        "answered": false
+      },
+      {
+       "n": "Le1",
+       "text": "**Lexis: the transmission cards idea (R4-LEMO-1) asked for \"tap to pause\", but nothing in Lexis is timed so there is nothing to pause; is leaving it out fine?** Recommended: yes. Say \"no\" and say what you want paused.",
+       "answered": false
+      },
+      {
+       "n": "Le2",
+       "text": "**Lexis: should the Evidence board (R4-PX-19) get real message fragments on planets 2 and 3 and an actual identification step, as a new item?** Recommended: yes, later. Say \"no\" to leave it as the Pulse-planet pin board.",
+       "answered": false
       }
      ]
     }
