@@ -152,4 +152,32 @@
     update();
     new MutationObserver(update).observe(strainBar, { attributes: true, attributeFilter: ["class"] });
   })();
+
+  // R4-DRMO-2: Swipe between region and neighbouring district on mobile.
+  (function mobileSwipe() {
+    const container = document.getElementById("mobile-swipe-container");
+    if (!container) return;
+    let startX = 0;
+    let isSwiping = false;
+
+    function handleStart(e) {
+      startX = e.touches ? e.touches[0].clientX : e.clientX;
+      isSwiping = true;
+    }
+    function handleEnd(e) {
+      if (!isSwiping) return;
+      isSwiping = false;
+      const endX = e.changedTouches ? e.changedTouches[0].clientX : e.clientX;
+      const diff = startX - endX;
+      const threshold = 50;
+      if (Math.abs(diff) > threshold) {
+        const prefersReduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+        container.scrollBy({ left: diff > 0 ? container.clientWidth : -container.clientWidth, behavior: prefersReduced ? "auto" : "smooth" });
+      }
+    }
+    container.addEventListener("touchstart", handleStart, { passive: true });
+    container.addEventListener("touchend", handleEnd);
+    container.addEventListener("mousedown", handleStart);
+    container.addEventListener("mouseup", handleEnd);
+  })();
 })();
