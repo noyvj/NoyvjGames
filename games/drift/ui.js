@@ -134,4 +134,22 @@
     // clear the state when the host's content changes.
     new MutationObserver(function () { index = -1; tip.hidden = true; }).observe(host, { childList: true });
   })();
+
+  // R4-DRMO-3: update strain ring on the Advance Round button for mobile view.
+  (function advanceRing() {
+    const btn = document.getElementById("advance-round-button");
+    const strainBar = document.getElementById("strain-bar");
+    if (!btn || !strainBar) return;
+
+    function update() {
+      const cls = strainBar.className || "";
+      let level = "stable";
+      if (cls.includes("strain--critical")) level = "critical";
+      else if (cls.includes("strain--strained")) level = "strained";
+      btn.setAttribute("data-strain", level);
+    }
+
+    update();
+    new MutationObserver(update).observe(strainBar, { attributes: true, attributeFilter: ["class"] });
+  })();
 })();
