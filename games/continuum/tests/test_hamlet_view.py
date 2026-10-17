@@ -19,6 +19,8 @@ import pytest
 import hamlet
 import sim
 
+from .pagefiles import game_css, page_text
+
 GAME_DIR = pathlib.Path(__file__).resolve().parent.parent
 
 
@@ -450,8 +452,8 @@ def test_town_panel_only_rebuilds_when_its_contents_change(hamlet_env):
 # --- wiring in the page ------------------------------------------------------------
 
 def test_page_wires_the_hamlet_pieces():
-    html = (GAME_DIR / "index.html").read_text()
-    css = (GAME_DIR / "style.css").read_text()
+    html = page_text()
+    css = game_css()
     assert '"hamlet.py"' in html                      # fetched into Pyodide's filesystem
     assert '<script src="hamlet.js">' in html
     for element_id in ("hamlet-toggle-button", "hamlet-stage", "hamlet-chips", "hamlet-town-panel",

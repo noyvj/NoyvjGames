@@ -18,6 +18,8 @@ import save
 import sim
 import statlog
 
+from .pagefiles import game_css, page_text, render3d_source
+
 GAME_DIR = Path(__file__).resolve().parent.parent
 SEASON_SECONDS = {"tribal": 10.0, "agrarian": 10.0, "classical": 12.0, "medieval": 12.0,
                   "industrial": 14.0, "digital": 16.0, "space": 18.0, "relay": 20.0}
@@ -309,21 +311,21 @@ def test_monument_row_is_in_era_order_with_text_state(game_env):
 
 # --- K-21 / K-30: browser code, checked as text ------------------------------------
 def test_screensaver_is_wired_and_reachable_on_both_pages():
-    classic = (GAME_DIR / "index.html").read_text()
+    classic = page_text("index.html")
     desktop = (GAME_DIR / "pc.html").read_text()
-    js = (GAME_DIR / "render3d.js").read_text()
+    js = render3d_source()
     config = json.loads((GAME_DIR / "pc-config.json").read_text())
     assert 'id="screensaver-button"' in classic and 'id="screensaver-button"' in desktop
     assert "screensaver-button" in [i for g in config["toolbar"]["menu"] for i in g["ids"]]
     for needle in ("requestFullscreen", "reducedMotion()", "stopImmediatePropagation", "exitScreensaver", "SCREENSAVER_FRAME_MS"):
         assert needle in js
     assert "ContinuumCamera.screensaver" in classic
-    assert "screensaver-fallback" in (GAME_DIR / "style.css").read_text()
+    assert "screensaver-fallback" in game_css()
 
 
 def test_key_remap_is_wired():
     js = (GAME_DIR / "settings.js").read_text()
-    html = (GAME_DIR / "index.html").read_text()
+    html = page_text("index.html")
     for needle in ("continuum-keys-v1", "ContinuumKeys", "is already used for", "stopImmediatePropagation"):
         assert needle in js
     for element_id in ("keybind-list", "keybind-status", "keybind-reset-button"):

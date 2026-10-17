@@ -15,6 +15,8 @@ import peers
 import sim
 import statlog
 
+from .pagefiles import page_text
+
 GAME_DIR = Path(__file__).resolve().parent.parent
 ROOT = GAME_DIR.parent.parent
 
@@ -382,7 +384,7 @@ PEER_IDS = ["peer-section", "peer-show-button", "peer-metric-button", "peer-hide
 
 @pytest.mark.parametrize("page", ["index.html", "pc.html"])
 def test_both_pages_carry_every_peer_element_and_load_the_script(page):
-    html = (GAME_DIR / page).read_text(encoding="utf-8")
+    html = page_text(page)
     ids = set(re.findall(r'\bid="([^"]+)"', html))
     assert set(PEER_IDS) <= ids
     assert '<script src="peers.js"></script>' in html

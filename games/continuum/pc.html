@@ -69,6 +69,8 @@
 </script>
 <link rel="icon" type="image/svg+xml" href="../../icons/favicon-continuum.svg">
 <link rel="stylesheet" href="../../shared/ambient-bg.css">
+<link rel="stylesheet" href="style-1-base.css">
+<link rel="stylesheet" href="style-2-console.css">
 <link rel="stylesheet" href="style.css">
 <link rel="stylesheet" href="../../shared/pc-shell.css">
 <link rel="stylesheet" href="pc.css">
@@ -184,18 +186,6 @@
          game.py, see update_summary_panel(). -->
     <div id="summary-panel" class="section summary-panel" hidden>
       <div id="summary-copy-result"></div>
-      <script>
-        (function () {
-          function resultFields() {
-            try {
-              var f = window.pyodide && window.pyodide.globals.get("share_result");
-              if (f) { var text = f(); if (f.destroy) f.destroy(); return JSON.parse(text); }
-            } catch (e) { /* engine not ready */ }
-            return {};
-          }
-          if (window.NoyvjCopyResult) NoyvjCopyResult.mountButton("#summary-copy-result", { getResult: resultFields });
-        })();
-      </script>
     </div>
     <!-- K-14: the post-mortem report, opened from the Civilization Summary (postmortem.py). -->
     <button id="postmortem-toggle-button" type="button" hidden>Post-mortem</button>
@@ -208,18 +198,6 @@
       <p id="challenge-run-status-display" class="status-line" role="status" aria-live="polite"></p>
       <div id="challenge-result-display" class="challenge-result" hidden></div>
       <div id="challenge-copy-result"></div>
-      <script>
-        (function () {
-          function resultFields() {
-            try {
-              var f = window.pyodide && window.pyodide.globals.get("challenge_share_result");
-              if (f) { var text = f(); if (f.destroy) f.destroy(); return JSON.parse(text); }
-            } catch (e) { /* engine not ready */ }
-            return {};
-          }
-          if (window.NoyvjCopyResult) NoyvjCopyResult.mountButton("#challenge-copy-result", { getResult: resultFields });
-        })();
-      </script>
       <button id="challenge-abandon-button" class="secondary" type="button" hidden>Stop tracking this run (the settlement carries on)</button>
 
       <h3 class="summary-eras-heading">Today's challenge</h3>
@@ -883,309 +861,18 @@
        settings.js has no Python dependency at all, and render3d.js only
        reaches into Pyodide once main() explicitly calls
        ContinuumVisual.init(pyodide) after game.py has booted. -->
+  <script src="render3d-scenes.js"></script>
   <script src="render3d.js"></script>
   <script src="settings.js"></script>
   <!-- U2: the Hamlet view's browser half (overlay positioning, 3D buildings, picking). -->
   <script src="hamlet.js"></script>
   <!-- K20: shareable infographic card, drawn on a 2D canvas (card.js). -->
   <script src="card.js"></script>
-  <script>
-    // K3: plain fetch + text render (no game-state logic). The endpoint may
-    // not be reachable, so every failure ends in one "not available" line,
-    // and nothing is fetched until the button is pressed.
-    (function () {
-      const FIELDS = [
-        ["current_state.city.season", "Seasons played"],
-        ["current_state.city.population", "Population"],
-        ["current_state.city.land_health", "Land health"],
-        ["current_state.city.pollution", "Pollution"],
-        ["current_state.city.sprawl", "Sprawl"],
-        ["current_state.city.fed_fraction", "Fed fraction"],
-      ];
-      const button = document.getElementById("community-city-button");
-      const result = document.getElementById("community-city-result");
-      if (!button) return;
-      function mineFor(path) {
-        try {
-          const proxy = window.pyodide.globals.get("get_state")();
-          const data = proxy.toJs({ dict_converter: Object.fromEntries });
-          if (proxy.destroy) proxy.destroy();
-          let v = data;
-          for (const key of path.split(".")) v = v == null ? undefined : v[key];
-          return typeof v === "number" && isFinite(v) ? v : null;
-        } catch (err) { return null; }
-      }
-      button.addEventListener("click", async function () {
-        const API = "https://noyvjgames.fastapicloud.dev";
-        button.disabled = true;
-        result.textContent = "Loading...";
-        try {
-          const res = await fetch(API + "/stats/games/continuum");
-          if (!res.ok) throw new Error("status " + res.status);
-          const summary = await res.json();
-          if (summary.suppressed) {
-            result.textContent = "Not enough players yet for an anonymous comparison (needs " + summary.min_bucket + "+).";
-            return;
-          }
-          const rows = [];
-          for (const [field, label] of FIELDS) {
-            const info = summary.fields && summary.fields[field];
-            const mine = mineFor(field);
-            if (!info || mine === null || typeof info.mean !== "number") continue;
-            let pct = "";
-            try {
-              const p = await (await fetch(API + "/stats/games/continuum/percentile?field=" + field + "&value=" + encodeURIComponent(mine))).json();
-              if (!p.suppressed && typeof p.percentile === "number") pct = " · " + Math.round(p.percentile) + "th percentile";
-            } catch (err) { /* the average still shows */ }
-            rows.push(label + ": you " + mine.toFixed(2) + " · community average " + info.mean.toFixed(2) + pct);
-          }
-          result.textContent = rows.length ? rows.join("\n") : "Not enough players yet for an anonymous comparison.";
-        } catch (err) {
-          result.textContent = "Community comparison isn't available yet. Check back later.";
-        } finally {
-          button.disabled = false;
-        }
-      });
-    })();
-  </script>
-  <script>
-    // K27: keyboard shortcuts + the "?" cheat-sheet. Plain DOM, no Python.
-    document.addEventListener("keydown", function (event) {
-      const t = event.target;
-      if (t && (t.tagName === "INPUT" || t.tagName === "TEXTAREA" || t.tagName === "SELECT" || t.isContentEditable)) return;
-      if (event.ctrlKey || event.metaKey || event.altKey) return;
-      const panel = document.getElementById("shortcuts-panel");
-      if (event.key === "Escape") { panel.hidden = true; return; }
-      // K-30: the keys come from Settings (settings.js), defaults otherwise.
-      const keys = window.ContinuumKeys;
-      if (keys && keys.isCapturing && keys.isCapturing()) return;
-      const defaults = { "?": "help", "p": "pause", "1": "camera-overview", "2": "camera-closeup", "3": "camera-aerial", "4": "camera-isometric", "s": "screensaver" };
-      const action = keys ? keys.actionFor(event.key) : defaults[String(event.key).toLowerCase()];
-      if (action === "help") { panel.hidden = !panel.hidden; return; }
-      if (action === "pause") {
-        // U1: pause / resume (resume at 1x).
-        const paused = document.getElementById("speed-pause-button").getAttribute("aria-pressed") === "true";
-        document.getElementById(paused ? "speed-1x-button" : "speed-pause-button").click();
-        return;
-      }
-      if (action === "screensaver" && window.ContinuumCamera && window.ContinuumCamera.screensaver) { window.ContinuumCamera.screensaver(); return; }
-      if (action && action.indexOf("camera-") === 0 && window.ContinuumCamera) window.ContinuumCamera.preset(action.slice(7));
-    });
-  </script>
-  <script>
-    // Continuum is split into engine modules (see game.py's docstring), so
-    // unlike the smaller hub games it fetches more than one Python file.
-    // Each engine module is written into Pyodide's virtual filesystem (the
-    // working directory, which is on sys.path) before game.py runs and
-    // imports them. Still no build step — just more than one fetch.
-    const ENGINE_MODULES = ["sim.py", "sustainability.py", "research.py", "log.py", "transition.py", "save.py", "info_content.py", "visual.py", "summary.py", "challenges.py", "trajectory.py", "views.py", "archive.py", "consulting.py", "founding.py", "minutes.py", "hamlet.py", "forecast.py", "statlog.py", "explain.py", "postmortem.py", "naming.py", "dataexport.py", "monuments.py", "par.py", "techdebt.py", "challengerun.py", "timelapse.py", "advisors.py", "eastereggs.py", "dynasty.py", "banners.py", "doctrines.py", "rewind.py", "citizens.py", "neighbours.py", "orders.py", "heritage.py", "beyond.py", "geography.py", "sandbox.py", "peers.py"];
-
-    const CONTINUUM_TUTORIAL_STEPS = [
-      {
-        title: "Welcome to Continuum",
-        text: "You're growing a single settlement across eight eras, from a tribal community to a region reaching off-world. This walkthrough covers the systems you have right now — skip it any time, and reopen it later from the Tutorial button up top.",
-      },
-      {
-        selector: "#scenario-select",
-        title: "Starting Scenario & Hard Mode",
-        text: "Pick a starting scenario before you advance your first season — it's locked in once play begins. Hard Mode tightens the sustainability score's penalties and thresholds, and can be switched on or off at any time.",
-      },
-      {
-        selector: "#status",
-        title: "The Settlement",
-        text: "Your season, population versus available shelter, and four resources: food, materials, tools, and knowledge. Food has a hard storage ceiling — anything gathered past it spoils at the end of the season, so storage matters as much as gathering.",
-      },
-      {
-        selector: "#land-health-display",
-        title: "Land Health",
-        text: "The land can only sustainably yield so much food per season. Harvest past that line and land health drops, cutting every future harvest — stay under it and the land recovers instead. This is what lets a small, careful settlement out-score a big, careless one.",
-      },
-      {
-        selector: "#work",
-        title: "Assign Work",
-        text: "Move people between roles with the +/- buttons. Foragers bring in food, Gatherers bring in materials, Crafters turn materials into tools, and Keepers produce knowledge — the one currency that funds research across all eight eras.",
-      },
-      {
-        selector: "#buildings",
-        title: "Build",
-        text: "Spend materials to build. Shelter raises how many people you can house, the Storage Pit raises how much food you can bank before it spoils, the Fire Circle holds the settlement together, and the Knapping Site boosts what your Crafters produce.",
-      },
-      {
-        selector: "#sustainability",
-        title: "Sustainability Score",
-        text: "This score is the whole point: livability, equity, resource balance, and resilience, averaged together. Every input is a ratio, never a raw count, so growing bigger doesn't raise it on its own — equity in particular is capped by whichever basic need is worst-met, not the average.",
-      },
-      {
-        selector: "#research",
-        title: "Research Tree",
-        text: "One tree spans all eight eras, sixteen tiers deep across three branches — provision, community, and craft. Spend knowledge to study a node; a tier opens once enough of the tier below it is researched. Early choices echo later: leaning into a branch can open or close doors many tiers on.",
-      },
-      {
-        selector: "#speed-controls",
-        title: "Time",
-        text: "Seasons pass on their own, and the game starts paused so you can read everything first. Press 1x, 2x or 4x to let time run, or Pause any time (or press P). Each season your workers produce, your people eat, the land responds to how hard you pushed it, and population grows if there's food and shelter to spare. Time only runs while this page is open.",
-      },
-      {
-        selector: "#info-page-toggle-button",
-        title: "The Real Story",
-        text: "Open this any time to read the real anthropology and archaeology behind whatever era the settlement is currently in — it updates automatically as the settlement moves through the ages.",
-      },
-      {
-        selector: "#log",
-        title: "The Log",
-        text: "A running record of what's happened — a discovery, a population milestone, a shift in how the settlement is doing. It reacts to good and bad news alike, in the settlement's own voice. Read it or don't; nothing here is blocking or required.",
-      },
-      {
-        selector: "#era-progress",
-        title: "Moving to a New Era",
-        text: "This shows what it takes to move the settlement into its next era, and why it isn't ready yet if it isn't. Leaving an era is permanent — you can look back at how it went later, but you can't undo the move forward.",
-      },
-      {
-        selector: "#revisit",
-        title: "Looking Back",
-        text: "Once you've completed at least one era, you can look back at it exactly as it stood when you left — the settlement, the tree, the 3D scene, all frozen at that moment. Nothing you do during a look-back affects your forward progress.",
-      },
-      {
-        selector: "#achievements-toggle-button",
-        title: "Achievements",
-        text: "Reaching an era, mastering a research branch, and running a genuinely well-balanced settlement all earn achievements — check here any time to see what's left.",
-      },
-      {
-        selector: "#summary-toggle-button",
-        title: "Civilization Summary",
-        text: "An on-demand recap of the whole playthrough so far — eras completed, total seasons, peak population and sustainability, and how each era you've finished actually went. Check it any time; there's no forced end screen.",
-      },
-      {
-        title: "You're ready",
-        text: "Assign work, build, research, and keep an eye on the sustainability score — then advance the season and see how it all played out. Carry this settlement as far as it will go, into the Relay Age and beyond, but grow something worth living in. Good luck.",
-      },
-    ];
-
-    async function main() {
-      const pyodide = await loadPyodide();
-      window.pyodide = pyodide; // exposed for the shared save widget
-      for (const name of ENGINE_MODULES) {
-        const moduleSource = await (await fetch(name)).text();
-        pyodide.FS.writeFile(name, moduleSource, { encoding: "utf8" });
-      }
-      // Shared info-page widget (see shared/info_page.py) -- written into
-      // Pyodide's virtual filesystem before game.py runs so `import
-      // info_page` resolves normally, same pattern used by all 8 climate
-      // quartet games (e.g. canopy's boot script).
-      const infoPageSource = await (await fetch("../../shared/info_page.py")).text();
-      pyodide.FS.writeFile("info_page.py", infoPageSource, { encoding: "utf8" });
-      // Shared narrative-log widget (Z11, see shared/narrative_log.py) --
-      // same fetch-then-writeFile pattern as info_page.py above, so both
-      // `log.py` and `game.py`'s own `import narrative_log` resolve
-      // normally. Continuum is this component's reference integration
-      // (its own pre-existing "Chronicle" log was generalized into this
-      // shared module); Thaw and Le Champ de Mots reuse it too.
-      const narrativeLogSource = await (await fetch("../../shared/narrative_log.py")).text();
-      pyodide.FS.writeFile("narrative_log.py", narrativeLogSource, { encoding: "utf8" });
-      // Shared skill-tree rules (shared/skill_tree.py): the Dynasty perk tree (dynasty.py) is validated and
-      // bought through them, the same way Canopy's Seed Vault is.
-      const skillTreeSource = await (await fetch("../../shared/skill_tree.py")).text();
-      pyodide.FS.writeFile("skill_tree.py", skillTreeSource, { encoding: "utf8" });
-      // Shared seeded-run module (shared/seed.py): challengerun.py derives the daily challenge
-      // from the UTC date with it, the same function the JavaScript side (seed.js) uses.
-      const seedSource = await (await fetch("../../shared/seed.py")).text();
-      pyodide.FS.writeFile("seed.py", seedSource, { encoding: "utf8" });
-      // Shared comparison-chart component (Z17, see
-      // shared/comparison_chart.py) -- same fetch-then-writeFile pattern
-      // as info_page.py/narrative_log.py above, so trajectory.py's
-      // `import comparison_chart` resolves normally. Continuum's K13
-      // "your city vs. history" chart (trajectory.py) is one of the
-      // three integrations this shared module was generalized for.
-      const comparisonChartSource = await (await fetch("../../shared/comparison_chart.py")).text();
-      pyodide.FS.writeFile("comparison_chart.py", comparisonChartSource, { encoding: "utf8" });
-      // ACHIEVEMENTS-SYSTEM-DESIGN.md's loading contract: fetch the static
-      // catalog and hand it to Python as a window global *before* game.py
-      // runs, same pattern SOL/Le Champ de Mots use for their own JSON
-      // assets (see those games' game.py `_read_achievements_json()`/
-      // `_read_json_asset()`).
-      const [achievementsJson, changelogJson, code] = await Promise.all([
-        fetch("achievements.json").then((response) => response.text()),
-        fetch("changelog.json").then((response) => response.text()),
-        fetch("game.py").then((response) => response.text()),
-      ]);
-      window.ACHIEVEMENTS_JSON = achievementsJson;
-      window.CHANGELOG_JSON = changelogJson;
-      await pyodide.runPythonAsync(code);
-
-      if (window.GameTutorial) {
-        GameTutorial.init(window.CONTINUUM_PC_TUTORIAL_STEPS || CONTINUUM_TUTORIAL_STEPS, { gameId: "continuum" });
-      }
-      if (window.MobileHud) {
-        MobileHud.init([
-          { selector: "#population-display", label: "Pop" },
-          { selector: "#food-display", label: "Food" },
-          { selector: "#score-display", label: "Score" },
-        ]);
-      }
-      if (window.MobileDock) {
-        // Site-wide mobile-dock rollout (planning/TODO.md, K9). Continuum's
-        // per-row actions (+/- work assignment, per-row Build, per-node
-        // Study) are already inline -- no far-apart selection-vs-action
-        // split within any of those rows, the same reason Grid's plant
-        // rows didn't need this. The real equivalent gap here is bigger
-        // than Grid's: every season funnels toward the single Advance
-        // Season button, which sits at the very bottom of an even longer
-        // page (status, sustainability, work, buildings, research, log,
-        // era progress, and Look Back all above it) -- so adjusting work/
-        // builds meant scrolling all the way down to advance, then all
-        // the way back up to #status to read the season report. Docking
-        // Advance Season mirrors Grid's own #advance-round-button judgment
-        // call exactly.
-        MobileDock.init("#speed-controls");
-      }
-      // U1: the season clock. Real-time, only while the page is visible; each
-      // step is clamped inside game.py's tick_clock() so a throttled or
-      // just-woken tab never fast-forwards.
-      {
-        const tick = pyodide.globals.get("tick_clock");
-        let last = performance.now();
-        // Z-28: shared/pause-hidden.js holds the clock (sim speed 0) while the tab is hidden. If the
-        // player turned that setting off, the clock keeps running in a hidden tab at whatever rate the
-        // browser allows (each step is still clamped to one second inside tick_clock).
-        const setSpeed = pyodide.globals.get("set_speed");
-        let speedBeforeHold = 0;
-        if (window.NoyvjPauseHidden) {
-          window.NoyvjPauseHidden.init({
-            gameId: "continuum",
-            hooks: {
-              pause() {
-                const running = Number(pyodide.globals.get("sim_speed")) || 0;
-                if (!running) return false;   // already paused by the player: nothing to stop, no note
-                speedBeforeHold = running;
-                setSpeed(0);
-                return true;
-              },
-              resume() {
-                if (speedBeforeHold && !Number(pyodide.globals.get("sim_speed"))) setSpeed(speedBeforeHold);
-                speedBeforeHold = 0;
-              },
-            },
-          });
-        }
-        setInterval(() => {
-          const now = performance.now();
-          const dt = (now - last) / 1000;
-          last = now;
-          const hold = window.NoyvjPauseHidden && window.NoyvjPauseHidden.get("continuum");
-          if (document.visibilityState === "visible" || (hold && !hold.enabled())) tick(dt);
-        }, 250);
-      }
-      // Phase 5: attempt the 3D layer last, after the real 2D game is
-      // fully up and playable. ContinuumVisual.init() is fully
-      // self-contained about failing gracefully (see render3d.js) --
-      // Three.js not loading, or WebGL not being available, must never
-      // stop the game from reaching this point already playable.
-      if (window.ContinuumVisual) {
-        window.ContinuumVisual.init(pyodide);
-      }
-    }
-    main();
-  </script>
+  <script src="copy-result-wiring.js"></script>
+  <script src="community-compare.js"></script>
+  <script src="shortcuts.js"></script>
+  <script src="tutorial-steps.js"></script>
+  <script src="boot.js"></script>
   <!--
     SAVE-BUTTON-INTEGRATION.md: shared save widget, the same drop-in used by
     every game in the hub. game.py exposes get_state()/load_state(); the
@@ -1202,13 +889,7 @@
   <script src="../../shared/leaderboard.js"></script>
   <!-- R-33: opt-in sharing switch (Settings) and the "Show another settlement" lookup; Python half is peers.py. -->
   <script src="peers.js"></script>
-  <script>
-    // K-10: opt-in "you vs everyone" for the daily challenge (backend board continuum/daily_challenge, UTC day).
-    if (window.NoyvjLeaderboard) {
-      NoyvjLeaderboard.addBoard({ game: "continuum", board: "daily_challenge", title: "Today's challenge: everyone", unit: "points",
-                                  order: "desc", windows: ["daily"], mount: "#challenge-leaderboard-mount" });
-    }
-  </script>
+  <script src="daily-leaderboard.js"></script>
   <script src="../../shared/whats-new-banner.js" data-game-id="continuum"></script>
   <script src="../../shared/pause-hidden.js" data-game-id="continuum" data-manual></script>
   <script src="../../shared/achievement-stats.js" data-game-id="continuum"></script>
@@ -1220,20 +901,8 @@
     Fire-and-forget: a dropped report is a "let a human know" nicety, not
     core gameplay, so failures are swallowed rather than surfaced.
   -->
-  <script>
-    window.submitAnswerReport = function (jsonPayload) {
-      fetch("https://noyvjgames.fastapicloud.dev/answer-reports", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: jsonPayload,
-      }).catch(function () {});
-    };
-  </script>
-  <script>
-    if ("serviceWorker" in navigator) {
-      navigator.serviceWorker.register("../../sw.js");
-    }
-  </script>
+  <script src="answer-report.js"></script>
+  <script src="register-sw.js"></script>
 <button type="button" class="secondary" id="noyvj-report-menu-button" onclick="window.NoyvjReport &amp;&amp; window.NoyvjReport.open()">Report a problem</button>
 <script src="../../shared/pc-shell.js"></script>
 </body>

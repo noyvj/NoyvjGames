@@ -8,6 +8,8 @@ from pathlib import Path
 
 import pytest
 
+from .pagefiles import page_text
+
 GAME_DIR = Path(__file__).resolve().parent.parent
 SLUG = "continuum"
 NAME = "Continuum"
@@ -15,7 +17,7 @@ PAGES = ["index.html", "pc.html"]
 
 
 def page(name):
-    return (GAME_DIR / name).read_text(encoding="utf-8")
+    return page_text(name)
 
 
 def head(name):

@@ -1,0 +1,791 @@
+/* Continuum styles, part 2 of 3: the console design pass (nameplates, screens, switches), the phone layout, the Hamlet view and the first K-section panels (achievements toast, settings, changelog). Loaded in order by index.html: style-1-base.css, style-2-console.css, then style.css. */
+/* ============================================================
+   Design pass 2 — embed controls & readouts into the console
+   (2026-09-06). Same idea as games/sol/style.css's own pass 2:
+   the previous visual pass gave every panel an illustrated scene
+   and card-style sections, but the labels, counters and buttons
+   inside those cards still read as generic flat web UI dropped on
+   top. This pass gives labels a mounted "nameplate" look, the
+   work/building/research counters and the sustainability tiles a
+   recessed digital-screen look, and every button a physical
+   beveled-switch look with a status LED wired to its own :disabled
+   state — so the panel reads as a settlement console the player
+   operates, not a webpage with numbers on it. Pure CSS on existing
+   selectors, in Continuum's own warm amber/bronze/green palette
+   (not SOL's blue-violet) — no new elements, no id/class changes,
+   nothing game.py touches.
+   ============================================================ */
+
+/* --- Nameplates: labels read as an engraved plate mounted on the
+   console rather than plain floating text. Covers the work/
+   building/research row labels, the era line, and each panel's own
+   heading. */
+.row-name,
+.era-line,
+.section-heading {
+  display: inline-block;
+  padding: 0.25rem 0.6rem;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(0, 0, 0, 0.28));
+  border: 1px solid rgba(216, 164, 92, 0.2);
+  border-radius: 6px;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06), inset 0 -1px 2px rgba(0, 0, 0, 0.35), 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+/* --- Recessed digital-screen readouts: the settlement's numeric
+   tallies sit in a glass-fronted display cut into the console face
+   instead of floating on the card background. Scanline texture +
+   inner amber glow reinforce "screen," not "text." Covers the work/
+   building/research row counters and the four sustainability stat
+   tiles, which were already isolated boxes and now read as small
+   HUD gauges rather than plain shaded rectangles — the direct
+   analog of SOL's resource-count/ecology-percent pairing. */
+.row-count,
+.component-line {
+  background:
+    repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.025) 0, rgba(255, 255, 255, 0.025) 1px, transparent 1px, transparent 3px),
+    radial-gradient(ellipse at 50% 20%, rgba(216, 164, 92, 0.14), transparent 70%),
+    rgba(4, 3, 2, 0.68);
+  border: 1px solid rgba(216, 164, 92, 0.2);
+  box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.6), inset 0 0 18px rgba(180, 120, 50, 0.16);
+}
+
+.row-count {
+  display: inline-block;
+  padding: 0.3rem 0.6rem;
+  border-radius: 8px;
+}
+
+/* --- Physical console switches: every button gets an outer bevel
+   ring and an inset "face," plus a small status LED that lights up
+   green while its action is available and dims grey when disabled —
+   a genuinely functional indicator wired to the button's own
+   :disabled state, not decoration. Covers the +/- workforce
+   buttons, the Build buttons, the Study buttons and the Advance
+   Season button — every clickable control on the page shares this
+   one selector list. */
+button.secondary,
+button.primary {
+  position: relative;
+  box-shadow:
+    0 4px 14px rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.16),
+    inset 0 -3px 6px rgba(0, 0, 0, 0.3),
+    0 0 0 3px rgba(0, 0, 0, 0.22);
+}
+
+button.secondary::after,
+button.primary::after {
+  content: "";
+  position: absolute;
+  top: 0.5rem;
+  right: 0.6rem;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #7fc25a;
+  box-shadow: 0 0 6px 1px rgba(127, 194, 90, 0.85);
+}
+
+button.secondary:disabled::after,
+button.primary:disabled::after {
+  background: #4a4038;
+  box-shadow: none;
+}
+
+/* Milestone 15 — Achievements. Same glass-panel/row language as the rest
+   of this game (see the .section/.row rules above) rather than a reskin of
+   SOL's own achievements panel — internals are free once you're inside a
+   game. Earned styling uses Continuum's own warm amber/bronze accent
+   (matches .era-line/button.primary) instead of SOL's green, so it reads
+   as this game's own achievement, not a copy-pasted one. */
+.achievements-panel {
+  text-align: left;
+  display: grid;
+  gap: 0.65rem;
+}
+
+.achievement-card {
+  padding: 0.85rem 1rem;
+  border: 1px solid rgba(201, 147, 84, 0.16);
+  border-radius: 12px;
+  background: rgba(20, 16, 10, 0.4);
+}
+
+.achievement-card--earned {
+  border-color: rgba(224, 179, 116, 0.5);
+  background: rgba(224, 179, 116, 0.1);
+  box-shadow: 0 0 18px rgba(224, 179, 116, 0.14);
+}
+
+.achievement-card-label {
+  margin: 0 0 0.25rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.achievement-card--earned .achievement-card-label {
+  color: #e0b374;
+  text-shadow: 0 0 12px rgba(224, 179, 116, 0.35);
+}
+
+.achievement-card-description {
+  margin: 0;
+  font-size: 0.78rem;
+  opacity: 0.7;
+  line-height: 1.4;
+}
+
+.achievement-card-progress {
+  margin: 0.4rem 0 0;
+  font-size: 0.72rem;
+  opacity: 0.55;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Z27b: cross-player "Earned by N% of players" line, filled in by
+   shared/achievement-stats.js once the aggregate-stats endpoint responds
+   -- same muted small-text treatment as .achievement-card-progress, kept
+   distinct via italics so the two never look identical if both appear on
+   the same card. */
+.achievement-earn-rate {
+  margin: 0.3rem 0 0;
+  font-size: 0.72rem;
+  opacity: 0.5;
+  font-style: italic;
+}
+
+.achievements-hub-link {
+  display: inline-block;
+  margin-top: 0.4rem;
+  font-size: 0.78rem;
+  color: #e0b374;
+}
+
+/* "What's New" changelog panel (site-wide goal, planning/TODO.md, origin
+   K16) — same glass-panel/card language as .achievements-panel above,
+   since it's the same hidden-until-opened idiom. Explicit [hidden]
+   override included defensively (see .settings-panel[hidden] below and
+   SOL's own documented cascade bug: a `display` override on the same
+   element as a `hidden` toggle can win the cascade over the browser's
+   default `[hidden] { display: none }` rule). */
+.changelog-panel {
+  text-align: left;
+  display: grid;
+  gap: 0.65rem;
+}
+
+.changelog-panel[hidden] {
+  display: none;
+}
+
+.changelog-entry {
+  padding: 0.7rem 1rem;
+  border: 1px solid rgba(201, 147, 84, 0.16);
+  border-radius: 12px;
+  background: rgba(20, 16, 10, 0.4);
+}
+
+.changelog-date {
+  margin: 0 0 0.2rem;
+  font-size: 0.72rem;
+  opacity: 0.6;
+  font-variant-numeric: tabular-nums;
+}
+
+.changelog-text {
+  margin: 0;
+  font-size: 0.85rem;
+  line-height: 1.4;
+}
+
+/* Milestone 19 — Settings panel (text-scale + reduce-motion),
+   consolidated from what used to be a standalone toolbar text-size
+   control. Same glass-panel/card language as .achievements-panel
+   above rather than a new visual idiom. */
+.settings-panel {
+  text-align: left;
+  display: grid;
+  gap: 0.85rem;
+}
+
+/* Same gotcha SOL's/Trade Empire's own achievements CSS documents:
+   `display: grid` above otherwise wins the cascade over the browser's
+   default `[hidden] { display: none }` UA rule (author-origin styles
+   beat user-agent-origin styles regardless of specificity), so the
+   panel would stay visible after being toggled closed without this
+   explicit override. */
+.settings-panel[hidden] {
+  display: none;
+}
+
+.settings-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.settings-row-label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  opacity: 0.85;
+}
+
+.settings-control-group {
+  display: inline-flex;
+  gap: 0.25rem;
+}
+
+.settings-control-group button {
+  min-width: 2.1rem;
+  padding: 0.5rem 0.4rem;
+  font-weight: 600;
+}
+
+#reduce-motion-toggle-button.active {
+  border-color: rgba(224, 179, 116, 0.5);
+  background: rgba(224, 179, 116, 0.1);
+  color: #e0b374;
+}
+
+.settings-note {
+  margin: 0;
+  font-size: 0.72rem;
+  opacity: 0.6;
+  line-height: 1.4;
+}
+
+/* K5 — the civilization summary report. Same hidden-until-opened glass-
+   panel/card language as .achievements-panel/.changelog-panel above, plus
+   the explicit [hidden] override every other panel in this cascade needs
+   for the same documented reason (an author-origin `display` rule beats
+   the browser's own default `[hidden] { display: none }` UA rule). */
+.summary-panel {
+  text-align: left;
+  display: grid;
+  gap: 0.5rem;
+}
+
+.summary-panel[hidden] {
+  display: none;
+}
+
+.summary-line {
+  margin: 0;
+  line-height: 1.4;
+}
+
+.summary-eras-heading {
+  margin: 0.6rem 0 0;
+  font-size: 0.95rem;
+  opacity: 0.85;
+}
+
+.summary-era-row {
+  padding: 0.6rem 0.9rem;
+  border: 1px solid rgba(201, 147, 84, 0.16);
+  border-radius: 12px;
+  background: rgba(20, 16, 10, 0.4);
+}
+
+.summary-era-row--current {
+  border-color: rgba(224, 179, 116, 0.35);
+}
+
+.summary-era-name {
+  margin: 0 0 0.2rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.summary-era-detail {
+  margin: 0;
+  font-size: 0.75rem;
+  opacity: 0.7;
+}
+
+/* K12/K18 — the starting-scenario select + opt-in hard-mode toggle. Same
+   .section glass-panel language every other section on this page already
+   uses, so it reads as part of the game's own shell rather than a new
+   visual idiom bolted on for these two items alone. */
+.scenario-button-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.scenario-button.selected {
+  border-color: rgba(224, 179, 116, 0.6);
+  background: rgba(224, 179, 116, 0.14);
+  color: #e0b374;
+  box-shadow: 0 0 10px rgba(224, 179, 116, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.scenario-button:disabled {
+  opacity: 0.55;
+}
+
+/* K18 — reuses Grid's own "armed/active switch" difficulty-toggle look
+   (see games/grid/style.css's own .difficulty-toggle.active), a distinct
+   accent from the ordinary secondary-button state so an opt-in stricter
+   mode reads as visibly "on", not just a label change. */
+.difficulty-toggle.active {
+  border-color: rgba(224, 103, 76, 0.6);
+  background: linear-gradient(135deg, #402a26, #241614);
+  box-shadow: 0 0 10px rgba(224, 103, 76, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  color: #e0917c;
+}
+
+/* O-5/O-7/O-8 — found a new settlement, the founder's legacy line and the
+   locked/unlocked Refuge scenario button. */
+.found-settlement {
+  margin-top: 0.75rem;
+  padding-top: 0.6rem;
+  border-top: 1px solid rgba(140, 160, 255, 0.14);
+}
+
+.legacy-display {
+  color: #e0b374;
+}
+
+.legacy-display[hidden] {
+  display: none;
+}
+
+/* K13 — the 3D-scene snapshot-export button. Same row/visibility gating
+   as .visual-mode-toggle/.camera-preset-buttons (render3d.js shows/hides
+   it alongside them), styled as an ordinary secondary button since it's
+   not a state toggle the way the other two 3D controls are. */
+.visual-snapshot-button {
+  margin-top: 0.4rem;
+}
+
+/* Unlock toast — fixed-position, auto-dismissing, no continuous animation
+   loop (matches this hub's "no gratuitous animation" posture already
+   established by Phase 5's render3d.js: it renders once and again only on
+   a real change, never on a timer). */
+.achievement-toast {
+  position: fixed;
+  left: 50%;
+  bottom: 1.2rem;
+  transform: translate(-50%, 12px);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 200ms ease, transform 200ms ease;
+  background: linear-gradient(135deg, #3c3226, #211b15);
+  border: 1px solid rgba(224, 179, 116, 0.5);
+  border-radius: 12px;
+  padding: 0.7rem 1.1rem;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4), 0 0 18px rgba(224, 179, 116, 0.2);
+  z-index: 50;
+  max-width: 90vw;
+}
+
+.achievement-toast.visible {
+  opacity: 1;
+  transform: translate(-50%, 0);
+}
+
+.achievement-toast-text {
+  margin: 0;
+  font-size: 0.85rem;
+  color: #f2e6d4;
+}
+
+/* Milestone 15 — the "look back at a completed era" UI (also the K7 3D-
+   snapshot groundwork: the 3D layer already redraws from whatever `state`
+   holds, so wiring this UI up is what actually makes a revisited era's
+   scene reachable at all, not merely a stats readout). */
+.revisit-banner {
+  font-weight: 600;
+}
+
+/* Milestone 17 — research tree search/filter. */
+.research-search-input {
+  width: 100%;
+  box-sizing: border-box;
+  margin: 0.5rem 0;
+  padding: 0.5rem 0.7rem;
+  border-radius: 10px;
+  border: 1px solid rgba(201, 147, 84, 0.25);
+  background: rgba(20, 16, 10, 0.4);
+  color: #eee7dd;
+  font-size: 0.85rem;
+}
+
+.research-search-input::placeholder {
+  color: #a0917f;
+}
+
+/* Site-wide mobile-dock rollout (planning/TODO.md, K9) — shared/mobile-dock.js
+   only reparents #advance-season-button to <body> below this breakpoint; the
+   actual fixed-bar styling lives here, same division of labor as every other
+   docked game on the hub. Matches Grid's own #advance-round-button.mobile-
+   docked rule (the closest judgment call to this one: a single per-turn
+   action button, not an action-panel split) rather than Canopy/Aftermath/
+   Tide's wrapped-panel shape, since Continuum's actual gap is the same
+   "one global action, buried at the bottom of a long page" shape Grid's is
+   -- just longer, with sustainability/work/buildings/research/log/era-
+   progress/Look Back all sitting between the decisions and the button.
+   bottom: 50px sits directly above this game's fixed ad-bar (ad-bar.css,
+   z-index 100); z-index 150 keeps it above the ad bar and below the save
+   widget's fixed UI (z-index 9999). */
+@media (max-width: 640px) {
+  #speed-controls.mobile-docked {
+    position: fixed;
+    left: 1rem;
+    right: 1rem;
+    /* Z18 (320px mobile-viewport audit): button.primary's base rule sets
+       width: 100% (of the fixed element's containing block -- the
+       viewport), and this selector never overrode it, so left/right's
+       intended 1rem margins couldn't both hold at once: the box stayed
+       320px wide on a 320px screen and quietly overflowed past the
+       right edge instead of shrinking, clipping this game's single most
+       important control. `width: auto` lets left/right (and max-width
+       below) size the box correctly instead. */
+    width: auto;
+    bottom: 50px;
+    z-index: 150;
+    max-width: 480px;
+    margin: 0 auto;
+    box-shadow: 0 -8px 28px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.18);
+  }
+
+  /* Reserve room at the bottom of the scrollable page so the last real
+     content (the Log/Look Back sections) never ends up hidden behind the
+     now-floating button + ad bar -- same fix every other mobile-dock game
+     needed (Grid's own #advance-round-button rule is the closest match,
+     same 130px value: ad-bar.css's 66px base plus room for this button).
+     `html body` (not just `body`) deliberately, to outrank ad-bar.css's own
+     unqualified `body { padding-bottom: 66px }` rule on specificity rather
+     than relying on stylesheet load order -- index.html links style.css
+     before ad-bar.css, so a same-specificity `body` rule here would lose
+     the cascade to ad-bar.css's regardless of this media query, and
+     silently never apply (confirmed live: this exact site-wide ordering
+     issue already affects Grid's own equivalent rule the same way, flagged
+     separately rather than fixed here since it's out of this task's scope). */
+  html body {
+    padding-bottom: 130px;
+  }
+}
+
+/* UI decluttering: collapsed "Locked" / "Known discoveries" research
+   disclosures. Summary styled as a quiet full-width toggle, matching the
+   panel's own amber accent rather than the small round info-toggle. */
+.research-disclosure { margin-top: 0.6rem; }
+.research-disclosure[hidden] { display: none; }
+.research-disclosure > summary {
+  cursor: pointer;
+  padding: 0.5rem 0.7rem;
+  border: 1px solid rgba(201, 147, 84, 0.3);
+  border-radius: 8px;
+  color: #d9b98a;
+  font-size: 0.9rem;
+  list-style: none;
+}
+.research-disclosure > summary::-webkit-details-marker { display: none; }
+.research-disclosure > summary::before { content: "▸ "; }
+.research-disclosure[open] > summary::before { content: "▾ "; }
+.research-disclosure > summary:hover { background: rgba(201, 147, 84, 0.1); }
+
+/* K11/K19/K25: civic challenges + trajectory charts. Same amber accent as
+   the rest of the game; colors are told apart by dash pattern and line
+   weight as well as hue (colorblind-safe). */
+.founded-plaque { font-variant: small-caps; letter-spacing: 0.04em; opacity: 0.85; }
+.challenge-row { margin-top: 0.6rem; }
+.challenge-active { color: #e0b374; }
+.trajectory-graph { margin-top: 0.6rem; }
+.trajectory-svg { width: 100%; height: auto; display: block; border-radius: 8px; }
+.trajectory-bg { fill: rgba(20, 16, 10, 0.5); }
+.trajectory-line { stroke-linejoin: round; stroke-linecap: round; }
+.trajectory-line--mine { stroke: #e0b374; stroke-width: 2.5; }
+.trajectory-line--ref { stroke: #8fb5e8; stroke-width: 1.8; }
+.trajectory-dot { fill: rgba(224, 179, 116, 0.7); }
+.trajectory-dot--latest { fill: #ffe0a8; stroke: #e0b374; stroke-width: 1.5; }
+.trajectory-legend { font-size: 0.78rem; opacity: 0.8; margin: 0.4rem 0 0; }
+.trajectory-key { display: inline-block; width: 1.4rem; height: 0; border-top: 3px solid #e0b374; vertical-align: middle; margin: 0 0.3rem 0 0.6rem; }
+.trajectory-key--ref { border-top: 3px dashed #8fb5e8; }
+
+.research-branch-chips { display: flex; gap: 0.4rem; flex-wrap: wrap; margin: 0.5rem 0; }
+.branch-chip { padding: 0.25rem 0.7rem; font-size: 0.8rem; border-radius: 999px; }
+.branch-chip.active { border-color: #e0b374; background: rgba(224, 179, 116, 0.18); font-weight: 600; }
+.shortcuts-panel[hidden] { display: none; }
+.shortcuts-list { list-style: none; padding: 0; margin: 0.4rem 0; display: grid; gap: 0.4rem; font-size: 0.9rem; }
+kbd { border: 1px solid rgba(201, 147, 84, 0.5); border-radius: 4px; padding: 0 0.4rem; font-family: inherit; background: rgba(20, 16, 10, 0.5); }
+.time-of-day-label { font-size: 0.8rem; opacity: 0.85; display: inline-flex; align-items: center; gap: 0.3rem; }
+.time-of-day-select { font: inherit; font-size: 0.8rem; background: rgba(20, 16, 10, 0.6); color: inherit; border: 1px solid rgba(201, 147, 84, 0.4); border-radius: 6px; padding: 0.2rem; }
+.research-effect { margin: 0.2rem 0; font-size: 0.8rem; color: #d9b98a; }
+.summary-rank { font-weight: 600; color: #e0b374; }
+
+.community-details summary { cursor: pointer; font-weight: 600; }
+.community-city-result { white-space: pre-wrap; font: inherit; font-size: 0.85rem; margin: 0.5rem 0 0; }
+.founders-panel[hidden] { display: none; }
+.founders-entry { font-size: 0.85rem; }
+.minutes-panel[hidden] { display: none; }
+.minutes-entry { font-size: 0.85rem; }
+
+/* K1/K24/K28: optional City Views. Nothing is encoded by colour alone: the
+   map uses a distinct glyph shape per building plus text labels, and the
+   flow diagram labels every node and ribbon with its value. */
+.views-panel[hidden], .views-map[hidden], .views-flow[hidden], .views-dashboard[hidden] { display: none; }
+.views-tabs { display: flex; gap: 0.4rem; flex-wrap: wrap; margin: 0.4rem 0 0.6rem; }
+.views-tabs .branch-chip[aria-pressed="true"] { border-color: #e0b374; background: rgba(224, 179, 116, 0.18); font-weight: 600; }
+.views-dashboard { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 0.6rem 1rem; }
+.views-dash-row { display: flex; justify-content: space-between; gap: 0.6rem; margin: 0.1rem 0; font-size: 0.85rem; font-variant-numeric: tabular-nums; border-bottom: 1px dotted rgba(201, 147, 84, 0.2); }
+.views-dash-value { font-weight: 600; text-align: right; }
+.views-svg { width: 100%; height: auto; display: block; border-radius: 8px; }
+.map-bg { fill: rgba(20, 16, 10, 0.5); }
+.map-district { fill: rgba(201, 147, 84, 0.08); stroke: rgba(201, 147, 84, 0.5); stroke-width: 1; }
+.map-district--empty { stroke-dasharray: 4 3; fill: none; }
+.map-label { fill: #f0dcbc; font-size: 8.5px; }
+.map-count { fill: #d9b98a; font-size: 8px; }
+.map-district--caution { stroke: #e8b23a; stroke-width: 1.6; }
+.map-district--danger { stroke: #ff9a52; stroke-width: 2.4; stroke-dasharray: 5 2; }
+.map-hatch { pointer-events: none; opacity: 0.55; }
+.map-hatch-line { stroke: #e8b23a; stroke-width: 1.4; }
+.map-hazard-mark { fill: #ffd27a; font-size: 13px; font-weight: 800; }
+.techdebt-actions { flex-wrap: wrap; gap: 0.5rem; }
+.map-glyph { fill: #e0b374; stroke: #2a1f10; stroke-width: 0.6; }
+.map-glyph--line { fill: none; stroke: #e0b374; stroke-width: 1.8; stroke-linecap: round; }
+.map-glyph--hollow { fill: none; stroke: #e0b374; stroke-width: 1.6; }
+.flow-node { fill: rgba(60, 46, 28, 0.95); stroke: #e0b374; stroke-width: 1; }
+.flow-label { fill: #f6e6c8; font-size: 8.5px; }
+.flow-ribbon { fill-opacity: 0.55; stroke-width: 0.5; }
+.flow-ribbon--food { fill: #d9a441; stroke: #d9a441; }
+.flow-ribbon--materials { fill: #8fb5e8; stroke: #8fb5e8; }
+.flow-ribbon--tools { fill: #c0c0c8; stroke: #c0c0c8; }
+.flow-ribbon--knowledge { fill: #e88fb5; stroke: #e88fb5; }
+
+/* K18/K20: settlement archive gallery + card buttons (inside the summary panel). */
+.archive-actions { display: flex; gap: 0.4rem; flex-wrap: wrap; margin: 0.4rem 0; }
+.archive-gallery { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 0.6rem; }
+.archive-entry { border: 1px solid rgba(201, 147, 84, 0.4); border-radius: 8px; padding: 0.5rem; background: rgba(20, 16, 10, 0.4); }
+.archive-thumb { width: 100%; height: auto; display: block; border-radius: 6px; margin-bottom: 0.4rem; }
+.archive-line { margin: 0.1rem 0; font-size: 0.82rem; }
+.archive-line--head { font-weight: 600; font-size: 0.9rem; }
+.archive-date { opacity: 0.7; font-size: 0.75rem; }
+
+/* U1: the speed controls and season clock. */
+.speed-buttons { display: flex; gap: 0.4rem; margin-bottom: 0.5rem; }
+.speed-buttons .speed-button { flex: 1 1 0; }
+.speed-button.selected { outline: 2px solid #c99354; }
+.meter-fill--season { background: linear-gradient(90deg, #8c6a3c, #c99354); width: 0; transition: width 0.25s linear; }
+
+/* ==========================================================================
+   U2: the optional Hamlet view (desktop only, off by default).
+   Everything below is inert unless game.py adds `hamlet-on` to #game, so with
+   the mode off nothing above changes. The ordinary Work / Build / Research /
+   Civic / Era Progress panels are hidden (not removed) while it is on; the
+   chips are real buttons laid over the scene by hamlet.js (3D) or at flat
+   top-down positions (no WebGL / 2D view).
+   ========================================================================== */
+.visual-stage { position: relative; }
+.hamlet-toggle { margin-bottom: 0.5rem; }
+.hamlet-toggle[hidden] { display: none; }
+
+.hamlet-stage { display: none; }
+
+#game.hamlet-on { max-width: 1180px; display: flex; flex-direction: column; }
+/* One-screen layout: pull the clock and the scene up under the title, and
+   let everything else (scenario, info, sustainability, log...) follow. */
+#game.hamlet-on > * { order: 5; }
+#game.hamlet-on > .hub-back-link,
+#game.hamlet-on > h1,
+#game.hamlet-on > .game-toolbar { order: 0; }
+#game.hamlet-on > #speed-controls { order: 1; }
+#game.hamlet-on > #status { order: 2; }
+#game.hamlet-on > .tagline,
+#game.hamlet-on > .context-blurb { display: none; }
+#game.hamlet-on > h1 { align-self: flex-start; }
+#game.hamlet-on #work,
+#game.hamlet-on #buildings,
+#game.hamlet-on #research,
+#game.hamlet-on #civic,
+#game.hamlet-on #era-progress { display: none; }
+
+#game.hamlet-on .visual-stage {
+  height: clamp(420px, calc(100vh - 330px), 620px);
+  margin-bottom: 1rem;
+  border-radius: 12px;
+  overflow: hidden;
+  background: linear-gradient(180deg, #2a2440 0%, #3d3a3a 100%);
+  box-shadow: inset 0 0 0 1px rgba(216, 164, 92, 0.2), 0 6px 18px rgba(0, 0, 0, 0.35);
+}
+#game.hamlet-on .visual3d-container { height: 100%; margin-bottom: 0; border-radius: 0; box-shadow: none; }
+#game.hamlet-on .settlement-visual { display: none; }
+
+#game.hamlet-on .hamlet-stage {
+  display: block;
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.hamlet-stage[hidden] { display: none !important; }
+/* The flat "ground" only shows when there is no 3D scene behind the chips. */
+.hamlet-ground {
+  position: absolute;
+  left: 4%;
+  right: 4%;
+  top: 14%;
+  bottom: 4%;
+  border-radius: 50%;
+  background: radial-gradient(ellipse at 50% 50%, #6f9c5a 0%, #4a6f3a 62%, #32501e 100%);
+  box-shadow: 0 0 0 10px rgba(74, 111, 58, 0.25);
+  display: none;
+}
+#game.hamlet-on:not(.hamlet-3d) .hamlet-ground { display: block; }
+
+.hamlet-hud {
+  position: absolute;
+  left: 10px;
+  top: 8px;
+  width: 230px;
+  margin: 0;
+  padding: 0.35rem 0.6rem;
+  border-radius: 8px;
+  background: rgba(16, 14, 12, 0.72);
+  color: #f2e8d6;
+  font-size: 0.82rem;
+  pointer-events: none;
+  z-index: 400;
+}
+.hamlet-note {
+  position: absolute;
+  left: 10px;
+  bottom: 8px;
+  margin: 0;
+  padding: 0.25rem 0.55rem;
+  border-radius: 8px;
+  background: rgba(16, 14, 12, 0.72);
+  color: #e8d8b8;
+  font-size: 0.75rem;
+  z-index: 400;
+}
+.hamlet-note[hidden] { display: none; }
+/* Visually hidden but still announced. */
+.hamlet-live {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+.hamlet-chips { position: absolute; inset: 0; pointer-events: none; }
+.hamlet-chip {
+  position: absolute;
+  transform: translate(-50%, -100%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  pointer-events: none;
+}
+.hamlet-chip button { pointer-events: auto; font: inherit; cursor: pointer; }
+.hamlet-main {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.22rem 0.55rem;
+  border-radius: 999px;
+  border: 1px solid rgba(232, 184, 118, 0.65);
+  background: rgba(24, 20, 16, 0.86);
+  color: #f6ecd9;
+  font-size: 0.78rem;
+  white-space: nowrap;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+}
+.hamlet-count { font-weight: 700; color: #ffd98f; }
+/* Compact by default: the name floats above a building on hover/focus (it is
+   always in the button's aria-label and title); the Town Centre keeps its name. */
+.hamlet-main { position: relative; }
+.hamlet-name {
+  display: none;
+  position: absolute;
+  bottom: calc(100% + 4px);
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 0.1rem 0.5rem;
+  border-radius: 8px;
+  background: rgba(16, 14, 12, 0.95);
+  border: 1px solid rgba(232, 184, 118, 0.6);
+  color: #fff3d8;
+  font-size: 0.75rem;
+  pointer-events: none;
+}
+.hamlet-chip:hover .hamlet-name,
+.hamlet-chip:focus-within .hamlet-name,
+.hamlet-chip--hover .hamlet-name { display: block; }
+.hamlet-chip[data-station="town_centre"] .hamlet-name { display: inline; position: static; transform: none; padding: 0; border: 0; background: none; }
+.hamlet-chip:hover, .hamlet-chip:focus-within, .hamlet-chip--hover { z-index: 900 !important; }
+.hamlet-sub {
+  font-size: 0.68rem;
+  color: #f0e4cc;
+  background: rgba(16, 14, 12, 0.7);
+  border-radius: 6px;
+  padding: 0 0.35rem;
+  white-space: nowrap;
+}
+.hamlet-sub[hidden] { display: none; }
+.hamlet-actions { display: flex; gap: 3px; align-items: center; }
+.hamlet-mini {
+  padding: 0.08rem 0.45rem;
+  border-radius: 999px;
+  border: 1px solid rgba(232, 184, 118, 0.55);
+  background: rgba(24, 20, 16, 0.86);
+  color: #f6ecd9;
+  font-size: 0.72rem;
+  white-space: nowrap;
+}
+.hamlet-buy { border-color: #8fd37a; }
+.hamlet-main:hover,
+.hamlet-mini:hover,
+.hamlet-chip--hover .hamlet-main { background: rgba(80, 58, 24, 0.95); border-color: #ffd98f; }
+.hamlet-chip--open .hamlet-main { background: rgba(80, 58, 24, 0.95); border-color: #ffd98f; }
+/* A building that cannot act right now: dimmed, dashed, still focusable. */
+.hamlet-blocked { opacity: 0.55; border-style: dashed; }
+.hamlet-chip button:focus-visible { outline: 3px solid #ffffff; outline-offset: 2px; }
+
+.hamlet-town-panel {
+  position: absolute;
+  right: 10px;
+  top: 52px;
+  bottom: 10px;
+  width: 300px;
+  overflow-y: auto;
+  padding: 0.6rem 0.75rem;
+  border-radius: 12px;
+  background: rgba(20, 17, 14, 0.94);
+  border: 1px solid rgba(232, 184, 118, 0.5);
+  color: #f2e8d6;
+  font-size: 0.8rem;
+  pointer-events: auto;
+  z-index: 500;
+}
+.hamlet-town-panel[hidden] { display: none; }
+.hamlet-town-head { display: flex; justify-content: space-between; align-items: center; }
+.hamlet-town-heading { margin: 0.6rem 0 0.25rem; font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.06em; color: #e8b876; }
+.hamlet-town-line { margin: 0.15rem 0; }
+.hamlet-town-dim { opacity: 0.7; }
+.hamlet-town-row { display: flex; justify-content: space-between; align-items: center; gap: 0.5rem; margin: 0.2rem 0; }
+.hamlet-town-name { flex: 1 1 auto; }
+.hamlet-town-panel button { pointer-events: auto; font: inherit; cursor: pointer; }
+.hamlet-town-panel:focus { outline: none; }
+
+@media (prefers-reduced-motion: no-preference) {
+  .hamlet-main, .hamlet-mini { transition: background 0.12s ease, border-color 0.12s ease; }
+}
+
+/* W2-continuum: collapsible "In the real world" note. */
+.real-world-note {
+  margin: 0.75rem 0;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid rgba(201, 147, 84, 0.3);
+  border-radius: 8px;
+  font-size: 0.85rem;
+  line-height: 1.5;
+}
