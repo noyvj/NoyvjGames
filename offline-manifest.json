@@ -5756,8 +5756,23 @@
      "precached": false
     },
     {
+     "path": "games/signal/app-1-core.js",
+     "bytes": 8044,
+     "precached": true
+    },
+    {
+     "path": "games/signal/app-2-render.js",
+     "bytes": 18703,
+     "precached": true
+    },
+    {
+     "path": "games/signal/app-3-engine.js",
+     "bytes": 9222,
+     "precached": true
+    },
+    {
      "path": "games/signal/app.js",
-     "bytes": 52181,
+     "bytes": 21829,
      "precached": true
     },
     {
@@ -5767,12 +5782,12 @@
     },
     {
      "path": "games/signal/game.py",
-     "bytes": 58643,
+     "bytes": 4370,
      "precached": true
     },
     {
      "path": "games/signal/index.html",
-     "bytes": 20463,
+     "bytes": 20596,
      "precached": true
     },
     {
@@ -5787,7 +5802,7 @@
     },
     {
      "path": "games/signal/pc.html",
-     "bytes": 23303,
+     "bytes": 23436,
      "precached": true
     },
     {
@@ -5798,7 +5813,47 @@
     {
      "path": "games/signal/settings.js",
      "bytes": 4485,
-     "precached": false
+     "precached": true
+    },
+    {
+     "path": "games/signal/signal_actions.py",
+     "bytes": 11475,
+     "precached": true
+    },
+    {
+     "path": "games/signal/signal_puzzle.py",
+     "bytes": 11090,
+     "precached": true
+    },
+    {
+     "path": "games/signal/signal_records.py",
+     "bytes": 12182,
+     "precached": true
+    },
+    {
+     "path": "games/signal/signal_rules.py",
+     "bytes": 5236,
+     "precached": true
+    },
+    {
+     "path": "games/signal/signal_runstate.py",
+     "bytes": 1507,
+     "precached": true
+    },
+    {
+     "path": "games/signal/signal_savestate.py",
+     "bytes": 6413,
+     "precached": true
+    },
+    {
+     "path": "games/signal/signal_session.py",
+     "bytes": 9639,
+     "precached": true
+    },
+    {
+     "path": "games/signal/signal_share.py",
+     "bytes": 4477,
+     "precached": true
     },
     {
      "path": "games/signal/sources.json",
@@ -5994,7 +6049,7 @@
     }
    ],
    "cdn": [],
-   "bytes": 624304,
+   "bytes": 637933,
    "bytes_complete": true
   },
   "lexis": {
@@ -6010,14 +6065,34 @@
      "precached": true
     },
     {
+     "path": "games/lexis/app-1-core.js",
+     "bytes": 12031,
+     "precached": true
+    },
+    {
+     "path": "games/lexis/app-2-station.js",
+     "bytes": 12036,
+     "precached": true
+    },
+    {
+     "path": "games/lexis/app-3-bridge.js",
+     "bytes": 15280,
+     "precached": true
+    },
+    {
+     "path": "games/lexis/app-4-boards.js",
+     "bytes": 14354,
+     "precached": true
+    },
+    {
      "path": "games/lexis/app.js",
-     "bytes": 63203,
+     "bytes": 15964,
      "precached": true
     },
     {
      "path": "games/lexis/bench.py",
      "bytes": 748,
-     "precached": false
+     "precached": true
     },
     {
      "path": "games/lexis/bridge.py",
@@ -6067,7 +6142,7 @@
     {
      "path": "games/lexis/globes.py",
      "bytes": 2130,
-     "precached": false
+     "precached": true
     },
     {
      "path": "games/lexis/glyphs.py",
@@ -6076,7 +6151,7 @@
     },
     {
      "path": "games/lexis/index.html",
-     "bytes": 23877,
+     "bytes": 24036,
      "precached": true
     },
     {
@@ -6092,7 +6167,7 @@
     {
      "path": "games/lexis/museum.py",
      "bytes": 1355,
-     "precached": false
+     "precached": true
     },
     {
      "path": "games/lexis/notebook.py",
@@ -6116,7 +6191,7 @@
     },
     {
      "path": "games/lexis/pc.html",
-     "bytes": 26499,
+     "bytes": 26658,
      "precached": true
     },
     {
@@ -6152,7 +6227,7 @@
     {
      "path": "games/lexis/star_map.py",
      "bytes": 997,
-     "precached": false
+     "precached": true
     },
     {
      "path": "games/lexis/story.py",
@@ -6369,7 +6444,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14414582,
+   "bytes": 14421362,
    "bytes_complete": true
   },
   "heist-committee": {

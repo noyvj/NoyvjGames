@@ -2,7 +2,7 @@
 // the precache list; ordinary content deploys don't need it, because
 // same-origin requests are network-first (see the fetch handler below) and
 // so always pick up fresh files whenever the player is online.
-const SW_VERSION = 76;
+const SW_VERSION = 78;
 const CACHE_NAME = "site-cache-v" + SW_VERSION;
 // How long a same-origin network request may take before we give up and
 // serve the cached copy instead (a slow/flaky connection shouldn't hang).
@@ -548,10 +548,30 @@ const PRECACHE_URLS = [
   "games/signal/index.html",
   "games/signal/style.css",
   "games/signal/game.py",
+  "games/signal/app-1-core.js",
+  "games/signal/app-2-render.js",
+  "games/signal/app-3-engine.js",
+  "games/signal/settings.js",
+  "games/signal/signal_actions.py",
+  "games/signal/signal_puzzle.py",
+  "games/signal/signal_records.py",
+  "games/signal/signal_rules.py",
+  "games/signal/signal_runstate.py",
+  "games/signal/signal_savestate.py",
+  "games/signal/signal_session.py",
+  "games/signal/signal_share.py",
   "games/signal/app.js",
   "games/lexis/index.html",
   "games/lexis/style.css",
   "games/lexis/game.py",
+  "games/lexis/app-1-core.js",
+  "games/lexis/app-2-station.js",
+  "games/lexis/app-3-bridge.js",
+  "games/lexis/app-4-boards.js",
+  "games/lexis/bench.py",
+  "games/lexis/globes.py",
+  "games/lexis/museum.py",
+  "games/lexis/star_map.py",
   "games/lexis/app.js",
   "games/lexis/settings.js",
   "games/lexis/changelog.json",
