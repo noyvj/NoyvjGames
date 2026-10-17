@@ -421,3 +421,112 @@ Object.defineProperty(window, "MobileDock", { configurable: true, get() { return
     });
   });
 })();
+
+// R4-SIPC-3: Readings sheet beside the board (Desktop only; the hidden #readings-sheet section in index.html is moved into
+// the side column by the "side" zone in pc-config.json and shown here). It is rebuilt from the page's own #waterfall, which
+// app.js redraws in ping order after every engine answer, so it never goes stale and reads no storage.
+(function () {
+  var sortKey = "order";
+  var sortDown = false;
+  var sheet = null;
+  var body = null;
+  var pending = false;
+  var clearTimer = null;
+
+  function readings() {
+    var out = [];
+    var items = document.querySelectorAll("#waterfall .wf-item");
+    for (var i = 0; i < items.length; i++) {
+      var spans = items[i].querySelectorAll("span");
+      var tile = spans[2] ? spans[2].textContent.trim() : "";
+      var m = /^([A-Z])(\d+)$/.exec(tile);
+      if (!m) continue;
+      out.push({ order: i + 1, tile: tile, col: m[1].charCodeAt(0) - 65, row: parseInt(m[2], 10) - 1,
+                 value: parseInt(spans[1].textContent, 10), glyph: spans[0].textContent });
+    }
+    return out;
+  }
+
+  function sorted(list) {
+    var key = sortKey;
+    var dir = sortDown ? -1 : 1;
+    return list.slice().sort(function (a, b) {
+      var d;
+      if (key === "tile") d = a.col - b.col || a.row - b.row;
+      else d = a[key] - b[key];
+      return (d || a.order - b.order) * dir;
+    });
+  }
+
+  function render() {
+    pending = false;
+    if (!sheet) return;
+    var list = readings();
+    body.textContent = "";
+    var empty = sheet.querySelector(".sheet-empty");
+    empty.hidden = list.length > 0;
+    sorted(list).forEach(function (p) {
+      var tr = document.createElement("tr");
+      var n = document.createElement("td");
+      n.textContent = String(p.order);
+      var tileCell = document.createElement("td");
+      var btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "sheet-tile";
+      btn.textContent = p.tile;
+      btn.setAttribute("data-r", String(p.row));
+      btn.setAttribute("data-c", String(p.col));
+      btn.setAttribute("aria-label", "Show tile " + p.tile + " on the board");
+      tileCell.appendChild(btn);
+      var v = document.createElement("td");
+      v.textContent = p.glyph + " " + p.value;
+      tr.appendChild(n);
+      tr.appendChild(tileCell);
+      tr.appendChild(v);
+      body.appendChild(tr);
+    });
+    var heads = sheet.querySelectorAll("th");
+    for (var i = 0; i < heads.length; i++) {
+      var b = heads[i].querySelector("[data-sort]");
+      heads[i].setAttribute("aria-sort", b.getAttribute("data-sort") === sortKey ? (sortDown ? "descending" : "ascending") : "none");
+    }
+  }
+
+  function schedule() {
+    if (pending) return;
+    pending = true;
+    Promise.resolve().then(render);
+  }
+
+  function highlight(r, c) {
+    var cell = document.querySelector('#board .cell[data-r="' + r + '"][data-c="' + c + '"]');
+    if (!cell) return;
+    var old = document.querySelectorAll("#board .cell.sheet-highlight");
+    for (var i = 0; i < old.length; i++) old[i].classList.remove("sheet-highlight");
+    cell.classList.add("sheet-highlight");
+    clearTimeout(clearTimer);
+    clearTimer = setTimeout(function () { cell.classList.remove("sheet-highlight"); }, 2500);
+  }
+
+  window.addEventListener("load", function () {
+    sheet = document.getElementById("readings-sheet");
+    var water = document.getElementById("waterfall");
+    if (!sheet || !water) return;
+    body = sheet.querySelector("tbody");
+    sheet.hidden = false;
+    sheet.addEventListener("click", function (e) {
+      var sortBtn = e.target.closest("[data-sort]");
+      if (sortBtn) {
+        var key = sortBtn.getAttribute("data-sort");
+        if (key === sortKey) sortDown = !sortDown;
+        else { sortKey = key; sortDown = key === "value"; }
+        render();
+        return;
+      }
+      var tileBtn = e.target.closest(".sheet-tile");
+      if (tileBtn) highlight(tileBtn.getAttribute("data-r"), tileBtn.getAttribute("data-c"));
+    });
+    new MutationObserver(schedule).observe(water, { childList: true, subtree: true });
+    render();
+  });
+})();
