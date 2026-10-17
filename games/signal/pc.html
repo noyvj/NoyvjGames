@@ -146,6 +146,7 @@
       <div class="settings-row"><label><input type="checkbox" id="reduced-motion-checkbox"> Reduce motion (stops the pulsing reveal)</label></div>
       <div class="settings-row"><label><input type="checkbox" id="high-contrast-checkbox"> High contrast</label></div>
       <div class="settings-row"><label><input type="checkbox" id="oled-checkbox"> OLED pure-black dark mode (mobile only)</label></div>
+      <div class="settings-row"><label><input type="checkbox" id="magnifier-checkbox" checked> Show a bubble above my finger when I hold a tile (phones)</label></div>
       <div class="settings-row"><button id="theme-setting-button" class="secondary" type="button">Toggle light / dark theme</button></div>
       <div class="settings-row"><label><input type="checkbox" id="assist-checkbox" checked> Easy mode: hatch tiles the readings have ruled out</label></div>
       <div class="settings-row"><label><input type="checkbox" id="ascii-checkbox"> Share as plain text (. : + #) instead of block glyphs</label></div>
@@ -212,6 +213,19 @@
       <p class="panel-note" style="margin:0">Readings, in the order pinged:</p>
       <div id="waterfall" class="waterfall" aria-label="Readings in order"></div>
     </div>
+
+    <section id="readings-sheet" class="readings-sheet" aria-label="Readings sheet" hidden>
+      <h3>Readings sheet</h3>
+      <table>
+        <thead><tr>
+          <th scope="col"><button type="button" data-sort="order">#</button></th>
+          <th scope="col"><button type="button" data-sort="tile">Tile</button></th>
+          <th scope="col"><button type="button" data-sort="value">Reading</button></th>
+        </tr></thead>
+        <tbody></tbody>
+      </table>
+      <p class="sheet-empty">No readings yet.</p>
+    </section>
 
     <div id="action-bar" class="action-bar">
       <button id="commit-button" class="primary" type="button" disabled>Commit answer</button>
