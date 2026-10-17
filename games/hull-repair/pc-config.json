@@ -35,6 +35,7 @@
     ["Enter", "Pick up / put down a line"],
     ["Bksp", "Take a cell back"],
     ["Z", "Undo"],
+    ["Tab", "Pick up the next unjoined line (Shift+Tab: previous)"],
     ["C", "Pulse the open cells (board focused)"],
     ["F", "Focus: hide the side panels"],
     ["Esc", "Let go / menu / close window"],

@@ -203,6 +203,15 @@ window.addEventListener("load", function () {
     if (e.key === "f" || e.key === "F") setFocus(!root.classList.contains("focus-mode"));
   });
 
+  /* R4-HRPC-4: Tab on the board picks the next unjoined line (Shift+Tab the previous one); app.js does the picking, so the
+     arrow keys, Backspace, Enter and Escape keep their meaning from the Classic layout. When no further line is left, Tab is
+     not intercepted, so keyboard focus can always leave the board. */
+  holder.addEventListener("keydown", function (e) {
+    if (e.key !== "Tab" || e.ctrlKey || e.metaKey || e.altKey) return;
+    if (typeof window.hullRepairPickLine !== "function") return;
+    if (window.hullRepairPickLine(e.shiftKey ? -1 : 1)) e.preventDefault();
+  });
+
   /* R4-HRPC-10: the station map as a keyboard grid. Each room becomes a button (roving tabindex); arrows move,
      Enter or Space opens the room. The map is redrawn by the game, so the rooms are prepared again after every redraw. */
   var mapHolder = document.getElementById("map-holder");
