@@ -1,6 +1,6 @@
 # Next TODO list (from the Round 4 ideas, started 2026-10-12)
 
-**Progress: 122/921 items checked off (13.2%).** This is the NEXT list, written alongside the live `planning/TODO.md` (which is untouched). It becomes the live list once the current one is archived. Run `python3 scripts/todo-progress.py planning/TODO-NEXT.md` after ticking items.
+**Progress: 124/921 items checked off (13.5%).** This is the NEXT list, written alongside the live `planning/TODO.md` (which is untouched). It becomes the live list once the current one is archived. Run `python3 scripts/todo-progress.py planning/TODO-NEXT.md` after ticking items.
 
 How it is built: one section per Round 4 section on the ideas sheet (`planning/IMPROVEMENT-IDEAS-ROUND-4.md`), in the sheet's order, ids `R4-<section code>-<number>`. Only ideas you answered "yes" to are items, with your note where you wrote one. A section that is not fully answered keeps its heading and ends with one item to add the rest once you have answered them. "No" answers are dropped (listed under the heading); "later" answers are parked in `planning/LATER.md`.
 
@@ -12,13 +12,13 @@ How it is built: one section per Round 4 section on the ideas sheet (`planning/I
 |---|---:|---:|---|
 | LEPC. Lexis: PC view | 8/10 | 80% | ████████░░ |
 | PBPC. Pocket Bazaar: PC view | 8/10 | 80% | ████████░░ |
+| PBMO. Pocket Bazaar: mobile view | 8/10 | 80% | ████████░░ |
 | SMPC. Station Medic: PC view | 8/10 | 80% | ████████░░ |
+| SMMO. Station Medic: mobile view | 8/10 | 80% | ████████░░ |
 | SIPC. Signal: PC view | 7/10 | 70% | ███████░░░ |
 | SIMO. Signal: mobile view | 7/10 | 70% | ███████░░░ |
 | LEMO. Lexis: mobile view | 7/10 | 70% | ███████░░░ |
 | LHMO. Lighthouse: mobile view | 7/10 | 70% | ███████░░░ |
-| PBMO. Pocket Bazaar: mobile view | 7/10 | 70% | ███████░░░ |
-| SMMO. Station Medic: mobile view | 7/10 | 70% | ███████░░░ |
 | HCPC. Heist Committee: PC view | 6/10 | 60% | ██████░░░░ |
 | HCMO. Heist Committee: mobile view | 6/10 | 60% | ██████░░░░ |
 | LHPC. Lighthouse: PC view | 6/10 | 60% | ██████░░░░ |
@@ -111,7 +111,7 @@ How it is built: one section per Round 4 section on the ideas sheet (`planning/I
 | OC. Overclock: general ideas | 0/1 | 0% | ░░░░░░░░░░ |
 | OCP. Overclock: made for you | 0/1 | 0% | ░░░░░░░░░░ |
 | AU. Sound | 0/1 | 0% | ░░░░░░░░░░ |
-| **All sections** | **122/921** | **13.2%** | █░░░░░░░░░ |
+| **All sections** | **124/921** | **13.5%** | █░░░░░░░░░ |
 
 <!-- PROGRESS-CHART:END -->
 
@@ -1166,7 +1166,7 @@ Parked in LATER.md (you said later): PX-25.
 - [x] R4-PBMO-1: (small) Let you flick a piece in a direction to push it to the next cell. Merging works by swiping.
 - [x] R4-PBMO-2: (small) Add a haptic tap on a merge that gets stronger with the tier and a roll for a cascade, where the browser allows. Merging feels satisfying.
 - [x] R4-PBMO-3: (small) Put Sell, Broom and Hand over as three big buttons along the bottom edge. The tools sit under your thumb.
-- [ ] R4-PBMO-4: (big) Make the board fill the phone width with customers as a row of cards above it. The whole stall fits one portrait screen.
+- [x] R4-PBMO-4: (big) Make the board fill the phone width with customers as a row of cards above it. The whole stall fits one portrait screen.
 - [x] R4-PBMO-5: (small) Let you pull down the stall banner to peek at the festival and regulars. A glance does not leave the board.
 - [x] R4-PBMO-6: (small) Resume the day on the exact board. A short break never loses a merge.
 - [x] R4-PBMO-7: (small) Show each customer's patience beats as large dots under their card. You never miss that someone is about to leave.
@@ -1527,7 +1527,7 @@ Parked in LATER.md (you said later): PX-25.
 - [x] R4-SMMO-5: (small) Hold the shift title to Restore the shift with a confirm. Starting over is deliberate and easy.
 - [x] R4-SMMO-6: (small) Show each patient's signs as large icon chips whose tap lists the conditions that carry them. Reading a patient takes a glance.
 - [x] R4-SMMO-7: (small) Split the drawer into Scans and Treatments tabs with a supply count on each. You see what is left before you tap.
-- [ ] R4-SMMO-8: (small) Let a long-press on a supply borrow it through a confirm sheet that shows the cost. A fallback is one gesture away.
+- [x] R4-SMMO-8: (small) Let a long-press on a supply borrow it through a confirm sheet that shows the cost. A fallback is one gesture away.
 - [x] R4-SMMO-9: (small) Add a dim infirmary night mode with bigger buttons. Bed-time play stays easy.
 - [x] R4-SMMO-10: (small) Show chart notes as a banner at the top that you can swipe away and recall from a tab. Warnings stay in reach but out of the way.
 

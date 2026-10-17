@@ -127,3 +127,11 @@ Recommended: no, keep them opt-in. Say "yes" and name which ones to turn on.
 ### Lh2. Lighthouse: is "Repair" meant as how sound the weakest part of the station is (0 to 100)?
 
 Recommended: yes. Say "no" and say what number you wanted.
+
+### Sm3. Station Medic: borrowing a supply (R4-SMMO-8) opens the shared centred confirm after you press and hold a shelf. Do you want a bottom sheet instead?
+
+Recommended: no, the shared confirm is fine. Say "yes" for a bottom sheet.
+
+### Rs1. Robot Script: the new bottom keypad lets you hold a step's letter and drag it to reorder, but repeat, until and if blocks still use their up and down arrow buttons. Should block steps also get the drag grip?
+
+Recommended: yes, later. Say "no" to keep the arrows for blocks.

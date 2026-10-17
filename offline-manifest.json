@@ -5436,7 +5436,7 @@
     },
     {
      "path": "games/pocket-bazaar/style.css",
-     "bytes": 27147,
+     "bytes": 27371,
      "precached": true
     },
     {
@@ -5654,7 +5654,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14465951,
+   "bytes": 14466175,
    "bytes_complete": true
   },
   "dead-reckoning": {
@@ -6515,7 +6515,7 @@
     },
     {
      "path": "games/robot-script/app.js",
-     "bytes": 46929,
+     "bytes": 48888,
      "precached": true
     },
     {
@@ -6665,7 +6665,7 @@
     },
     {
      "path": "games/robot-script/style.css",
-     "bytes": 23576,
+     "bytes": 25391,
      "precached": true
     },
     {
@@ -6898,7 +6898,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14425787,
+   "bytes": 14429561,
    "bytes_complete": true
   },
   "hull-repair": {
@@ -7285,7 +7285,7 @@
     },
     {
      "path": "games/station-medic/app.js",
-     "bytes": 45624,
+     "bytes": 47791,
      "precached": true
     },
     {
@@ -7370,7 +7370,7 @@
     },
     {
      "path": "games/station-medic/index.html",
-     "bytes": 17703,
+     "bytes": 17746,
      "precached": true
     },
     {
@@ -7395,7 +7395,7 @@
     },
     {
      "path": "games/station-medic/pc.html",
-     "bytes": 19810,
+     "bytes": 19853,
      "precached": true
     },
     {
@@ -7663,7 +7663,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14444610,
+   "bytes": 14446863,
    "bytes_complete": true
   },
   "stranded": {
