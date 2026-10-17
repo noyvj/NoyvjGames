@@ -1,8 +1,8 @@
 """R-19: the top-tier seawall gets a faint glint, motion only and reduced-motion safe."""
 
-import pathlib
+from .pagefiles import game_css
 
-CSS = (pathlib.Path(__file__).resolve().parent.parent / "style.css").read_text()
+CSS = game_css()  # style.css is split into ordered parts
 
 
 def test_the_glint_exists_only_for_the_top_tier_and_only_without_reduced_motion():

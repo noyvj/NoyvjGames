@@ -70,6 +70,9 @@
 </script>
 <link rel="icon" type="image/svg+xml" href="../../icons/favicon-tide.svg">
 <link rel="stylesheet" href="../../shared/ambient-bg.css">
+<link rel="stylesheet" href="style-1-base.css">
+<link rel="stylesheet" href="style-2-visuals.css">
+<link rel="stylesheet" href="style-3-panels.css">
 <link rel="stylesheet" href="style.css">
 <link rel="stylesheet" href="../../shared/pc-shell.css">
 <link rel="stylesheet" href="pc.css">
@@ -811,104 +814,8 @@
     <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
   </div>
 
-  <script>
-    const TIDE_TUTORIAL_STEPS = [
-      {
-        title: "Welcome to Tide",
-        text: "You're running a coastal settlement, balancing fishing/industry income against ocean health and a slowly rising sea. This walkthrough covers every system — skip it any time, and reopen it later from the Tutorial button up top.",
-      },
-      {
-        selector: "#investments",
-        title: "Invest Each Season",
-        text: "Spend funds on three categories: Output (fishing/industry income), Acidity Reduction (cleanup spending), and Adaptation (seawalls and other flood infrastructure). Each investment is permanent capacity — it keeps working every season from then on.",
-      },
-      {
-        selector: "#acidity-bar",
-        title: "Ocean Acidity",
-        text: "Acidity rises with your Output capacity and falls (more slowly) with Acidity Reduction spending. It never goes negative, and there's no bulk cleanup credit — you're always managing a live balance, not fixing things after the fact.",
-      },
-      {
-        selector: "#fish-yield-bar",
-        title: "The Delayed Fish-Stock Crash",
-        text: "This is the core lesson: fishing yield doesn't respond to today's acidity — it reflects acidity from 3 seasons ago. Damage from a choice you make now won't show up for a few turns, and it won't recover the instant you fix the cause either. Watch the log above the meters for narration as it lands.",
-      },
-      {
-        selector: "#sea-level-section",
-        title: "Sea Level Keeps Rising",
-        text: "Sea level climbs every season no matter what you do — nothing in this game stops or slows the rise itself. What Adaptation spending changes is how much economic damage that rise causes, not the rise itself.",
-      },
-      {
-        selector: "#adaptation-tier-display",
-        title: "Adaptation Tiers",
-        text: "Adaptation investment is cumulative and never decays. Crossing fixed thresholds (3, 6, then 10 total units invested) unlocks a stronger tier — Sandbag Berms, then Seawalls, then Reinforced Seawalls — each dampening a larger share of sea-level damage.",
-      },
-      {
-        selector: "#coastline-grid",
-        title: "The Coastline",
-        text: "This tile grid is a direct read of your sea level — rows flip from land to flooded as the water crosses each row's threshold, rising from the bottom up. Unlocked adaptation tiers also add a visible seawall line along the shore.",
-      },
-      {
-        selector: "#coastline-comparison",
-        title: "Then vs. Now",
-        text: "This side-by-side compares your starting coastline to right now. Investing in adaptation early won't stop the sea, but it visibly flattens how much coastline and cumulative damage you take over time — proof that acting early matters even before it pays off.",
-      },
-      {
-        selector: "#advance-season-button",
-        title: "Advance Season",
-        text: "This is the turn button — it applies your current investments, ticks acidity, fish yield, sea level, and damage forward by one season, and updates every meter and the delayed-effect log at once.",
-      },
-      {
-        title: "You're ready",
-        text: "That's the whole loop: invest, watch acidity build quietly, brace for the fish-stock lag to land, and keep adapting to blunt the sea's advance. There's no way to stop the water — only to weather it better than doing nothing. Good luck out there.",
-      },
-    ];
-
-    async function main() {
-      const pyodide = await loadPyodide();
-      window.pyodide = pyodide; // exposed for the save/load bridge below
-      // Shared info-page widget (see shared/info_page.py) -- written into
-      // Pyodide's virtual filesystem before game.py runs so `import
-      // info_page` resolves normally, same pattern as Continuum's
-      // ENGINE_MODULES loop.
-      const infoPageSource = await (await fetch("../../shared/info_page.py")).text();
-      pyodide.FS.writeFile("info_page.py", infoPageSource, { encoding: "utf8" });
-      // D-3 / GD-5: the shared run-code and seed modules (run_code.py needs seed.py next to it).
-      for (const f of ["seed.py", "run_code.py"]) {
-        const src = await (await fetch("../../shared/" + f)).text();
-        pyodide.FS.writeFile(f, src, { encoding: "utf8" });
-      }
-      // Achievements (ACHIEVEMENTS-SYSTEM-DESIGN.md): fetched alongside
-      // game.py and handed in as a window global before it runs, same
-      // contract SOL's reference integration established -- see
-      // _read_achievements_json() in game.py.
-      const [achievementsJson, changelogJson, code] = await Promise.all([
-        fetch("achievements.json").then((response) => response.text()),
-        fetch("changelog.json").then((response) => response.text()),
-        fetch("game.py").then((response) => response.text()),
-      ]);
-      window.ACHIEVEMENTS_JSON = achievementsJson;
-      window.CHANGELOG_JSON = changelogJson;
-      await pyodide.runPythonAsync(code);
-
-      if (window.GameTutorial) {
-        GameTutorial.init(window.TIDE_PC_TUTORIAL_STEPS || TIDE_TUTORIAL_STEPS, { gameId: "tide" });
-      }
-      if (window.MobileHud) {
-        MobileHud.init([
-          { selector: "#funds-display", label: "" },
-          { selector: "#acidity-display", label: "" },
-          { selector: "#fish-yield-display", label: "" },
-        ]);
-      }
-      if (window.MobileDock) {
-        // D1: dock the investments panel + Advance Season button to the
-        // bottom of the viewport on mobile, same shared/mobile-dock.js
-        // mechanism as Grid/Canopy/Aftermath/Trade Empire/Champ de Mots.
-        MobileDock.init("#actions-dock");
-      }
-    }
-    main();
-  </script>
+  <script src="tutorial-steps.js"></script>
+  <script src="boot.js"></script>
   <!--
     SAVE-BUTTON-INTEGRATION.md: game.py exposes get_state()/load_state()
     for the shared save widget (see SOL for the reference integration).
@@ -926,212 +833,20 @@
   <script src="../../shared/seed.js"></script>
   <script src="../../shared/copy-result.js" data-game-id="tide"></script>
   <script src="../../shared/achievement-share.js" data-game-id="tide" data-game-name="Tide"></script>
-  <script>
-    (function () {
-      // copy_result_fields() in game.py returns the headline numbers; read at click time.
-      function fields() {
-        try {
-          var fn = window.pyodide.globals.get("copy_result_fields");
-          var result = fn();
-          var out = result.toJs({ dict_converter: Object.fromEntries });
-          result.destroy();
-          fn.destroy();
-          return out;
-        } catch (e) {
-          return {};
-        }
-      }
-      // Mounts the button inside the summary panel and puts it back if the game rebuilds the panel.
-      function mountCopy(panelId, beforeSelector) {
-        var panel = document.getElementById(panelId);
-        if (!panel || !window.NoyvjCopyResult) return;
-        function ensure() {
-          if (panel.querySelector(":scope > .run-end-copy")) return;
-          var host = document.createElement("div");
-          host.className = "run-end-copy";
-          host.setAttribute("data-copy-result-for", panelId);
-          var anchor = beforeSelector ? panel.querySelector(beforeSelector) : null;
-          if (anchor && anchor.parentNode === panel) panel.insertBefore(host, anchor);
-          else panel.appendChild(host);
-          NoyvjCopyResult.mountButton(host, { getResult: fields });
-        }
-        ensure();
-        new MutationObserver(ensure).observe(panel, { childList: true });
-      }
-      // A small Credits link at the foot of the how-to and info panels, kept if the game rewrites them.
-      function addCredits(panelId) {
-        var panel = document.getElementById(panelId);
-        if (!panel) return;
-        function ensure() {
-          if (panel.querySelector(":scope > .game-credits-link")) return;
-          var p = document.createElement("p");
-          p.className = "game-credits-link";
-          p.style.cssText = "margin:0.25rem 0 0;font-size:0.8rem";
-          var a = document.createElement("a");
-          a.href = "../../credits.html";
-          a.textContent = "Credits and thanks";
-          a.style.cssText = "display:inline-flex;align-items:center;min-height:44px;color:inherit;text-decoration:underline";
-          p.appendChild(a);
-          panel.appendChild(p);
-        }
-        ensure();
-        new MutationObserver(ensure).observe(panel, { childList: true });
-      }
-      mountCopy("session-summary-panel");
-      // D-3 / GD-5: one shared Copy result button for the run code and one for a finished Daily Tide line.
-      function pyFields(name) {
-        return function () {
-          try {
-            var fn = window.pyodide.globals.get(name);
-            var result = fn();
-            var out = result.toJs({ dict_converter: Object.fromEntries });
-            result.destroy();
-            fn.destroy();
-            return out;
-          } catch (e) {
-            return {};
-          }
-        };
-      }
-      if (window.NoyvjCopyResult) {
-        var CR = window.NoyvjCopyResult;
-        CR.mountButton("#run-code-copy", { label: "Copy run code", getResult: pyFields("run_code_copy_fields") });
-        CR.mountButton("#daily-copy", { label: "Copy daily result", getResult: pyFields("daily_copy_fields") });
-      }
-      addCredits("howto-panel");
-      addCredits("info-page-panel");
-    })();
-  </script>
+  <script src="copy-wiring.js"></script>
 <!-- wiring-oct8:end -->
   <script src="../../shared/community-index.js" data-game-id="tide" data-target="#community-index" data-template="Community seawall pace, median season each tier was first reached: [sandbag berms {tier_first_season.t1:p50}] [ · seawalls {tier_first_season.t2:p50}] [ · reinforced seawalls {tier_first_season.t3:p50}] [ · storm-surge barriers {tier_first_season.t4:p50}]."></script>
-  <!--
-    R-30: community coastline line. Plain JS like the feedback prompt: a read-only fetch of the same stats
-    summary the seawall line above uses (GET /stats/games/tide), handed to game.py's
-    set_community_coastline(mean, count), which owns every rule and the wording. The field is
-    coastline_kept: until app/stats.py lists it the summary has no such field and the line stays hidden.
-    Skipped while "reduce data" is on (hub setting, or the browser's Data Saver); every failure leaves the
-    line hidden.
-  -->
-  <script>
-    (function () {
-      var API = "https://noyvjgames.fastapicloud.dev";
-      function reduceData() {
-        var choice = null;
-        try { choice = localStorage.getItem("hub_reduce_data"); } catch (e) { /* storage blocked */ }
-        if (choice === "1") return true;
-        if (choice === "0") return false;
-        var conn = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
-        return Boolean(conn && conn.saveData);
-      }
-      if (reduceData()) return;
-      function hand(mean, count) {
-        var tries = 0;
-        var timer = setInterval(function () {
-          tries += 1;
-          try {
-            var fn = window.pyodide && window.pyodide.globals.get("set_community_coastline");
-            if (fn) { clearInterval(timer); fn(mean, count); if (fn.destroy) fn.destroy(); return; }
-          } catch (e) { /* the game is not ready yet */ }
-          if (tries > 240) clearInterval(timer);
-        }, 500);
-      }
-      fetch(API + "/stats/games/tide")
-        .then(function (r) { return r.ok ? r.json() : null; })
-        .then(function (summary) {
-          if (!summary || summary.suppressed) return;
-          var field = summary.fields && summary.fields.coastline_kept;
-          if (field && typeof field.mean === "number") hand(field.mean, field.count);
-        })
-        .catch(function () { /* leave the line hidden */ });
-    })();
-  </script>
+  <script src="community-coastline.js"></script>
   <!-- Z4 (site-wide goal): "?" shows a keyboard-shortcuts help overlay,
        Esc closes whichever panel is open. See shared/keyboard-shortcuts.js. -->
   <script src="../../shared/keyboard-shortcuts.js"></script>
-  <script>
-    window.KeyboardShortcuts.init({
-      extra: [
-        "A — advance one season",
-        "X — advance up to 5 quiet seasons",
-        "1 / 2 / 3 — invest in Output / Acidity Reduction / Adaptation",
-        "R — open or close the session report",
-        "L — open or close the Harbor Ledger",
-        "Arrow keys — move around the coastline tiles (when a tile is focused)",
-        "Left / Right on a graph — read each season (hover or tap works too)",
-      ],
-      panels: [
-        { toggle: "howto-toggle-button", panel: "howto-panel" },
-        { toggle: "settings-toggle-button", panel: "settings-panel" },
-        { toggle: "achievements-toggle-button", panel: "achievements-panel" },
-        { toggle: "changelog-toggle-button", panel: "changelog-panel" },
-        { toggle: "session-summary-toggle-button", panel: "session-summary-panel" },
-        { toggle: "ledger-toggle-button", panel: "ledger-panel" },
-        { toggle: "planner-toggle-button", panel: "planner-panel" },
-        { toggle: "library-toggle-button", panel: "library-panel" },
-        { toggle: "almanac-toggle-button", panel: "almanac-panel" },
-        { toggle: "daily-toggle-button", panel: "daily-panel" },
-        { toggle: "info-page-toggle-button", panel: "info-page-panel" },
-        { toggle: "dashboard-toggle-button", panel: "dashboard-panel" },
-      ],
-    });
-  </script>
+  <script src="shortcuts.js"></script>
   <script>
     if ("serviceWorker" in navigator) {
       navigator.serviceWorker.register("../../sw.js");
     }
   </script>
-  <!--
-    Milestone 6 feedback prompt: plain JS, not Pyodide/game.py — same
-    documented exception as Canopy/Grid (trivial POST to the shared
-    ratings API, not game state, so no Python/pytest coverage needed).
-    Reuses the schema Canopy already extended with a `response` field;
-    no backend changes needed here.
-  -->
-  <script>
-    (function () {
-      const RATINGS_API_BASE = "https://noyvjgames.fastapicloud.dev";
-      const yesButton = document.getElementById("feedback-yes-button");
-      const noButton = document.getElementById("feedback-no-button");
-      const submitButton = document.getElementById("feedback-submit-button");
-      const commentBox = document.getElementById("feedback-comment");
-      const statusEl = document.getElementById("feedback-status");
-      let answer = null;
-
-      function selectAnswer(value) {
-        answer = value;
-        yesButton.classList.toggle("selected", value === "yes");
-        noButton.classList.toggle("selected", value === "no");
-        submitButton.disabled = false;
-        submitButton.textContent = "Submit feedback";
-      }
-
-      yesButton.addEventListener("click", () => selectAnswer("yes"));
-      noButton.addEventListener("click", () => selectAnswer("no"));
-
-      submitButton.addEventListener("click", async () => {
-        if (!answer) return;
-        const comment = commentBox.value.trim();
-        const response = comment ? `${answer} — ${comment}` : answer;
-
-        submitButton.disabled = true;
-        submitButton.textContent = "Submitting...";
-        try {
-          const res = await fetch(`${RATINGS_API_BASE}/ratings`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ game_slug: "tide", response }),
-          });
-          if (!res.ok) throw new Error(`status ${res.status}`);
-          statusEl.textContent = "Thanks for the feedback!";
-          submitButton.textContent = "Submitted — thanks!";
-        } catch (err) {
-          statusEl.textContent = "Feedback submission failed — try again.";
-          submitButton.disabled = false;
-          submitButton.textContent = "Submit feedback";
-        }
-      });
-    })();
-  </script>
+  <script src="feedback.js"></script>
 <button type="button" class="secondary" id="noyvj-report-menu-button" onclick="window.NoyvjReport &amp;&amp; window.NoyvjReport.open()">Report a problem</button>
 <script src="../../shared/pc-shell.js"></script>
 </body>

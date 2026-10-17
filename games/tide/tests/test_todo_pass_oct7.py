@@ -8,6 +8,8 @@ from pathlib import Path
 
 import pytest
 
+from .pagefiles import page_text
+
 GAME_DIR = Path(__file__).resolve().parent.parent
 LEDGER_KEYS = ["season", "funds", "acidity", "fish_yield", "damage", "rows_dry", "population", "tier", "invested"]
 
@@ -449,7 +451,7 @@ def read(name):
 
 def test_both_pages_load_ui_js_and_list_the_game_keys():
     for page in ("index.html", "pc.html"):
-        html = read(page)
+        html = page_text(page)
         assert '<script src="ui.js" defer></script>' in html
         for line in ("A — advance one season", "R — open or close the session report", "L — open or close the Harbor Ledger"):
             assert line in html
