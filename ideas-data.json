@@ -163,6 +163,21 @@
        "n": "He3",
        "text": "**Herd: \"Pin as a goal\" on a lever (R4-HEPC-3) only adds a visible Goal badge. Should a pinned goal also feed the pinned-stats strip or the report card?** Recommended: not yet. Say \"yes\" and name where.",
        "answered": false
+      },
+      {
+       "n": "Th5",
+       "text": "**Thaw: Thaw has Invest buttons, not funding sliders, so the phone funds bar (R4-THMO-2) is an extra planning section that presses the Invest buttons; the normal Invest rows stay because investing cannot be undone. Is that fine?** Recommended: yes. Say \"no\" to hide the normal Invest rows on phones.",
+       "answered": false
+      },
+      {
+       "n": "Th6",
+       "text": "**Thaw: focus mode (R4-THMO-7) is opt-in with an \"All\" button as the default. Should phones start focused on Region A instead?** Recommended: no, keep \"All\" as the default. Say \"yes\" to start focused on Region A.",
+       "answered": false
+      },
+      {
+       "n": "Th7",
+       "text": "**Thaw: the four new per-device phone switches are not part of the exported settings code. Should they be added to it?** Recommended: not yet. Say \"yes\" to add them.",
+       "answered": false
       }
      ]
     }
