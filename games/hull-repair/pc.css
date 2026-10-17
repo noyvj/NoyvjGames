@@ -62,12 +62,3 @@ html[data-layout="pc"] .pc-focus-exit[hidden] { display: none; }
 /* R4-HRPC-10: the station map as a keyboard grid (pc.js makes each room a focusable button) */
 html[data-layout="pc"] #map-holder g.hr-room:focus { outline: none; }
 html[data-layout="pc"] #map-holder g.hr-room:focus .hr-room-body { stroke: var(--focus); stroke-width: 3; }
-
-/* R4-HRPC-4: keyboard routing focus indicator */
-html[data-layout="pc"] #hr-lines g.hr-line.keyboard-active .hr-pipe {
-  stroke: var(--focus);
-  stroke-width: 6;
-}
-html[data-layout="pc"][data-reduced-motion="true"] #hr-lines g.hr-line.keyboard-active .hr-pipe {
-  stroke-width: 4;
-}

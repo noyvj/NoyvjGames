@@ -580,6 +580,32 @@
       send({ action: "undo" });
     }
   }
+  // R4-HRPC-4 (Desktop): Tab picks the next line that is not joined yet, Shift+Tab the one before. The cursor jumps to the
+  // end of that line and the line is picked up, so the arrow keys extend it and Backspace takes a cell back (as when you
+  // press Enter on it). Returns false when there is no further line, so Tab then leaves the board (no keyboard trap).
+  function pickLine(step) {
+    if (!view || !view.board || !view.board.lines) return false;
+    var lines = view.board.lines;
+    var at = -1;
+    lines.forEach(function (l, i) { if (l.c === kbd.line) at = i; });
+    var i = at < 0 ? (step > 0 ? 0 : lines.length - 1) : at + step;
+    while (i >= 0 && i < lines.length && lines[i].state === "connected") i += step;
+    if (kbd.holding) { kbd.holding = false; send({ action: "end" }, true); }
+    if (i < 0 || i >= lines.length) { kbd.line = ""; return false; }
+    var line = lines[i];
+    var path = currentPath(line.c);
+    var target = path.length > 1 ? path[path.length - 1] : line.src;
+    kbd.x = target[0];
+    kbd.y = target[1];
+    var r = send({ action: "begin", x: kbd.x, y: kbd.y }, true);
+    placeCursor(true);
+    if (!r || !r.ok) { kbd.line = ""; if (r && r.message) announce(r.message); return true; }
+    kbd.holding = true;
+    kbd.line = line.c;
+    announce("Line " + line.c + ", " + line.name + ". Arrow keys draw, Backspace takes a cell back, Tab picks the next line, Escape lets go.");
+    return true;
+  }
+  window.hullRepairPickLine = pickLine;
   function onGlobalKey(e) {
     if (!view || e.ctrlKey || e.metaKey || e.altKey) return;
     var tag = e.target && e.target.tagName;

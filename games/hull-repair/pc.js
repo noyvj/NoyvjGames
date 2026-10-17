@@ -203,133 +203,13 @@ window.addEventListener("load", function () {
     if (e.key === "f" || e.key === "F") setFocus(!root.classList.contains("focus-mode"));
   });
 
-  /* R4-HRPC-4: keyboard routing for lines (Tab to pick, Arrows to extend, Backspace to trim). */
-  var activeLine = null;
-  var lineGroups = [];
-
-  function updateActiveLine() {
-    lineGroups.forEach(function (g) { g.classList.remove("keyboard-active"); });
-    if (activeLine) {
-      var el = holder.querySelector('#hr-lines g.hr-line[data-line="' + activeLine + '"]');
-      if (el) el.classList.add("keyboard-active");
-    }
-  }
-
-  function getAvailableLines() {
-    return lineGroups.map(function (g) { return g.getAttribute("data-line"); }).filter(Boolean);
-  }
-
+  /* R4-HRPC-4: Tab on the board picks the next unjoined line (Shift+Tab the previous one); app.js does the picking, so the
+     arrow keys, Backspace, Enter and Escape keep their meaning from the Classic layout. When no further line is left, Tab is
+     not intercepted, so keyboard focus can always leave the board. */
   holder.addEventListener("keydown", function (e) {
-    var svg = boardSvg();
-    if (!svg) return;
-    
-    // Capture Tab to cycle lines instead of leaving the board area
-    if (e.key === "Tab") {
-      var lines = getAvailableLines();
-      if (lines.length === 0) return;
-      
-      var idx = lines.indexOf(activeLine);
-      if (e.shiftKey) {
-        activeLine = idx <= 0 ? lines[lines.length - 1] : lines[idx - 1];
-      } else {
-        activeLine = idx < 0 || idx >= lines.length - 1 ? lines[0] : lines[idx + 1];
-      }
-      updateActiveLine();
-      e.preventDefault();
-      return;
-    }
-
-    // Only process extension/trimming if a line is active
-    if (!activeLine) return;
-
-    var group = holder.querySelector('#hr-lines g.hr-line[data-line="' + activeLine + '"]');
-    if (!group) {
-      activeLine = null;
-      updateActiveLine();
-      return;
-    }
-
-    var pipe = group.querySelector(".hr-pipe");
-    if (!pipe) return;
-    
-    var raw = (pipe.getAttribute("points") || "").trim();
-    if (!raw) return;
-    
-    var points = raw.split(/\s+/).map(function (pair) { 
-      var coords = pair.split(",").map(Number); 
-      return { x: coords[0], y: coords[1] }; 
-    });
-
-    if (points.length < 2) return;
-
-    var lastPt = points[points.length - 1];
-    var prevPt = points[points.length - 2];
-    var dx = lastPt.x - prevPt.x;
-    var dy = lastPt.y - prevPt.y;
-    
-    // Determine direction of the last segment
-    var dirX = dx === 0 ? 0 : (dx > 0 ? 1 : -1);
-    var dirY = dy === 0 ? 0 : (dy > 0 ? 1 : -1);
-
-    var newPt = null;
-
-    if (e.key === "ArrowRight") {
-      newPt = { x: lastPt.x + 1, y: lastPt.y };
-    } else if (e.key === "ArrowLeft") {
-      newPt = { x: lastPt.x - 1, y: lastPt.y };
-    } else if (e.key === "ArrowDown") {
-      newPt = { x: lastPt.x, y: lastPt.y + 1 };
-    } else if (e.key === "ArrowUp") {
-      newPt = { x: lastPt.x, y: lastPt.y - 1 };
-    }
-
-    // Only allow extending in the direction the line is currently heading
-    if (newPt) {
-      var isHorizontal = dirX !== 0 && dy === 0;
-      var isVertical = dirY !== 0 && dx === 0;
-      
-      var matchesDir = false;
-      if (isHorizontal && e.key === "ArrowRight" && dirX > 0) matchesDir = true;
-      if (isHorizontal && e.key === "ArrowLeft" && dirX < 0) matchesDir = true;
-      if (isVertical && e.key === "ArrowDown" && dirY > 0) matchesDir = true;
-      if (isVertical && e.key === "ArrowUp" && dirY < 0) matchesDir = true;
-
-      // Also allow turning if the line is just starting (2 points) or if we want to be more permissive.
-      // For this simple version, we only extend straight.
-      
-      if (matchesDir || points.length === 2) {
-        // Check bounds roughly (assuming board fits in SVG viewBox)
-        var bbox = svg.getBBox();
-        if (newPt.x >= bbox.x && newPt.x <= bbox.x + bbox.width &&
-            newPt.y >= bbox.y && newPt.y <= bbox.y + bbox.height) {
-          
-          points.push(newPt);
-          pipe.setAttribute("points", points.map(function(p) { return p.x + "," + p.y; }).join(" "));
-          
-          // Notify engine of change if needed (usually handled by pointer events, 
-          // but keyboard might need to trigger a check or just update visual)
-          // For now, we assume the engine handles state via the view model or this is purely visual aid.
-          // However, to be safe and consistent with "routing", we should probably send an action.
-          // But the prompt says "simple first version". Let's stick to visual extension for now 
-          // unless `handle` is strictly required. The existing keyboard support uses `handle`.
-          // To keep it simple and working, we will just update the SVG. If the engine needs to know,
-          // it usually polls or listens. Given "simple", visual is the first step.
-          
-          e.preventDefault();
-        }
-      }
-    }
-
-    if (e.key === "Backspace") {
-      if (points.length > 2) {
-        points.pop();
-        pipe.setAttribute("points", points.map(function(p) { return p.x + "," + p.y; }).join(" "));
-        e.preventDefault();
-      } else {
-        // If only 2 points left, maybe clear the line? Or do nothing.
-        // Let's just do nothing to avoid accidental deletion of start/end.
-      }
-    }
+    if (e.key !== "Tab" || e.ctrlKey || e.metaKey || e.altKey) return;
+    if (typeof window.hullRepairPickLine !== "function") return;
+    if (window.hullRepairPickLine(e.shiftKey ? -1 : 1)) e.preventDefault();
   });
 
   /* R4-HRPC-10: the station map as a keyboard grid. Each room becomes a button (roving tabindex); arrows move,
@@ -363,19 +243,6 @@ window.addEventListener("load", function () {
     });
     return best || from;
   }
-  // Keep track of line groups for keyboard routing
-  var linesLayer = holder.querySelector("#hr-lines");
-  if (linesLayer) {
-    new MutationObserver(function () {
-      lineGroups = Array.prototype.slice.call(linesLayer.querySelectorAll("g.hr-line[data-line]"));
-      // If active line is no longer in the list, clear it
-      if (activeLine && !lineGroups.some(function(g) { return g.getAttribute("data-line") === activeLine; })) {
-        activeLine = null;
-        updateActiveLine();
-      }
-    }).observe(linesLayer, { childList: true, subtree: true });
-  }
-
   if (mapHolder) {
     new MutationObserver(prepareRooms).observe(mapHolder, { childList: true });
     prepareRooms();
