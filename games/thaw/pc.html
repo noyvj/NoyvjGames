@@ -212,6 +212,30 @@
           Hide the snow hare and the arctic fox
         </label>
       </div>
+      <div class="settings-row">
+        <label class="settings-checkbox-label" for="no-haptics-checkbox">
+          <input type="checkbox" id="no-haptics-checkbox">
+          No vibration when the temperature crosses a warming milestone (phones that allow it; also off with Reduce motion)
+        </label>
+      </div>
+      <div class="settings-row">
+        <label class="settings-checkbox-label" for="info-list-checkbox">
+          <input type="checkbox" id="info-list-checkbox">
+          The Real Story as one scrolling list instead of swipeable cards (phones)
+        </label>
+      </div>
+      <div class="settings-row">
+        <label class="settings-checkbox-label" for="hide-board-checkbox">
+          <input type="checkbox" id="hide-board-checkbox">
+          Hide the four-region board shown when a phone is turned sideways
+        </label>
+      </div>
+      <div class="settings-row">
+        <label class="settings-checkbox-label" for="no-pull-archive-checkbox">
+          <input type="checkbox" id="no-pull-archive-checkbox">
+          No pull down to open the Climate archive (phones)
+        </label>
+      </div>
       <div class="settings-row settings-code-row">
         <label class="settings-checkbox-label" for="skin-select">
           Map skin
@@ -549,11 +573,12 @@
       </div>
     </div>
 
-    <!-- R4-THMO-7: one-region focus mode dots for mobile -->
-    <div id="focus-mode-dots" class="focus-mode-dots">
-      <button id="focus-dot-a" class="focus-dot focus-dot--active" aria-label="Focus on Region A">A</button>
-      <button id="focus-dot-b" class="focus-dot" aria-label="Focus on Region B">B</button>
-      <button id="focus-dot-c" class="focus-dot" aria-label="Focus on Region C">C</button>
+    <!-- R4-THMO-7: one-region focus mode for phones (CSS shows the buttons under 600px). "All" is the normal view. -->
+    <div id="focus-mode-dots" class="focus-mode-dots" role="group" aria-label="Show one region at a time">
+      <button type="button" id="focus-dot-all" class="secondary focus-dot focus-dot--active" aria-pressed="true" aria-label="Show every region">All</button>
+      <button type="button" id="focus-dot-a" class="secondary focus-dot" aria-pressed="false" aria-label="Focus on Region A">A</button>
+      <button type="button" id="focus-dot-b" class="secondary focus-dot" aria-pressed="false" aria-label="Focus on Region B">B</button>
+      <button type="button" id="focus-dot-c" class="secondary focus-dot" aria-pressed="false" aria-label="Focus on Region C">C</button>
     </div>
 
     <div id="region-comparison" class="section region-comparison">

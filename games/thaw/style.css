@@ -1532,44 +1532,32 @@ html[data-lite="true"] .mascot .mascot-face { animation: none; }
 /* GG-19: the rolling temperature figure keeps its digits the same width so the line does not jitter. */
 #temperature-display { font-variant-numeric: tabular-nums; }
 
-/* R4-THMO-7: one-region focus mode for mobile (max-width: 600px). */
+/* R4-THMO-7: one-region focus mode for phones. The buttons are phone-only; "All" (no data-focus) is the normal page. */
 #focus-mode-dots { display: none; }
 @media (max-width: 600px) {
-  #focus-mode-dots {
+  html:not([data-layout="pc"]) #focus-mode-dots {
     display: flex;
     gap: 0.5rem;
     margin: 0.5rem 0;
     justify-content: center;
   }
   .focus-dot {
-    width: 2.5rem;
-    height: 2.5rem;
-    border-radius: 50%;
-    border: 1px solid rgba(140, 160, 255, 0.3);
-    background: rgba(20, 30, 52, 0.6);
-    color: #e8e9f0;
+    min-width: 44px;
+    min-height: 44px;
+    border-radius: 22px;
     font-size: 1rem;
-    cursor: pointer;
-    transition: background 150ms ease, border-color 150ms ease;
   }
-  .focus-dot--active {
+  .focus-dot.focus-dot--active {
     background: rgba(140, 160, 255, 0.3);
     border-color: #8fd8ff;
   }
-  @media (prefers-reduced-motion: reduce) {
-    .focus-dot { transition: none; }
-  }
-
-  /* Hide comparison cards by default on mobile */
-  #region-comparison .region-card { display: none; }
-
-  /* Show full card when focused */
-  #game[data-focus="b"] #b-region-card,
-  #game[data-focus="c"] #c-region-card {
-    display: block;
-    width: 100%;
-    margin-bottom: 1rem;
-  }
+  html:not([data-layout="pc"]) #game[data-focus="a"] #region-comparison { display: none; }
+  html:not([data-layout="pc"]) #game[data-focus="b"] #c-region-card,
+  html:not([data-layout="pc"]) #game[data-focus="c"] #b-region-card { display: none; }
+  html:not([data-layout="pc"]) #game[data-focus="b"] #status,
+  html:not([data-layout="pc"]) #game[data-focus="c"] #status,
+  html:not([data-layout="pc"]) #game[data-focus="b"] #investments,
+  html:not([data-layout="pc"]) #game[data-focus="c"] #investments { display: none; }
 }
 
 /* G-30, GG-23, G-25: small pieces. */
