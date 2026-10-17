@@ -23,7 +23,8 @@ def dump(data):
 def puzzle_ids():
     # Collected before any game module exists, so read the ids from the data file the same way the module does.
     import re
-    text = (GAME_DIR / "game.py").read_text(encoding="utf-8")
+    from .pagefiles import game_source
+    text = game_source()
     return re.findall(r'^    \{"id": "([a-z_]+)", "chapter": \d', text, flags=re.M)
 
 
@@ -171,8 +172,9 @@ def test_the_search_is_deterministic_and_uses_no_clock_or_randomness(game_env):
     random.seed(99)
     second = m.chain_solve(p)
     assert first == second
-    source = (GAME_DIR / "game.py").read_text(encoding="utf-8")
-    block = source[source.index("# J-5 -- Chain Builder"):source.index("# @@NEW-FEATURES-END@@")]
+    # The Chain Builder is the four trade_chain_*.py / trade_modes.py modules (it was one block of the old game.py).
+    block = "\n".join((GAME_DIR / f"trade_{name}.py").read_text(encoding="utf-8")
+                      for name in ("chain_rules", "chain_logic", "chain_ui", "modes"))
     assert "random." not in block and "time." not in block and "Date" not in block
 
 
@@ -946,5 +948,6 @@ def test_the_desktop_menu_and_window_list_include_the_chain_builder():
 
 
 def test_the_question_mark_help_lists_the_chain_window():
-    html = (GAME_DIR / "index.html").read_text(encoding="utf-8")
+    from .pagefiles import page_text
+    html = page_text("index.html")
     assert '{ toggle: "chain-toggle-button", panel: "chain-panel" }' in html

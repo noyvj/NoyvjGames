@@ -18,6 +18,12 @@ def page(name):
     return (GAME_DIR / name).read_text(encoding="utf-8")
 
 
+def page_with_scripts(name):
+    """The page plus the local scripts it loads (the copy-result mount lives in summary-copy.js)."""
+    from .pagefiles import page_text
+    return page_text(name)
+
+
 def head(name):
     html = page(name)
     return html[: html.index("</head>")]
@@ -65,7 +71,7 @@ def test_copy_result_container_exists_once(name):
 
 @pytest.mark.parametrize("name", PAGES)
 def test_copy_result_is_mounted_from_the_games_own_figures(name):
-    html = page(name)
+    html = page_with_scripts(name)
     assert 'mountButton("#summary-copy-result"' in html
     assert 'globals.get("share_result")' in html
 
