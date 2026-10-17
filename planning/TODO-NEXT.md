@@ -1,6 +1,6 @@
 # Next TODO list (from the Round 4 ideas, started 2026-10-12)
 
-**Progress: 128/921 items checked off (13.9%).** This is the NEXT list, written alongside the live `planning/TODO.md` (which is untouched). It becomes the live list once the current one is archived. Run `python3 scripts/todo-progress.py planning/TODO-NEXT.md` after ticking items.
+**Progress: 130/921 items checked off (14.1%).** This is the NEXT list, written alongside the live `planning/TODO.md` (which is untouched). It becomes the live list once the current one is archived. Run `python3 scripts/todo-progress.py planning/TODO-NEXT.md` after ticking items.
 
 How it is built: one section per Round 4 section on the ideas sheet (`planning/IMPROVEMENT-IDEAS-ROUND-4.md`), in the sheet's order, ids `R4-<section code>-<number>`. Only ideas you answered "yes" to are items, with your note where you wrote one. A section that is not fully answered keeps its heading and ends with one item to add the rest once you have answered them. "No" answers are dropped (listed under the heading); "later" answers are parked in `planning/LATER.md`.
 
@@ -11,19 +11,19 @@ How it is built: one section per Round 4 section on the ideas sheet (`planning/I
 | Section | Done | % | |
 |---|---:|---:|---|
 | LEMO. Lexis: mobile view | 9/10 | 90% | █████████░ |
+| SIPC. Signal: PC view | 8/10 | 80% | ████████░░ |
 | PBPC. Pocket Bazaar: PC view | 8/10 | 80% | ████████░░ |
 | PBMO. Pocket Bazaar: mobile view | 8/10 | 80% | ████████░░ |
 | SMPC. Station Medic: PC view | 8/10 | 80% | ████████░░ |
 | SMMO. Station Medic: mobile view | 8/10 | 80% | ████████░░ |
-| SIPC. Signal: PC view | 7/10 | 70% | ███████░░░ |
 | SIMO. Signal: mobile view | 7/10 | 70% | ███████░░░ |
 | LHMO. Lighthouse: mobile view | 7/10 | 70% | ███████░░░ |
 | HCPC. Heist Committee: PC view | 6/10 | 60% | ██████░░░░ |
 | HCMO. Heist Committee: mobile view | 6/10 | 60% | ██████░░░░ |
 | LHPC. Lighthouse: PC view | 6/10 | 60% | ██████░░░░ |
 | RSMO. Robot Script: mobile view | 6/10 | 60% | ██████░░░░ |
+| HRPC. Hull Repair: PC view | 6/10 | 60% | ██████░░░░ |
 | HRMO. Hull Repair: mobile view | 6/10 | 60% | ██████░░░░ |
-| HRPC. Hull Repair: PC view | 5/10 | 50% | █████░░░░░ |
 | LGMO. Logic Gates: mobile view | 4/10 | 40% | ████░░░░░░ |
 | DEMO. Dead Reckoning: mobile view | 3/10 | 30% | ███░░░░░░░ |
 | RSPC. Robot Script: PC view | 3/10 | 30% | ███░░░░░░░ |
@@ -111,7 +111,7 @@ How it is built: one section per Round 4 section on the ideas sheet (`planning/I
 | OCP. Overclock: made for you | 0/1 | 0% | ░░░░░░░░░░ |
 | AU. Sound | 0/1 | 0% | ░░░░░░░░░░ |
 | **Done: 1 sections at 100%** (LEPC) | 10/10 | 100% | ██████████ |
-| **All sections** | **128/921** | **13.9%** | █░░░░░░░░░ |
+| **All sections** | **130/921** | **14.1%** | █░░░░░░░░░ |
 
 <!-- PROGRESS-CHART:END -->
 
@@ -953,7 +953,7 @@ Dropped (you said no): PG-30.
 
 - [x] R4-SIPC-1: (small) Show a faint preview on hover that lists what a ping on that tile would read for each possible transmitter distance. You pick your pings with more thought and fewer wasted ones.
 - [x] R4-SIPC-2: (small) Let a right-click on a tile toggle a small pencil "maybe" note in the corner that does not count as an answer. You can think on the board the way you do on paper.
-- [ ] R4-SIPC-3: (small) Add a readings sheet beside the board that lists each ping's tile and number in sortable rows, with a click that highlights the tile. Your evidence sits in one table.
+- [x] R4-SIPC-3: (small) Add a readings sheet beside the board that lists each ping's tile and number in sortable rows, with a click that highlights the tile. Your evidence sits in one table.
 - [ ] R4-SIPC-4: (small) Add Ctrl+Z and Ctrl+Y for markers and pencil notes, with a visible history list. You can try theories and step back.
 - [ ] R4-SIPC-5: (big) Hold Space to overlay each ping's reach rings across the whole board, so the overlap points show where a transmitter must sit. You can see the logic of the puzzle at a glance.
 - [x] R4-SIPC-6: (small) Show the archive as a wide month grid with hover previews of each puzzle's board size and your result. You browse past puzzles like a calendar app.
@@ -1478,7 +1478,7 @@ Parked in LATER.md (you said later): PX-25.
 - [ ] R4-HRPC-1: (big) Draw the station as a large cutaway you can zoom with the mouse wheel and pan with a drag, where hover shows a room's status and a click opens its board. The bigger picture is something you explore.
 - [x] R4-HRPC-2: (small) Hover a port to light its twin and its current path, and hover a line to show its length. You read the board by pointing.
 - [ ] R4-HRPC-3: (small) Add a lock on finished lines through a right-click so dragging cannot cut them. You can protect work as you finish others.
-- [ ] R4-HRPC-4: (small) Let Tab pick the next line, arrow keys extend it, and Backspace trim it. You can route a whole board without the mouse.
+- [x] R4-HRPC-4: (small) Let Tab pick the next line, arrow keys extend it, and Backspace trim it. You can route a whole board without the mouse.
 - [ ] R4-HRPC-5: (small) Add Ctrl+Z and Ctrl+Y with a clickable history list. You can step back to try another route.
 - [x] R4-HRPC-6: (small) Press C to pulse the uncovered open cells gently. You see what still needs routing at a glance.
 - [x] R4-HRPC-7: (small) After a restore, replay the lines drawing in order. A neat finish shows how you solved it.

@@ -3827,7 +3827,7 @@
     },
     {
      "path": "games/signal/app.js",
-     "bytes": 48922,
+     "bytes": 52181,
      "precached": true
     },
     {
@@ -3842,32 +3842,32 @@
     },
     {
      "path": "games/signal/index.html",
-     "bytes": 19759,
+     "bytes": 20463,
      "precached": true
     },
     {
      "path": "games/signal/pc-config.json",
-     "bytes": 2221,
+     "bytes": 2240,
      "precached": false
     },
     {
      "path": "games/signal/pc.css",
-     "bytes": 9775,
+     "bytes": 11273,
      "precached": true
     },
     {
      "path": "games/signal/pc.html",
-     "bytes": 22580,
+     "bytes": 23303,
      "precached": true
     },
     {
      "path": "games/signal/pc.js",
-     "bytes": 16277,
+     "bytes": 20359,
      "precached": true
     },
     {
      "path": "games/signal/settings.js",
-     "bytes": 4063,
+     "bytes": 4485,
      "precached": false
     },
     {
@@ -3877,7 +3877,7 @@
     },
     {
      "path": "games/signal/style.css",
-     "bytes": 16899,
+     "bytes": 17643,
      "precached": true
     }
    ],
@@ -4064,7 +4064,7 @@
     }
    ],
    "cdn": [],
-   "bytes": 612853,
+   "bytes": 624304,
    "bytes_complete": true
   },
   "lexis": {
@@ -6915,7 +6915,7 @@
     },
     {
      "path": "games/hull-repair/app.js",
-     "bytes": 35695,
+     "bytes": 37182,
      "precached": true
     },
     {
@@ -6985,7 +6985,7 @@
     },
     {
      "path": "games/hull-repair/pc-config.json",
-     "bytes": 1434,
+     "bytes": 1503,
      "precached": false
     },
     {
@@ -6995,12 +6995,12 @@
     },
     {
      "path": "games/hull-repair/pc.html",
-     "bytes": 17582,
+     "bytes": 17647,
      "precached": true
     },
     {
      "path": "games/hull-repair/pc.js",
-     "bytes": 12501,
+     "bytes": 13093,
      "precached": true
     },
     {
@@ -7268,7 +7268,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14422900,
+   "bytes": 14425113,
    "bytes_complete": true
   },
   "station-medic": {

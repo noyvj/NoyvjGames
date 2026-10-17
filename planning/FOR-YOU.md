@@ -143,3 +143,7 @@ Recommended: yes. Say "no" and say what you want paused.
 ### Le2. Lexis: should the Evidence board (R4-PX-19) get real message fragments on planets 2 and 3 and an actual identification step, as a new item?
 
 Recommended: yes, later. Say "no" to leave it as the Pulse-planet pin board.
+
+### Si1. Signal: the hold-to-aim bubble (R4-SIMO-1) shows the tile name and what is already known there; a real "ping preview" would be a free ping, which Signal never allows. Is the bubble enough?
+
+Recommended: yes. Say "no" if you want a different kind of preview.
