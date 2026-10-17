@@ -137,6 +137,8 @@ def _drag(ctx, page, x0, y0, x1, y1, steps=8):
 
 
 def _centre(page, selector):
+    page.locator(selector).scroll_into_view_if_needed()
+    page.wait_for_timeout(100)
     box = page.locator(selector).bounding_box()
     return box["x"] + box["width"] / 2.0, box["y"] + box["height"] / 2.0
 
@@ -233,5 +235,52 @@ def test_haptics_buzz_once_per_upward_milestone_crossing_and_can_be_switched_off
         page.evaluate("window.pyodide.runPython('region.temperature = 12.0\\nrender()')")
         page.wait_for_timeout(200)
         assert page.evaluate("window.__buzz") == []
+        browser.close()
+    assert errors == []
+
+
+def _active_dot(page):
+    return page.evaluate("Array.from(document.querySelectorAll('#info-page-dots .info-page-dot')).findIndex(d => d.classList.contains('active'))")
+
+
+def test_real_story_cards_swipe_with_dots_and_can_be_a_list(base):
+    errors = []
+    with pw.sync_playwright() as p:
+        browser = p.chromium.launch()
+        ctx, page = _open(browser, base, errors)
+        assert not page.is_visible("#info-page-dots")                         # panel closed: no dots
+        page.click("#info-page-toggle-button")
+        page.wait_for_selector("#info-page-framing:visible")
+        assert page.is_visible("#info-page-dots")
+        assert page.locator("#info-page-dots .info-page-dot").count() == 3 and _active_dot(page) == 0
+        assert page.evaluate("getComputedStyle(document.querySelector('#info-page-panel')).display") == "flex"
+        assert page.evaluate("document.querySelector('#info-page-panel').scrollWidth > document.querySelector('#info-page-panel').clientWidth")
+        assert page.get_attribute("#info-page-panel", "tabindex") == "0"
+        # a real finger swipe moves to the second card and the dot follows
+        x, y = _centre(page, "#info-page-framing")
+        _drag(ctx, page, x + 100, y, x - 100, y)
+        page.wait_for_timeout(500)
+        assert _active_dot(page) >= 1                  # a flick may carry on to the third card; it never stays on the first
+        assert page.evaluate("document.querySelector('#info-page-panel').scrollLeft") > 100
+        # the Settings switch turns the cards back into the plain list
+        page.evaluate("document.documentElement.setAttribute('data-info-list', 'true')")
+        page.wait_for_timeout(100)
+        assert page.evaluate("getComputedStyle(document.querySelector('#info-page-panel')).display") == "block"
+        assert not page.is_visible("#info-page-dots")
+        assert page.get_attribute("#info-page-panel", "tabindex") is None
+        browser.close()
+    assert errors == []
+
+
+def test_real_story_stays_a_plain_list_on_a_wide_screen(base):
+    errors = []
+    with pw.sync_playwright() as p:
+        browser = p.chromium.launch()
+        for page_name in PAGES:
+            ctx, page = _open(browser, base, errors, 1440, 900, page_name, touch=False)
+            page.evaluate("document.querySelector('#info-page-toggle-button').click()")
+            page.wait_for_timeout(200)
+            assert page.evaluate("getComputedStyle(document.querySelector('#info-page-panel')).display") != "flex", page_name
+            assert not page.is_visible("#info-page-dots"), page_name
         browser.close()
     assert errors == []

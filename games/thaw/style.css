@@ -1690,38 +1690,44 @@ html[data-lite="true"] .mascot .mascot-face { animation: none; }
 html[data-lite="true"] .crate-visual.crate-waiting,
 html[data-lite="true"] .crate-visual.crate-opening { animation: none; }
 
-/* R4-THMO-8: swipeable cards for The Real Story on mobile */
+/* R4-THMO-8: The Real Story as swipeable cards on phones (framing, real-data tie-in, sources). Settings > "as one scrolling list" turns it off. */
+.info-page-dots { display: none; }
 @media (max-width: 600px) {
-  #info-page-panel {
+  html:not([data-layout="pc"]):not([data-info-list="true"]) #info-page-panel:not([hidden]) {
     display: flex;
+    gap: 1rem;
     overflow-x: auto;
     scroll-snap-type: x mandatory;
+    overscroll-behavior-x: contain;
     -webkit-overflow-scrolling: touch;
-    padding-bottom: 1.5rem;
   }
-  #info-page-panel > *:not(.info-page-dots) {
+  html:not([data-layout="pc"]):not([data-info-list="true"]) #info-page-panel > * {
     flex: 0 0 100%;
-    scroll-snap-align: center;
-    padding: 0 1rem;
+    min-width: 0;
+    margin: 0;
+    scroll-snap-align: start;
     box-sizing: border-box;
   }
-  .info-page-dots {
+  html:not([data-layout="pc"]):not([data-info-list="true"]) #info-page-panel:focus-visible { outline: 2px solid #8fd8ff; outline-offset: 2px; }
+  html:not([data-layout="pc"]):not([data-info-list="true"]) #info-page-panel:not([hidden]) + .info-page-dots {
     display: flex;
     justify-content: center;
     gap: 0.5rem;
-    margin-top: 0.5rem;
+    margin: 0.4rem 0 0.8rem;
   }
   .info-page-dot {
-    width: 8px;
-    height: 8px;
+    width: 10px;
+    height: 10px;
     border-radius: 50%;
     background: rgba(255, 255, 255, 0.3);
     transition: background 0.2s ease;
   }
-  .info-page-dot.active {
-    background: #8fd8ff;
-  }
+  .info-page-dot.active { background: #8fd8ff; }
 }
+@media (prefers-reduced-motion: reduce) {
+  .info-page-dot { transition: none; }
+}
+html[data-reduced-motion="true"] .info-page-dot { transition: none; }
 
 /* R4-THMO-2: Mobile investment bar (max-width: 600px) */
 @media (max-width: 600px) {
