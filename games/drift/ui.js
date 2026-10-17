@@ -147,37 +147,38 @@
       if (cls.includes("strain--critical")) level = "critical";
       else if (cls.includes("strain--strained")) level = "strained";
       btn.setAttribute("data-strain", level);
+      // The ring colour is never the only cue: the tooltip carries the word (the strain meter shows it too).
+      btn.title = level === "stable" ? "" : "Strain is " + level + " in your region";
     }
 
     update();
     new MutationObserver(update).observe(strainBar, { attributes: true, attributeFilter: ["class"] });
   })();
 
-  // R4-DRMO-2: Swipe between region and neighbouring district on mobile.
+  // R4-DRMO-2: on phones the region and the neighbouring district are two snap-scrolling cards (CSS does
+  // the swiping). These two buttons are the non-touch way across; the one on the region card only shows
+  // while the neighbour panel is available (game.py toggles that panel's hidden attribute).
   (function mobileSwipe() {
     const container = document.getElementById("mobile-swipe-container");
-    if (!container) return;
-    let startX = 0;
-    let isSwiping = false;
+    const panel = document.getElementById("neighbor-panel");
+    const toNeighbor = document.getElementById("swipe-to-neighbor");
+    const toRegion = document.getElementById("swipe-to-region");
+    const game = document.getElementById("game");
+    if (!container || !panel || !toNeighbor || !toRegion || !game) return;
 
-    function handleStart(e) {
-      startX = e.touches ? e.touches[0].clientX : e.clientX;
-      isSwiping = true;
+    function reduced() {
+      return document.documentElement.classList.contains("reduce-motion")
+        || window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     }
-    function handleEnd(e) {
-      if (!isSwiping) return;
-      isSwiping = false;
-      const endX = e.changedTouches ? e.changedTouches[0].clientX : e.clientX;
-      const diff = startX - endX;
-      const threshold = 50;
-      if (Math.abs(diff) > threshold) {
-        const prefersReduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-        container.scrollBy({ left: diff > 0 ? container.clientWidth : -container.clientWidth, behavior: prefersReduced ? "auto" : "smooth" });
-      }
+    function go(card, focusButton) {
+      card.scrollIntoView({ inline: "center", block: "nearest", behavior: reduced() ? "auto" : "smooth" });
+      focusButton.focus({ preventScroll: true });
     }
-    container.addEventListener("touchstart", handleStart, { passive: true });
-    container.addEventListener("touchend", handleEnd);
-    container.addEventListener("mousedown", handleStart);
-    container.addEventListener("mouseup", handleEnd);
+    function syncVisibility() { toNeighbor.hidden = panel.hidden; }
+
+    toNeighbor.addEventListener("click", function () { go(panel, toRegion); });
+    toRegion.addEventListener("click", function () { go(game, toNeighbor); });
+    syncVisibility();
+    new MutationObserver(syncVisibility).observe(panel, { attributes: true, attributeFilter: ["hidden"] });
   })();
 })();
