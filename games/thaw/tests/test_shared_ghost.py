@@ -9,6 +9,7 @@ import sys
 import ghost
 
 from .fakes import FakeStorage
+from .pagefiles import game_css
 
 
 def _storage(initial=None):
@@ -162,7 +163,7 @@ def test_hostile_stored_records_give_no_ghost(game_env):
 
 def test_the_setting_that_hides_the_pace_line_hides_label_and_sentence_too():
     from pathlib import Path
-    css = (Path(__file__).resolve().parent.parent / "style.css").read_text(encoding="utf-8")
+    css = game_css()
     block = css.split('html[data-hide-pace="true"] .mini-pace-line')[1].split("}")[0]
     assert ".mini-pace-label" in block and ".ghost-sentence" in block and ".pace-display" in block
 

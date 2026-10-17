@@ -5,6 +5,7 @@ import json
 import sys
 
 import pytest
+from .pagefiles import game_css
 
 
 class FakeStorage:
@@ -545,7 +546,7 @@ def test_settings_panel_has_the_new_controls_and_settings_js_drives_them():
     root = Path(__file__).resolve().parent.parent
     html = (root / "index.html").read_text(encoding="utf-8")
     js = (root / "settings.js").read_text(encoding="utf-8")
-    css = (root / "style.css").read_text(encoding="utf-8")
+    css = game_css()
     for box, attr in (("blindfold-checkbox", "data-blindfold"), ("graph-patterns-checkbox", "data-graph-patterns"),
                       ("high-contrast-checkbox", "data-high-contrast")):
         assert f'id="{box}"' in html

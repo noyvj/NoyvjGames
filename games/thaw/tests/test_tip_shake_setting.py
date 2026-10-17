@@ -1,6 +1,7 @@
 """GG-12: the opt-in shake and crack setting (settings.js and CSS, so these are file-level checks)."""
 
 from pathlib import Path
+from .pagefiles import game_css
 
 BASE = Path(__file__).resolve().parent.parent
 
@@ -24,14 +25,14 @@ def test_setting_is_wired_and_stored():
 
 
 def test_css_only_acts_when_the_setting_is_on():
-    css = _read("style.css")
+    css = game_css()
     block = css[css.index("GG-12: opt-in tremor"):]
     assert block.count('html[data-tip-shake="true"]') >= 4
     assert "@keyframes tip-tremor" in block and "@keyframes tip-crack" in block
 
 
 def test_css_switches_it_off_for_reduced_motion_and_lite_mode():
-    css = _read("style.css")
+    css = game_css()
     block = css[css.index("GG-12: opt-in tremor"):]
     assert 'html[data-reduced-motion="true"][data-tip-shake="true"]' in block
     assert 'html[data-lite="true"][data-tip-shake="true"]' in block

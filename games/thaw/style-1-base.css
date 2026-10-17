@@ -1,0 +1,487 @@
+/* Thaw styles, part 1 of 5: text scale, page shell, meters, investments, region cards, graphs, base panels. Loaded in order by index.html: style-1..4, then style.css. */
+/* Settings panel: text scaling. settings.js sets --text-scale on the root
+   element and persists it to localStorage; every font-size in this file is
+   already in rem (confirmed by grep before relying on this), so scaling
+   the root font-size scales the whole game uniformly with zero other
+   changes -- same approach Continuum's Phase 5 accessibility.js and
+   Aftermath/Herd's settings.js already established. Default 1 here means a
+   page that never runs settings.js still renders at exactly today's size. */
+:root {
+  --text-scale: 1;
+}
+
+html {
+  font-size: calc(16px * var(--text-scale, 1));
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  background: transparent;
+  color: #e8e9f0;
+  display: flex;
+  justify-content: center;
+}
+
+#game {
+  width: 100%;
+  max-width: 480px;
+  margin: 2rem 1rem;
+  padding: 1.5rem 1rem 2rem;
+  background: linear-gradient(165deg, rgba(24, 27, 43, 0.78), rgba(14, 16, 28, 0.85));
+  border: 1px solid rgba(140, 160, 255, 0.14);
+  border-radius: 20px;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  box-shadow: 0 10px 36px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+#game.tipping-flash {
+  animation: tipping-point-flash 900ms ease;
+}
+
+@keyframes tipping-point-flash {
+  0% { background: transparent; }
+  15% { background: #4a1a12; }
+  100% { background: transparent; }
+}
+
+.melt-status--active {
+  color: #e0674c;
+  font-weight: 600;
+  opacity: 1;
+}
+
+/* Iteration Pass 3: immediate, positive cue the moment preserve/monitor
+   is invested — deliberately green (vs. the tipping-flash's red), so a
+   good action visibly reads as good news, distinct from the danger cue
+   above. Without this, the dampening percentage silently ticked up with
+   no perceptible payoff until melt actually started. */
+.dampening-flash {
+  animation: intervention-flash 900ms ease;
+  border-radius: 4px;
+}
+
+@keyframes intervention-flash {
+  0% { background: transparent; }
+  15% { background: #1d2e1f; }
+  100% { background: transparent; }
+}
+
+/* Iteration Pass 2: multi-region comparison. Two extra regions run
+   alongside the original, each with its own compact card so the
+   divergence between strategies is the dominant visual read. */
+.mini-temp-graph {
+  margin: 0.5rem 0;
+}
+
+.mini-temp-graph-svg {
+  width: 100%;
+  height: 32px;
+  display: block;
+}
+
+.mini-temp-line {
+  fill: none;
+  stroke: #e0674c;
+  stroke-width: 2;
+}
+
+.region-comparison-row {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.region-card {
+  flex: 1;
+  min-width: 0;
+  background: linear-gradient(165deg, rgba(24, 27, 43, 0.65), rgba(14, 16, 28, 0.75));
+  border: 1px solid rgba(140, 160, 255, 0.14);
+  border-radius: 8px;
+  padding: 0.6rem;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.03);
+  transition: background 200ms ease;
+}
+
+.region-card.tipping-flash {
+  animation: tipping-point-flash 900ms ease;
+}
+
+.region-card-label {
+  margin: 0 0 0.25rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  opacity: 0.8;
+}
+
+.region-stat {
+  margin: 0 0 0.25rem;
+  font-size: 0.85rem;
+}
+
+.region-melt-status {
+  margin: 0 0 0.5rem;
+  font-size: 0.75rem;
+  opacity: 0.7;
+}
+
+.region-invest-buttons {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 0.25rem 0.4rem;
+}
+
+.region-invest-buttons button.secondary {
+  font-size: 0.75rem;
+  padding: 0.35rem 0.4rem;
+}
+
+.region-invest-buttons .invest-count {
+  font-size: 0.75rem;
+  opacity: 0.7;
+  text-align: right;
+}
+
+/* Z18 (320px mobile-viewport audit): a plain <input> with no CSS width
+   falls back to the browser's default ~20-character intrinsic size,
+   which doesn't shrink with its flex-item .region-card the way every
+   other child here does -- at 320px that pushed the card (and the whole
+   page, by a few px) wider than the viewport. Sizing it to its own
+   container instead of the browser default fixes that at any width. */
+.region-strategy-label-input {
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.context-blurb {
+  margin: 0 0 1.25rem;
+  padding: 0.6rem 0.75rem;
+  border-left: 2px solid #3a7a9c;
+  background: linear-gradient(165deg, rgba(30, 33, 48, 0.55), rgba(18, 20, 32, 0.6));
+  border-radius: 0 6px 6px 0;
+  font-size: 0.8rem;
+  opacity: 0.8;
+}
+
+h1 {
+  margin: 0 0 0.25rem;
+  font-size: 1.75rem;
+  background: linear-gradient(120deg, #eaeaf0 20%, #a9c3ff 55%, #eaeaf0 80%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  text-shadow: 0 0 40px rgba(120, 150, 255, 0.25);
+}
+
+.tagline {
+  margin: 0 0 1.25rem;
+  opacity: 0.75;
+  font-size: 0.95rem;
+}
+
+.section {
+  background: linear-gradient(165deg, rgba(30, 33, 48, 0.55), rgba(18, 20, 32, 0.6));
+  border: 1px solid rgba(140, 160, 255, 0.14);
+  border-radius: 10px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.03);
+}
+
+.status-line {
+  margin: 0 0 0.4rem;
+  font-size: 0.95rem;
+}
+
+.status-line:last-child {
+  margin-bottom: 0;
+}
+
+.comparison-message {
+  margin: 0.6rem 0 0;
+  font-size: 0.85rem;
+  font-style: italic;
+  opacity: 0.85;
+}
+
+/* .info-page-* rules moved to shared/info-page.css (see index.html's
+   <link> in <head>) as part of consolidating the info-page feature. */
+
+.meter-label {
+  margin: 0.4rem 0 0.3rem;
+  font-size: 0.8rem;
+  opacity: 0.7;
+}
+
+.meter {
+  width: 100%;
+  height: 8px;
+  border-radius: 4px;
+  background: rgba(5, 6, 13, 0.6);
+  overflow: hidden;
+  margin-bottom: 0.4rem;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.4);
+}
+
+.meter-fill {
+  height: 100%;
+  width: 0%;
+  transition: width 0.2s ease;
+}
+
+.meter-fill--temperature {
+  background: #e0674c;
+  box-shadow: 0 0 10px rgba(224, 103, 76, 0.5);
+}
+
+.invest-row {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid rgba(140, 160, 255, 0.14);
+}
+
+.invest-row:last-child {
+  border-bottom: none;
+}
+
+.invest-name {
+  font-size: 0.9rem;
+}
+
+.invest-count {
+  font-size: 0.9rem;
+  opacity: 0.75;
+  text-align: center;
+  min-width: 1.5rem;
+}
+
+button.secondary {
+  padding: 0.5rem 0.6rem;
+  border: 1px solid rgba(140, 160, 255, 0.16);
+  border-radius: 8px;
+  background: linear-gradient(135deg, #3a3f5c, #1d2033);
+  color: #e8e9f0;
+  font-size: 0.8rem;
+  cursor: pointer;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12);
+  transition: filter 120ms ease;
+}
+
+button.secondary:hover:not(:disabled) {
+  filter: brightness(1.1);
+}
+
+button.secondary:active:not(:disabled) {
+  filter: brightness(0.8);
+}
+
+button.secondary:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+button.primary {
+  width: 100%;
+  padding: 0.8rem;
+  border: none;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #4a95bd, #2c5f7a);
+  color: #e8e9f0;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 4px 16px rgba(58, 122, 156, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.15);
+  transition: filter 120ms ease;
+}
+
+button.primary:hover:not(:disabled) {
+  filter: brightness(1.1);
+}
+
+button.primary:active {
+  filter: brightness(0.85);
+}
+
+.feedback-question {
+  margin: 0 0 0.75rem;
+  font-size: 0.9rem;
+}
+
+.feedback-buttons {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 0.6rem;
+}
+
+.feedback-buttons .secondary.selected {
+  border-color: #6fae70;
+  background: linear-gradient(135deg, #2a4a2d, #1a2e1c);
+  box-shadow: 0 0 12px rgba(111, 174, 112, 0.4);
+}
+
+.feedback-comment {
+  width: 100%;
+  min-height: 2.5rem;
+  margin-bottom: 0.6rem;
+  padding: 0.5rem;
+  border: 1px solid rgba(140, 160, 255, 0.18);
+  border-radius: 8px;
+  background: rgba(20, 22, 35, 0.6);
+  color: #e8e9f0;
+  font-family: inherit;
+  font-size: 0.85rem;
+  resize: vertical;
+}
+
+.feedback-status {
+  margin: 0.5rem 0 0;
+  font-size: 0.8rem;
+  opacity: 0.8;
+}
+
+.hub-back-link {
+  display: inline-block;
+  margin-bottom: 0.6rem;
+  font-size: 0.85rem;
+  color: inherit;
+  opacity: 0.65;
+  text-decoration: none;
+}
+
+.hub-back-link:hover {
+  opacity: 1;
+  text-decoration: underline;
+}
+
+/* Icon labels — pure CSS, no markup/game.py change. Funds, global
+   temperature and the melt-status line each follow a consistent
+   id-suffix naming convention shared by the main region and both
+   comparison regions ("funds-display"/"b-funds-display"/
+   "c-funds-display", "temperature-display"/"b-temperature-display"/
+   "c-temperature-display", "melt-status-display"/
+   "b-melt-status-display"/"c-melt-status-display"), so one
+   `[id$="..."]` attribute-selector per concept reaches the main
+   dashboard and both region cards at once. The warming-rate/dampening
+   readouts and the three investment-row names only exist on the main
+   dashboard (regions B/C don't render them), so those use their exact
+   ids. Breaks up the numbers-only/plain-label readout with a small
+   icon per concept, without touching `.melt-status--active`'s color,
+   `.dampening-flash`/`.mini-temp-line`'s colors, or the
+   tipping-point-flash/intervention-flash keyframes — those stay
+   exactly as they were. */
+[id$="funds-display"]::before {
+  content: "💰 ";
+}
+
+[id$="temperature-display"]::before {
+  content: "🌡️ ";
+}
+
+[id$="melt-status-display"]::before {
+  content: "🧊 ";
+}
+
+#rise-rate-display::before {
+  content: "📈 ";
+}
+
+#dampening-display::before {
+  content: "🛡️ ";
+}
+
+#preserve-name::before {
+  content: "🛡️ ";
+}
+
+#monitor-name::before {
+  content: "📡 ";
+}
+
+#output-name::before {
+  content: "⚙️ ";
+}
+
+.region-card-label::before {
+  content: "📊 ";
+}
+
+.meter-label::before {
+  content: "📊 ";
+}
+
+/* Small chip treatment for the investment-count numbers — a bare
+   number reads better as a small rounded badge next to its row's
+   name/button, both on the main dashboard and inside the region
+   cards. Layout-only change on an existing element, no new markup. */
+.invest-count {
+  display: inline-block;
+  padding: 0.15rem 0.5rem;
+  border-radius: 999px;
+  background: rgba(140, 160, 255, 0.12);
+  border: 1px solid rgba(140, 160, 255, 0.18);
+}
+
+/* Info toggles — plain <details>/<summary>, zero JS. For a mechanic that
+   isn't self-explanatory from its label alone (what does the feedback
+   dampening percentage actually change? why did permafrost start
+   melting?), a small "ⓘ" disclosure sits next to the label; clicking it
+   reveals a short plain-language explanation, collapsed by default so it
+   never competes with the numbers for attention. Native <details> handles
+   open/closed state entirely in the browser — no proxy, no event handler,
+   no game.py involvement at all. Ported verbatim from games/sol/style.css. */
+.info-toggle {
+  display: inline-block;
+  margin-left: 0.4rem;
+  vertical-align: middle;
+}
+
+.info-toggle summary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.1rem;
+  height: 1.1rem;
+  border-radius: 50%;
+  background: rgba(140, 160, 255, 0.16);
+  border: 1px solid rgba(140, 160, 255, 0.3);
+  color: #cdd8ff;
+  font-size: 0.68rem;
+  font-weight: 700;
+  cursor: pointer;
+  list-style: none;
+  user-select: none;
+}
+
+.info-toggle summary::-webkit-details-marker {
+  display: none;
+}
+
+.info-toggle summary:hover {
+  background: rgba(140, 160, 255, 0.28);
+}
+
+.info-toggle[open] summary {
+  background: rgba(140, 160, 255, 0.32);
+}
+
+.info-toggle p {
+  text-align: left;
+  font-size: 0.78rem;
+  font-weight: 400;
+  opacity: 0.85;
+  line-height: 1.5;
+  margin: 0.5rem 0 0;
+  padding: 0.6rem 0.75rem;
+  background: rgba(5, 6, 13, 0.5);
+  border: 1px solid rgba(140, 160, 255, 0.14);
+  border-radius: 8px;
+}

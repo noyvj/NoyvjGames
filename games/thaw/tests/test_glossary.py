@@ -3,6 +3,7 @@
 import re
 from pathlib import Path
 
+
 HERE = Path(__file__).resolve().parent.parent
 
 
@@ -56,7 +57,7 @@ def test_how_to_play_walkthroughs_carry_the_same_wording(game_env):
     index.html, Desktop in pc.js), so How to Play matches the pop-ups."""
     m = game_env.module
     texts = {
-        "index.html": (HERE / "index.html").read_text(encoding="utf-8"),
+        "index.html": (HERE / "tutorial-steps.js").read_text(encoding="utf-8"),  # the Classic walkthrough moved out of index.html
         "pc.js": (HERE / "pc.js").read_text(encoding="utf-8"),
     }
     for name, text in texts.items():

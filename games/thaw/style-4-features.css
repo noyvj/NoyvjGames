@@ -1,0 +1,301 @@
+/* Thaw styles, part 4 of 5: achievement cards, map skins, supply crates, board room, focus view, planner, replay, glossary, crosshair, mascots, phone focus mode. Loaded in order by index.html: style-1..4, then style.css. */
+/* ============================================================
+   G-27 / G-31: achievement cards. Frost glyph, icy border, a progress bar on locked cards with a
+   numeric goal, and a brief unlock flourish (off under reduced motion and lite mode).
+   ============================================================ */
+.achievements-panel { display: grid; gap: 0.6rem; grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr)); }
+.achievements-panel[hidden] { display: none; }
+.achievement-card {
+  position: relative;
+  padding: 0.7rem 0.9rem 0.7rem 2.7rem;
+  border: 1px solid rgba(140, 180, 230, 0.22);
+  border-left: 4px solid rgba(140, 180, 230, 0.35);
+  border-radius: 12px;
+  background: linear-gradient(160deg, rgba(20, 30, 52, 0.55), rgba(10, 14, 28, 0.45));
+}
+.achievement-card--earned {
+  border-color: rgba(170, 225, 255, 0.55);
+  border-left-color: #8fd8ff;
+  background: linear-gradient(160deg, rgba(60, 110, 150, 0.4), rgba(20, 40, 70, 0.5));
+  box-shadow: 0 0 12px rgba(143, 216, 255, 0.18);
+}
+.achievement-card--new { animation: achievement-frost-in 0.9s ease-out 1; }
+.achievement-card-glyph {
+  position: absolute;
+  left: 0.65rem;
+  top: 0.6rem;
+  font-size: 1.35rem;
+  line-height: 1;
+  filter: grayscale(1) opacity(0.5);
+}
+.achievement-card--earned .achievement-card-glyph { filter: none; }
+.achievement-card-label { margin: 0 0 0.2rem; font-weight: 600; font-size: 0.9rem; }
+.achievement-card-description { margin: 0; font-size: 0.8rem; opacity: 0.8; }
+.achievement-card-progress { margin: 0.35rem 0 0.2rem; font-size: 0.75rem; opacity: 0.85; }
+.achievement-card-bar { height: 6px; border-radius: 3px; background: rgba(120, 160, 215, 0.32); overflow: hidden; }
+.achievement-card-bar-fill { height: 100%; background: linear-gradient(90deg, #6fb8e8, #bfe8ff); border-radius: 3px; }
+.achievements-hub-link { grid-column: 1 / -1; font-size: 0.8rem; }
+@keyframes achievement-frost-in {
+  0% { box-shadow: 0 0 0 rgba(143, 216, 255, 0); transform: scale(0.98); }
+  40% { box-shadow: 0 0 22px rgba(190, 235, 255, 0.55); transform: scale(1.01); }
+  100% { box-shadow: 0 0 12px rgba(143, 216, 255, 0.18); transform: scale(1); }
+}
+@media (prefers-reduced-motion: reduce) { .achievement-card--new { animation: none; } }
+html[data-reduced-motion="true"] .achievement-card--new { animation: none; }
+html[data-lite="true"] .achievement-card--new { animation: none; }
+html[data-lite="true"] .achievement-card--earned { box-shadow: none; }
+
+/* G-22 */
+.session-note { margin: 0.1rem 0 0.4rem; font-size: 0.78rem; opacity: 0.75; }
+
+/* G-18 / G-19: log filter chips, search, pin buttons. The pin glyph is CSS content, not text, so the
+   Desktop notifier (which announces row text) does not treat a pin toggle as a new entry. */
+.log-tools { display: flex; flex-wrap: wrap; gap: 0.4rem; align-items: center; margin: 0.4rem 0; }
+.log-chips { display: flex; flex-wrap: wrap; gap: 0.25rem; }
+.log-chip {
+  padding: 0.2rem 0.6rem;
+  border: 1px solid rgba(140, 180, 230, 0.35);
+  border-radius: 999px;
+  background: transparent;
+  color: inherit;
+  font-size: 0.75rem;
+  cursor: pointer;
+}
+.log-chip--on { background: rgba(111, 184, 232, 0.28); border-color: #8fd8ff; font-weight: 600; }
+.log-search { flex: 1 1 8rem; min-width: 7rem; padding: 0.25rem 0.5rem; font-size: 0.8rem; }
+.log-entry { margin-bottom: 0.2rem; }
+.log-entry--pinned { border-left: 3px solid #8fd8ff; padding-left: 0.35rem; }
+.log-pin-button {
+  margin-left: 0.3rem;
+  padding: 0 0.3rem;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  background: transparent;
+  color: inherit;
+  font-size: 0.8rem;
+  cursor: pointer;
+  opacity: 0.6;
+}
+.log-pin-button:hover, .log-pin-button:focus-visible { opacity: 1; border-color: rgba(140, 180, 230, 0.5); }
+.log-pin-button::before { content: "\1F4CD"; }
+.log-pin-button[aria-pressed="true"] { opacity: 1; }
+.log-pin-button[aria-pressed="true"]::before { content: "\1F4CC"; }
+.log-empty::before { content: attr(data-empty); opacity: 0.7; }
+
+/* G-12: board-room table */
+.tool-section > summary { cursor: pointer; font-weight: 600; font-size: 0.9rem; }
+.board-scroll { overflow-x: auto; margin-top: 0.5rem; }
+.board-table { width: 100%; border-collapse: collapse; font-size: 0.8rem; font-variant-numeric: tabular-nums; }
+.board-table th, .board-table td { padding: 0.3rem 0.45rem; text-align: left; border-bottom: 1px solid rgba(140, 180, 230, 0.18); white-space: nowrap; }
+.board-table tbody th { font-weight: 600; }
+.board-sort { padding: 0; border: 0; background: none; color: inherit; font: inherit; font-weight: 600; cursor: pointer; text-decoration: underline dotted; }
+.board-sort--on { text-decoration: none; color: #8fd8ff; }
+.board-row--grey { opacity: 0.55; font-style: italic; }
+.board-spark { width: 4.5rem; height: 1.2rem; display: block; }
+.board-spark-line { fill: none; stroke: #8fd8ff; stroke-width: 1.5; vector-effect: non-scaling-stroke; }
+.board-nospark { font-size: 0.7rem; opacity: 0.6; }
+
+/* G-17: single-region focus view */
+.focus-graph { margin: 0.5rem 0; }
+.focus-graph-svg { width: 100%; height: auto; max-height: 15rem; }
+.focus-tick { font-size: 7px; fill: currentColor; opacity: 0.75; }
+.focus-axis { stroke: currentColor; stroke-width: 0.6; opacity: 0.4; }
+.focus-guide { stroke: currentColor; stroke-width: 0.6; stroke-dasharray: 3 2; opacity: 0.45; }
+.focus-guide--second { stroke-dasharray: 1 2; }
+.focus-readouts { list-style: none; margin: 0 0 0.6rem; padding: 0; display: grid; gap: 0.15rem; font-size: 0.85rem; }
+.focus-readouts li { display: flex; justify-content: space-between; gap: 0.75rem; padding: 0.2rem 0.5rem; border-radius: 6px; background: rgba(120, 160, 215, 0.1); }
+.focus-readouts li span:last-child { text-align: right; font-variant-numeric: tabular-nums; }
+.focus-levers { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+.focus-levers button[hidden] { display: none; }
+
+/* G-5: forecast planner */
+.planner-row { display: flex; flex-wrap: wrap; gap: 0.6rem; align-items: end; margin: 0.4rem 0; }
+.planner-row label, .planner-repeat { font-size: 0.8rem; display: grid; gap: 0.15rem; }
+.planner-repeat { display: flex; gap: 0.4rem; align-items: center; margin: 0.3rem 0; }
+.planner-input { width: 4.5rem; padding: 0.25rem 0.4rem; font-size: 0.9rem; }
+.planner-chart { margin: 0.5rem 0; }
+.planner-svg { width: 100%; height: auto; max-height: 13rem; }
+
+/* G-3: round replay */
+.replay-controls { display: flex; gap: 0.35rem; align-items: center; margin: 0.4rem 0; }
+.replay-controls input[type="range"] { flex: 1 1 auto; min-width: 0; }
+.replay-controls button { padding: 0.3rem 0.55rem; }
+.replay-chart { margin: 0.4rem 0; }
+.replay-svg { width: 100%; height: auto; max-height: 14rem; }
+.replay-line { fill: none; stroke-width: 1.6; vector-effect: non-scaling-stroke; }
+.replay-line--a { stroke: #e0674c; }
+.replay-line--b { stroke: #8fc7ff; stroke-dasharray: 6 3; }
+.replay-line--c { stroke: #e6c35c; stroke-dasharray: 1.5 3; stroke-linecap: round; }
+.replay-mark { fill: #8fd8ff; opacity: 0.9; }
+.replay-cursor { stroke: currentColor; stroke-width: 1; opacity: 0.6; }
+.replay-quiet { opacity: 0.65; list-style: none; margin-left: -1rem; }
+.replay-log { max-height: none; }
+
+/* GG-26 */
+.headline-ticker { margin: 0.1rem 0 0.5rem; padding: 0.35rem 0.6rem; font-size: 0.8rem; font-style: italic; border-left: 3px solid #8fd8ff; background: rgba(120, 160, 215, 0.1); border-radius: 0 6px 6px 0; }
+
+/* G-28: glossary pop-ups (CSS only: hover or keyboard focus) and the full list */
+.glossary-strip { margin: 0.1rem 0 0.45rem; font-size: 0.78rem; opacity: 0.9; }
+.glossary-strip-label { opacity: 0.7; }
+.gloss-wrap { position: relative; display: inline-block; margin-right: 0.5rem; }
+.gloss { padding: 0; border: 0; background: none; color: inherit; font: inherit; text-decoration: underline dotted; cursor: help; }
+.gloss-pop {
+  display: none;
+  position: absolute;
+  left: 0;
+  top: 1.4em;
+  z-index: 30;
+  width: max-content;
+  max-width: min(18rem, 80vw);
+  padding: 0.45rem 0.6rem;
+  border-radius: 8px;
+  border: 1px solid rgba(140, 180, 230, 0.5);
+  background: #14203a;
+  color: #eef4ff;
+  font-size: 0.78rem;
+  font-style: normal;
+  line-height: 1.35;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
+}
+.gloss-wrap:hover .gloss-pop, .gloss-wrap:focus-within .gloss-pop { display: block; }
+html[data-theme="light"] .gloss-pop { background: #fbf6ec; color: #1b1710; border-color: rgba(122, 74, 18, 0.45); }
+.glossary-list { margin: 0.5rem 0 0; font-size: 0.85rem; }
+.glossary-list dt { font-weight: 600; margin-top: 0.5rem; }
+.glossary-list dd { margin: 0.1rem 0 0; opacity: 0.85; }
+
+/* G-29 */
+.load-notice { border-left: 4px solid #e6c35c; }
+.load-notice[hidden] { display: none; }
+
+/* G-16: crosshair on the mini graphs (moved by the page script; hidden until used) */
+.mini-temp-graph { position: relative; }
+.mini-temp-graph-svg[data-pts] { cursor: crosshair; }
+.mini-temp-graph-svg[data-pts]:focus-visible { outline: 2px solid #8fd8ff; outline-offset: 2px; }
+.mini-cross { display: none; stroke: currentColor; stroke-width: 0.8; opacity: 0.7; pointer-events: none; }
+.mini-dot { display: none; fill: #8fd8ff; stroke: #0b1220; stroke-width: 0.6; pointer-events: none; }
+.graph-readout {
+  position: absolute;
+  left: 0;
+  bottom: calc(100% + 2px);
+  z-index: 20;
+  margin: 0;
+  padding: 0.15rem 0.45rem;
+  border-radius: 6px;
+  background: #14203a;
+  color: #eef4ff;
+  font-size: 0.72rem;
+  white-space: nowrap;
+  pointer-events: none;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+}
+html[data-theme="light"] .graph-readout { background: #fbf6ec; color: #1b1710; }
+
+/* GG-12: opt-in tremor and crack when a region tips (the .tipping-flash class is the existing one-tick
+   cue). Off unless the setting is on, and never with reduced motion or lite mode. */
+@keyframes tip-tremor {
+  0%, 100% { transform: translate(0, 0); }
+  15% { transform: translate(-2px, 1px); }
+  30% { transform: translate(2px, -1px); }
+  45% { transform: translate(-1.5px, -1px); }
+  60% { transform: translate(1.5px, 1px); }
+  80% { transform: translate(-1px, 0); }
+}
+@keyframes tip-crack {
+  0% { opacity: 0; clip-path: inset(0 100% 0 0); }
+  30% { opacity: 0.95; }
+  100% { opacity: 0; clip-path: inset(0 0 0 0); }
+}
+html[data-tip-shake="true"] #game.tipping-flash #status,
+html[data-tip-shake="true"] .region-card.tipping-flash { animation: tip-tremor 0.45s ease-in-out 1; }
+html[data-tip-shake="true"] #game.tipping-flash #graph::after,
+html[data-tip-shake="true"] .region-card.tipping-flash .mini-temp-graph::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 40' preserveAspectRatio='none'><polyline points='0,18 14,22 22,14 38,26 50,12 66,28 80,16 96,30 120,20' fill='none' stroke='%23e8f6ff' stroke-width='2'/></svg>") center / 100% 100% no-repeat;
+  animation: tip-crack 0.9s ease-out 1 forwards;
+}
+html[data-reduced-motion="true"][data-tip-shake="true"] #game.tipping-flash #status,
+html[data-reduced-motion="true"][data-tip-shake="true"] .region-card.tipping-flash,
+html[data-lite="true"][data-tip-shake="true"] #game.tipping-flash #status,
+html[data-lite="true"][data-tip-shake="true"] .region-card.tipping-flash { animation: none; }
+html[data-reduced-motion="true"][data-tip-shake="true"] #game.tipping-flash #graph::after,
+html[data-reduced-motion="true"][data-tip-shake="true"] .region-card.tipping-flash .mini-temp-graph::after,
+html[data-lite="true"][data-tip-shake="true"] #game.tipping-flash #graph::after,
+html[data-lite="true"][data-tip-shake="true"] .region-card.tipping-flash .mini-temp-graph::after { display: none; }
+@media (prefers-reduced-motion: reduce) {
+  html[data-tip-shake="true"] #game.tipping-flash #status,
+  html[data-tip-shake="true"] .region-card.tipping-flash { animation: none; }
+  html[data-tip-shake="true"] #game.tipping-flash #graph::after,
+  html[data-tip-shake="true"] .region-card.tipping-flash .mini-temp-graph::after { display: none; }
+}
+
+/* keep the wide board table scrolling inside its own box on narrow screens */
+.tool-section { min-width: 0; max-width: 100%; }
+.board-scroll { width: 100%; max-width: 100%; }
+
+/* G-21: the best earlier run's path, a faint dashed line behind Region A's graph. */
+.mini-pace-line { fill: none; stroke: #c8d7ff; stroke-opacity: 0.55; stroke-width: 1.2; stroke-dasharray: 3 2.5; vector-effect: non-scaling-stroke; }
+.mini-pace-label { font-size: 7px; fill: currentColor; opacity: 0.75; }
+html[data-hide-pace="true"] .mini-pace-line,
+html[data-hide-pace="true"] .mini-pace-label,
+html[data-hide-pace="true"] .ghost-sentence,
+html[data-hide-pace="true"] .pace-display { display: none; }
+.ghost-sentence[hidden] { display: none; }
+.pace-display { margin: 0.1rem 0 0.4rem; font-size: 0.78rem; opacity: 0.8; }
+.pace-display[hidden] { display: none; }
+
+/* GG-15: the snow hare and the arctic fox. */
+.mascots { display: flex; flex-direction: column; gap: 0.2rem; margin: 0.1rem 0 0.5rem; padding: 0.35rem 0.6rem; font-size: 0.8rem; border-left: 3px solid #ffd9a8; background: rgba(255, 200, 140, 0.08); border-radius: 0 6px 6px 0; }
+.mascot-face { display: inline-block; letter-spacing: 0.05em; }
+html[data-hide-mascots="true"] .mascots { display: none; }
+@keyframes mascot-shiver { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-1.5px); } 75% { transform: translateX(1.5px); } }
+@keyframes mascot-cheer { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-3px); } }
+.mascot--shiver .mascot-face { animation: mascot-shiver 0.3s linear infinite; }
+.mascot--cheer .mascot-face { animation: mascot-cheer 0.9s ease-in-out infinite; }
+.mascot--faint .mascot-face { transform: rotate(-12deg); opacity: 0.85; }
+html[data-reduced-motion="true"] .mascot .mascot-face,
+html[data-lite="true"] .mascot .mascot-face { animation: none; }
+@media (prefers-reduced-motion: reduce) { .mascot .mascot-face { animation: none; } }
+
+/* GG-19: the rolling temperature figure keeps its digits the same width so the line does not jitter. */
+#temperature-display { font-variant-numeric: tabular-nums; }
+
+/* R4-THMO-7: one-region focus mode for phones. The buttons are phone-only; "All" (no data-focus) is the normal page. */
+#focus-mode-dots { display: none; }
+@media (max-width: 600px) {
+  html:not([data-layout="pc"]) #focus-mode-dots {
+    display: flex;
+    gap: 0.5rem;
+    margin: 0.5rem 0;
+    justify-content: center;
+  }
+  .focus-dot {
+    min-width: 44px;
+    min-height: 44px;
+    border-radius: 22px;
+    font-size: 1rem;
+  }
+  .focus-dot.focus-dot--active {
+    background: rgba(140, 160, 255, 0.3);
+    border-color: #8fd8ff;
+  }
+  html:not([data-layout="pc"]) #game[data-focus="a"] #region-comparison { display: none; }
+  html:not([data-layout="pc"]) #game[data-focus="b"] #c-region-card,
+  html:not([data-layout="pc"]) #game[data-focus="c"] #b-region-card { display: none; }
+  html:not([data-layout="pc"]) #game[data-focus="b"] #status,
+  html:not([data-layout="pc"]) #game[data-focus="c"] #status,
+  html:not([data-layout="pc"]) #game[data-focus="b"] #investments,
+  html:not([data-layout="pc"]) #game[data-focus="c"] #investments { display: none; }
+}
+
+/* G-30, GG-23, G-25: small pieces. */
+.compare-history { margin: 0.3rem 0 0; padding-left: 1.1rem; font-size: 0.82rem; }
+.compare-history li { margin: 0.15rem 0; }
+.hard-mode-reveal { font-style: italic; }
+.settings-code-input { width: 100%; max-width: 100%; box-sizing: border-box; margin: 0.35rem 0; font-family: monospace; font-size: 0.8rem; }
+.settings-code-row { flex-wrap: wrap; }
+.settings-code-row > .settings-label, .settings-code-row > .settings-note, .settings-code-row > .settings-code-input { flex: 1 1 100%; }
+.settings-code-row button { margin-right: 0.35rem; }
+#confirm-threshold-select { margin-left: 0.4rem; }

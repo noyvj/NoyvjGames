@@ -2,6 +2,43 @@
 
 **Built following the shared conventions in `planning/archive/climate-quartet-2-plan.md`** (moved there 2026-09-22 once all four second-set games shipped; was `climate-quartet-2-plan.md` at the games root while build order still mattered). This file is Thaw-specific only. Built second in this set.
 
+## File map (read this first; every file is small enough to read whole)
+
+`game.py` was one 6,700-line file. It is now an entry point plus 23 `thaw_*.py` modules, and the stylesheet and the page's inline scripts are split too (SP-1d in `planning/TODO.md`; the recipe is in `planning/SHARED-COMPONENTS.md`). Nothing changed in behaviour or in a save. Ask for the one file that holds what you are changing.
+
+**Python (`thaw_*.py`, listed in dependency order: a module imports only from the ones before it).** The list lives in ONE place that matters, `THAW_PY_MODULES` in `boot.js` (the page writes those files into Pyodide's file system before it runs `game.py`); `_PART_NAMES` in `game.py` repeats it in the same order, and `tests/test_file_sizes.py` checks both against the files on disk.
+
+| File | Holds (ask for it when you change...) |
+|------|------|
+| `game.py` | Entry point. Imports the parts, re-exports every name (`game.<name>` still works for tests and the page), forwards live state, and `setup()` wires the buttons. Ask for it only to add a button listener. |
+| `thaw_runstate.py` | The variables that get REPLACED while playing (`hard_mode`, `carbon_bank`, `run_over`, panel-open flags, forecast counters ...) and `LIVE_NAMES`. |
+| `thaw_rules.py` | Fixed numbers and tables: costs, thresholds, policy stances, tiers, titles, storage keys, planner and forecast limits. |
+| `thaw_model.py` | `RegionState` (one region: funds, temperature, melt feedback, restoration, rescue), `region`, `region_b`, `region_c`, `region_d`, the warming-rate helpers and the run-mode helpers. The feedback-loop maths lives here. |
+| `thaw_bridge.py` | Tiny helpers: localStorage read/write, HTML escape, number cleaning, curve decimation. |
+| `thaw_sciencelog.py` | The scientist's log (events, pinning, filter, search, text export) and the automated Region D play. |
+| `thaw_presets.py` | Strategy presets, the custom preset slot, the spend-confirmation threshold, hard mode, best-region message. |
+| `thaw_graphs.py` | Mini temperature graphs (SVG, crosshair data, screen-reader summary), trend and melt labels, Region B/C/D card rendering. |
+| `thaw_mechanics.py` | Tipping cascades, carbon bank, supply crates, shared research, framing, long game, the thaw forecast mini-game. |
+| `thaw_records.py` | Personal best and the climate archive (localStorage only, never in a save). |
+| `thaw_achievements.py` | Achievements (catalog loading, checks, progress, panel, toast) and the map skins they unlock. |
+| `thaw_panels.py` | Info page render, What's New changelog, community comparison, climate scientist chart, compare history. |
+| `thaw_readouts.py` | Routing convoys, balance bonus, ice-age tier, sparklines, round announcement, rate inspector, highlights and share result, temperature unit, session note. |
+| `thaw_runs.py` | Hold the Line (run end, titles), AI stewards, Field Notes, compare overlay, run result list. |
+| `thaw_views.py` | The sortable region board and the single-region focus view. |
+| `thaw_saveparts.py` | Save validation (`sanitize_save`, load notice) and the per-region save dict and loader. |
+| `thaw_timeline.py` | Forecast planner, one-rewind undo, round replay. |
+| `thaw_flavour.py` | Headlines, glossary, rolling temperature digits, mascots. |
+| `thaw_pace.py` | Pace line and ghost sentence (best-run record). |
+| `thaw_settingscode.py` | Copyable settings code (export, decode, import, re-apply). |
+| `thaw_savestate.py` | `get_state()`, `steward_summary()`, the developer history readout. |
+| `thaw_renderer.py` | `render()`: redraws the whole page, calling every panel's render function. |
+| `thaw_loading.py` | `load_state()`: restores a save, then redraws. |
+| `thaw_handlers.py` | Every `on_*` click handler and the `_make_*_handler` factories. A new handler goes here. |
+
+**State rule.** A module variable that some function REPLACES with `global x` / `x = ...` lives only in `thaw_runstate.py`; every other module reads and writes it as `runstate.x` (each module starts with `import thaw_runstate as runstate`). Never `from thaw_runstate import x` (that copies the value once and goes stale). Lists, dicts and sets that are only changed in place (`science_log`, `field_notes`, the region objects) stay in the module that owns them. A new rebound variable goes in `thaw_runstate.py` AND in its `LIVE_NAMES`. Tests use `game.hard_mode`, `game.carbon_bank = 5` and so on: `game.py` forwards reads and writes of the names in `LIVE_NAMES` to `thaw_runstate`, and a write to any other name is copied into every module that holds that name.
+
+**Page files.** `index.html` is markup only (about 57 KB, the one file allowed above 12,000 tokens, capped at 15,000 by `tests/test_file_sizes.py`). Scripts: `tutorial-steps.js` (the walkthrough steps), `boot.js` (loads Pyodide, writes the Python modules, runs `game.py`, starts the tutorial and mobile HUD), `feedback.js` (the yes/no feedback prompt), `community-compare.js` (`window.thawCompare`), `graph-crosshair.js` (hover/arrow-key readout on the mini graphs), `shortcuts.js` (panels for the `?` help), then the older `settings.js`, `mobile-invest.js`, `focus-mode.js`, `landscape-grid.js`, `info-page-swipe.js`, `archive-swipe.js`, `haptic-feedback.js`, `pc.js`. Styles load in this order (the order is the cascade; Desktop's `pc.css` goes after the first `style.css` link): `style-1-base.css` (text scale, page shell, meters, base panels), `style-2-visuals.css` (permafrost scene, section cards, gauges, console design pass), `style-3-panels.css` (changelog, settings panel, round-2 and round-3 panels), `style-4-features.css` (achievement cards, skins, crates, board, focus, planner, replay, glossary, crosshair, mascots, phone focus mode), `style.css` (the last part: Real Story cards, phone planner, landscape board). Put a new rule in the part for its area. `pc.html` is generated (`scripts/generate-pc-pages.py`), never edited by hand. `tests/pagefiles.py` has `game_css()` and `page_text()` for tests that need the whole stylesheet or page text.
+
 ## Concept
 
 The player manages a northern region while global temperature rises on a fixed background trajectory they don't fully control. As it rises, permafrost gradually melts, releasing stored methane — which accelerates the same warming trajectory further. The player's regional choices (land management, local emissions) can nudge the timeline, but the core experience is watching a slow problem tip into a runaway feedback loop if nothing meaningfully intervenes.

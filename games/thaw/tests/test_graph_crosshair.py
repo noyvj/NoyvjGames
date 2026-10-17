@@ -2,6 +2,7 @@
 
 import json
 import re
+from .pagefiles import page_text
 
 
 def _points(svg):
@@ -103,5 +104,5 @@ def test_page_script_is_wired_into_both_pages():
     from pathlib import Path
     base = Path(__file__).resolve().parent.parent
     for name in ("index.html", "pc.html"):
-        page = (base / name).read_text(encoding="utf-8")
+        page = page_text(name)  # the crosshair script is graph-crosshair.js since the split
         assert 'const SELECTOR = ".mini-temp-graph-svg[data-pts]"' in page, name

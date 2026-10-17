@@ -1,0 +1,338 @@
+/* Thaw styles, part 3 of 5: What's New changelog, Settings panel, round 2 and round 3 panels (forecast, archive, routing, hold the line, graph patterns). Loaded in order by index.html: style-1..4, then style.css. */
+/* ============================================================
+   Settings panel (site-wide goal, planning/TODO.md): consolidated
+   text-scale + reduced-motion controls. Reuses .section for the panel
+   shell itself (same hidden-until-opened idiom as #howto-panel/
+   #achievements-panel), so only the internal layout needs its own rules. */
+.settings-panel-heading {
+  margin: 0 0 0.75rem;
+  font-size: 0.95rem;
+  opacity: 0.9;
+}
+
+.settings-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.settings-row:last-child {
+  margin-bottom: 0;
+}
+
+.settings-label {
+  font-size: 0.85rem;
+}
+
+.text-size-control {
+  display: inline-flex;
+  gap: 0.25rem;
+}
+
+.text-size-control button {
+  min-width: 2.2rem;
+  padding: 0.3rem 0.5rem;
+}
+
+.settings-checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+/* Reduced-motion override: a manual, persisted toggle independent of the
+   OS-level `prefers-reduced-motion` media query already gating several
+   animations in this file. Rather than duplicating every individual
+   @keyframes/animation/transition rule with a second selector, this one
+   blanket rule (applied only when settings.js sets the attribute) collapses
+   every animation/transition on the page to effectively instant -- the
+   same standard "force-disable" pattern used site-wide for this kind of
+   manual override, and strictly additive to the existing media-query-gated
+   rules elsewhere in this file (an OS-level reduced-motion user gets the
+   same effect either way; this just also covers a player whose OS setting
+   is untouched but who wants motion off in-game). Deliberately does NOT
+   touch the tipping-point-flash/intervention-flash colors themselves
+   (meaningful game-state cues per this game's colorblind-safety audit) --
+   only their timing collapses to instant, same as every other animation. */
+html[data-reduced-motion="true"] *,
+html[data-reduced-motion="true"] *::before,
+html[data-reduced-motion="true"] *::after {
+  animation-duration: 0.001ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.001ms !important;
+  scroll-behavior: auto !important;
+}
+
+/* Round-2 additions (G2/G6/G8/G16/G24/G19) */
+.trend-arrow { margin-left: 0.4rem; opacity: 0.9; }
+#temperature-display, .region-stat[id$="temperature-display"] { display: inline-block; }
+.mini-temp-threshold-label { font-size: 7px; fill: currentColor; opacity: 0.75; }
+/* G8: shape cue on the critical tier, independent of color. */
+[id$="melt-status-display"].melt-status--critical::before { content: "⚠️ "; }
+
+/* G7: the real-data methane growth-rate chart. */
+.methane-chart-svg { display: block; margin: 0.5rem 0; max-width: 100%; }
+.methane-chart-line { fill: none; stroke: #e0674c; stroke-width: 2; }
+.methane-chart-baseline { stroke: currentColor; stroke-width: 1; stroke-dasharray: 3 3; opacity: 0.5; }
+.methane-chart-baseline-label { font-size: 7px; fill: currentColor; opacity: 0.75; }
+.methane-chart-tick { font-size: 7px; fill: currentColor; opacity: 0.6; }
+.climate-scientist-framing { font-size: 0.85rem; line-height: 1.4; }
+.climate-scientist-source { font-size: 0.75rem; opacity: 0.75; }
+/* G24 */
+.acceleration-pulse { animation: acceleration-pulse 1100ms ease 2; border-radius: 4px; }
+@keyframes acceleration-pulse {
+  0%, 100% { background: transparent; }
+  40% { background: #5a2416; }
+}
+:root[data-reduced-motion="true"] .acceleration-pulse { animation: none; }
+/* G19 */
+.science-log { margin-top: 0.5rem; }
+.science-log summary { cursor: pointer; opacity: 0.85; }
+.science-log-list { max-height: 10rem; overflow-y: auto; padding-left: 1.2rem; font-size: 0.85rem; }
+
+/* G21: the emergency rescue button + status line appear only while a
+   region is critical (or a rescue is running / has been spent). */
+.rescue-button {
+  margin: 0.4rem 0 0.25rem;
+  font-size: 0.8rem;
+  border-color: #e0a04a;
+}
+
+.rescue-button[hidden],
+.rescue-status[hidden] {
+  display: none;
+}
+
+.rescue-status {
+  margin: 0.25rem 0 0.5rem;
+  font-size: 0.8rem;
+  opacity: 0.85;
+}
+
+/* G13: the optional starting policy stance picker. */
+.policy-stance-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-bottom: 0.4rem;
+}
+
+.policy-stance-buttons button.secondary {
+  flex: 1 1 8rem;
+  font-size: 0.8rem;
+}
+
+/* G27: the optional thaw-forecast mini-game. */
+.forecast-row {
+  display: flex;
+  gap: 0.4rem;
+  margin-bottom: 0.4rem;
+}
+
+.forecast-row input {
+  flex: 1 1 6rem;
+  min-width: 0;
+  padding: 0.35rem 0.5rem;
+  font: inherit;
+}
+
+.forecast-row button.secondary {
+  flex: 0 0 auto;
+  font-size: 0.8rem;
+}
+
+.forecast-record[hidden] {
+  display: none;
+}
+
+/* G23: the climate archive panel. */
+.archive-panel[hidden] {
+  display: none;
+}
+
+.archive-toggle {
+  margin: 0.3rem 0;
+  font-size: 0.8rem;
+}
+
+.archive-row {
+  margin: 0.2rem 0;
+  font-size: 0.85rem;
+}
+
+/* G17: the shared-research story thread. */
+.shared-research-story {
+  margin: 0.4rem 0 0;
+  padding-left: 1.2rem;
+  font-size: 0.85rem;
+}
+
+.shared-research-story li {
+  margin-bottom: 0.4rem;
+}
+
+/* G3: the carbon bank grant buttons. */
+.carbon-bank-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.carbon-bank-buttons button.secondary {
+  flex: 1 1 6rem;
+  font-size: 0.8rem;
+}
+
+/* G-10: a visually hidden but still announced text (the aria-live round summary). */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* G-10: every control shows a keyboard focus ring (the global light-theme sheet recolours it). */
+button:focus-visible,
+select:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+summary:focus-visible,
+a:focus-visible {
+  outline: 2px solid #ffd666;
+  outline-offset: 2px;
+}
+
+/* G-24: the acceleration sparkline under the acceleration meter. */
+.accel-sparkline { margin: 0.2rem 0 0.4rem; }
+.accel-sparkline-svg { display: block; width: 100%; height: 1.6rem; }
+.accel-sparkline-line { fill: none; stroke: #e0674c; stroke-width: 1.5; vector-effect: non-scaling-stroke; }
+.accel-sparkline-base { stroke: currentColor; stroke-opacity: 0.35; stroke-width: 1; stroke-dasharray: 3 3; vector-effect: non-scaling-stroke; }
+
+/* G-4: "explain this number". */
+.rate-inspector { margin: 0.4rem 0; font-size: 0.85rem; }
+.rate-inspector summary { cursor: pointer; opacity: 0.9; }
+.rate-inspector-label { display: inline-block; margin: 0.4rem 0; font-size: 0.8rem; }
+.rate-inspector-label select { margin-left: 0.3rem; }
+.rate-breakdown-svg { display: block; width: 100%; height: 0.8rem; margin: 0.3rem 0; }
+.rate-seg-base { fill: #6f8fe0; }
+.rate-seg-net { fill: #e0674c; }
+.rate-seg-cut { fill: none; stroke: currentColor; stroke-width: 0.6; stroke-dasharray: 2 1.5; }
+.rate-rows { list-style: none; margin: 0.2rem 0; padding: 0; }
+.rate-row { display: flex; justify-content: space-between; gap: 0.6rem; padding: 0.15rem 0; border-bottom: 1px solid rgba(127, 127, 160, 0.25); font-variant-numeric: tabular-nums; }
+.rate-row--\= { font-weight: 600; border-bottom: 0; }
+
+/* GG-13: the Ice Age medal line. */
+.ice-age-display { font-style: normal; }
+
+/* GG-20 / GG-27: the "phew" and perfect-balance callouts. */
+.phew-callout,
+#balance-callout {
+  margin: 0.5rem 0;
+  padding: 0.4rem 0.6rem;
+  border: 1px solid rgba(111, 143, 224, 0.7);
+  border-radius: 6px;
+  font-size: 0.85rem;
+}
+.balance-pulse { animation: balance-pulse 1200ms ease; }
+@keyframes balance-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(111, 143, 224, 0); }
+  30% { box-shadow: 0 0 0 4px rgba(111, 143, 224, 0.7); }
+}
+:root[data-reduced-motion="true"] .balance-pulse { animation: none; }
+@media (prefers-reduced-motion: reduce) { .balance-pulse { animation: none; } }
+
+/* G-26 / Z-31: lite mode is now the site-wide switch (shared/lite-mode.css, html[data-lite="true"]);
+   only the Thaw-specific decoration that the shared rules cannot name is handled here. */
+html[data-lite="true"] .permafrost-frost-dust {
+  animation: none !important;
+}
+
+.rate-row span:last-child { white-space: nowrap; }
+
+/* GG-5: resource routing. */
+.routing-row { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: flex-end; }
+.routing-row label { font-size: 0.8rem; display: flex; flex-direction: column; gap: 0.15rem; }
+.routing-row button.secondary { font-size: 0.8rem; }
+
+/* Site-wide: a bare `display:` rule on a class must never defeat the HTML hidden attribute
+   (playtest audit 2026-10-06, S2: Continuum, Aftermath, Drift, Champ de Mots, hub). */
+[hidden] { display: none !important; }
+
+/* GG-2 Hold the Line, GG-24 result list. */
+.hold-line-result { margin: 0.4rem 0 0; padding-left: 1.1rem; font-size: 0.85rem; }
+.hold-line-result li { margin: 0.2rem 0; }
+
+/* G-1 / G-2 Field Notes and the two-run overlay. Two curves are told apart by line style (solid vs
+   dashed) as well as colour. */
+.field-notes-svg { width: 100%; height: 3rem; display: block; }
+.field-bar { fill: #7fb2e5; }
+.compare-row { display: flex; flex-wrap: wrap; gap: 0.6rem; margin: 0.3rem 0; }
+.compare-row label { font-size: 0.8rem; display: flex; flex-direction: column; gap: 0.15rem; min-width: 0; }
+.compare-row select { max-width: 100%; }
+.compare-svg { width: 100%; height: 5rem; display: block; }
+.compare-line { fill: none; stroke-width: 2; vector-effect: non-scaling-stroke; }
+.compare-line--first { stroke: #e0674c; }
+.compare-line--second { stroke: #8fc7ff; stroke-dasharray: 6 3; }
+.compare-svg .mini-temp-threshold-line { stroke-dasharray: 1 3; }
+.compare-key { font-size: 0.75rem; }
+
+/* G-13: the unit setting. */
+.settings-note { font-size: 0.75rem; opacity: 0.8; margin: 0.25rem 0 0; }
+#temp-unit-select { margin-left: 0.4rem; }
+
+/* G-14: graph patterns. The end markers are always drawn and only revealed by the setting. */
+.mini-temp-end { display: none; fill: #e0674c; stroke: none; }
+html[data-graph-patterns="true"] .mini-temp-end { display: inline; }
+html[data-graph-patterns="true"] .graph-region-b .mini-temp-line { stroke-dasharray: 6 3; }
+html[data-graph-patterns="true"] .graph-region-c .mini-temp-line { stroke-dasharray: 1.5 3; stroke-linecap: round; }
+html[data-graph-patterns="true"] .graph-region-d .mini-temp-line { stroke-dasharray: 7 3 1.5 3; }
+
+/* GG-25: blindfold. Every graph is hidden; the text status beside each one carries the same facts
+   (the graphs' screen-reader summaries are unaffected). */
+html[data-blindfold="true"] .mini-temp-graph,
+html[data-blindfold="true"] .accel-sparkline,
+html[data-blindfold="true"] .field-notes-chart,
+html[data-blindfold="true"] .compare-chart,
+html[data-blindfold="true"] .rate-breakdown-svg,
+html[data-blindfold="true"] .methane-chart-svg { display: none; }
+
+/* G-15: high contrast and a readable font. Plain, opaque panels and strong borders replace the
+   glass look, and body text switches to a wide-set sans-serif. Colours that carry game state
+   (the red tipping flash, the green dampening flash) are left alone. */
+html[data-high-contrast="true"] body,
+html[data-high-contrast="true"] button,
+html[data-high-contrast="true"] input,
+html[data-high-contrast="true"] select,
+html[data-high-contrast="true"] textarea {
+  font-family: Verdana, Tahoma, "Segoe UI", Arial, sans-serif;
+  letter-spacing: 0.02em;
+}
+html[data-high-contrast="true"] #game *:not(svg *) { line-height: 1.5; }
+html[data-high-contrast="true"] .ambient-bg { display: none; }
+html[data-high-contrast="true"] #game,
+html[data-high-contrast="true"] .section,
+html[data-high-contrast="true"] .region-card,
+html[data-high-contrast="true"] .context-blurb {
+  background: #000; color: #fff; border: 2px solid #fff; box-shadow: none;
+  -webkit-backdrop-filter: none; backdrop-filter: none;
+}
+html[data-high-contrast="true"] #game * { color: #fff; }
+html[data-high-contrast="true"] button { background: #000; color: #fff; border: 2px solid #fff; }
+html[data-high-contrast="true"] button:disabled { color: #bbb; border-color: #bbb; }
+html[data-high-contrast="true"] body { background: #000; }
+html[data-high-contrast="true"][data-theme="light"] body { background: #fff; }
+html[data-high-contrast="true"][data-theme="light"] #game,
+html[data-high-contrast="true"][data-theme="light"] .section,
+html[data-high-contrast="true"][data-theme="light"] .region-card,
+html[data-high-contrast="true"][data-theme="light"] .context-blurb { background: #fff; color: #000; border-color: #000; }
+html[data-high-contrast="true"][data-theme="light"] #game * { color: #000; }
+html[data-high-contrast="true"][data-theme="light"] button { background: #fff; color: #000; border-color: #000; }

@@ -1,3 +1,4 @@
+from .pagefiles import game_css
 """GG-15: the snow hare and the arctic fox."""
 
 
@@ -86,7 +87,7 @@ def test_story_switch_selector_and_setting_hook_exist(game_env):
 
     page = (Path(__file__).resolve().parent.parent / "index.html").read_text()
     assert "#mascots" in page.split("data-story-selectors=")[1].split(">")[0]
-    css = (Path(__file__).resolve().parent.parent / "style.css").read_text()
+    css = game_css()
     assert 'html[data-hide-mascots="true"] .mascots' in css
     js = (Path(__file__).resolve().parent.parent / "settings.js").read_text()
     assert "thaw-hide-mascots" in js

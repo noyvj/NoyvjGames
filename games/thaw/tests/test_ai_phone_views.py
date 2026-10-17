@@ -13,6 +13,7 @@ import urllib.request
 from pathlib import Path
 
 import pytest
+from .pagefiles import game_css
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 ROOT = BASE_DIR.parents[1]
@@ -65,13 +66,13 @@ def test_the_new_settings_have_a_control_and_a_flag_that_resets():
 
 
 def test_the_css_does_not_remove_the_reduced_motion_rules_for_the_crate():
-    css = _read("style.css")
+    css = game_css()
     assert ':root[data-reduced-motion="true"] .crate-visual.crate-waiting' in css
     assert ':root[data-reduced-motion="true"] .crate-visual.crate-opening' in css
 
 
 def test_the_phone_rules_sit_inside_a_narrow_screen_or_short_landscape_query():
-    css = _read("style.css")
+    css = game_css()
     # a base rule may only hide these; the visible layout comes from a query
     for selector in ("#focus-mode-dots", ".mobile-invest-details", ".landscape-board", ".info-page-dots", ".archive-sheet-close"):
         base_rules = re.findall(r"(?m)^%s\s*\{([^}]*)\}" % re.escape(selector), css)
