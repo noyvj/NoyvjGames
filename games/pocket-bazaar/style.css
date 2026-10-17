@@ -62,15 +62,7 @@ button[disabled], button[aria-disabled="true"] { opacity: 0.55; cursor: default;
 @keyframes bump { 0% { transform: scale(1); } 40% { transform: scale(1.3); color: var(--accent); } 100% { transform: scale(1); } }
 
 /* The queue: up to three customers at the stall. A card is a button (tap it with a good picked up to hand it over). */
-.queue {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 0.2rem;
-  width: 100%;
-  max-width: 100%;
-  box-sizing: border-box;
-  margin: 0 0 0.2rem;
-}
+.queue { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0.35rem; max-width: 26rem; margin: 0 auto 0.3rem; }
 .customer { position: relative; display: flex; flex-direction: column; gap: 0.25rem; align-items: stretch; text-align: left; padding: 0.3rem 0.35rem; min-width: 0; min-height: 5.2rem; border-radius: 10px; font-size: 0.8rem; background: var(--surface); }
 .customer.empty { opacity: 0.45; border-style: dashed; align-items: center; justify-content: center; }
 .customer.wants { outline: 3px dashed var(--match); outline-offset: -1px; }
@@ -223,12 +215,9 @@ html[data-effects="off"] *, html[data-effects="off"] *::before, html[data-effect
   .stat { padding: 0.15rem 0.2rem; }
   .stat-label { font-size: 0.62rem; }
   .stat-value { font-size: 0.95rem; }
-  .queue { gap: 0.25rem; }
-  .customer {
-    min-height: 3.8rem;
-    padding: 0.2rem 0.25rem;
-    font-size: 0.7rem;
-  }
+  /* R4-PBMO-4: the three customers are a tight row of cards across the full phone width. */
+  .queue { gap: 0.2rem; width: 100%; max-width: 100%; box-sizing: border-box; margin: 0 0 0.2rem; }
+  .customer { min-height: 3.8rem; padding: 0.2rem 0.25rem; font-size: 0.75rem; }
   .cust-kind { display: none; }
   /* R4-PBMO-7: five large dots (filled = patience left, hollow = used up) and the beats replace the thin bar on a phone */
   .cust-patience { display: none; }
