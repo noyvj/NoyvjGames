@@ -261,3 +261,6 @@ html:not([data-reduced-motion="true"]):not([data-lite="true"]) .threshold-crosse
 @media (prefers-reduced-motion: reduce) {
   body > #archive-panel:not([hidden]) { animation: none !important; }
 }
+
+/* Site-wide blanket rule, kept in the last stylesheet too (shared/tests/test_hidden_attribute_rule.py expects it in style.css). */
+[hidden] { display: none !important; }

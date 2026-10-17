@@ -1726,18 +1726,208 @@
      "precached": true
     },
     {
+     "path": "games/herd/boot.js",
+     "bytes": 3823,
+     "precached": true
+    },
+    {
      "path": "games/herd/changelog.json",
      "bytes": 22526,
      "precached": false
     },
     {
+     "path": "games/herd/community-compare.js",
+     "bytes": 2938,
+     "precached": true
+    },
+    {
+     "path": "games/herd/community-stat.js",
+     "bytes": 1582,
+     "precached": true
+    },
+    {
+     "path": "games/herd/copy-and-credits.js",
+     "bytes": 2366,
+     "precached": true
+    },
+    {
+     "path": "games/herd/feedback.js",
+     "bytes": 2834,
+     "precached": true
+    },
+    {
      "path": "games/herd/game.py",
-     "bytes": 299889,
+     "bytes": 13860,
+     "precached": true
+    },
+    {
+     "path": "games/herd/herd_achievements.py",
+     "bytes": 20985,
+     "precached": true
+    },
+    {
+     "path": "games/herd/herd_barns.py",
+     "bytes": 6825,
+     "precached": true
+    },
+    {
+     "path": "games/herd/herd_blind.py",
+     "bytes": 4253,
+     "precached": true
+    },
+    {
+     "path": "games/herd/herd_changelog.py",
+     "bytes": 3261,
+     "precached": true
+    },
+    {
+     "path": "games/herd/herd_collection.py",
+     "bytes": 16225,
+     "precached": true
+    },
+    {
+     "path": "games/herd/herd_explain.py",
+     "bytes": 8541,
+     "precached": true
+    },
+    {
+     "path": "games/herd/herd_extras.py",
+     "bytes": 13474,
+     "precached": true
+    },
+    {
+     "path": "games/herd/herd_family.py",
+     "bytes": 7850,
+     "precached": true
+    },
+    {
+     "path": "games/herd/herd_handlers_panels.py",
+     "bytes": 7031,
+     "precached": true
+    },
+    {
+     "path": "games/herd/herd_handlers_play.py",
+     "bytes": 10899,
+     "precached": true
+    },
+    {
+     "path": "games/herd/herd_ledger.py",
+     "bytes": 15954,
+     "precached": true
+    },
+    {
+     "path": "games/herd/herd_loading.py",
+     "bytes": 7452,
+     "precached": true
+    },
+    {
+     "path": "games/herd/herd_loadouts.py",
+     "bytes": 12273,
+     "precached": true
+    },
+    {
+     "path": "games/herd/herd_messages.py",
+     "bytes": 11683,
+     "precached": true
+    },
+    {
+     "path": "games/herd/herd_mixer.py",
+     "bytes": 2307,
+     "precached": true
+    },
+    {
+     "path": "games/herd/herd_model.py",
+     "bytes": 37558,
+     "precached": true
+    },
+    {
+     "path": "games/herd/herd_pasture.py",
+     "bytes": 7259,
+     "precached": true
+    },
+    {
+     "path": "games/herd/herd_pins.py",
+     "bytes": 3633,
+     "precached": true
+    },
+    {
+     "path": "games/herd/herd_planner.py",
+     "bytes": 8731,
+     "precached": true
+    },
+    {
+     "path": "games/herd/herd_profile.py",
+     "bytes": 2588,
+     "precached": true
+    },
+    {
+     "path": "games/herd/herd_purchases.py",
+     "bytes": 3497,
+     "precached": true
+    },
+    {
+     "path": "games/herd/herd_renderer.py",
+     "bytes": 8420,
+     "precached": true
+    },
+    {
+     "path": "games/herd/herd_round.py",
+     "bytes": 10631,
+     "precached": true
+    },
+    {
+     "path": "games/herd/herd_rules.py",
+     "bytes": 15210,
+     "precached": true
+    },
+    {
+     "path": "games/herd/herd_rules_ui.py",
+     "bytes": 5143,
+     "precached": true
+    },
+    {
+     "path": "games/herd/herd_runstate.py",
+     "bytes": 5188,
+     "precached": true
+    },
+    {
+     "path": "games/herd/herd_sandbox.py",
+     "bytes": 6055,
+     "precached": true
+    },
+    {
+     "path": "games/herd/herd_savegame.py",
+     "bytes": 20010,
+     "precached": true
+    },
+    {
+     "path": "games/herd/herd_settings_code.py",
+     "bytes": 7640,
+     "precached": true
+    },
+    {
+     "path": "games/herd/herd_succession.py",
+     "bytes": 6913,
+     "precached": true
+    },
+    {
+     "path": "games/herd/herd_summary.py",
+     "bytes": 5007,
+     "precached": true
+    },
+    {
+     "path": "games/herd/herd_util.py",
+     "bytes": 2120,
+     "precached": true
+    },
+    {
+     "path": "games/herd/herd_visuals.py",
+     "bytes": 18387,
      "precached": true
     },
     {
      "path": "games/herd/index.html",
-     "bytes": 74471,
+     "bytes": 55479,
      "precached": true
     },
     {
@@ -1752,7 +1942,7 @@
     },
     {
      "path": "games/herd/pc.html",
-     "bytes": 78140,
+     "bytes": 59148,
      "precached": true
     },
     {
@@ -1762,7 +1952,12 @@
     },
     {
      "path": "games/herd/settings.js",
-     "bytes": 34164,
+     "bytes": 34358,
+     "precached": true
+    },
+    {
+     "path": "games/herd/shortcuts.js",
+     "bytes": 799,
      "precached": true
     },
     {
@@ -1776,8 +1971,38 @@
      "precached": false
     },
     {
+     "path": "games/herd/style-1-base.css",
+     "bytes": 15645,
+     "precached": true
+    },
+    {
+     "path": "games/herd/style-2-panels.css",
+     "bytes": 15205,
+     "precached": true
+    },
+    {
+     "path": "games/herd/style-3-extras.css",
+     "bytes": 14811,
+     "precached": true
+    },
+    {
+     "path": "games/herd/style-4-round6.css",
+     "bytes": 15554,
+     "precached": true
+    },
+    {
+     "path": "games/herd/style-5-round7.css",
+     "bytes": 13635,
+     "precached": true
+    },
+    {
      "path": "games/herd/style.css",
-     "bytes": 75074,
+     "bytes": 764,
+     "precached": true
+    },
+    {
+     "path": "games/herd/tutorial-steps.js",
+     "bytes": 3408,
      "precached": true
     }
    ],
@@ -1818,11 +2043,6 @@
      "precached": true
     },
     {
-     "path": "shared/comparison_chart.py",
-     "bytes": 13310,
-     "precached": false
-    },
-    {
      "path": "shared/confirm-dialog.js",
      "bytes": 10900,
      "precached": false
@@ -1843,16 +2063,6 @@
      "precached": true
     },
     {
-     "path": "shared/export_progress.py",
-     "bytes": 4954,
-     "precached": false
-    },
-    {
-     "path": "shared/ghost.py",
-     "bytes": 13517,
-     "precached": true
-    },
-    {
      "path": "shared/hub-auth.js",
      "bytes": 1356,
      "precached": true
@@ -1865,11 +2075,6 @@
     {
      "path": "shared/info-page.css",
      "bytes": 1092,
-     "precached": true
-    },
-    {
-     "path": "shared/info_page.py",
-     "bytes": 3410,
      "precached": true
     },
     {
@@ -2040,7 +2245,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14884653,
+   "bytes": 14866936,
    "bytes_complete": true
   },
   "thaw": {
@@ -2172,7 +2377,7 @@
     },
     {
      "path": "games/thaw/style.css",
-     "bytes": 14260,
+     "bytes": 14432,
      "precached": true
     },
     {
@@ -2510,7 +2715,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14768871,
+   "bytes": 14769043,
    "bytes_complete": true
   },
   "loop": {
