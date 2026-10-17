@@ -5,6 +5,7 @@ import importlib.util
 import json
 import re
 from pathlib import Path
+from .pagefiles import app_text
 
 GAME_DIR = Path(__file__).resolve().parent.parent
 ROOT = GAME_DIR.parent.parent
@@ -67,7 +68,7 @@ def test_the_desktop_tutorial_only_points_at_things_that_exist_there():
 def test_the_hints_name_only_keys_the_game_really_has():
     keys = {k for k, _ in CFG["hints"]}
     assert {"Space", "[ ]", "1-4", "W", "T", "Esc"} <= keys
-    app = (GAME_DIR / "app.js").read_text(encoding="utf-8")
+    app = app_text()
     assert 'k === "w"' in app and 'k === "t"' in app and 'k >= "1" && k <= "4"' in app
 
 
