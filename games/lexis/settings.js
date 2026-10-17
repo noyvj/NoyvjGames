@@ -17,6 +17,7 @@
   var MOTION_KEY = "lexis-reduced-motion";
   var EFFECTS_KEY = "lexis-effects";
   var CONTRAST_KEY = "lexis-high-contrast";
+  var KEYBOARD_KEY = "lexis-sign-keyboard";      // the phone sign keyboard (R4-LEMO-4): on unless switched off
   var MIN_SCALE = 0.85;
   var MAX_SCALE = 1.5;
   var STEP = 0.1;
@@ -69,10 +70,17 @@
     return on;
   }
 
+  function applyKeyboard(on, remember) {
+    root.setAttribute("data-sign-keyboard", on ? "on" : "off");
+    if (remember) set(KEYBOARD_KEY, on);
+    return on;
+  }
+
   var scale = applyScale(readScale());
   var reduced = applyMotion(motionChoice() === null ? systemPrefersReducedMotion() : motionChoice(), false);
   var effects = applyEffects(get(EFFECTS_KEY) !== "false", false);
   var contrast = applyContrast(get(CONTRAST_KEY) === "true", false);
+  var keyboard = applyKeyboard(get(KEYBOARD_KEY) !== "false", false);
 
   function init() {
     var panel = document.getElementById("settings-panel");
@@ -80,10 +88,12 @@
     var motionBox = document.getElementById("reduced-motion-checkbox");
     var effectsBox = document.getElementById("effects-checkbox");
     var contrastBox = document.getElementById("high-contrast-checkbox");
+    var keyboardBox = document.getElementById("sign-keyboard-checkbox");
     var themeButton = document.getElementById("theme-setting-button");
     if (motionBox) motionBox.checked = reduced;
     if (effectsBox) effectsBox.checked = effects;
     if (contrastBox) contrastBox.checked = contrast;
+    if (keyboardBox) keyboardBox.checked = keyboard;
     if (toggle && panel) {
       toggle.addEventListener("click", function () {
         panel.hidden = !panel.hidden;
@@ -100,6 +110,7 @@
     if (motionBox) motionBox.addEventListener("change", function () { reduced = applyMotion(motionBox.checked, true); });
     if (effectsBox) effectsBox.addEventListener("change", function () { effects = applyEffects(effectsBox.checked, true); });
     if (contrastBox) contrastBox.addEventListener("change", function () { contrast = applyContrast(contrastBox.checked, true); });
+    if (keyboardBox) keyboardBox.addEventListener("change", function () { keyboard = applyKeyboard(keyboardBox.checked, true); });
 
     function syncThemeButton() {
       if (!themeButton || !window.NoyvjTheme) return;
@@ -121,6 +132,9 @@
       effects = applyEffects(true, false);
       remove(CONTRAST_KEY);
       contrast = applyContrast(false, false);
+      remove(KEYBOARD_KEY);
+      keyboard = applyKeyboard(true, false);
+      if (keyboardBox) keyboardBox.checked = true;
       if (motionBox) motionBox.checked = reduced;
       if (effectsBox) effectsBox.checked = true;
       if (contrastBox) contrastBox.checked = false;

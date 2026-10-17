@@ -1,6 +1,6 @@
 # Next TODO list (from the Round 4 ideas, started 2026-10-12)
 
-**Progress: 122/921 items checked off (13.2%).** This is the NEXT list, written alongside the live `planning/TODO.md` (which is untouched). It becomes the live list once the current one is archived. Run `python3 scripts/todo-progress.py planning/TODO-NEXT.md` after ticking items.
+**Progress: 144/921 items checked off (15.6%).** This is the NEXT list, written alongside the live `planning/TODO.md` (which is untouched). It becomes the live list once the current one is archived. Run `python3 scripts/todo-progress.py planning/TODO-NEXT.md` after ticking items.
 
 How it is built: one section per Round 4 section on the ideas sheet (`planning/IMPROVEMENT-IDEAS-ROUND-4.md`), in the sheet's order, ids `R4-<section code>-<number>`. Only ideas you answered "yes" to are items, with your note where you wrote one. A section that is not fully answered keeps its heading and ends with one item to add the rest once you have answered them. "No" answers are dropped (listed under the heading); "later" answers are parked in `planning/LATER.md`.
 
@@ -10,25 +10,28 @@ How it is built: one section per Round 4 section on the ideas sheet (`planning/I
 
 | Section | Done | % | |
 |---|---:|---:|---|
-| LEPC. Lexis: PC view | 8/10 | 80% | ████████░░ |
+| LEMO. Lexis: mobile view | 9/10 | 90% | █████████░ |
+| SIPC. Signal: PC view | 8/10 | 80% | ████████░░ |
 | PBPC. Pocket Bazaar: PC view | 8/10 | 80% | ████████░░ |
+| PBMO. Pocket Bazaar: mobile view | 8/10 | 80% | ████████░░ |
 | SMPC. Station Medic: PC view | 8/10 | 80% | ████████░░ |
-| SIPC. Signal: PC view | 7/10 | 70% | ███████░░░ |
+| SMMO. Station Medic: mobile view | 8/10 | 80% | ████████░░ |
 | SIMO. Signal: mobile view | 7/10 | 70% | ███████░░░ |
-| LEMO. Lexis: mobile view | 7/10 | 70% | ███████░░░ |
 | LHMO. Lighthouse: mobile view | 7/10 | 70% | ███████░░░ |
-| PBMO. Pocket Bazaar: mobile view | 7/10 | 70% | ███████░░░ |
-| SMMO. Station Medic: mobile view | 7/10 | 70% | ███████░░░ |
+| THMO. Thaw: mobile view | 6/10 | 60% | ██████░░░░ |
 | HCPC. Heist Committee: PC view | 6/10 | 60% | ██████░░░░ |
 | HCMO. Heist Committee: mobile view | 6/10 | 60% | ██████░░░░ |
 | LHPC. Lighthouse: PC view | 6/10 | 60% | ██████░░░░ |
 | RSMO. Robot Script: mobile view | 6/10 | 60% | ██████░░░░ |
+| HRPC. Hull Repair: PC view | 6/10 | 60% | ██████░░░░ |
 | HRMO. Hull Repair: mobile view | 6/10 | 60% | ██████░░░░ |
-| HRPC. Hull Repair: PC view | 5/10 | 50% | █████░░░░░ |
+| HEMO. Herd: mobile view | 4/10 | 40% | ████░░░░░░ |
 | LGMO. Logic Gates: mobile view | 4/10 | 40% | ████░░░░░░ |
 | DEMO. Dead Reckoning: mobile view | 3/10 | 30% | ███░░░░░░░ |
 | RSPC. Robot Script: PC view | 3/10 | 30% | ███░░░░░░░ |
 | PX. Lexis: made for you | 6/29 | 21% | ██░░░░░░░░ |
+| HEPC. Herd: PC view | 2/10 | 20% | ██░░░░░░░░ |
+| DRMO. Drift: mobile view | 2/10 | 20% | ██░░░░░░░░ |
 | DEPC. Dead Reckoning: PC view | 2/10 | 20% | ██░░░░░░░░ |
 | LGPC. Logic Gates: PC view | 2/10 | 20% | ██░░░░░░░░ |
 | PU. Signal: made for you | 1/6 | 17% | ██░░░░░░░░ |
@@ -53,15 +56,11 @@ How it is built: one section per Round 4 section on the ideas sheet (`planning/I
 | TIMO. Tide: mobile view | 0/10 | 0% | ░░░░░░░░░░ |
 | AFPC. Aftermath: PC view | 0/10 | 0% | ░░░░░░░░░░ |
 | AFMO. Aftermath: mobile view | 0/10 | 0% | ░░░░░░░░░░ |
-| HEPC. Herd: PC view | 0/10 | 0% | ░░░░░░░░░░ |
-| HEMO. Herd: mobile view | 0/10 | 0% | ░░░░░░░░░░ |
 | THPC. Thaw: PC view | 0/10 | 0% | ░░░░░░░░░░ |
-| THMO. Thaw: mobile view | 0/10 | 0% | ░░░░░░░░░░ |
 | LOPC. Loop: PC view | 0/10 | 0% | ░░░░░░░░░░ |
 | LOMO. Loop: mobile view | 0/10 | 0% | ░░░░░░░░░░ |
 | DR. Drift: general ideas | 0/10 | 0% | ░░░░░░░░░░ |
 | DRPC. Drift: PC view | 0/10 | 0% | ░░░░░░░░░░ |
-| DRMO. Drift: mobile view | 0/10 | 0% | ░░░░░░░░░░ |
 | TEPC. Trade Empire: PC view | 0/10 | 0% | ░░░░░░░░░░ |
 | TEMO. Trade Empire: mobile view | 0/10 | 0% | ░░░░░░░░░░ |
 | COPC. Continuum: PC view | 0/10 | 0% | ░░░░░░░░░░ |
@@ -111,7 +110,8 @@ How it is built: one section per Round 4 section on the ideas sheet (`planning/I
 | OC. Overclock: general ideas | 0/1 | 0% | ░░░░░░░░░░ |
 | OCP. Overclock: made for you | 0/1 | 0% | ░░░░░░░░░░ |
 | AU. Sound | 0/1 | 0% | ░░░░░░░░░░ |
-| **All sections** | **122/921** | **13.2%** | █░░░░░░░░░ |
+| **Done: 1 sections at 100%** (LEPC) | 10/10 | 100% | ██████████ |
+| **All sections** | **144/921** | **15.6%** | ██░░░░░░░░ |
 
 <!-- PROGRESS-CHART:END -->
 
@@ -124,7 +124,7 @@ How it is built: one section per Round 4 section on the ideas sheet (`planning/I
 - `[Claude: ...]`: needs a Claude session (site-wide or shared files, backend, live web data, hub registration, or not tied to one game).
 - `[needs you]`: waits on your answer, account or decision. `[on hold]`: the QA pass, on hold until closing time.
 
-Open items now: [local AI: after file split] 268, [local AI: yes] 198, [local AI: after split] 132, [local AI: after the game is built] 58, [Claude: backend] 50, [Claude: site-wide] 39, [needs you] 36, [Claude: live web data] 13, [Claude: not one game] 5.
+Open items now: [local AI: after file split] 268, [local AI: yes] 184, [local AI: after split] 124, [local AI: after the game is built] 58, [Claude: backend] 50, [Claude: site-wide] 39, [needs you] 36, [Claude: live web data] 13, [Claude: not one game] 5.
 <!-- LOCAL-AI-LABELS:END -->
 
 ## XG. Whole site: general ideas
@@ -595,8 +595,8 @@ Dropped (you said no): PG-30.
 
 - [ ] R4-HEPC-1: (big) Draw the farm as a pasture you can click: hover a paddock to see herd size, methane and income, and click to apply a lever such as feed change or capture. The levers sit on the farm instead of in a list. [local AI: after split]
 - [ ] R4-HEPC-2: (small) Show a hover card on each gauge with its last five rounds and what moved it most. You see cause and effect without opening the report. [local AI: yes]
-- [ ] R4-HEPC-3: (small) Add a right-click menu on a lever with Buy, Pin as a goal, Show cost over time and Compare with baseline farm. You get tools at your cursor. [local AI: yes]
-- [ ] R4-HEPC-4: (small) Hold I to label every part of the pasture with what it is and which lever affects it. New players learn the farm by pointing. [local AI: yes]
+- [x] R4-HEPC-3: (small) Add a right-click menu on a lever with Buy, Pin as a goal, Show cost over time and Compare with baseline farm. You get tools at your cursor.
+- [x] R4-HEPC-4: (small) Hold I to label every part of the pasture with what it is and which lever affects it. New players learn the farm by pointing.
 - [ ] R4-HEPC-5: (big) Add a baseline-farm ghost mode where a second, greyed pasture beside yours shows the "grow unchecked" farm round by round with a drag handle between them. You see the decoupling payoff directly. [Claude: backend]
 - [ ] R4-HEPC-6: (small) Let you resize the Report Card and dock it beside the pasture. You read your score while choosing levers. [local AI: yes]
 - [ ] R4-HEPC-7: (big) Add a three-round lever planner where you queue levers for the next rounds and see a projected methane line before you commit. You can plan ahead like a strategy game. [local AI: after split]
@@ -609,13 +609,13 @@ Dropped (you said no): PG-30.
 10 ideas on the sheet: 10 yes, 0 no, 0 later, 0 not answered yet.
 
 - [ ] R4-HEMO-1: (big) Make the farm a portrait scene with levers as large cards below it, where a swipe on a card buys it and a long-press shows the cost over time. A round plays with one thumb. [local AI: after split]
-- [ ] R4-HEMO-2: (small) Pin round, funds and methane in a thin sticky top strip that gently changes label when methane crosses a band. The main trade-off stays in sight. [local AI: yes]
+- [x] R4-HEMO-2: (small) Pin round, funds and methane in a thin sticky top strip that gently changes label when methane crosses a band. The main trade-off stays in sight.
 - [ ] R4-HEMO-3: (small) Put levers in a sideways shelf of large tiles above Advance, grouped as feed, herd and capture. You pick a lever without scrolling the page. [local AI: yes]
-- [ ] R4-HEMO-4: (small) Show methane as a tall thermometer on the screen edge that opens its breakdown sheet when tapped. The key risk stays in view. [local AI: yes]
+- [x] R4-HEMO-4: (small) Show methane as a tall thermometer on the screen edge that opens its breakdown sheet when tapped. The key risk stays in view.
 - [ ] R4-HEMO-5: (small) Make the baseline-farm comparison a flip card where a tap turns your farm into the unchecked-growth farm. You compare with one tap. [local AI: yes]
 - [ ] R4-HEMO-6: (small) Let a pull-down on the farm advance one round with a confirm tick. A one-gesture turn suits tired thumbs. [local AI: yes]
-- [ ] R4-HEMO-7: (big) Add a calm barn mode that dims the pasture, slows the animals, and shows only a single "healthy farm" word and the advance button. It suits bed-time play. [local AI: after split]
-- [ ] R4-HEMO-8: (small) Add a herd-size slider with a big handle and live methane and income numbers above it. A herd decision feels direct. [local AI: yes]
+- [x] R4-HEMO-7: (big) Add a calm barn mode that dims the pasture, slows the animals, and shows only a single "healthy farm" word and the advance button. It suits bed-time play.
+- [x] R4-HEMO-8: (small) Add a herd-size slider with a big handle and live methane and income numbers above it. A herd decision feels direct.
 - [ ] R4-HEMO-9: (small) Show the Report Card as a swipeable stack of cards (score, methane, funds, herd), one per screen. A report fits a phone. [local AI: yes]
 - [ ] R4-HEMO-10: (small) Add an undo bar for the last lever bought, kept until you advance. A mis-tap costs nothing. [local AI: yes]
 
@@ -656,15 +656,15 @@ Dropped (you said no): PG-30.
 10 ideas on the sheet: 10 yes, 0 no, 0 later, 0 not answered yet.
 
 - [ ] R4-THMO-1: (small) Add a bottom tab bar with A, B, C and D for the four regions, and let you swipe sideways between them. You can check any region with one thumb. [local AI: yes]
-- [ ] R4-THMO-2: (small) Replace funding sliders with a bar you drag, plus large plus and minus steps beside it. Splitting money is easy on a small screen. [local AI: yes]
+- [x] R4-THMO-2: (small) Replace funding sliders with a bar you drag, plus large plus and minus steps beside it. Splitting money is easy on a small screen.
 - [ ] R4-THMO-3: (small) Let you swipe a science log card away to mark it read, with the unread count shown on the tab. The log becomes a quick inbox you clear. [local AI: yes]
-- [ ] R4-THMO-4: (small) Add an escalating haptic pattern as temperature crosses each threshold, where the browser allows. The warming trend is something you feel. [local AI: yes]
-- [ ] R4-THMO-5: (small) Turn the phone sideways to show the four regions as a 2 by 2 grid of mini graphs. Landscape becomes a comparison board. [local AI: yes]
+- [x] R4-THMO-4: (small) Add an escalating haptic pattern as temperature crosses each threshold, where the browser allows. The warming trend is something you feel.
+- [x] R4-THMO-5: (small) Turn the phone sideways to show the four regions as a 2 by 2 grid of mini graphs. Landscape becomes a comparison board.
 - [ ] R4-THMO-6: (big) Let you pinch two region graphs together to overlay them on one chart, with the gap shaded. Comparing regions works with a gesture. [local AI: after split]
-- [ ] R4-THMO-7: (small) Add a one-region focus mode that shows only your region and shrinks the others to dots you can tap. The screen is calm and simple. [local AI: yes]
-- [ ] R4-THMO-8: (small) Let you read The Real Story as swipeable cards that work fully offline. A class break is enough to read one. [local AI: yes]
+- [x] R4-THMO-7: (small) Add a one-region focus mode that shows only your region and shrinks the others to dots you can tap. The screen is calm and simple.
+- [x] R4-THMO-8: (small) Let you read The Real Story as swipeable cards that work fully offline. A class break is enough to read one.
 - [ ] R4-THMO-9: (small) Add a Skip ahead three rounds button with a single summary screen at the end, using the same choices as before. A short session covers more ground. [local AI: yes]
-- [ ] R4-THMO-10: (small) Pull down on the main screen to open the climate archive as a bottom sheet. History is one gesture away. [local AI: after split]
+- [x] R4-THMO-10: (small) Pull down on the main screen to open the climate archive as a bottom sheet. History is one gesture away.
 
 ## LO. Loop: general ideas
 
@@ -760,8 +760,8 @@ Dropped (you said no): PG-30.
 10 ideas on the sheet: 10 yes, 0 no, 0 later, 0 not answered yet.
 
 - [ ] R4-DRMO-1: (big) Make the region visual a portrait map where a tap on a building opens a bottom sheet with Invest and details. Managing the district is a direct touch. [local AI: after split]
-- [ ] R4-DRMO-2: (small) Let you swipe between your region and the neighbouring district as two full-screen cards. Comparing neighbours is a flick. [local AI: yes]
-- [ ] R4-DRMO-3: (small) Keep Advance Round as a large bottom button with a small strain ring around it. The key action and key risk share one control. [local AI: yes]
+- [x] R4-DRMO-2: (small) Let you swipe between your region and the neighbouring district as two full-screen cards. Comparing neighbours is a flick.
+- [x] R4-DRMO-3: (small) Keep Advance Round as a large bottom button with a small strain ring around it. The key action and key risk share one control.
 - [ ] R4-DRMO-4: (small) Make long investment lists into collapsible groups with a sticky header showing the group's total cost. You skim a region's options in one screen. [local AI: yes]
 - [ ] R4-DRMO-5: (small) Let a swipe on a gauge cycle between its value, its last ten rounds as a mini graph and a plain explanation. Each gauge becomes a three-sided card. [local AI: after split]
 - [ ] R4-DRMO-6: (small) Add a text size picker (small, normal, large) with a live preview, remembered on the phone. Long labels stay comfortable to read. [local AI: yes]
@@ -965,7 +965,7 @@ Dropped (you said no): PG-30.
 
 - [x] R4-SIPC-1: (small) Show a faint preview on hover that lists what a ping on that tile would read for each possible transmitter distance. You pick your pings with more thought and fewer wasted ones.
 - [x] R4-SIPC-2: (small) Let a right-click on a tile toggle a small pencil "maybe" note in the corner that does not count as an answer. You can think on the board the way you do on paper.
-- [ ] R4-SIPC-3: (small) Add a readings sheet beside the board that lists each ping's tile and number in sortable rows, with a click that highlights the tile. Your evidence sits in one table. [local AI: yes]
+- [x] R4-SIPC-3: (small) Add a readings sheet beside the board that lists each ping's tile and number in sortable rows, with a click that highlights the tile. Your evidence sits in one table.
 - [ ] R4-SIPC-4: (small) Add Ctrl+Z and Ctrl+Y for markers and pencil notes, with a visible history list. You can try theories and step back. [local AI: yes]
 - [ ] R4-SIPC-5: (big) Hold Space to overlay each ping's reach rings across the whole board, so the overlap points show where a transmitter must sit. You can see the logic of the puzzle at a glance. [local AI: after split]
 - [x] R4-SIPC-6: (small) Show the archive as a wide month grid with hover previews of each puzzle's board size and your result. You browse past puzzles like a calendar app.
@@ -1034,8 +1034,8 @@ Parked in LATER.md (you said later): PX-25.
 
 10 ideas on the sheet: 10 yes, 0 no, 0 later, 0 not answered yet.
 
-- [ ] R4-LEPC-1: (big) Hover any sign to light up every place it appears in the scenes, notebook and crew log at once. You can spot patterns by pointing. [local AI: after split]
-- [ ] R4-LEPC-2: (big) Show scene player, notebook and transmit bar as three docked panes with draggable dividers on wide screens. You can watch, note and compose together. [local AI: after split]
+- [x] R4-LEPC-1: (big) Hover any sign to light up every place it appears in the scenes, notebook and crew log at once. You can spot patterns by pointing.
+- [x] R4-LEPC-2: (big) Show scene player, notebook and transmit bar as three docked panes with draggable dividers on wide screens. You can watch, note and compose together.
 - [x] R4-LEPC-3: (small) Let you drag signs from the notebook into the transmit bar and reorder them by dragging. Building a message feels hands-on.
 - [x] R4-LEPC-4: (small) Press / to search the notebook by sign shape or your own note, and arrow keys to move through the matches. You find an entry with the keyboard only.
 - [x] R4-LEPC-5: (small) Add a right-click menu on a sign with Add note, Show scenes and Copy to transmit. Common jobs sit at the cursor.
@@ -1049,10 +1049,10 @@ Parked in LATER.md (you said later): PX-25.
 
 10 ideas on the sheet: 10 yes, 0 no, 0 later, 0 not answered yet.
 
-- [ ] R4-LEMO-1: (big) Play scenes as full-screen vertical cards where you swipe up for the next scene and tap to pause. Watching feels like a phone story. [local AI: after split]
+- [x] R4-LEMO-1: (big) Play scenes as full-screen vertical cards where you swipe up for the next scene and tap to pause. Watching feels like a phone story.
 - [x] R4-LEMO-2: (small) Pull the notebook up as a bottom sheet with a peek height that leaves the scene visible above. You can read and watch together.
 - [x] R4-LEMO-3: (small) Make the transmit pad two big buttons for tick and bar, with a short buzz for a tick and a long buzz for a bar, where the browser allows. Composing a signal feels physical.
-- [ ] R4-LEMO-4: (big) Add a portrait sign keyboard at the bottom with your known signs in a grid, tapped to build a message. Composing is a thumb job. [local AI: after split]
+- [x] R4-LEMO-4: (big) Add a portrait sign keyboard at the bottom with your known signs in a grid, tapped to build a message. Composing is a thumb job.
 - [x] R4-LEMO-5: (small) Let you long-press a sign in a scene to copy it into the transmit line. A sign moves from watching to speaking in one gesture.
 - [x] R4-LEMO-6: (small) Resume a scene at the exact frame you paused on. A short visit never loses your place.
 - [ ] R4-LEMO-7: (small) Add a home-screen card with planets contacted, signs decoded and the next goal. You can see progress at a glance. [local AI: yes]
@@ -1178,7 +1178,7 @@ Parked in LATER.md (you said later): PX-25.
 - [x] R4-PBMO-1: (small) Let you flick a piece in a direction to push it to the next cell. Merging works by swiping.
 - [x] R4-PBMO-2: (small) Add a haptic tap on a merge that gets stronger with the tier and a roll for a cascade, where the browser allows. Merging feels satisfying.
 - [x] R4-PBMO-3: (small) Put Sell, Broom and Hand over as three big buttons along the bottom edge. The tools sit under your thumb.
-- [ ] R4-PBMO-4: (big) Make the board fill the phone width with customers as a row of cards above it. The whole stall fits one portrait screen. [local AI: after split]
+- [x] R4-PBMO-4: (big) Make the board fill the phone width with customers as a row of cards above it. The whole stall fits one portrait screen.
 - [x] R4-PBMO-5: (small) Let you pull down the stall banner to peek at the festival and regulars. A glance does not leave the board.
 - [x] R4-PBMO-6: (small) Resume the day on the exact board. A short break never loses a merge.
 - [x] R4-PBMO-7: (small) Show each customer's patience beats as large dots under their card. You never miss that someone is about to leave.
@@ -1490,7 +1490,7 @@ Parked in LATER.md (you said later): PX-25.
 - [ ] R4-HRPC-1: (big) Draw the station as a large cutaway you can zoom with the mouse wheel and pan with a drag, where hover shows a room's status and a click opens its board. The bigger picture is something you explore. [local AI: after split]
 - [x] R4-HRPC-2: (small) Hover a port to light its twin and its current path, and hover a line to show its length. You read the board by pointing.
 - [ ] R4-HRPC-3: (small) Add a lock on finished lines through a right-click so dragging cannot cut them. You can protect work as you finish others. [local AI: yes]
-- [ ] R4-HRPC-4: (small) Let Tab pick the next line, arrow keys extend it, and Backspace trim it. You can route a whole board without the mouse. [local AI: yes]
+- [x] R4-HRPC-4: (small) Let Tab pick the next line, arrow keys extend it, and Backspace trim it. You can route a whole board without the mouse.
 - [ ] R4-HRPC-5: (small) Add Ctrl+Z and Ctrl+Y with a clickable history list. You can step back to try another route. [local AI: yes]
 - [x] R4-HRPC-6: (small) Press C to pulse the uncovered open cells gently. You see what still needs routing at a glance.
 - [x] R4-HRPC-7: (small) After a restore, replay the lines drawing in order. A neat finish shows how you solved it.
@@ -1539,7 +1539,7 @@ Parked in LATER.md (you said later): PX-25.
 - [x] R4-SMMO-5: (small) Hold the shift title to Restore the shift with a confirm. Starting over is deliberate and easy.
 - [x] R4-SMMO-6: (small) Show each patient's signs as large icon chips whose tap lists the conditions that carry them. Reading a patient takes a glance.
 - [x] R4-SMMO-7: (small) Split the drawer into Scans and Treatments tabs with a supply count on each. You see what is left before you tap.
-- [ ] R4-SMMO-8: (small) Let a long-press on a supply borrow it through a confirm sheet that shows the cost. A fallback is one gesture away. [local AI: after split]
+- [x] R4-SMMO-8: (small) Let a long-press on a supply borrow it through a confirm sheet that shows the cost. A fallback is one gesture away.
 - [x] R4-SMMO-9: (small) Add a dim infirmary night mode with bigger buttons. Bed-time play stays easy.
 - [x] R4-SMMO-10: (small) Show chart notes as a banner at the top that you can swipe away and recall from a tab. Warnings stay in reach but out of the way.
 

@@ -123,6 +123,61 @@
        "n": "Lh2",
        "text": "**Lighthouse: is \"Repair\" meant as how sound the weakest part of the station is (0 to 100)?** Recommended: yes. Say \"no\" and say what number you wanted.",
        "answered": false
+      },
+      {
+       "n": "Sm3",
+       "text": "**Station Medic: borrowing a supply (R4-SMMO-8) opens the shared centred confirm after you press and hold a shelf. Do you want a bottom sheet instead?** Recommended: no, the shared confirm is fine. Say \"yes\" for a bottom sheet.",
+       "answered": false
+      },
+      {
+       "n": "Rs1",
+       "text": "**Robot Script: the new bottom keypad lets you hold a step's letter and drag it to reorder, but repeat, until and if blocks still use their up and down arrow buttons. Should block steps also get the drag grip?** Recommended: yes, later. Say \"no\" to keep the arrows for blocks.",
+       "answered": false
+      },
+      {
+       "n": "Le1",
+       "text": "**Lexis: the transmission cards idea (R4-LEMO-1) asked for \"tap to pause\", but nothing in Lexis is timed so there is nothing to pause; is leaving it out fine?** Recommended: yes. Say \"no\" and say what you want paused.",
+       "answered": false
+      },
+      {
+       "n": "Le2",
+       "text": "**Lexis: should the Evidence board (R4-PX-19) get real message fragments on planets 2 and 3 and an actual identification step, as a new item?** Recommended: yes, later. Say \"no\" to leave it as the Pulse-planet pin board.",
+       "answered": false
+      },
+      {
+       "n": "Si1",
+       "text": "**Signal: the hold-to-aim bubble (R4-SIMO-1) shows the tile name and what is already known there; a real \"ping preview\" would be a free ping, which Signal never allows. Is the bubble enough?** Recommended: yes. Say \"no\" if you want a different kind of preview.",
+       "answered": false
+      },
+      {
+       "n": "He1",
+       "text": "**Herd: the Calm barn word (R4-HEMO-7) says \"Healthy farm\" only while methane pressure on income is under 25 percent, then \"Methane is rising\". Keep that, or always show \"Healthy farm\"?** Recommended: keep it, so the word stays honest. Say \"always\" to show the literal words every time.",
+       "answered": false
+      },
+      {
+       "n": "He2",
+       "text": "**Herd: the new thin top strip (R4-HEMO-2) replaces the shared funds, herd and methane bar on phones, and it leaves out herd size. Is that OK?** Recommended: yes. Say \"no\" to keep herd size in the strip.",
+       "answered": false
+      },
+      {
+       "n": "He3",
+       "text": "**Herd: \"Pin as a goal\" on a lever (R4-HEPC-3) only adds a visible Goal badge. Should a pinned goal also feed the pinned-stats strip or the report card?** Recommended: not yet. Say \"yes\" and name where.",
+       "answered": false
+      },
+      {
+       "n": "Th5",
+       "text": "**Thaw: Thaw has Invest buttons, not funding sliders, so the phone funds bar (R4-THMO-2) is an extra planning section that presses the Invest buttons; the normal Invest rows stay because investing cannot be undone. Is that fine?** Recommended: yes. Say \"no\" to hide the normal Invest rows on phones.",
+       "answered": false
+      },
+      {
+       "n": "Th6",
+       "text": "**Thaw: focus mode (R4-THMO-7) is opt-in with an \"All\" button as the default. Should phones start focused on Region A instead?** Recommended: no, keep \"All\" as the default. Say \"yes\" to start focused on Region A.",
+       "answered": false
+      },
+      {
+       "n": "Th7",
+       "text": "**Thaw: the four new per-device phone switches are not part of the exported settings code. Should they be added to it?** Recommended: not yet. Say \"yes\" to add them.",
+       "answered": false
       }
      ]
     }

@@ -159,6 +159,32 @@ html[data-reduced-motion="true"] .lexis-pinned-scene { transition: none; }
   pointer-events: none;
 }
 
+/* R4-LEPC-1: hovering a sign outlines every copy of it (data-sign, written by app.js). An outline and a tint, so it
+   never relies on colour alone, and there is nothing animated. */
+.sign-match { outline: 3px solid var(--on); outline-offset: 2px; background: var(--btn); border-radius: 4px; }
+
+/* R4-LEPC-2: three docked panes on wide screens. The first column (the world and its transmissions) stays as it
+   is; the second column's notebook and Transmit panels each get a pane of their own, with a divider between
+   every pair. Widths are the fr custom properties pc.js sets on #pc-stage. The notebook toggle button is a
+   phone control and is not needed here. */
+@media (min-width: 1200px) {
+  #pc-stage .planet-cols {
+    grid-template-columns: minmax(0, var(--lexis-pane-a, 1fr)) 0.5rem minmax(0, var(--lexis-pane-b, 1fr)) 0.5rem minmax(0, var(--lexis-pane-c, 1fr));
+    grid-template-rows: minmax(0, 1fr) auto;
+    gap: 0;
+  }
+  #pc-stage .planet-col:first-child { grid-column: 1; grid-row: 1 / span 2; }
+  #pc-stage .planet-col:last-child { display: contents; }
+  #pc-stage #notebook-toggle-button { display: none; }
+  #pc-stage .planet-col:last-child > section:first-of-type { grid-column: 3; grid-row: 1 / span 2; min-height: 0; overflow-y: auto; }
+  #pc-stage .planet-col:last-child > section:nth-of-type(2) { grid-column: 5; grid-row: 1; min-height: 0; max-height: none; overflow-y: auto; }
+  #pc-stage .planet-col:last-child > #bench-panel { grid-column: 5; grid-row: 2; max-height: none; }
+  .pc-divider { grid-row: 1 / span 2; cursor: col-resize; background: var(--line); border-radius: 3px; touch-action: none; }
+  .pc-divider-1 { grid-column: 2; }
+  .pc-divider-2 { grid-column: 4; }
+  .pc-divider:hover, .pc-divider:focus-visible { background: var(--accent); }
+}
+
 /* Print glossary layout */
 @media print {
   body * { display: none !important; }

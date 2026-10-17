@@ -192,6 +192,7 @@
   function tokenNode(marks) {
     var span = document.createElement("span");
     span.className = "token";
+    span.dataset.sign = marks;          // read by pc.js: hovering a sign lights every copy of it
     span.setAttribute("role", "img");
     span.setAttribute("aria-label", describeMarks(marks));
     marks.split("").forEach(function (c) { span.appendChild(markNode(c)); });
@@ -251,11 +252,8 @@
       attachLongPress(sig, scene.marks);
       var what = document.createElement("div");
       what.className = "what";
-      var changes = [];
-      if (scene.before.lamps !== scene.after.lamps) changes.push("lamps: " + scene.before.lamps + " → " + scene.after.lamps);
-      if (scene.before.door !== scene.after.door) changes.push("door: " + scene.before.door + " → " + scene.after.door);
       what.innerHTML = "The station: <b></b>";
-      what.querySelector("b").textContent = changes.length ? changes.join("; ") : "no change";
+      what.querySelector("b").textContent = sceneChanges(scene);
       li.appendChild(head);
       li.appendChild(what);
       list.appendChild(li);
@@ -371,6 +369,7 @@
     var svg = document.createElementNS(SVG_NS, "svg");
     svg.setAttribute("viewBox", "0 0 24 24");
     svg.setAttribute("class", "part");
+    svg.dataset.sign = code;
     svg.setAttribute("aria-hidden", "true");
     var path = document.createElementNS(SVG_NS, "path");
     path.setAttribute("d", (view.components || {})[code] || "");
@@ -380,6 +379,7 @@
   function glyphNode(glyph) {
     var span = document.createElement("span");
     span.className = "glyph";
+    span.dataset.sign = glyph;
     span.setAttribute("role", "img");
     var thing = ordinalIn(view.nouns, glyph);       // planet 3: a noun is named by its place in the list of things
     var names = glyph.split("").map(function (code) { var n = ordinalIn(view.letters, code); return n ? "part " + n : "a part"; });
@@ -481,6 +481,7 @@
   function markerNode(letter) {
     var span = document.createElement("span");
     span.className = "glyph marker";
+    span.dataset.sign = letter;
     span.setAttribute("role", "img");
     var n = ordinalIn(view.markers, letter);
     span.setAttribute("aria-label", n ? "small sign " + n : "a small sign");
@@ -921,6 +922,162 @@
     } catch (e) { /* fallback to empty */ }
   }
 
+  // ---- evidence board (R4-PX-19) -----------------------------------------------------------------
+  // The fragments are the Pulse transmissions received so far; the player names what might be sending each one.
+  // The names live in the engine (`name_pin`) and so in the save.
+  function renderEvidenceBoard() {
+    var pins = $("evidence-pins");
+    var board = view.evidence || { fragments: [], pins: {} };
+    fillOnce(pins, board.fragments.join(","), function () {
+      board.fragments.forEach(function (marks, i) {
+        var pin = document.createElement("div");
+        pin.className = "evidence-pin";
+        var fragment = document.createElement("div");
+        fragment.className = "evidence-fragment";
+        var label = document.createElement("strong");
+        label.textContent = "Fragment " + (i + 1) + " ";
+        fragment.appendChild(label);
+        fragment.appendChild(signalNode(marks));
+        var input = document.createElement("input");
+        input.type = "text";
+        input.className = "evidence-input";
+        input.maxLength = 60;
+        input.dataset.pin = String(i);
+        input.placeholder = "What is sending this?";
+        input.setAttribute("aria-label", "Your guess for what is sending fragment " + (i + 1));
+        input.addEventListener("change", function () { send({ action: "name_pin", pin: i, text: input.value }); });
+        pin.appendChild(fragment);
+        pin.appendChild(input);
+        pins.appendChild(pin);
+      });
+      if (!board.fragments.length) {
+        var empty = document.createElement("p");
+        empty.className = "note";
+        empty.textContent = "Receive a transmission on planet 1 and it is pinned here.";
+        pins.appendChild(empty);
+      }
+    });
+    pins.querySelectorAll("input[type=text]").forEach(function (input) {
+      var stored = board.pins[input.dataset.pin] || "";
+      if (document.activeElement !== input && input.value !== stored) input.value = stored;
+    });
+  }
+
+  // ---- sign keyboard (R4-LEMO-4, phones only: the CSS hides it on wider screens) -----------------------
+  // The signs you know, as a grid at the bottom. Names are ordinals, never the internal letters.
+  function signKeyboardItems() {
+    if (!view) return [];
+    if (currentPlanet === "pulse") return seenTokens();
+    if (currentPlanet === "compound") return view.letters || [];
+    return Array.from(new Set((view.nouns || []).concat(view.markers || [], view.numbers || [])));
+  }
+  function signKeyboardButton(item) {
+    var btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "sign-btn";
+    if (currentPlanet === "pulse") {
+      btn.appendChild(tokenNode(item));
+      btn.setAttribute("aria-label", "Add group " + ordinalIn(seenTokens(), item) + " (" + describeMarks(item) + ")");
+      btn.addEventListener("click", function () { addMarks(item); });
+    } else if (currentPlanet === "compound") {
+      btn.appendChild(partSvg(item));
+      btn.setAttribute("aria-label", "Add part " + ordinalIn(view.letters, item));
+      btn.addEventListener("click", function () { addPart(item); });
+    } else {
+      btn.appendChild(tokenOfMessage(item));
+      var n = ordinalIn(view.nouns, item), m = ordinalIn(view.markers, item);
+      btn.setAttribute("aria-label", n ? "Add thing " + n : m ? "Add small sign " + m : "Add number: " + describeMarks(item));
+      btn.addEventListener("click", function () { addToMessage(item); });
+    }
+    return btn;
+  }
+  function renderSignKeyboard() {
+    var kb = $("sign-keyboard"), grid = $("sign-grid");
+    var items = signKeyboardItems();
+    kb.hidden = !items.length;
+    $("game").classList.toggle("has-sign-keyboard", items.length > 0);
+    fillOnce(grid, currentPlanet + ":" + items.join(","), function () {
+      items.forEach(function (item) { grid.appendChild(signKeyboardButton(item)); });
+    });
+  }
+
+  // ---- transmission cards (R4-LEMO-1, phones only) ------------------------------------------------------
+  // Received Pulse transmissions, one full-screen card at a time. Swipe up (or Next) for the following one; when
+  // the last one is showing and more exist, Next also receives the next transmission. Nothing is timed, so there
+  // is no autoplay to pause.
+  var cardIndex = 0;
+  function sceneChanges(scene) {
+    var changes = [];
+    if (scene.before.lamps !== scene.after.lamps) changes.push("lamps: " + scene.before.lamps + " → " + scene.after.lamps);
+    if (scene.before.door !== scene.after.door) changes.push("door: " + scene.before.door + " → " + scene.after.door);
+    return changes.length ? changes.join("; ") : "no change";
+  }
+  function sceneCardViewer() { return $("scene-card-viewer"); }
+  function renderSceneCardToggle() {
+    var btn = $("scene-card-toggle-button");
+    btn.hidden = !(currentPlanet === "pulse" && (view.scenes || []).length > 0);
+    if (btn.hidden && !sceneCardViewer().hidden) closeSceneCards();
+    else if (!sceneCardViewer().hidden) renderSceneCard();
+  }
+  function renderSceneCard() {
+    var scenes = view.scenes, total = scenes.length;
+    cardIndex = Math.max(0, Math.min(cardIndex, total - 1));
+    var scene = scenes[cardIndex], card = $("scene-card");
+    card.textContent = "";
+    if (!scene) return;
+    var head = document.createElement("strong");
+    head.textContent = "Transmission " + (cardIndex + 1);
+    var what = document.createElement("div");
+    what.className = "what";
+    what.textContent = "The station: " + sceneChanges(scene);
+    card.appendChild(head);
+    card.appendChild(signalNode(scene.marks));
+    card.appendChild(what);
+    setText($("scene-card-count"), "Transmission " + (cardIndex + 1) + " of " + view.scenes_total);
+    setEnabled("scene-card-prev", cardIndex > 0);
+    setEnabled("scene-card-next", cardIndex < total - 1 || total < view.scenes_total);
+  }
+  function stepSceneCard(delta) {
+    if (delta > 0 && cardIndex >= view.scenes.length - 1) {
+      if (view.scenes.length < view.scenes_total) { cardIndex = view.scenes.length; send({ action: "next_scene" }); }
+      return;
+    }
+    cardIndex = Math.max(0, cardIndex + delta);
+    renderSceneCard();
+  }
+  function openSceneCards() {
+    cardIndex = Math.max(0, view.scenes.length - 1);
+    sceneCardViewer().hidden = false;
+    $("scene-card-toggle-button").setAttribute("aria-expanded", "true");
+    renderSceneCard();
+    $("scene-card").focus();
+  }
+  function closeSceneCards() {
+    sceneCardViewer().hidden = true;
+    $("scene-card-toggle-button").setAttribute("aria-expanded", "false");
+    if (!$("scene-card-toggle-button").hidden) $("scene-card-toggle-button").focus();
+  }
+  function wireSceneCards() {
+    $("scene-card-toggle-button").addEventListener("click", openSceneCards);
+    $("scene-card-close").addEventListener("click", closeSceneCards);
+    guard("scene-card-prev", function () { stepSceneCard(-1); });
+    guard("scene-card-next", function () { stepSceneCard(1); });
+    var viewer = sceneCardViewer(), startY = null;
+    viewer.addEventListener("touchstart", function (e) { startY = e.touches[0].clientY; }, { passive: true });
+    viewer.addEventListener("touchend", function (e) {
+      if (startY === null) return;
+      var dy = e.changedTouches[0].clientY - startY;
+      startY = null;
+      if (dy < -50) stepSceneCard(1);
+      else if (dy > 50) stepSceneCard(-1);
+    }, { passive: true });
+    viewer.addEventListener("keydown", function (e) {
+      if (e.key === "Escape") { e.stopPropagation(); closeSceneCards(); }
+      else if (e.key === "ArrowDown" || e.key === "PageDown") { e.preventDefault(); stepSceneCard(1); }
+      else if (e.key === "ArrowUp" || e.key === "PageUp") { e.preventDefault(); stepSceneCard(-1); }
+    });
+  }
+
   function render() {
     renderGlobe();
     renderAchievements();
@@ -930,6 +1087,9 @@
     renderTabs();
     renderStarMap();
     renderMuseum();
+    renderEvidenceBoard();
+    renderSceneCardToggle();
+    renderSignKeyboard();
     if (currentPlanet === "bridge") { renderBridge(); return; }
     if (currentPlanet === "compound") { renderCompound(); return; }
     if (currentPlanet === "pulse") renderBench();
@@ -1119,6 +1279,8 @@
     wirePanelToggle("changelog-toggle-button", "changelog-panel");
     wirePanelToggle("star-map-toggle-button", "star-map-panel");
     wirePanelToggle("museum-toggle-button", "museum-panel");
+    wirePanelToggle("evidence-toggle-button", "evidence-board-panel");
+    wireSceneCards();
     var notebookOpen = false;
     guard("notebook-toggle-button", function () {
       notebookOpen = !notebookOpen;

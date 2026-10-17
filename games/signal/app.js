@@ -734,6 +734,7 @@
       document.body.appendChild(rMenu);
 
       function showRMenu(x, y) {
+        hideMagnifier();
         var rect = rMenu.getBoundingClientRect();
         var left = x + 10;
         var top = y - 60;
@@ -967,6 +968,66 @@
     var kick = function () { startEngine(); };
     document.addEventListener("pointerdown", kick, { once: true });
     document.addEventListener("keydown", kick, { once: true });
+
+    wireMagnifier(boardEl);
+  }
+
+  // ---- hold-to-aim magnifier (R4-SIMO-1, phone only) -------------------------------------------------------
+  // Holding a tile with a finger shows a bubble ABOVE the finger naming the tile (and what is already known about it), so the
+  // thumb never hides what is about to be tapped. It never pings by itself: lifting the finger is the ordinary tap. Moving
+  // the finger more than a few pixels, a second finger (pinch) or the radial menu cancels it. Per-device setting, on by default.
+  var MAGNIFIER_KEY = "signal-magnifier";
+  var MAGNIFIER_HOLD_MS = 180;
+  var magnifier = null;
+  var magTimer = null;
+  var magOrigin = null;
+  function magnifierWanted() {
+    return lsGet(MAGNIFIER_KEY) !== "off" && Boolean(window.matchMedia) && window.matchMedia("(max-width: 600px)").matches;
+  }
+  function hideMagnifier() {
+    if (magTimer) { clearTimeout(magTimer); magTimer = null; }
+    magOrigin = null;
+    if (magnifier) magnifier.classList.remove("visible");
+  }
+  function showMagnifier() {
+    magTimer = null;
+    if (!magOrigin || !view) return;
+    var r = parseInt(magOrigin.btn.getAttribute("data-r"), 10);
+    var c = parseInt(magOrigin.btn.getAttribute("data-c"), 10);
+    var known = "Not pinged yet";
+    view.pings.forEach(function (p) { if (p.r === r && p.c === c) known = "Reading " + p.v + " " + p.glyph; });
+    if (pendingCells[r + "," + c]) known = "Ping queued";
+    view.marks.forEach(function (m) { if (m[0] === r && m[1] === c) known = known === "Not pinged yet" ? "Marked" : known + ", marked"; });
+    if (!magnifier) {
+      magnifier = el("div", "magnifier-bubble");
+      magnifier.setAttribute("aria-hidden", "true");   // the tile's own label already says all of this
+      magnifier.appendChild(el("span", "mag-coord"));
+      magnifier.appendChild(el("span", "mag-state"));
+      document.body.appendChild(magnifier);
+    }
+    magnifier.querySelector(".mag-coord").textContent = label(r, c);
+    magnifier.querySelector(".mag-state").textContent = known;
+    magnifier.classList.add("visible");
+    var width = magnifier.offsetWidth || 90;
+    var left = Math.max(8, Math.min(window.innerWidth - width - 8, magOrigin.x - width / 2));
+    magnifier.style.left = left + "px";
+    magnifier.style.top = Math.max(8, magOrigin.y - 56) + "px";
+  }
+  function wireMagnifier(boardEl) {
+    boardEl.addEventListener("pointerdown", function (ev) {
+      hideMagnifier();
+      if (ev.pointerType !== "touch" || !ev.isPrimary || !magnifierWanted() || !view || view.status !== "inprogress") return;
+      var btn = ev.target.closest(".cell");
+      if (!btn) return;
+      magOrigin = { btn: btn, x: ev.clientX, y: ev.clientY };
+      magTimer = setTimeout(showMagnifier, MAGNIFIER_HOLD_MS);
+    });
+    boardEl.addEventListener("pointermove", function (ev) {
+      if (!magOrigin) return;
+      if (Math.abs(ev.clientX - magOrigin.x) > 12 || Math.abs(ev.clientY - magOrigin.y) > 12) hideMagnifier();
+    });
+    ["pointerup", "pointercancel", "pointerleave"].forEach(function (name) { boardEl.addEventListener(name, hideMagnifier); });
+    document.addEventListener("pointerdown", function (ev) { if (!ev.isPrimary || !boardEl.contains(ev.target)) hideMagnifier(); });
   }
 
   function init() {
@@ -989,6 +1050,7 @@
     renderAchievements();
     var d = new Date();
     cal = { y: d.getUTCFullYear(), m: d.getUTCMonth() };
+
     // Start the engine right after the shell is painted into the DOM. A timer
     // (not requestAnimationFrame) so a tab opened in the background still warms up.
     setTimeout(startEngine, 0);

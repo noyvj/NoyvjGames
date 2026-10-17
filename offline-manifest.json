@@ -1721,18 +1721,23 @@
      "precached": false
     },
     {
+     "path": "games/herd/app.js",
+     "bytes": 6669,
+     "precached": true
+    },
+    {
      "path": "games/herd/changelog.json",
      "bytes": 22526,
      "precached": false
     },
     {
      "path": "games/herd/game.py",
-     "bytes": 297128,
+     "bytes": 299889,
      "precached": true
     },
     {
      "path": "games/herd/index.html",
-     "bytes": 72028,
+     "bytes": 74471,
      "precached": true
     },
     {
@@ -1742,23 +1747,23 @@
     },
     {
      "path": "games/herd/pc.css",
-     "bytes": 5895,
+     "bytes": 8139,
      "precached": true
     },
     {
      "path": "games/herd/pc.html",
-     "bytes": 75697,
+     "bytes": 78140,
      "precached": true
     },
     {
      "path": "games/herd/pc.js",
-     "bytes": 4844,
+     "bytes": 15916,
      "precached": true
     },
     {
      "path": "games/herd/settings.js",
-     "bytes": 32168,
-     "precached": false
+     "bytes": 34164,
+     "precached": true
     },
     {
      "path": "games/herd/sources.json",
@@ -1772,7 +1777,7 @@
     },
     {
      "path": "games/herd/style.css",
-     "bytes": 67949,
+     "bytes": 75074,
      "precached": true
     }
    ],
@@ -2035,7 +2040,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14847900,
+   "bytes": 14884653,
    "bytes_complete": true
   },
   "thaw": {
@@ -2046,9 +2051,19 @@
      "precached": false
     },
     {
+     "path": "games/thaw/archive-swipe.js",
+     "bytes": 4750,
+     "precached": true
+    },
+    {
      "path": "games/thaw/changelog.json",
      "bytes": 17814,
      "precached": false
+    },
+    {
+     "path": "games/thaw/focus-mode.js",
+     "bytes": 1669,
+     "precached": true
     },
     {
      "path": "games/thaw/game.py",
@@ -2056,8 +2071,28 @@
      "precached": true
     },
     {
+     "path": "games/thaw/haptic-feedback.js",
+     "bytes": 3161,
+     "precached": true
+    },
+    {
      "path": "games/thaw/index.html",
-     "bytes": 68825,
+     "bytes": 76340,
+     "precached": true
+    },
+    {
+     "path": "games/thaw/info-page-swipe.js",
+     "bytes": 2092,
+     "precached": true
+    },
+    {
+     "path": "games/thaw/landscape-grid.js",
+     "bytes": 2662,
+     "precached": true
+    },
+    {
+     "path": "games/thaw/mobile-invest.js",
+     "bytes": 7430,
      "precached": true
     },
     {
@@ -2072,7 +2107,7 @@
     },
     {
      "path": "games/thaw/pc.html",
-     "bytes": 73025,
+     "bytes": 80540,
      "precached": true
     },
     {
@@ -2082,8 +2117,8 @@
     },
     {
      "path": "games/thaw/settings.js",
-     "bytes": 9761,
-     "precached": false
+     "bytes": 10298,
+     "precached": true
     },
     {
      "path": "games/thaw/sources.json",
@@ -2092,7 +2127,7 @@
     },
     {
      "path": "games/thaw/style.css",
-     "bytes": 61580,
+     "bytes": 70591,
      "precached": true
     }
    ],
@@ -2325,7 +2360,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14744835,
+   "bytes": 14791177,
    "bytes_complete": true
   },
   "loop": {
@@ -2642,7 +2677,7 @@
     },
     {
      "path": "games/drift/index.html",
-     "bytes": 63122,
+     "bytes": 63465,
      "precached": true
     },
     {
@@ -2657,7 +2692,7 @@
     },
     {
      "path": "games/drift/pc.html",
-     "bytes": 66296,
+     "bytes": 66639,
      "precached": true
     },
     {
@@ -2668,7 +2703,7 @@
     {
      "path": "games/drift/settings.js",
      "bytes": 11734,
-     "precached": false
+     "precached": true
     },
     {
      "path": "games/drift/sources.json",
@@ -2682,12 +2717,12 @@
     },
     {
      "path": "games/drift/style.css",
-     "bytes": 67285,
+     "bytes": 70368,
      "precached": true
     },
     {
      "path": "games/drift/ui.js",
-     "bytes": 5880,
+     "bytes": 8229,
      "precached": true
     }
    ],
@@ -2920,7 +2955,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14746847,
+   "bytes": 14752965,
    "bytes_complete": true
   },
   "champ-de-mots": {
@@ -3827,7 +3862,7 @@
     },
     {
      "path": "games/signal/app.js",
-     "bytes": 48922,
+     "bytes": 52181,
      "precached": true
     },
     {
@@ -3842,32 +3877,32 @@
     },
     {
      "path": "games/signal/index.html",
-     "bytes": 19759,
+     "bytes": 20463,
      "precached": true
     },
     {
      "path": "games/signal/pc-config.json",
-     "bytes": 2221,
+     "bytes": 2240,
      "precached": false
     },
     {
      "path": "games/signal/pc.css",
-     "bytes": 9775,
+     "bytes": 11273,
      "precached": true
     },
     {
      "path": "games/signal/pc.html",
-     "bytes": 22580,
+     "bytes": 23303,
      "precached": true
     },
     {
      "path": "games/signal/pc.js",
-     "bytes": 16277,
+     "bytes": 20359,
      "precached": true
     },
     {
      "path": "games/signal/settings.js",
-     "bytes": 4063,
+     "bytes": 4485,
      "precached": false
     },
     {
@@ -3877,7 +3912,7 @@
     },
     {
      "path": "games/signal/style.css",
-     "bytes": 16899,
+     "bytes": 17643,
      "precached": true
     }
    ],
@@ -4064,7 +4099,7 @@
     }
    ],
    "cdn": [],
-   "bytes": 612853,
+   "bytes": 624304,
    "bytes_complete": true
   },
   "lexis": {
@@ -4081,7 +4116,7 @@
     },
     {
      "path": "games/lexis/app.js",
-     "bytes": 55435,
+     "bytes": 63203,
      "precached": true
     },
     {
@@ -4131,7 +4166,7 @@
     },
     {
      "path": "games/lexis/game.py",
-     "bytes": 18221,
+     "bytes": 20173,
      "precached": true
     },
     {
@@ -4146,7 +4181,7 @@
     },
     {
      "path": "games/lexis/index.html",
-     "bytes": 22219,
+     "bytes": 23877,
      "precached": true
     },
     {
@@ -4176,22 +4211,22 @@
     },
     {
      "path": "games/lexis/pc-config.json",
-     "bytes": 1780,
+     "bytes": 1880,
      "precached": false
     },
     {
      "path": "games/lexis/pc.css",
-     "bytes": 7546,
+     "bytes": 9331,
      "precached": true
     },
     {
      "path": "games/lexis/pc.html",
-     "bytes": 24717,
+     "bytes": 26499,
      "precached": true
     },
     {
      "path": "games/lexis/pc.js",
-     "bytes": 17559,
+     "bytes": 22694,
      "precached": true
     },
     {
@@ -4211,7 +4246,7 @@
     },
     {
      "path": "games/lexis/settings.js",
-     "bytes": 5981,
+     "bytes": 6710,
      "precached": true
     },
     {
@@ -4231,7 +4266,7 @@
     },
     {
      "path": "games/lexis/style.css",
-     "bytes": 18389,
+     "bytes": 21953,
      "precached": true
     },
     {
@@ -4439,7 +4474,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14390109,
+   "bytes": 14414582,
    "bytes_complete": true
   },
   "heist-committee": {
@@ -5436,7 +5471,7 @@
     },
     {
      "path": "games/pocket-bazaar/style.css",
-     "bytes": 27147,
+     "bytes": 27371,
      "precached": true
     },
     {
@@ -5654,7 +5689,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14465951,
+   "bytes": 14466175,
    "bytes_complete": true
   },
   "dead-reckoning": {
@@ -6515,7 +6550,7 @@
     },
     {
      "path": "games/robot-script/app.js",
-     "bytes": 46929,
+     "bytes": 48888,
      "precached": true
     },
     {
@@ -6665,7 +6700,7 @@
     },
     {
      "path": "games/robot-script/style.css",
-     "bytes": 23576,
+     "bytes": 25391,
      "precached": true
     },
     {
@@ -6898,7 +6933,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14425787,
+   "bytes": 14429561,
    "bytes_complete": true
   },
   "hull-repair": {
@@ -6915,7 +6950,7 @@
     },
     {
      "path": "games/hull-repair/app.js",
-     "bytes": 35695,
+     "bytes": 37182,
      "precached": true
     },
     {
@@ -6985,7 +7020,7 @@
     },
     {
      "path": "games/hull-repair/pc-config.json",
-     "bytes": 1434,
+     "bytes": 1503,
      "precached": false
     },
     {
@@ -6995,12 +7030,12 @@
     },
     {
      "path": "games/hull-repair/pc.html",
-     "bytes": 17582,
+     "bytes": 17647,
      "precached": true
     },
     {
      "path": "games/hull-repair/pc.js",
-     "bytes": 12501,
+     "bytes": 13093,
      "precached": true
     },
     {
@@ -7268,7 +7303,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14422900,
+   "bytes": 14425113,
    "bytes_complete": true
   },
   "station-medic": {
@@ -7285,7 +7320,7 @@
     },
     {
      "path": "games/station-medic/app.js",
-     "bytes": 45624,
+     "bytes": 47791,
      "precached": true
     },
     {
@@ -7370,7 +7405,7 @@
     },
     {
      "path": "games/station-medic/index.html",
-     "bytes": 17703,
+     "bytes": 17746,
      "precached": true
     },
     {
@@ -7395,7 +7430,7 @@
     },
     {
      "path": "games/station-medic/pc.html",
-     "bytes": 19810,
+     "bytes": 19853,
      "precached": true
     },
     {
@@ -7663,7 +7698,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14444610,
+   "bytes": 14446863,
    "bytes_complete": true
   },
   "stranded": {

@@ -1532,6 +1532,34 @@ html[data-lite="true"] .mascot .mascot-face { animation: none; }
 /* GG-19: the rolling temperature figure keeps its digits the same width so the line does not jitter. */
 #temperature-display { font-variant-numeric: tabular-nums; }
 
+/* R4-THMO-7: one-region focus mode for phones. The buttons are phone-only; "All" (no data-focus) is the normal page. */
+#focus-mode-dots { display: none; }
+@media (max-width: 600px) {
+  html:not([data-layout="pc"]) #focus-mode-dots {
+    display: flex;
+    gap: 0.5rem;
+    margin: 0.5rem 0;
+    justify-content: center;
+  }
+  .focus-dot {
+    min-width: 44px;
+    min-height: 44px;
+    border-radius: 22px;
+    font-size: 1rem;
+  }
+  .focus-dot.focus-dot--active {
+    background: rgba(140, 160, 255, 0.3);
+    border-color: #8fd8ff;
+  }
+  html:not([data-layout="pc"]) #game[data-focus="a"] #region-comparison { display: none; }
+  html:not([data-layout="pc"]) #game[data-focus="b"] #c-region-card,
+  html:not([data-layout="pc"]) #game[data-focus="c"] #b-region-card { display: none; }
+  html:not([data-layout="pc"]) #game[data-focus="b"] #status,
+  html:not([data-layout="pc"]) #game[data-focus="c"] #status,
+  html:not([data-layout="pc"]) #game[data-focus="b"] #investments,
+  html:not([data-layout="pc"]) #game[data-focus="c"] #investments { display: none; }
+}
+
 /* G-30, GG-23, G-25: small pieces. */
 .compare-history { margin: 0.3rem 0 0; padding-left: 1.1rem; font-size: 0.82rem; }
 .compare-history li { margin: 0.15rem 0; }
@@ -1661,3 +1689,143 @@ html[data-lite="true"] .mascot .mascot-face { animation: none; }
 :root[data-reduced-motion="true"] .crate-visual.crate-opening,
 html[data-lite="true"] .crate-visual.crate-waiting,
 html[data-lite="true"] .crate-visual.crate-opening { animation: none; }
+
+/* R4-THMO-8: The Real Story as swipeable cards on phones (framing, real-data tie-in, sources). Settings > "as one scrolling list" turns it off. */
+.info-page-dots { display: none; }
+@media (max-width: 600px) {
+  html:not([data-layout="pc"]):not([data-info-list="true"]) #info-page-panel:not([hidden]) {
+    display: flex;
+    gap: 1rem;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    overscroll-behavior-x: contain;
+    -webkit-overflow-scrolling: touch;
+  }
+  html:not([data-layout="pc"]):not([data-info-list="true"]) #info-page-panel > * {
+    flex: 0 0 100%;
+    min-width: 0;
+    margin: 0;
+    scroll-snap-align: start;
+    box-sizing: border-box;
+  }
+  html:not([data-layout="pc"]):not([data-info-list="true"]) #info-page-panel:focus-visible { outline: 2px solid #8fd8ff; outline-offset: 2px; }
+  html:not([data-layout="pc"]):not([data-info-list="true"]) #info-page-panel:not([hidden]) + .info-page-dots {
+    display: flex;
+    justify-content: center;
+    gap: 0.5rem;
+    margin: 0.4rem 0 0.8rem;
+  }
+  .info-page-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.3);
+    transition: background 0.2s ease;
+  }
+  .info-page-dot.active { background: #8fd8ff; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .info-page-dot { transition: none; }
+}
+html[data-reduced-motion="true"] .info-page-dot { transition: none; }
+
+/* R4-THMO-2: phones only: plan a split of Region A's funds with a bar (the normal Invest rows stay as they are). */
+.mobile-invest-details { display: none; }
+@media (max-width: 600px) {
+  html:not([data-layout="pc"]) .mobile-invest-details { display: block; margin-top: 0.6rem; }
+  .mobile-invest-details > summary { min-height: 44px; display: flex; align-items: center; cursor: pointer; font-size: 0.9rem; }
+  .mobile-invest-track { position: relative; height: 28px; margin: 36px 22px 44px; background: rgba(140, 160, 255, 0.12); border: 1px solid rgba(140, 160, 255, 0.25); border-radius: 14px; touch-action: none; }
+  .mobile-invest-fill { position: absolute; top: 0; bottom: 0; pointer-events: none; }
+  .mobile-invest-fill--output { background: #5f8f6b; border-radius: 14px 0 0 14px; }
+  .mobile-invest-fill--preserve { background: #3f86a8; background-image: repeating-linear-gradient(45deg, rgba(255,255,255,0.22) 0 4px, transparent 4px 8px); }
+  .mobile-invest-fill--monitor { background: #a8863f; background-image: repeating-linear-gradient(-45deg, rgba(0,0,0,0.25) 0 4px, transparent 4px 8px); }
+  /* The two handles hang on opposite sides of the bar (Output's above, Preservation's below) so their 44px touch areas never overlap. */
+  .mobile-invest-handle { position: absolute; width: 44px; height: 44px; margin-left: -22px; touch-action: none; cursor: grab; }
+  #mobile-invest-handle-a { top: -30px; }
+  #mobile-invest-handle-b { top: 14px; }
+  .mobile-invest-handle::before { content: ""; position: absolute; left: 21px; width: 3px; height: 14px; background: #e8e9f0; box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.4); }
+  #mobile-invest-handle-a::before { top: 30px; }
+  #mobile-invest-handle-b::before { top: 0; }
+  .mobile-invest-handle::after { content: ""; position: absolute; left: 8px; right: 8px; height: 24px; background: #e8e9f0; border-radius: 8px; box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.4), 0 2px 6px rgba(0, 0, 0, 0.3); }
+  #mobile-invest-handle-a::after { top: 4px; }
+  #mobile-invest-handle-b::after { top: 18px; }
+  .mobile-invest-handle:focus-visible { outline: 2px solid #8fd8ff; outline-offset: 0; border-radius: 8px; }
+  .mobile-invest-segments { display: flex; gap: 0.4rem; }
+  .mobile-invest-seg { flex: 1; min-width: 0; text-align: center; background: rgba(140, 160, 255, 0.1); border-radius: 10px; padding: 0.4rem 0.2rem; border: 1px solid rgba(140, 160, 255, 0.3); }
+  .mobile-invest-name { display: block; font-size: 0.75rem; opacity: 0.85; }
+  .mobile-invest-count { display: block; font-size: 1.3rem; font-weight: 600; margin: 0.1rem 0 0.3rem; font-variant-numeric: tabular-nums; }
+  .mobile-invest-stepper { display: flex; gap: 0.3rem; justify-content: center; }
+  .mobile-invest-step { min-width: 44px; min-height: 44px; border-radius: 50%; font-size: 1.2rem; padding: 0; touch-action: manipulation; }
+  .mobile-invest-actions { display: flex; gap: 0.5rem; margin-top: 0.6rem; }
+  .mobile-invest-actions button { flex: 1; min-height: 44px; font-size: 0.9rem; }
+}
+
+/* R4-THMO-5: a phone turned sideways (a short landscape screen) shows the four regions as a 2 by 2 board of mini graphs. */
+.landscape-board { display: none; }
+@media (orientation: landscape) and (max-height: 520px) {
+  html:not([data-layout="pc"]) #game { max-width: 760px; margin: 0.5rem auto; }
+  html:not([data-layout="pc"]):not([data-hide-board="true"]) .landscape-board { display: block; }
+  .landscape-board-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; }
+  .landscape-cell { min-width: 0; padding: 0.3rem 0.5rem; border: 1px solid rgba(140, 160, 255, 0.14); border-radius: 10px; }
+  .landscape-cell p { margin: 0; }
+  .landscape-cell-label { font-size: 0.75rem; opacity: 0.8; }
+  .landscape-cell-stat { font-size: 0.95rem; font-weight: 600; font-variant-numeric: tabular-nums; }
+  .landscape-cell-graph .mini-temp-graph-svg { height: 56px; }
+  .landscape-cell-graph .graph-readout { display: none; }
+}
+
+/* R4-THMO-4: the same milestone crossing that buzzes a phone tints the temperature line for a moment. Never with Reduce motion,
+   lite mode or the OS setting (the script does not add the class then either). */
+@keyframes haptic-pulse {
+  0% { background-color: transparent; }
+  20% { background-color: rgba(224, 103, 76, 0.25); }
+  100% { background-color: transparent; }
+}
+html:not([data-reduced-motion="true"]):not([data-lite="true"]) .threshold-crossed-pulse { animation: haptic-pulse 0.9s ease; }
+@media (prefers-reduced-motion: reduce) {
+  .threshold-crossed-pulse { animation: none !important; }
+}
+
+/* R4-THMO-10: on phones the Climate archive opens as a bottom sheet (by its own button, or by pulling down at the top of the page).
+   The panel is moved under <body> by archive-swipe.js on a phone, because #game's backdrop blur would otherwise make "fixed" mean "inside the card". */
+.archive-sheet-close { display: none; }
+@media (max-width: 600px) {
+  html:not([data-layout="pc"]) .archive-sheet-close { display: block; width: 100%; min-height: 44px; margin: 0 0 0.6rem; font-size: 0.9rem; }
+  html:not([data-layout="pc"]) body > #archive-panel:not([hidden]) {
+    position: fixed;
+    left: 0; right: 0; bottom: 0;
+    max-height: 70vh;
+    overflow-y: auto;
+    z-index: 9000;
+    margin: 0;
+    padding: 0.5rem 1rem 1rem;
+    box-sizing: border-box;
+    border-radius: 16px 16px 0 0;
+    border: 1px solid rgba(140, 160, 255, 0.3);
+    border-bottom: none;
+    background: #161a2b;
+    color: #e8e9f0;
+    box-shadow: 0 -6px 24px rgba(0, 0, 0, 0.45);
+    overscroll-behavior: contain;
+  }
+  html:not([data-layout="pc"]) body > #archive-panel:not([hidden])::before {
+    content: "";
+    display: block;
+    width: 3rem;
+    height: 4px;
+    margin: 0 auto 0.6rem;
+    border-radius: 2px;
+    background: rgba(255, 255, 255, 0.35);
+  }
+  html[data-theme="light"]:not([data-layout="pc"]) body > #archive-panel:not([hidden]) { background: #fbf6ec; color: #1b1710; border-color: rgba(122, 74, 18, 0.45); }
+  html[data-theme="light"]:not([data-layout="pc"]) body > #archive-panel:not([hidden])::before { background: rgba(0, 0, 0, 0.3); }
+  html:not([data-reduced-motion="true"]):not([data-lite="true"]) body > #archive-panel:not([hidden]) { animation: archive-sheet-in 0.25s ease-out; }
+  html:not([data-layout="pc"]):not([data-no-pull-archive="true"]) { overscroll-behavior-y: contain; }
+}
+@keyframes archive-sheet-in {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+@media (prefers-reduced-motion: reduce) {
+  body > #archive-panel:not([hidden]) { animation: none !important; }
+}

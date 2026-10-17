@@ -355,3 +355,18 @@ html[data-theme="light"][data-high-contrast="true"] .cell-num { color: #000; tex
     padding: 0.2rem 0.6rem; font-size: 0.8rem; cursor: pointer; border-radius: 4px;
   }
 }
+
+/* R4-SIMO-1: hold-to-aim bubble above the finger (phone only; app.js adds it only on touch under 600px) */
+@media (max-width: 600px) {
+  .magnifier-bubble {
+    position: fixed; z-index: 900; pointer-events: none; display: none;
+    transform: translateY(-100%);
+    background: var(--panel); color: var(--ink);
+    border: 1px solid var(--amber); border-radius: 8px;
+    padding: 0.35rem 0.7rem; text-align: center; white-space: nowrap;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+  }
+  .magnifier-bubble.visible { display: block; }
+  .magnifier-bubble .mag-coord { display: block; font-weight: bold; font-size: 1.1rem; color: var(--amber); }
+  .magnifier-bubble .mag-state { display: block; font-size: 0.8rem; color: var(--ink-dim); }
+}

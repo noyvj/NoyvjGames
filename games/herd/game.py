@@ -3046,6 +3046,71 @@ def _make_bulk_handler(mode):
     return handler
 
 
+# ---- R4-HEMO-8: herd-size slider (phone view) ---------------------------------------------
+def herd_slider_plan(target):
+    """What growing the herd to `target` would do, worked out on a scratch copy so nothing
+    changes: (units bought, their total cost, methane per round after, income per round after).
+    Stops at the funds or the regional cap, the same way Grow Herd does."""
+    scratch = clone_farm(farm)
+    units = 0
+    while scratch.herd_size < target and scratch.grow_herd():
+        units += 1
+    return units, farm.funds - scratch.funds, scratch.methane_this_round(), scratch.income_breakdown()["total"]
+
+
+def _herd_slider_target():
+    """The slider's value, kept between the herd now and the herd the funds allow."""
+    room = farm.bulk_plan("herd", "max")[0]
+    try:
+        value = int(float(getattr(document.getElementById("herd-size-slider"), "value", farm.herd_size)))
+    except (TypeError, ValueError):
+        value = farm.herd_size
+    return max(farm.herd_size, min(value, farm.herd_size + room))
+
+
+def render_herd_slider():
+    slider = document.getElementById("herd-size-slider")
+    room = farm.bulk_plan("herd", "max")[0]
+    target = _herd_slider_target()
+    slider.min = str(farm.herd_size)
+    slider.max = str(farm.herd_size + room)
+    slider.value = str(target)
+    slider.disabled = room == 0
+    units, cost, methane, income = herd_slider_plan(target)
+    document.getElementById("herd-slider-value").innerText = str(farm.herd_size + units)
+    document.getElementById("herd-slider-methane").innerText = (
+        f"Methane per round: {farm.methane_this_round():.2f} \u2192 {methane:.2f}"
+    )
+    document.getElementById("herd-slider-income").innerText = (
+        f"Income per round: {farm.income_breakdown()['total']:.1f} \u2192 {income:.1f}"
+    )
+    button = document.getElementById("herd-slider-buy-button")
+    button.disabled = units == 0
+    button.innerText = (
+        f"Grow to {farm.herd_size + units} ({cost:g} funds)" if units else "Move the handle to plan a herd"
+    )
+
+
+def on_herd_slider_input(event=None):
+    render_herd_slider()
+
+
+def on_herd_slider_buy(event=None):
+    units, cost, _methane, _income = herd_slider_plan(_herd_slider_target())
+    if not units:
+        return
+
+    def do_buy():
+        for _ in range(units):
+            if not farm.grow_herd():
+                break
+        _pulse("herd-slider-buy-button")
+        render()
+        _check_new_achievements_for_toast()
+
+    _guarded_purchase("Grow Herd", cost, do_buy)
+
+
 # ---- F-20 round-delta chips ------------------------------------------------------------
 last_deltas = {}
 delta_pinned = set()
@@ -3399,6 +3464,7 @@ def save_nudge_message():
 def render_round_extras():
     """Everything the round-4 batch draws, run from render()."""
     render_bulk_stepper()
+    render_herd_slider()
     render_delta_chips()
     render_undo()
     render_season_calendar()
@@ -6639,6 +6705,8 @@ def setup():
     )
     for mode, element_id in BULK_BUTTON_IDS.items():
         document.getElementById(element_id).addEventListener("click", create_proxy(_make_bulk_handler(mode)))
+    document.getElementById("herd-size-slider").addEventListener("input", create_proxy(on_herd_slider_input))
+    document.getElementById("herd-slider-buy-button").addEventListener("click", create_proxy(on_herd_slider_buy))
     for key in DELTA_KEYS:
         document.getElementById(f"delta-chip-{key}").addEventListener(
             "click", create_proxy(_make_delta_pin_handler(key))

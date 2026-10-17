@@ -299,6 +299,48 @@ html[data-reduced-motion="true"] .stamp, html[data-effects="off"] .stamp { anima
   html[data-reduced-motion="true"] .log-entry { flex: 0 0 auto; margin-right: 1rem; box-shadow: none; border-top: 1px solid var(--line); padding-top: 0.5rem; }
 }
 
+/* Phone-only extras: full-screen transmission cards (R4-LEMO-1) and the sign keyboard (R4-LEMO-4). Both are
+   display:none on wider screens, so the desktop and Desktop pages never show them. */
+#scene-card-toggle-button, .scene-card-viewer, .sign-keyboard { display: none; }
+html[data-sign-keyboard="off"] .sign-keyboard { display: none !important; }
+@media (max-width: 600px) {
+  #scene-card-toggle-button:not([hidden]) { display: inline-block; min-height: 44px; }
+  .scene-card-viewer:not([hidden]) {
+    position: fixed; inset: 0; z-index: 200; display: flex; flex-direction: column; gap: 0.8rem;
+    padding: 3rem 1rem 1rem 3.6rem; background: var(--bg); overflow-y: auto;   /* clear of the floating save, theme and story controls */
+  }
+  .scene-card-bar { display: flex; justify-content: space-between; align-items: center; }
+  .scene-card-bar button, .scene-card-nav button { min-height: 44px; min-width: 44px; }
+  .scene-card-count { font-weight: 600; }
+  .scene-card {
+    flex: 1 1 auto; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 1rem;
+    padding: 1rem; background: var(--panel); border: 1px solid var(--line); border-radius: 14px; text-align: center;
+    touch-action: pan-x; animation: scene-card-rise 0.25s ease-out;
+  }
+  .scene-card .signal { justify-content: center; }
+  .scene-card .what { font-size: 1.1rem; }
+  .scene-card-hint { text-align: center; margin: 0; }
+  .scene-card-nav { display: flex; gap: 0.8rem; }
+  .scene-card-nav button { flex: 1; }
+  .scene-card-nav button[aria-disabled="true"] { opacity: 0.55; border-style: dashed; }
+  @keyframes scene-card-rise { from { transform: translateY(24px); opacity: 0.4; } to { transform: none; opacity: 1; } }
+
+  /* Sign keyboard: the signs you know, in a grid, fixed at the bottom. The page keeps room under it. */
+  #game.has-sign-keyboard { padding-bottom: 13rem; }
+  html[data-sign-keyboard="off"] #game.has-sign-keyboard { padding-bottom: 3rem; }
+  .sign-keyboard:not([hidden]) {
+    display: block; position: fixed; bottom: 50px; left: 0; right: 0; z-index: 90;   /* 50px: the site's ad bar */ max-height: 26vh; overflow-y: auto;
+    background: var(--panel-fill); border-top: 1px solid var(--line); padding: 0.5rem 0.5rem 0.5rem 3.6rem;   /* 3.6rem: the floating theme and story pills sit at the left */
+  }
+  .sign-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(5rem, 1fr)); gap: 0.4rem; }
+  .sign-btn {
+    display: flex; align-items: center; justify-content: center; min-height: 44px; min-width: 44px; padding: 0.2rem;
+  }
+  .sign-btn .token { transform: scale(0.85); }
+  .sign-btn .part { width: 1.6rem; height: 1.6rem; stroke: var(--text); fill: none; stroke-width: 2; }
+  .sign-btn:active { background: var(--btn-primary); border-color: var(--hover-edge); }
+}
+
 /* Landscape on narrow screens: scene left, notebook right (work desk). */
 @media (max-width: 600px) and (orientation: landscape) {
   #game {
@@ -329,3 +371,11 @@ html[data-reduced-motion="true"] .stamp, html[data-effects="off"] .stamp { anima
   }
   .transmit-pad, .resume-btn { display: none !important; }
 }
+
+/* Evidence board */
+.evidence-pins { display: grid; gap: 0.8rem; margin-top: 0.5rem; }
+.evidence-pin { border: 1px solid var(--line); border-radius: 8px; padding: 0.6rem; background: var(--surface); position: relative; }
+.evidence-pin::before { content: "📌"; position: absolute; top: -0.5rem; left: 0.5rem; font-size: 1.2rem; background: var(--panel); padding: 0 0.3rem; }
+.evidence-fragment { font-style: italic; color: var(--muted); margin-bottom: 0.4rem; font-size: 0.9rem; }
+.evidence-input { width: 100%; padding: 0.35rem 0.5rem; border-radius: 6px; border: 1px solid var(--edge); background: var(--panel); color: var(--text); font: inherit; box-sizing: border-box; }
+html[data-reduced-motion="true"] .evidence-pin { transition: none; }

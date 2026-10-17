@@ -15,6 +15,7 @@
   var MOTION_KEY = "signal-reduced-motion";
   var CONTRAST_KEY = "signal-high-contrast";
   var OLED_KEY = "signal-oled-mode";
+  var MAGNIFIER_KEY = "signal-magnifier";   // read by app.js (hold-to-aim bubble); "off" turns it off
   var MIN_SCALE = 0.85;
   var MAX_SCALE = 1.5;
   var STEP = 0.1;
@@ -54,9 +55,11 @@
     var motionBox = document.getElementById("reduced-motion-checkbox");
     var contrastBox = document.getElementById("high-contrast-checkbox");
     var oledBox = document.getElementById("oled-checkbox");
+    var magBox = document.getElementById("magnifier-checkbox");
     if (motionBox) motionBox.checked = reduced;
     if (contrastBox) contrastBox.checked = contrast;
     if (oledBox) oledBox.checked = oled;
+    if (magBox) magBox.checked = get(MAGNIFIER_KEY) !== "off";
     if (toggle && panel) toggle.addEventListener("click", function () { panel.hidden = !panel.hidden; });
     function on(id, handler) {
       var el = document.getElementById(id);
@@ -68,6 +71,7 @@
     if (motionBox) motionBox.addEventListener("change", function () { reduced = applyFlag("data-reduced-motion", MOTION_KEY, motionBox.checked); });
     if (contrastBox) contrastBox.addEventListener("change", function () { contrast = applyFlag("data-high-contrast", CONTRAST_KEY, contrastBox.checked); });
     if (oledBox) oledBox.addEventListener("change", function () { oled = applyFlag("data-oled", OLED_KEY, oledBox.checked); });
+    if (magBox) magBox.addEventListener("change", function () { set(MAGNIFIER_KEY, magBox.checked ? "on" : "off"); });
     on("display-reset-button", function () {
       scale = applyScale(DEFAULT_SCALE);
       reduced = applyFlag("data-reduced-motion", MOTION_KEY, false);
@@ -76,6 +80,8 @@
       if (motionBox) motionBox.checked = false;
       if (contrastBox) contrastBox.checked = false;
       if (oledBox) oledBox.checked = false;
+      set(MAGNIFIER_KEY, "on");
+      if (magBox) magBox.checked = true;
     });
   }
 

@@ -3,8 +3,6 @@
 import sys
 import types
 
-from .fakes import FakeStorage
-
 
 def _click(env, element_id):
     env.elements[element_id].dispatch("click", None)
