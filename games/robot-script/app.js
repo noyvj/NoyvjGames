@@ -438,7 +438,9 @@
       var div = el("div", "node");
       div.dataset.a = node.a;
       var label = node.k === "call" ? "Call " + node.name : node.label;
-      div.appendChild(el("span", "node-glyph", node.k === "call" ? node.name : GLYPHS[node.k]));
+      var grip = el("span", "node-glyph", node.k === "call" ? node.name : GLYPHS[node.k]);
+      grip.title = "Hold, then drag up or down to move this step";   // R4-RSMO-1: the long-press handle (the arrow buttons stay)
+      div.appendChild(grip);
       div.appendChild(el("span", "node-label", label));
       div.appendChild(tools(node, idx, len, label));
       return div;
@@ -885,40 +887,44 @@
     window.NoyvjDifficulty.onChange(function (d) { if (d.game === DIFF_GAME) { invalidateRun(); sendDifficulty(); } });
   }
 
+  // R4-RSMO-1: press and hold a step's letter, then drag it up or down and let go to move it that many places. The page uses
+  // no timers for this: the hold is judged at release from the events' own time stamps. Each place is an ordinary `move`
+  // edit (so Undo takes it back), and the arrow buttons on the step remain the keyboard way.
+  var REORDER_HOLD_MS = 500, REORDER_ROW_PX = 44;
+  function _initReorderHandles() {
+    var holder = $("program");
+    var d = null;
+    holder.addEventListener("pointerdown", function (e) {
+      if (e.pointerType === "mouse" && e.button) return;
+      var grip = e.target.closest ? e.target.closest(".node-glyph") : null;
+      var node = grip && grip.closest(".node");
+      if (!node || !node.dataset.a) { d = null; return; }
+      d = { at: node.dataset.a, t0: e.timeStamp, y0: e.clientY, id: e.pointerId };
+      try { grip.setPointerCapture(e.pointerId); } catch (err) { /* only keeps the drag alive outside the row */ }
+    });
+    holder.addEventListener("pointerup", function (e) {
+      if (!d || e.pointerId !== d.id) return;
+      var drag = d;
+      d = null;
+      if (e.timeStamp - drag.t0 < REORDER_HOLD_MS) return;
+      var places = Math.round((e.clientY - drag.y0) / REORDER_ROW_PX);
+      if (!places) return;
+      var dir = places > 0 ? 1 : -1;
+      var parts = drag.at.split("/");
+      var index = parseInt(parts.pop(), 10);
+      for (var n = Math.abs(places); n > 0; n--) {
+        var r = send({ action: "move", at: parts.concat([String(index)]).join("/"), delta: dir }, true);
+        if (!r || r.ok === false) break;          // the end of the list: the engine said no, nothing more to do
+        index += dir;
+      }
+    });
+    holder.addEventListener("pointercancel", function () { d = null; });
+  }
+
   function wire() {
     wireDifficulty();
+    _initReorderHandles();
     $("toast").addEventListener("click", function () { showToast(""); });
-
-    // R4-RSMO-1: Mobile keypad wiring
-    var keypad = $("keypad");
-    if (keypad) {
-      var longPressStart = null;
-      Array.prototype.forEach.call(keypad.querySelectorAll("button"), function(btn) {
-        btn.addEventListener("click", function(e) {
-          e.preventDefault();
-          send({ action: "insert", kind: btn.dataset.key }, true);
-        });
-        
-        // Long press to reorder (move up/down) using timeStamp instead of timer
-        var startLongPress = function(e) {
-          longPressStart = e.timeStamp;
-        };
-        
-        var endLongPress = function(e) {
-          if (longPressStart && e.timeStamp - longPressStart >= 600) {
-            var cur = view.program.cursor;
-            if (cur && cur.list) {
-              send({ action: "move", at: cur.list + "/" + (cur.index - 1), delta: 1 }, true);
-            }
-          }
-          longPressStart = null;
-        };
-        
-        btn.addEventListener("touchstart", startLongPress, { passive: true });
-        btn.addEventListener("touchend", endLongPress);
-        btn.addEventListener("touchcancel", function() { longPressStart = null; });
-      });
-    }
 
     // Speed chip (mobile)
     var speedChip = $("speed-chip");
