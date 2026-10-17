@@ -4061,6 +4061,296 @@
      "precached": false
     },
     {
+     "path": "games/champ-de-mots/boot.js",
+     "bytes": 8134,
+     "precached": true
+    },
+    {
+     "path": "games/champ-de-mots/champ_accent.py",
+     "bytes": 4341,
+     "precached": true
+    },
+    {
+     "path": "games/champ-de-mots/champ_achievements.py",
+     "bytes": 15435,
+     "precached": true
+    },
+    {
+     "path": "games/champ-de-mots/champ_arrange.py",
+     "bytes": 8575,
+     "precached": true
+    },
+    {
+     "path": "games/champ-de-mots/champ_bonus.py",
+     "bytes": 24573,
+     "precached": true
+    },
+    {
+     "path": "games/champ-de-mots/champ_builder.py",
+     "bytes": 7223,
+     "precached": true
+    },
+    {
+     "path": "games/champ-de-mots/champ_calendar.py",
+     "bytes": 7647,
+     "precached": true
+    },
+    {
+     "path": "games/champ-de-mots/champ_catalog.py",
+     "bytes": 4822,
+     "precached": true
+    },
+    {
+     "path": "games/champ-de-mots/champ_conversation.py",
+     "bytes": 13429,
+     "precached": true
+    },
+    {
+     "path": "games/champ-de-mots/champ_dashboard.py",
+     "bytes": 15496,
+     "precached": true
+    },
+    {
+     "path": "games/champ-de-mots/champ_examformats.py",
+     "bytes": 6906,
+     "precached": true
+    },
+    {
+     "path": "games/champ-de-mots/champ_farm.py",
+     "bytes": 13092,
+     "precached": true
+    },
+    {
+     "path": "games/champ-de-mots/champ_grading.py",
+     "bytes": 20891,
+     "precached": true
+    },
+    {
+     "path": "games/champ-de-mots/champ_growth.py",
+     "bytes": 9334,
+     "precached": true
+    },
+    {
+     "path": "games/champ-de-mots/champ_labels.py",
+     "bytes": 6909,
+     "precached": true
+    },
+    {
+     "path": "games/champ-de-mots/champ_leech.py",
+     "bytes": 9483,
+     "precached": true
+    },
+    {
+     "path": "games/champ-de-mots/champ_legend.py",
+     "bytes": 14823,
+     "precached": true
+    },
+    {
+     "path": "games/champ-de-mots/champ_liaison.py",
+     "bytes": 7849,
+     "precached": true
+    },
+    {
+     "path": "games/champ-de-mots/champ_listening.py",
+     "bytes": 6760,
+     "precached": true
+    },
+    {
+     "path": "games/champ-de-mots/champ_minigames_amis.py",
+     "bytes": 16091,
+     "precached": true
+    },
+    {
+     "path": "games/champ-de-mots/champ_minigames_arcade.py",
+     "bytes": 9004,
+     "precached": true
+    },
+    {
+     "path": "games/champ-de-mots/champ_minigames_blitz.py",
+     "bytes": 13725,
+     "precached": true
+    },
+    {
+     "path": "games/champ-de-mots/champ_minigames_boutique.py",
+     "bytes": 16523,
+     "precached": true
+    },
+    {
+     "path": "games/champ-de-mots/champ_minigames_cafe.py",
+     "bytes": 20226,
+     "precached": true
+    },
+    {
+     "path": "games/champ-de-mots/champ_minigames_core.py",
+     "bytes": 13955,
+     "precached": true
+    },
+    {
+     "path": "games/champ-de-mots/champ_minigames_games.py",
+     "bytes": 23926,
+     "precached": true
+    },
+    {
+     "path": "games/champ-de-mots/champ_minigames_racer.py",
+     "bytes": 12796,
+     "precached": true
+    },
+    {
+     "path": "games/champ-de-mots/champ_minigames_registry.py",
+     "bytes": 7724,
+     "precached": true
+    },
+    {
+     "path": "games/champ-de-mots/champ_minigames_rules.py",
+     "bytes": 1451,
+     "precached": true
+    },
+    {
+     "path": "games/champ-de-mots/champ_minigames_runstate.py",
+     "bytes": 7675,
+     "precached": true
+    },
+    {
+     "path": "games/champ-de-mots/champ_minigames_sprint.py",
+     "bytes": 12557,
+     "precached": true
+    },
+    {
+     "path": "games/champ-de-mots/champ_model.py",
+     "bytes": 12895,
+     "precached": true
+    },
+    {
+     "path": "games/champ-de-mots/champ_phrasebook.py",
+     "bytes": 4837,
+     "precached": true
+    },
+    {
+     "path": "games/champ-de-mots/champ_placement.py",
+     "bytes": 21089,
+     "precached": true
+    },
+    {
+     "path": "games/champ-de-mots/champ_planner.py",
+     "bytes": 12366,
+     "precached": true
+    },
+    {
+     "path": "games/champ-de-mots/champ_points.py",
+     "bytes": 12131,
+     "precached": true
+    },
+    {
+     "path": "games/champ-de-mots/champ_practice.py",
+     "bytes": 19228,
+     "precached": true
+    },
+    {
+     "path": "games/champ-de-mots/champ_practice_base.py",
+     "bytes": 3550,
+     "precached": true
+    },
+    {
+     "path": "games/champ-de-mots/champ_prefs.py",
+     "bytes": 1849,
+     "precached": true
+    },
+    {
+     "path": "games/champ-de-mots/champ_proficiency.py",
+     "bytes": 13664,
+     "precached": true
+    },
+    {
+     "path": "games/champ-de-mots/champ_qbuild.py",
+     "bytes": 21197,
+     "precached": true
+    },
+    {
+     "path": "games/champ-de-mots/champ_questions.py",
+     "bytes": 10324,
+     "precached": true
+    },
+    {
+     "path": "games/champ-de-mots/champ_renderer.py",
+     "bytes": 2533,
+     "precached": true
+    },
+    {
+     "path": "games/champ-de-mots/champ_reportlog.py",
+     "bytes": 5281,
+     "precached": true
+    },
+    {
+     "path": "games/champ-de-mots/champ_reports.py",
+     "bytes": 6498,
+     "precached": true
+    },
+    {
+     "path": "games/champ-de-mots/champ_review.py",
+     "bytes": 19622,
+     "precached": true
+    },
+    {
+     "path": "games/champ-de-mots/champ_review_base.py",
+     "bytes": 9633,
+     "precached": true
+    },
+    {
+     "path": "games/champ-de-mots/champ_rules.py",
+     "bytes": 7620,
+     "precached": true
+    },
+    {
+     "path": "games/champ-de-mots/champ_runstate.py",
+     "bytes": 12789,
+     "precached": true
+    },
+    {
+     "path": "games/champ-de-mots/champ_savegame.py",
+     "bytes": 8706,
+     "precached": true
+    },
+    {
+     "path": "games/champ-de-mots/champ_semesters.py",
+     "bytes": 9691,
+     "precached": true
+    },
+    {
+     "path": "games/champ-de-mots/champ_setup.py",
+     "bytes": 18130,
+     "precached": true
+    },
+    {
+     "path": "games/champ-de-mots/champ_shop.py",
+     "bytes": 3906,
+     "precached": true
+    },
+    {
+     "path": "games/champ-de-mots/champ_stats.py",
+     "bytes": 4925,
+     "precached": true
+    },
+    {
+     "path": "games/champ-de-mots/champ_util.py",
+     "bytes": 2055,
+     "precached": true
+    },
+    {
+     "path": "games/champ-de-mots/champ_water_pool.py",
+     "bytes": 6052,
+     "precached": true
+    },
+    {
+     "path": "games/champ-de-mots/champ_watering.py",
+     "bytes": 9559,
+     "precached": true
+    },
+    {
+     "path": "games/champ-de-mots/champ_wateropts.py",
+     "bytes": 6075,
+     "precached": true
+    },
+    {
      "path": "games/champ-de-mots/changelog.json",
      "bytes": 22050,
      "precached": false
@@ -4068,7 +4358,7 @@
     {
      "path": "games/champ-de-mots/formats.py",
      "bytes": 20087,
-     "precached": false
+     "precached": true
     },
     {
      "path": "games/champ-de-mots/fren_combined_catalog.json",
@@ -4082,23 +4372,28 @@
     },
     {
      "path": "games/champ-de-mots/game.py",
-     "bytes": 422545,
+     "bytes": 6330,
      "precached": true
     },
     {
      "path": "games/champ-de-mots/index.html",
-     "bytes": 91476,
+     "bytes": 75557,
      "precached": true
     },
     {
      "path": "games/champ-de-mots/minigames.css",
      "bytes": 6686,
-     "precached": false
+     "precached": true
     },
     {
      "path": "games/champ-de-mots/minigames.py",
-     "bytes": 143710,
-     "precached": false
+     "bytes": 5805,
+     "precached": true
+    },
+    {
+     "path": "games/champ-de-mots/page-hooks.js",
+     "bytes": 2724,
+     "precached": true
     },
     {
      "path": "games/champ-de-mots/pc-config.json",
@@ -4112,12 +4407,22 @@
     },
     {
      "path": "games/champ-de-mots/pc.html",
-     "bytes": 97276,
+     "bytes": 81357,
      "precached": true
     },
     {
      "path": "games/champ-de-mots/pc.js",
      "bytes": 10319,
+     "precached": true
+    },
+    {
+     "path": "games/champ-de-mots/result-copy.js",
+     "bytes": 501,
+     "precached": true
+    },
+    {
+     "path": "games/champ-de-mots/shortcuts.js",
+     "bytes": 1843,
      "precached": true
     },
     {
@@ -4136,19 +4441,39 @@
      "precached": false
     },
     {
+     "path": "games/champ-de-mots/style-1-base.css",
+     "bytes": 15648,
+     "precached": true
+    },
+    {
+     "path": "games/champ-de-mots/style-2-panels.css",
+     "bytes": 16148,
+     "precached": true
+    },
+    {
      "path": "games/champ-de-mots/style.css",
-     "bytes": 51904,
+     "bytes": 20106,
+     "precached": true
+    },
+    {
+     "path": "games/champ-de-mots/toast-hook.js",
+     "bytes": 468,
+     "precached": true
+    },
+    {
+     "path": "games/champ-de-mots/tutorial-steps.js",
+     "bytes": 3889,
      "precached": true
     },
     {
      "path": "games/champ-de-mots/visual-style.js",
      "bytes": 10852,
-     "precached": false
+     "precached": true
     },
     {
      "path": "games/champ-de-mots/visual-styles.css",
      "bytes": 35118,
-     "precached": false
+     "precached": true
     }
    ],
    "shared": [
@@ -4260,11 +4585,6 @@
     {
      "path": "shared/mobile-hud.js",
      "bytes": 4491,
-     "precached": false
-    },
-    {
-     "path": "shared/narrative_log.py",
-     "bytes": 8585,
      "precached": false
     },
     {
@@ -4385,7 +4705,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 15815942,
+   "bytes": 15858402,
    "bytes_complete": true
   },
   "continuum": {
