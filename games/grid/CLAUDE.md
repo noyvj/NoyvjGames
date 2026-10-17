@@ -21,6 +21,79 @@ You manage a regional power grid across a series of rounds. Demand grows every r
 - **No hard fail-state/game over.** Instead, rising emissions trigger progressively more frequent/severe disruption events (brownouts, damaged plants, cost spikes) — the game gets *harder to manage*, not suddenly lost. This is what teaches "delay compounds cost" without punishing exploration.
 - Scoring/win condition: sustained grid stability over N rounds, weighted by how clean the grid became over time (not just final-state cleanliness).
 
+## File map (read this before editing; the game is split into small files, 2026-10-17)
+
+The old 347 KB `game.py`, the big `index.html` and `style.css` were cut into files a small model can read whole. Nothing the AI may edit passes about 14,000 estimated tokens (bytes / 4); `tests/test_file_sizes.py` fails if a file does (the generated `pc.html` and `.json` data are exempt; `index.html` has a documented cap of 15,500). Behaviour did not change: every name the old `game.py` had is still `game.<name>`, saves are identical, the page looks identical.
+
+**Python.** `game.py` is the entry point: it imports the modules, re-exports every name (`game.get_state`, `game.render`, `game.GridState` ...), wires the buttons in `setup()` and runs the two start-up steps that used to run at import. Modules are in dependency order (a module only imports from earlier ones). **The module list lives in two places that must match**: `_PART_NAMES` in `game.py` and `GRID_PY_MODULES` at the top of `boot.js` (the page writes each file into Pyodide before running `game.py`). A new module also goes into `sw.js` and `offline-manifest.json`. `tests/test_module_list.py` checks both lists, the files on disk and the import order. `GridState` is cut into three classes in `grid_state_round.py`, `grid_state_extras.py` and `grid_state.py` (mixins; `grid_state.GridState` inherits the other two).
+
+| File | Size | What it holds, and when to ask for it |
+|------|------|---------------------------------------|
+| `grid_rules.py` | 24 KB | Grid's numbers and tables: costs, capacities, emissions factors, wear tiers, scenarios, grants, the career tree, default settings. Data only. Ask for this file to change a price, a rate, a threshold or a table. |
+| `grid_runstate.py` | 4 KB | The live state: every module variable that gets REPLACED while playing (`state`, `career`, `prefs`, the panel-open flags and message strings ...) plus `LIVE_NAMES`. Ask for it to add a new rebound variable. |
+| `grid_state_round.py` | 20 KB | GridState, part 2 of 3 (a mixin): the round itself. advance_round and what it runs: arbitrage, the regional grid, the emergency, scheduled maintenance, revenue-capacity and weather maths. |
+| `grid_state_extras.py` | 12 KB | GridState, part 3 of 3 (a mixin): surprise grants, the peek forecast, scoring and projection, demand response and policy levers. |
+| `grid_state.py` | 28 KB | GridState, part 1 of 3: the grid being played (setup, costs, capacity, build, retire, maintain, wear). Mixes in GridStateRound and GridStateExtras so the whole class still reads as game.GridState. |
+| `grid_sandbox_state.py` | 6 KB | The practice sandbox's grid (SandboxGridState) and its balance sliders (Z-18, C-27). Entering and leaving the sandbox needs render() and get_state(), so those functions live in grid_handlers_play. |
+| `grid_whatif.py` | 6 KB | The career what-if strategies (replaying a run under canned strategies) and the Career panel's what-if rows. |
+| `grid_career_data.py` | 12 KB | The Grid Operator career record (C1): defaults, validation of saved careers, ghost traces and browser storage. |
+| `grid_career_actions.py` | 4 KB | Career actions: career points for a run, adding to lifetime totals, unlocking perks, choosing a loadout. |
+| `grid_prefs.py` | 7 KB | Display preferences (C-12, C-19, GC-8, GC-9 ...) and the settings built on them: skipped confirmations, number format, units and funds deltas. |
+| `grid_achievements.py` | 11 KB | Achievements: the checks, progress readouts, milestone text and the earned list. |
+| `grid_shadow.py` | 5 KB | The shadow grid (C21): replaying your build and retire actions on a different starting scenario to compare. |
+| `grid_savegame.py` | 22 KB | Saving: get_state(), the field-by-field loaders, the load report and steward_summary(). |
+| `grid_trend.py` | 21 KB | The emissions and cost trend graph (SVG, table and description), the Info Page content and the comparison messages. |
+| `grid_panels.py` | 5 KB | The What's New changelog panel, the weather log panel and the Info Page toggle. |
+| `grid_views.py` | 9 KB | Small views: demand-growth arrow, wear tooltip, render_trend, plant-mix and gauge tables, chart theme. |
+| `grid_messages.py` | 2 KB | Sentences for random events and disruptions (event_message, disruption_reason, severity classes). |
+| `grid_announce.py` | 9 KB | Screen-reader announcements (B-7), the round recap text and the achievement unlock toast. |
+| `grid_difficulty.py` | 3 KB | Difficulty presets (C-10): relaxed, standard, operator and custom, derived from the existing toggles. |
+| `grid_summary.py` | 7 KB | The Run Summary panel, the copy-result fields and the summary toggle. |
+| `grid_skyline.py` | 4 KB | The city skyline strip (GC-8): the SVG buildings, the smog haze and its caption. |
+| `grid_achievement_cards.py` | 6 KB | Achievement cards in the skyline look (C-31): the building icons, the panel and the stats request. |
+| `grid_runs.py` | 7 KB | Finishing and recording runs: starting a new run, finish_run, daily run, ghost traces and the run record. |
+| `grid_sandbox.py` | 4 KB | Practice sandbox helpers: the stash of real-game values, the balance slider text and the page notification. |
+| `grid_fleet.py` | 5 KB | The sortable fleet overview (C-14). |
+| `grid_runsetup.py` | 6 KB | Run setup: starting loadout, run seed, Ironman, undo, grants, peek and the setup panel render. |
+| `grid_coach.py` | 5 KB | The opt-in coach (C-21): picks one observation about your grid. |
+| `grid_arbitrage.py` | 2 KB | The storage-arbitrage mode and the emergency messages, and their render. |
+| `grid_schematic.py` | 7 KB | The single-line schematic (C-11): rows, flow widths, caption and SVG. |
+| `grid_realgrid.py` | 6 KB | Real-grid comparison (C29) and the regional grid panel (C3). |
+| `grid_slots.py` | 6 KB | Local run slots (C-13): saving, switching, starting and clearing slots in this browser. |
+| `grid_gridley.py` | 10 KB | Gridley, the one-line commentator (GC-19), the supply-against-demand needle gauge (GC-28) and operator ranks (C-17). |
+| `grid_callouts.py` | 9 KB | One-time callouts and per-plant helpers: the 50%-renewable callout, retire/maintain callouts, disruption toast, arrow-key commands for the plant rows and the mix hover text. |
+| `grid_advance.py` | 6 KB | Advancing a round: the round animation (C-23), auto-advance, the round recap panel and their render. |
+| `grid_careerpanel.py` | 12 KB | The Career panel: lines, perk progress, history charts, heatmap, import/export and the upgrade tree's view. |
+| `grid_renderer.py` | 18 KB | render(): the one function that redraws the whole page from the grid, plus the Career panel update and tree view it calls back into (they call each other, so they stay together). |
+| `grid_loading.py` | 5 KB | load_state(): putting a saved game back, then redrawing. |
+| `grid_handlers_panels.py` | 14 KB | Click and change handlers for panels and settings: preferences, fleet sort, confirmations, rank theme, run slots, career finish, run setup, Today's run, import and export. |
+| `grid_handlers_play.py` | 13 KB | Click handlers for playing: build, retire, maintain, plant keys, advance and auto-advance, arbitrage, scenarios, policies, shadow and real-grid pickers, difficulty, and the sandbox (enter, leave, sliders). |
+| `game.py` | 14 KB | Entry point: `_PART_NAMES`, the re-export loop, `_GameModule`, the start-up steps and `setup()` (every `addEventListener`). Ask for it to wire a new button. |
+
+**State rule.** A module variable that some function REPLACES (`state = ...`, `career = ...`, `prefs = ...`) lives only in `grid_runstate.py`; every other module reads and writes it as `runstate.<name>` (each starts with `import grid_runstate as runstate`). Never `from grid_runstate import state` (that copy goes stale; a test checks). Lists, dicts and sets only changed in place stay in the module that owns them. A new rebound variable goes into `grid_runstate.py` AND its `LIVE_NAMES`; `game.<name>` reads and writes of those names are forwarded to it, and the practice sandbox swaps them with `vars(runstate)`. `state` and `career` start as `None` there (their first value needs later modules); `game.py` fills them at start-up. Tests that patch a name (`game_env.module.some_function = fake`) work: the new value is copied into every module that holds that name.
+
+**Page.** One line per file:
+
+| File | What it holds |
+|------|---------------|
+| `index.html` | The page markup only (about 60 KB, the one file above the usual limit: one big block of markup with no seam). Scripts are separate files loaded in the old order. `pc.html` is generated from it, never edit `pc.html`. |
+| `boot.js` | Pyodide boot: `GRID_PY_MODULES` (the module list), writes the shared helpers and every module into Pyodide, runs `game.py`, starts the tutorial, mobile HUD and dock. |
+| `tutorial-steps.js` | The walkthrough text (`GRID_TUTORIAL_STEPS`). |
+| `community-compare.js` | The `gridCompare` hook the Run Summary panel calls. |
+| `todays-run.js` | The Today's run button wiring. |
+| `copy-and-credits.js` | Copy-result button in the summary panel and the Credits links. |
+| `summary-print-and-schematic-save.js` | The Print button in the summary panel and the Save schematic image button. |
+| `shortcuts.js` | Keyboard-shortcut help panels list. |
+| `feedback.js` | The feedback prompt. |
+| `style-1-base.css` | Styles part 1: layout, status panel, trend graph, plant rows, callouts, info toggles. |
+| `style-2-panels.css` | Styles part 2: achievements, run summary, changelog, toasts, hero picture, section cards, plant mix, gauges. |
+| `style-3-plants.css` | Styles part 3: plant icons, action buttons, nameplates, the console look. |
+| `style-4-rounds.css` | Styles part 4: reduced motion, arbitrage, career panel, shadow grid, difficulty row, round recap, run setup, grants, plant nicknames, screen-reader helpers. |
+| `style-5-extras.css` | Styles part 5: fleet, coach, skyline, Gridley, needle gauge, ranks, chart themes, achievement cards, round animation, sandbox. |
+| `style.css` | Last stylesheet: only the site-wide `[hidden] { display: none !important; }` rule (a shared test looks for it here). |
+
+The stylesheets must stay in the order `style-1-base.css` ... `style-5-extras.css`, then `style.css` (the order is the cascade). After changing `index.html`, `pc-config.json`, `pc.js` or `pc.css`, regenerate `pc.html` with `python3 scripts/generate-pc-pages.py`. Tests read the pieces through `tests/pagefiles.py` (`game_css()`, `page_text(page)`); `tests/conftest.py` forgets the `grid_*` modules between tests.
+
 ## Milestones
 
 | # | Milestone | Content | Status |

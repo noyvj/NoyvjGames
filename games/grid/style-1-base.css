@@ -1,0 +1,652 @@
+/* Settings panel: text scaling. settings.js sets --text-scale on the root
+   element and persists it to localStorage; every font-size in this file is
+   already in rem (confirmed by grep before relying on this), so scaling
+   the root font-size scales the whole game uniformly with zero other
+   changes -- same approach Continuum's Phase 5 accessibility.js already
+   established (see games/continuum/CLAUDE.md). Default 1 here means a page
+   that never runs settings.js still renders at exactly today's size. */
+:root {
+  --text-scale: 1;
+}
+
+html {
+  font-size: calc(16px * var(--text-scale, 1));
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  background: transparent;
+  color: #e8e9f0;
+  display: flex;
+  justify-content: center;
+}
+
+#game {
+  width: 100%;
+  max-width: 480px;
+  margin: 1.5rem 1rem 2rem;
+  padding: 1.5rem 1rem 2rem;
+  background: linear-gradient(165deg, rgba(24, 27, 43, 0.78), rgba(14, 16, 28, 0.85));
+  border: 1px solid rgba(140, 160, 255, 0.14);
+  border-radius: 18px;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  box-shadow: 0 10px 36px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+h1 {
+  margin: 0 0 0.25rem;
+  font-size: 1.75rem;
+  background: linear-gradient(120deg, #eaeaf0 20%, #a9c3ff 55%, #eaeaf0 80%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  text-shadow: 0 0 30px rgba(120, 150, 255, 0.25);
+}
+
+.tagline {
+  margin: 0 0 0.5rem;
+  opacity: 0.75;
+  font-size: 0.95rem;
+}
+
+.context-blurb {
+  margin: 0 0 1.25rem;
+  padding: 0.6rem 0.75rem;
+  border-left: 2px solid rgba(140, 160, 255, 0.55);
+  background: rgba(20, 22, 31, 0.55);
+  border-radius: 0 6px 6px 0;
+  font-size: 0.8rem;
+  opacity: 0.8;
+}
+
+.section {
+  background: linear-gradient(165deg, rgba(30, 33, 52, 0.55), rgba(18, 20, 32, 0.6));
+  border: 1px solid rgba(140, 160, 255, 0.14);
+  border-radius: 12px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
+}
+
+.status-line {
+  margin: 0 0 0.4rem;
+  font-size: 0.95rem;
+}
+
+.status-line:last-child {
+  margin-bottom: 0;
+}
+
+.event-display {
+  margin: 0.6rem 0 0;
+  font-size: 0.85rem;
+  font-style: italic;
+  opacity: 0.85;
+}
+
+.event-display--warning {
+  color: #e0b84c;
+  opacity: 1;
+  text-shadow: 0 0 10px rgba(224, 184, 76, 0.35);
+}
+
+.event-display--danger {
+  color: #e0674c;
+  opacity: 1;
+  text-shadow: 0 0 10px rgba(224, 103, 76, 0.35);
+}
+
+.meter {
+  width: 100%;
+  height: 8px;
+  border-radius: 4px;
+  background: rgba(5, 6, 13, 0.6);
+  overflow: hidden;
+  margin-bottom: 0.6rem;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.4);
+}
+
+.meter-fill {
+  height: 100%;
+  width: 0%;
+  transition: width 0.2s ease;
+}
+
+.meter-fill--emissions {
+  background: #e0674c;
+  box-shadow: 0 0 10px rgba(224, 103, 76, 0.5);
+}
+
+.meter-fill--score {
+  background: #4c9c6e;
+  box-shadow: 0 0 10px rgba(76, 156, 110, 0.5);
+}
+
+.meter-label {
+  margin: 0.4rem 0 0.3rem;
+  font-size: 0.8rem;
+  opacity: 0.7;
+}
+
+.comparison-message {
+  margin: 0.4rem 0 0;
+  font-size: 0.85rem;
+  font-style: italic;
+  opacity: 0.85;
+}
+
+/* .info-page-* rules moved to shared/info-page.css (see index.html's
+   <link> in <head>) as part of consolidating the info-page feature. */
+
+.trend-graph-svg {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.trend-line {
+  fill: none;
+  stroke-width: 2;
+}
+
+/* Colorblind-safety audit (site-wide goal, Okabe-Ito-palette method):
+   emissions (vermillion-ish) vs. cost (was green, #4c9c6e) were the one
+   real hue-only deuteranopia/protanopia confusion pair in this game --
+   two solid same-weight lines on one graph, told apart only by red vs.
+   green, with the only text label (each point's <title> tooltip) hidden
+   until hover. Re-picked cost to Okabe-Ito blue so the pair reads as
+   red/orange vs. blue instead, and gave both emissions and cost their own
+   dasharray (the global-benchmark line already had one) so all three
+   lines are also told apart by pattern, not just color, matching how
+   Continuum's own line-adjacent fix paired a re-color with a second,
+   non-color cue rather than relying on the palette swap alone. */
+.trend-line--emissions {
+  stroke: #e0674c;
+}
+
+.trend-line--cost {
+  stroke: #4fa8dd;
+  stroke-dasharray: 2 2;
+}
+
+.trend-line--global {
+  stroke: #8a8fa3;
+  stroke-dasharray: 4 3;
+}
+
+/* C15 -- one hoverable marker per data point, matching each line's own
+   color. Semi-transparent by default so they read as a subtle texture on
+   the line rather than competing with it, and grow/opaque on hover so
+   there's a clear target to land on for the native <title> tooltip. */
+.trend-point {
+  fill-opacity: 0.55;
+  stroke: none;
+  cursor: pointer;
+  transition: r 0.1s ease, fill-opacity 0.1s ease;
+}
+
+.trend-point:hover {
+  r: 5;
+  fill-opacity: 1;
+}
+
+.trend-point--emissions {
+  fill: #e0674c;
+}
+
+/* C-12: three more optional lines, each with its own colour AND its own dash pattern (never colour alone):
+   funds gold with dash-dot, demand violet dotted, clean share teal with long dashes. */
+.trend-line--funds { stroke: #e9c46a; stroke-dasharray: 6 2 1 2; }
+.trend-line--demand { stroke: #c9a0ff; stroke-dasharray: 1 3; stroke-linecap: round; }
+.trend-line--clean { stroke: #5fd0b0; stroke-dasharray: 8 3; }
+.trend-point--funds { fill: #e9c46a; }
+.trend-point--demand { fill: #c9a0ff; }
+.trend-point--clean { fill: #5fd0b0; }
+/* GC-9: the ghost of the best earlier run, faint and fine-dashed, in the same hue as the line it ghosts. */
+.trend-line--ghost { opacity: 0.45; stroke-width: 1.5; }
+.trend-line--clean-ghost { stroke: #5fd0b0; stroke-dasharray: 3 3; }
+.trend-line--funds-ghost { stroke: #e9c46a; stroke-dasharray: 3 3; }
+.trend-controls { border: 1px solid rgba(140, 160, 255, 0.25); border-radius: 8px; margin: 0.25rem 0 0.5rem; padding: 0.4rem 0.6rem; display: flex; flex-wrap: wrap; gap: 0.2rem 1rem; }
+.trend-controls legend { font-size: 0.8rem; opacity: 0.85; padding: 0 0.3rem; }
+.trend-check { display: inline-flex; align-items: center; gap: 0.35rem; font-size: 0.85rem; min-height: 44px; cursor: pointer; }
+.trend-swatch { width: 24px; height: 6px; flex: none; }
+.trend-swatch .trend-line { stroke-width: 2.5; }
+/* C-19: the plain-table view of a chart. */
+.chart-table { border-collapse: collapse; width: 100%; font-size: 0.8rem; margin: 0.25rem 0; }
+.chart-table caption { text-align: left; font-size: 0.8rem; opacity: 0.85; padding-bottom: 0.2rem; }
+.chart-table th, .chart-table td { border: 1px solid rgba(140, 160, 255, 0.2); padding: 0.15rem 0.35rem; text-align: right; }
+.chart-table th[scope="col"], .chart-table th[scope="row"] { text-align: left; font-weight: 600; }
+.chart-table-wrap { overflow-x: auto; max-width: 100%; }
+
+.trend-point--cost {
+  fill: #4fa8dd;
+}
+
+.trend-point--global {
+  fill: #8a8fa3;
+}
+
+.plant-row {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid rgba(140, 160, 255, 0.14);
+}
+
+.plant-row:last-child {
+  border-bottom: none;
+}
+
+.plant-row-top {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.plant-row-top .plant-name {
+  flex: 1;
+}
+
+.plant-row-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  align-items: center;
+}
+
+.plant-row-actions button.secondary {
+  flex: 1;
+}
+
+/* C23: per-plant-type auto-maintain cadence, sitting alongside the
+   Build/Retire/Maintain buttons rather than a separate row -- it's a
+   setting about that one plant type, not a fourth action button. */
+.maintenance-schedule-label {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.78rem;
+  opacity: 0.8;
+  flex-basis: 100%;
+}
+
+.maintenance-schedule-select {
+  font-size: 0.78rem;
+}
+
+.plant-name {
+  font-size: 0.9rem;
+  transition: filter 200ms ease, opacity 200ms ease;
+}
+
+/* Iteration Pass 2: aging wear state — icon dims/desaturates as a plant
+   type's average fleet age climbs, so vulnerability is seen before it's
+   felt as a breakdown event. */
+.plant-name.wear-1 {
+  filter: saturate(0.8);
+  opacity: 0.9;
+}
+
+.plant-name.wear-2 {
+  filter: saturate(0.5) brightness(0.9);
+  opacity: 0.8;
+}
+
+.plant-name.wear-3 {
+  filter: grayscale(0.6) brightness(0.75);
+  opacity: 0.7;
+}
+
+.plant-count {
+  font-size: 0.9rem;
+  opacity: 0.75;
+  text-align: center;
+  min-width: 1.5rem;
+}
+
+/* C10: exact wear percentage next to the wear-icon states. */
+.wear-pct {
+  font-size: 0.72rem;
+  opacity: 0.6;
+  white-space: nowrap;
+}
+
+/* C19: breakdown-risk badge -- reuses the same amber "warning" hue as
+   .event-display--warning so it reads as the same category of concern. */
+.risk-badge {
+  font-size: 0.7rem;
+  font-weight: 600;
+  white-space: nowrap;
+  padding: 0.1rem 0.5rem;
+  border-radius: 999px;
+  color: #e0b84c;
+  background: rgba(224, 184, 76, 0.12);
+  border: 1px solid rgba(224, 184, 76, 0.35);
+}
+
+button.secondary {
+  padding: 0.5rem 0.6rem;
+  border: 1px solid rgba(140, 160, 255, 0.18);
+  border-radius: 8px;
+  background: linear-gradient(135deg, #262a45, #171a2b);
+  color: #e8e9f0;
+  font-size: 0.8rem;
+  cursor: pointer;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  transition: filter 120ms ease;
+}
+
+button.secondary:hover:not(:disabled) {
+  filter: brightness(1.1);
+}
+
+button.secondary:active:not(:disabled) {
+  filter: brightness(0.8);
+}
+
+button.secondary:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+button.primary {
+  width: 100%;
+  padding: 0.8rem;
+  border: none;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #4a6cb5, #2c4370);
+  color: #e8e9f0;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 4px 16px rgba(58, 90, 156, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.15);
+  transition: filter 120ms ease;
+}
+
+button.primary:hover {
+  filter: brightness(1.1);
+}
+
+button.primary:active {
+  filter: brightness(0.85);
+}
+
+.feedback-question {
+  margin: 0 0 0.75rem;
+  font-size: 0.9rem;
+}
+
+.feedback-buttons {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 0.6rem;
+}
+
+/* C4/C16: opt-in difficulty toggles -- reads as an armed/active switch
+   once turned on, distinct from the ordinary secondary-button look. */
+.difficulty-toggle.active {
+  border-color: rgba(224, 103, 76, 0.6);
+  background: linear-gradient(135deg, #402a26, #241614);
+  box-shadow: 0 0 10px rgba(224, 103, 76, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.feedback-buttons .secondary.selected {
+  border-color: #6fae70;
+  background: linear-gradient(135deg, #26402a, #16241a);
+  box-shadow: 0 0 10px rgba(111, 174, 112, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.feedback-comment {
+  width: 100%;
+  min-height: 2.5rem;
+  margin-bottom: 0.6rem;
+  padding: 0.5rem;
+  border: 1px solid rgba(140, 160, 255, 0.18);
+  border-radius: 8px;
+  background: rgba(20, 22, 33, 0.6);
+  color: #e8e9f0;
+  font-family: inherit;
+  font-size: 0.85rem;
+  resize: vertical;
+}
+
+.feedback-status {
+  margin: 0.5rem 0 0;
+  font-size: 0.8rem;
+  opacity: 0.8;
+}
+
+.hub-back-link {
+  display: inline-block;
+  margin-bottom: 0.6rem;
+  font-size: 0.85rem;
+  color: inherit;
+  opacity: 0.65;
+  text-decoration: none;
+}
+
+.hub-back-link:hover {
+  opacity: 1;
+  text-decoration: underline;
+}
+
+/* Icon labels — pure CSS, no markup/game.py change, same technique as
+   SOL's reference pass (see games/sol/style.css "Icon labels" section):
+   `::before { content: "emoji "; }` on the existing id/class selectors,
+   with `[id$="..."]` attribute-suffix selectors for the button ids that
+   repeat once per plant type. PLANT_ICON (rendered server-side into each
+   #<type>-name element by game.py) and the wear-1/2/3 desaturation
+   filters are the plant-identity/vulnerability encoding and are left
+   completely untouched — everything below only reaches the plain-text
+   stat/status lines and action buttons that had no icon at all. */
+#round-display::before {
+  content: "🔁 ";
+}
+
+#demand-display::before {
+  content: "⚡ ";
+}
+
+#funds-display::before {
+  content: "💰 ";
+}
+
+#capacity-display::before {
+  content: "🔌 ";
+}
+
+#emissions-display::before {
+  content: "🏭 ";
+}
+
+#disruption-risk-display::before {
+  content: "⚠️ ";
+}
+
+#fossil-share-display::before {
+  content: "🛢️ ";
+}
+
+#event-display::before {
+  content: "🚨 ";
+}
+
+#score-display::before {
+  content: "🌱 ";
+}
+
+#trend-display::before {
+  content: "📈 ";
+}
+
+#aging-event-display::before {
+  content: "🛠️ ";
+}
+
+.meter-label::before {
+  content: "📊 ";
+}
+
+#trend-graph-message::before {
+  content: "📈 ";
+}
+
+#global-comparison-message::before {
+  content: "🌍 ";
+}
+
+#renewable-blurb::before {
+  content: "♻️ ";
+}
+
+#advance-round-button::before {
+  content: "⏭️ ";
+}
+
+[id$="-build-button"]::before {
+  content: "🔨 ";
+}
+
+[id$="-retire-button"]::before {
+  content: "🗑️ ";
+}
+
+[id$="-maintain-button"]::before {
+  content: "🔧 ";
+}
+
+/* Plant count as a small rounded chip instead of a bare number, matching
+   the glass-panel chrome used elsewhere on this page. No DOM change —
+   same #<type>-count element, just styled. */
+.plant-count {
+  padding: 0.15rem 0.55rem;
+  border-radius: 999px;
+  background: rgba(140, 160, 255, 0.12);
+  border: 1px solid rgba(140, 160, 255, 0.2);
+}
+
+/* C20: one-time first-use callouts for Retire's refund math and
+   Maintain's cost math -- shown once each, the first time that action is
+   actually used, instead of leaving the explanation only inside the
+   small "i" tooltip a player might never open. */
+.callout {
+  margin: 0.6rem 0 0;
+  padding: 0.6rem 0.75rem;
+  background: rgba(140, 160, 255, 0.1);
+  border: 1px solid rgba(140, 160, 255, 0.3);
+  border-radius: 8px;
+  font-size: 0.8rem;
+  line-height: 1.5;
+}
+
+.callout-dismiss {
+  display: block;
+  margin: 0.5rem 0 0;
+  padding: 0.3rem 0.7rem;
+  border: 1px solid rgba(140, 160, 255, 0.3);
+  border-radius: 6px;
+  background: rgba(140, 160, 255, 0.14);
+  color: #e8e9f0;
+  font-size: 0.75rem;
+  cursor: pointer;
+}
+
+.callout-dismiss:hover {
+  background: rgba(140, 160, 255, 0.24);
+}
+
+/* TODO-C19: the policy-lever banner's three action buttons, laid out in a
+   row like the existing plant-row build/retire/maintain buttons rather
+   than stacked block buttons. */
+.policy-lever-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+/* Info toggles — plain <details>/<summary>, zero JS. For a mechanic that
+   isn't self-explanatory from its label alone (why do renewable costs
+   drop? why do plants need maintaining?), a small "ⓘ" disclosure sits
+   next to the label; clicking it reveals a short plain-language
+   explanation, collapsed by default so it never competes with the
+   numbers for attention. Native <details> handles open/closed state
+   entirely in the browser — no proxy, no event handler, no game.py
+   involvement at all. Copied verbatim from SOL's reference
+   implementation (same rgba(140,160,255,…) palette already used
+   throughout this file). */
+.info-toggle {
+  display: inline-block;
+  margin-left: 0.4rem;
+  vertical-align: middle;
+}
+
+.info-toggle summary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.1rem;
+  height: 1.1rem;
+  border-radius: 50%;
+  background: rgba(140, 160, 255, 0.16);
+  border: 1px solid rgba(140, 160, 255, 0.3);
+  color: #cdd8ff;
+  font-size: 0.68rem;
+  font-weight: 700;
+  cursor: pointer;
+  list-style: none;
+  user-select: none;
+}
+
+.info-toggle summary::-webkit-details-marker {
+  display: none;
+}
+
+.info-toggle summary:hover {
+  background: rgba(140, 160, 255, 0.28);
+}
+
+.info-toggle[open] summary {
+  background: rgba(140, 160, 255, 0.32);
+}
+
+/* C13: funds breakdown -- reuses the .info-toggle "i" disclosure shell,
+   just with a small list instead of a paragraph inside it. */
+.funds-breakdown-list {
+  text-align: left;
+  font-size: 0.78rem;
+  opacity: 0.85;
+  line-height: 1.8;
+  margin: 0.5rem 0 0;
+  padding: 0.6rem 0.75rem;
+  list-style: none;
+  background: rgba(5, 6, 13, 0.5);
+  border: 1px solid rgba(140, 160, 255, 0.14);
+  border-radius: 8px;
+}
+
+.funds-breakdown-list span {
+  font-variant-numeric: tabular-nums;
+  opacity: 1;
+  font-weight: 600;
+}
+
+.info-toggle p {
+  text-align: left;
+  font-size: 0.78rem;
+  font-weight: 400;
+  opacity: 0.85;
+  line-height: 1.5;
+  margin: 0.5rem 0 0;
+  padding: 0.6rem 0.75rem;
+  background: rgba(5, 6, 13, 0.5);
+  border: 1px solid rgba(140, 160, 255, 0.14);
+  border-radius: 8px;
+}

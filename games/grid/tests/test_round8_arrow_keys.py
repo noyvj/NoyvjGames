@@ -2,6 +2,7 @@
 from pathlib import Path
 
 from .test_confirm_dialog import _install_fake_confirm_dialog
+from .pagefiles import page_text
 
 GAME_DIR = Path(__file__).resolve().parent.parent
 
@@ -129,7 +130,7 @@ def test_command_table(game_env):
 
 def test_the_keys_are_explained_on_screen_and_in_the_shortcut_help():
     for page in ("index.html", "pc.html"):
-        html = (GAME_DIR / page).read_text()
+        html = page_text(page)
         assert "Right arrow (focus on a plant) — build one" in html
-    assert 'id="plant-keys-hint"' in (GAME_DIR / "index.html").read_text()
+    assert 'id="plant-keys-hint"' in page_text("index.html")
     assert "Retire / build (focus a plant)" in (GAME_DIR / "pc-config.json").read_text()

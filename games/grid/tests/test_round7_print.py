@@ -2,13 +2,14 @@
 from pathlib import Path
 
 from .test_career import _play
+from .pagefiles import page_text
 
 GAME_DIR = Path(__file__).resolve().parent.parent
 
 
 def test_summary_panel_is_the_print_target_on_both_pages():
     for page in ("index.html", "pc.html"):
-        html = (GAME_DIR / page).read_text(encoding="utf-8")
+        html = page_text(page)
         assert '<link rel="stylesheet" href="../../shared/print-summary.css" media="print">' in html, page
         line = next(ln for ln in html.splitlines() if 'id="summary-panel"' in ln)
         assert "print-summary" in line, page
@@ -17,7 +18,7 @@ def test_summary_panel_is_the_print_target_on_both_pages():
 
 
 def test_the_print_button_is_only_added_to_the_panel_and_calls_print():
-    html = (GAME_DIR / "index.html").read_text(encoding="utf-8")
+    html = page_text("index.html")
     assert "window.print()" in html and 'panel.querySelector(":scope > .summary-print-button")' in html
 
 

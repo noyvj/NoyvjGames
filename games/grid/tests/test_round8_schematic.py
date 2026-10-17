@@ -1,9 +1,10 @@
 """Round-8 pass: the single-line schematic (C-11)."""
 import re
 from pathlib import Path
+from .pagefiles import page_text, game_css
 
 GAME_DIR = Path(__file__).resolve().parent.parent
-STYLE = (GAME_DIR / "style.css").read_text()
+STYLE = game_css()
 
 
 def _widths(svg):
@@ -95,5 +96,5 @@ def test_flow_animation_is_page_only_and_off_under_reduced_motion():
 
 def test_save_button_and_its_script_exist_on_both_pages():
     for page in ("index.html", "pc.html"):
-        html = (GAME_DIR / page).read_text()
+        html = page_text(page)
         assert 'id="schematic-save-button"' in html and "grid-schematic.png" in html and 'id="schematic-panel"' in html

@@ -1,0 +1,514 @@
+/* ============================================================
+   Mobile dock — Advance Round (site-wide mobile-dock rollout,
+   planning/TODO.md). Same shared/mobile-dock.js + fixed-bottom-bar
+   pattern as Canopy's #action-panel and Trade Empire's
+   #mobile-needs-strip. Grid's plant rows keep their own Build/Retire/
+   Maintain buttons inline (no far-apart selection-vs-action split like
+   Canopy's grid/panel), so the real friction this closes is different:
+   Advance Round -- the single action every round's building funnels
+   toward -- sits at the bottom of a long page (status panel + trend
+   graph + six plant rows). Docking it means a player who just built
+   something mid-page doesn't have to scroll all the way down to commit
+   the round. Pure CSS positioning on the existing button; game.py
+   already drives its text/disabled state without knowing where in the
+   DOM it currently lives. */
+@media (max-width: 640px) {
+  #advance-round-button.mobile-docked {
+    position: fixed;
+    left: 1rem;
+    right: 1rem;
+    width: auto; /* button.primary's base `width: 100%` resolves against the
+      viewport once fixed-positioned (its containing block, since nothing
+      here re-establishes one) instead of shrinking between left/right --
+      same Z18 320px-audit bug Continuum's docked button had, clipping this
+      one past the right edge too. */
+    bottom: 50px; /* sits directly above the fixed ad-bar */
+    z-index: 150; /* above the ad-bar (100), below the save widget (9999) */
+    max-width: 480px;
+    margin: 0 auto;
+    box-shadow: 0 -8px 28px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.03);
+  }
+
+  /* Reserve room at the bottom of the scrollable page so the last real
+     content (feedback prompt) never ends up hidden behind the
+     now-floating button + ad bar. */
+  /* html body outranks ad-bar.css's plain body rule (V-AB-2) */
+  html body {
+    padding-bottom: 130px;
+  }
+}
+
+/* ============================================================
+   Achievements (ACHIEVEMENTS-SYSTEM-DESIGN.md) — same card language
+   used across the hub's shared achievements pattern (SOL's reference
+   implementation), on Grid's existing glass-panel/rgba(140,160,255,...)
+   palette. Internals are free per-game once you're inside the game, but
+   there's no reason to invent a new visual language here when the
+   existing one already fits. */
+.achievements-panel {
+  text-align: left;
+  display: grid;
+  gap: 0.65rem;
+}
+
+/* Same gotcha SOL's/Trade Empire's/Continuum's own achievements CSS
+   documents: `display: grid` above otherwise wins the cascade over the
+   browser's default `[hidden] { display: none }` UA rule (author-origin
+   styles beat user-agent-origin styles regardless of specificity), so
+   without this override the panel stays visible as an empty box before
+   its first open, and stays visible with its last-rendered content
+   forever after being toggled closed. */
+.achievements-panel[hidden] {
+  display: none;
+}
+
+/* C5 -- the on-demand Run Summary panel. Reuses .status-line for its
+   individual rows rather than inventing a new text style, same "no new
+   visual language without a reason" approach as the achievements panel
+   above. */
+.summary-panel {
+  text-align: left;
+}
+
+.summary-line {
+  line-height: 1.4;
+}
+
+.achievement-card {
+  padding: 0.85rem 1rem;
+  border: 1px solid rgba(140, 160, 255, 0.14);
+  border-radius: 12px;
+  background: rgba(10, 12, 22, 0.4);
+}
+
+.achievement-card--earned {
+  border-color: rgba(76, 156, 110, 0.4);
+  background: rgba(76, 156, 110, 0.08);
+  box-shadow: 0 0 18px rgba(76, 156, 110, 0.12);
+}
+
+.achievement-card-label {
+  margin: 0 0 0.25rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.achievement-card--earned .achievement-card-label {
+  color: #7fd6a3;
+  text-shadow: 0 0 12px rgba(127, 214, 163, 0.35);
+}
+
+.achievement-card-description {
+  margin: 0;
+  font-size: 0.78rem;
+  opacity: 0.7;
+  line-height: 1.4;
+}
+
+.achievement-card-progress {
+  margin: 0.4rem 0 0;
+  font-size: 0.72rem;
+  opacity: 0.55;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Z27b: cross-player "Earned by N% of players" line, filled in by
+   shared/achievement-stats.js once the aggregate-stats endpoint responds
+   -- same muted small-text treatment as .achievement-card-progress, kept
+   distinct via italics so the two never look identical if both appear on
+   the same card. */
+.achievement-earn-rate {
+  margin: 0.3rem 0 0;
+  font-size: 0.72rem;
+  opacity: 0.5;
+  font-style: italic;
+}
+
+.achievements-hub-link {
+  display: inline-block;
+  margin-top: 0.2rem;
+  font-size: 0.8rem;
+  color: #a9c3ff;
+}
+
+/* ============================================================
+   "What's New" changelog panel (site-wide goal, planning/TODO.md, origin
+   K16). Reuses .section for the panel shell (same hidden-until-opened
+   idiom as achievements/settings above), and the same glass-panel card
+   language as .achievement-card for each entry. */
+.changelog-panel {
+  text-align: left;
+  display: grid;
+  gap: 0.6rem;
+}
+
+/* Same [hidden]-vs-`display: grid` gotcha as .achievements-panel above. */
+.changelog-panel[hidden] {
+  display: none;
+}
+
+.changelog-entry {
+  padding: 0.75rem 1rem;
+  border: 1px solid rgba(140, 160, 255, 0.14);
+  border-radius: 12px;
+  background: rgba(10, 12, 22, 0.4);
+}
+
+.changelog-entry-date {
+  margin: 0 0 0.2rem;
+  font-size: 0.72rem;
+  opacity: 0.55;
+  font-variant-numeric: tabular-nums;
+}
+
+.changelog-entry-text {
+  margin: 0;
+  font-size: 0.85rem;
+  line-height: 1.4;
+}
+
+/* Unlock toast: fixed to the top of the viewport so it's visible
+   regardless of scroll position, unlike the panel it summarizes.
+   `.visible` is toggled from game.py; `hidden` (native attribute) keeps
+   it out of the layout entirely between toasts. */
+.achievement-toast {
+  position: fixed;
+  top: 0.75rem;
+  left: 1rem;
+  right: 1rem;
+  max-width: 480px;
+  margin: 0 auto;
+  z-index: 500;
+  padding: 0.7rem 1rem;
+  background: linear-gradient(165deg, rgba(76, 156, 110, 0.92), rgba(38, 64, 42, 0.95));
+  border: 1px solid rgba(127, 214, 163, 0.5);
+  border-radius: 10px;
+  box-shadow: 0 8px 26px rgba(0, 0, 0, 0.45);
+  opacity: 0;
+  transform: translateY(-12px);
+  transition: opacity 200ms ease, transform 200ms ease;
+  pointer-events: none;
+}
+
+.achievement-toast.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.achievement-toast p {
+  margin: 0;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #f2fff6;
+  text-align: center;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .achievement-toast {
+    transition: opacity 120ms ease;
+    transform: none;
+  }
+}
+
+/* C12: a visible toast/banner for a disruption or aging-breakdown event
+   -- on top of the persistent #event-display/#aging-event-display status
+   lines, which need scrolling to notice. Sits a little lower than the
+   achievement toast so the rare case of both firing at once doesn't fully
+   overlap; severity color is added via .disruption-toast--warning/danger
+   rather than a fixed color, since a brownout and a plant going offline
+   aren't equally urgent. */
+.disruption-toast {
+  position: fixed;
+  top: 3.6rem;
+  left: 1rem;
+  right: 1rem;
+  max-width: 480px;
+  margin: 0 auto;
+  z-index: 499;
+  padding: 0.7rem 1rem;
+  border-radius: 10px;
+  box-shadow: 0 8px 26px rgba(0, 0, 0, 0.45);
+  opacity: 0;
+  transform: translateY(-12px);
+  transition: opacity 200ms ease, transform 200ms ease;
+  pointer-events: none;
+}
+
+.disruption-toast.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.disruption-toast p {
+  margin: 0;
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-align: center;
+}
+
+.disruption-toast--warning {
+  background: linear-gradient(165deg, rgba(224, 184, 76, 0.92), rgba(64, 52, 24, 0.95));
+  border: 1px solid rgba(224, 184, 76, 0.5);
+}
+
+.disruption-toast--warning p {
+  color: #fff6e0;
+}
+
+.disruption-toast--danger {
+  background: linear-gradient(165deg, rgba(224, 103, 76, 0.92), rgba(64, 28, 24, 0.95));
+  border: 1px solid rgba(224, 103, 76, 0.5);
+}
+
+.disruption-toast--danger p {
+  color: #fff0ee;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .disruption-toast {
+    transition: opacity 120ms ease;
+    transform: none;
+  }
+}
+
+/* ============================================================
+   Full visual pass — content-window redesign (2026-09-05)
+   Grid was a stack of plain text status lines plus a row of
+   bare-emoji plant names. This pass gives the page its own
+   illustrated identity rather than reusing SOL's planets: a
+   CSS-drawn transmission line (lattice pylons + sagging wires +
+   a traveling current pulse) as the page's hero visual, six
+   hand-built CSS icons — one per plant type — replacing the
+   flat emoji-only impression in the plant list, HUD "card"
+   treatment for every .section with a per-section accent color,
+   segmented glowing gauges in place of the flat meter bars, and
+   lightly tinted action-tile buttons per plant action. Pure CSS
+   plus small decorative wrapper divs only (same pattern as
+   SOL's .planet-visual) — no id/class renames, no game.py
+   changes, nothing touched that any test or the innerText-driven
+   render loop depends on. PLANT_ICON emoji and the wear-1/2/3
+   filters stay exactly as they were; the new .plant-icon blocks
+   sit beside them as an addition, not a replacement. */
+
+/* --- Grid visual (hero illustration): a stretch of transmission
+   line. Three lattice pylons drawn with clip-path + a diagonal
+   repeating-gradient truss pattern, connected by sagging wires
+   (the classic border-top-arc trick: a wide/short box with
+   border-radius: 50% shows only its top curve), plus a small
+   glowing dot animating along the line to suggest current flow. */
+.grid-visual {
+  position: relative;
+  height: 72px;
+  margin: 0 0 1.25rem;
+  overflow: hidden;
+}
+
+.grid-visual-pylon {
+  position: absolute;
+  bottom: 0;
+  width: 22px;
+  height: 56px;
+  clip-path: polygon(42% 0%, 58% 0%, 78% 100%, 22% 100%);
+  background:
+    repeating-linear-gradient(55deg, rgba(207, 216, 255, 0.75) 0 2px, transparent 2px 9px),
+    repeating-linear-gradient(-55deg, rgba(207, 216, 255, 0.75) 0 2px, transparent 2px 9px),
+    linear-gradient(rgba(140, 160, 255, 0.15), rgba(140, 160, 255, 0.15));
+  filter: drop-shadow(0 0 6px rgba(140, 160, 255, 0.25));
+}
+
+.grid-visual-pylon::before {
+  content: "";
+  position: absolute;
+  left: -9px;
+  right: -9px;
+  bottom: 26px;
+  height: 3px;
+  background: rgba(207, 216, 255, 0.6);
+  box-shadow: 0 0 6px rgba(140, 160, 255, 0.3);
+}
+
+.grid-visual-pylon--a { left: 4%; height: 46px; }
+.grid-visual-pylon--b { left: 48%; height: 60px; }
+.grid-visual-pylon--c { left: 90%; height: 50px; }
+
+/* Each wire span is drawn as a shallow two-segment droop (a wide,
+   flat chevron) between two crossbars rather than a single straight
+   line, so it reads as a slack cable rather than a ruler-edge. */
+.grid-visual-wire {
+  position: absolute;
+  bottom: 26px;
+  width: 22%;
+  height: 1px;
+  border-top: 2px solid rgba(207, 216, 255, 0.45);
+  transform-origin: left center;
+}
+
+.grid-visual-wire--1 { left: 8%; transform: rotate(4.5deg); }
+.grid-visual-wire--2 { left: 30%; transform: rotate(-4.5deg); }
+.grid-visual-wire--mid.grid-visual-wire--1 { left: 52%; transform: rotate(3.5deg); }
+.grid-visual-wire--mid.grid-visual-wire--2 { left: 72%; transform: rotate(-3.5deg); }
+.grid-visual-wire--top.grid-visual-wire--1 { bottom: 30px; }
+.grid-visual-wire--top.grid-visual-wire--2 { bottom: 30px; }
+
+.grid-visual-current {
+  position: absolute;
+  bottom: 24px;
+  left: 4%;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #cfe0ff;
+  box-shadow: 0 0 8px 2px rgba(140, 190, 255, 0.9);
+  animation: grid-current-flow 4.5s linear infinite;
+}
+
+@keyframes grid-current-flow {
+  0% { left: 4%; bottom: 24px; opacity: 0; }
+  8% { opacity: 1; }
+  25% { bottom: 20px; }
+  50% { left: 48%; bottom: 24px; }
+  75% { bottom: 20px; }
+  92% { opacity: 1; }
+  100% { left: 90%; bottom: 24px; opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .grid-visual-current { animation: none; opacity: 0; }
+}
+
+/* --- Section cards: give every top-level .section a per-purpose
+   accent instead of an identical flat border. Plain id selectors
+   are enough here since, unlike SOL's per-planet views, Grid has
+   exactly one copy of each section. */
+.section {
+  border-left-width: 3px;
+}
+
+#status { border-left-color: #4cc9d8; }
+#plants { border-left-color: #e0a24c; }
+#plant-mix { border-left-color: #7fd6a3; }
+#feedback-prompt { border-left-color: #b57de0; }
+#info-page-panel { border-left-color: #6f9fe0; }
+
+/* UI decluttering pass (planning/TODO.md closing task): block-level
+   <details> wrapping the mix-row breakdown, same zero-JS mechanics as
+   .info-toggle but styled to read as "more of the section above" rather
+   than a separate help topic -- copied from Tide's own
+   .ticker-history-toggle idiom for consistency across the two games
+   touched in this pass. */
+.mix-breakdown-toggle {
+  margin-top: 0.4rem;
+}
+
+.mix-breakdown-toggle summary {
+  font-size: 0.78rem;
+  opacity: 0.65;
+  cursor: pointer;
+  user-select: none;
+}
+
+.mix-breakdown-toggle summary:hover {
+  opacity: 0.9;
+}
+
+.mix-breakdown-toggle[open] summary {
+  margin-bottom: 0.3rem;
+}
+
+/* C7: plant-mix bar chart -- composition of total capacity by type.
+   Each type keeps a fixed, distinct hue (loosely matching its icon's
+   dominant color above) so the bars stay identifiable by more than
+   position alone; the label text is the primary, always-present
+   identifier regardless of color. */
+.mix-row {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.3rem 0;
+  font-size: 0.8rem;
+}
+
+.mix-label {
+  flex: 0 0 4.2rem;
+  opacity: 0.8;
+}
+
+.mix-bar-track {
+  flex: 1;
+  height: 10px;
+  border-radius: 5px;
+  background: rgba(5, 6, 13, 0.6);
+  overflow: hidden;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.4);
+}
+
+.mix-bar {
+  height: 100%;
+  width: 0%;
+  border-radius: 5px;
+  transition: width 0.2s ease;
+}
+
+.mix-pct {
+  flex: 0 0 2.6rem;
+  text-align: right;
+  opacity: 0.75;
+  font-variant-numeric: tabular-nums;
+}
+
+.mix-bar--coal { background: #8a8fa3; }
+.mix-bar--gas { background: #e0a24c; }
+.mix-bar--nuclear { background: #d6e04e; }
+.mix-bar--solar { background: #6fb3ff; }
+.mix-bar--wind { background: #cfe0ff; }
+.mix-bar--hydro { background: #4fa8dd; }
+
+/* --- Gauges: replace the flat bar with a chunkier, ticked,
+   glowing HUD gauge. game.py only ever writes inline .style.width
+   on #emissions-bar/#score-bar, so the visual language around
+   that width is entirely ours to redraw; existing fill colors
+   (--emissions red / --score green) are untouched. */
+.meter {
+  height: 14px;
+  border-radius: 7px;
+  box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.5);
+  position: relative;
+}
+
+.meter-fill {
+  border-radius: 6px;
+  position: relative;
+  overflow: hidden;
+}
+
+.meter-fill::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: repeating-linear-gradient(
+    90deg,
+    transparent 0,
+    transparent calc(10% - 1px),
+    rgba(0, 0, 0, 0.28) calc(10% - 1px),
+    rgba(0, 0, 0, 0.28) 10%
+  );
+}
+
+.meter-fill::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 40%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.35), transparent);
+  animation: grid-meter-shimmer 2.6s ease-in-out infinite;
+}
+
+@keyframes grid-meter-shimmer {
+  0% { transform: translateX(-120%); }
+  100% { transform: translateX(340%); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .meter-fill::after { animation: none; display: none; }
+}

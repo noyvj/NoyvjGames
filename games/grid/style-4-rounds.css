@@ -1,0 +1,244 @@
+/* ============================================================
+   Settings panel (site-wide goal, planning/TODO.md): consolidated
+   text-scale + reduced-motion controls. Reuses .section for the panel
+   shell itself (same hidden-until-opened idiom as #howto-panel/
+   #achievements-panel), so only the internal layout needs its own rules. */
+.settings-panel-heading {
+  margin: 0 0 0.75rem;
+  font-size: 0.95rem;
+  opacity: 0.9;
+}
+
+.settings-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.settings-row:last-child {
+  margin-bottom: 0;
+}
+
+.settings-label {
+  font-size: 0.85rem;
+}
+
+.text-size-control {
+  display: inline-flex;
+  gap: 0.25rem;
+}
+
+.text-size-control button {
+  min-width: 2.2rem;
+  padding: 0.3rem 0.5rem;
+}
+
+.settings-checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+/* Reduced-motion override: a manual, persisted toggle independent of the
+   OS-level `prefers-reduced-motion` media query already gating several
+   animations in this file (grid-current-flow, grid-meter-shimmer,
+   grid-smoke-rise, grid-flame-flicker, grid-radiate-pulse,
+   grid-panel-shine, grid-turbine-spin, grid-wave-flow,
+   grid-battery-pulse). Rather than duplicating every individual
+   @keyframes/animation/transition rule with a second selector, this one
+   blanket rule (applied only when settings.js sets the attribute)
+   collapses every animation/transition on the page to effectively
+   instant -- the same standard "force-disable" pattern used site-wide for
+   this kind of manual override, and strictly additive to the existing
+   media-query-gated rules elsewhere in this file (an OS-level
+   reduced-motion user gets the same effect either way; this just also
+   covers a player whose OS setting is untouched but who wants motion off
+   in-game). */
+html[data-reduced-motion="true"] *,
+html[data-reduced-motion="true"] *::before,
+html[data-reduced-motion="true"] *::after {
+  animation-duration: 0.001ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.001ms !important;
+  scroll-behavior: auto !important;
+}
+
+/* C6/C14/C12/C24 (2026-09-20 pass) */
+.mix-bar { transition: width 0.6s ease; }
+.funds-bar-track { height: 6px; background: rgba(140, 160, 255, 0.15); border-radius: 3px; margin-top: 2px; }
+.funds-bar { height: 100%; border-radius: 3px; transition: width 0.4s ease; }
+.funds-bar--revenue { background: #4fa8dd; }
+.funds-bar--build { background: #e0a24c; }
+.funds-bar--maintenance { background: #b9a0e8; }
+.funds-bar--disruption { background: #e0674c; }
+.trend-best-marker { fill: #f0e442; stroke: #1a1d2b; stroke-width: 1; }
+@keyframes grid-meter-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(240, 228, 66, 0); filter: brightness(1); }
+  50% { box-shadow: 0 0 12px 4px rgba(240, 228, 66, 0.85); filter: brightness(1.4); }
+}
+.meter-fill.meter-pulse { animation: grid-meter-pulse 0.8s ease 2; }
+
+/* C9 storage arbitrage controls + C27 emergency banner. The mode is always
+   spelled out in the button text and status line, never colour alone. */
+.arbitrage-controls {
+  flex-basis: 100%;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+.arbitrage-status {
+  font-size: 0.8rem;
+  opacity: 0.85;
+}
+
+/* C1 career panel: unlock buttons are full-width stacked rows; owned perks
+   read "Unlocked:" in text, never colour alone. */
+.career-unlocks {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  margin-top: 0.6rem;
+}
+.career-unlocks button {
+  text-align: left;
+  white-space: normal;
+}
+
+/* C21: the shadow grid comparison table. */
+.shadow-table { display: grid; gap: 0.2rem; margin: 0.4rem 0; }
+.shadow-row { display: grid; grid-template-columns: 1.4fr 1fr 1fr; gap: 0.4rem; font-size: 0.8rem; }
+.shadow-row--head { font-weight: 600; }
+
+/* C-10: difficulty header and preset row. The preset is always spelled out in words. */
+.difficulty-header {
+  margin: -0.4rem 0 0.4rem;
+  font-size: 0.8rem;
+  opacity: 0.85;
+}
+.difficulty-preset-row { margin: 0.4rem 0; }
+.difficulty-preset-label { font-size: 0.85rem; display: inline-flex; gap: 0.4rem; align-items: center; }
+.difficulty-preset-help { font-size: 0.75rem; margin: 0.2rem 0 0; }
+
+/* C-1 / C-7 / C-16: career panel sections. */
+.career-section { margin-top: 0.7rem; }
+.career-section > summary { cursor: pointer; font-weight: 600; font-size: 0.9rem; }
+.career-history-chart { display: grid; gap: 0.4rem; margin: 0.5rem 0; }
+.run-chart-svg { width: 100%; height: auto; display: block; background: rgba(140, 160, 255, 0.06); border-radius: 6px; }
+.run-line { fill: none; stroke-width: 1.6; }
+.run-line--latest { stroke-width: 2.8; }
+.run-line--0 { stroke: #e0674c; }
+.run-line--1 { stroke: #4fa8dd; stroke-dasharray: 4 3; }
+.run-line--2 { stroke: #f0e442; stroke-dasharray: 2 2; }
+.run-line--3 { stroke: #4cb08a; stroke-dasharray: 6 2 2 2; }
+.run-line--4 { stroke: #b9a0e8; stroke-dasharray: 1 3; }
+.run-line--5 { stroke: #e0a24c; stroke-dasharray: 8 3; }
+.run-legend { display: flex; flex-wrap: wrap; gap: 0.3rem 0.9rem; font-size: 0.75rem; margin-bottom: 0.4rem; }
+.run-legend-item { display: inline-flex; align-items: center; gap: 0.3rem; }
+.run-legend-swatch { width: 24px; height: 6px; }
+.career-history-row { font-size: 0.78rem; margin: 0.25rem 0; line-height: 1.4; }
+.career-lifetime { white-space: pre-line; font-size: 0.82rem; line-height: 1.5; margin: 0.4rem 0; }
+.career-heatmap { display: grid; gap: 2px; margin: 0.4rem 0; }
+.heat-row { display: flex; align-items: center; gap: 0.4rem; }
+.heat-label { flex: 0 0 3.6rem; font-size: 0.7rem; opacity: 0.8; }
+.heat-cells { display: flex; gap: 1px; flex: 1 1 auto; }
+.heat-cell { flex: 1 1 0; height: 12px; min-width: 3px; background: #4fa8dd; border-radius: 1px; }
+.career-data-field { width: 100%; box-sizing: border-box; font-family: monospace; font-size: 0.72rem; margin: 0.3rem 0; }
+.career-data-actions { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+
+/* GC-26: "New record!" line -- a brief highlight pulse, plain bold text otherwise. */
+.record-flash {
+  margin: 0.3rem 0;
+  padding: 0.3rem 0.6rem;
+  font-weight: 700;
+  font-size: 0.85rem;
+  border: 1px solid rgba(240, 228, 66, 0.7);
+  border-radius: 6px;
+  background: rgba(240, 228, 66, 0.12);
+  animation: grid-record-flash 1.2s ease 2;
+}
+@keyframes grid-record-flash {
+  0%, 100% { background: rgba(240, 228, 66, 0.12); }
+  50% { background: rgba(240, 228, 66, 0.45); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .record-flash { animation: none; }
+}
+
+/* C-8: round recap. */
+.round-recap { margin: 0.3rem 0; font-size: 0.8rem; }
+.round-recap > summary { cursor: pointer; }
+.round-recap-body { white-space: pre-line; margin: 0.3rem 0 0; line-height: 1.5; opacity: 0.9; }
+
+/* GC-17: auto-advance sits under the main Advance Round button. */
+#auto-advance-button { width: 100%; margin-top: 0.4rem; }
+
+/* GC-2b: the operator upgrade tree (drawn by shared/skill-tree.js). */
+.career-tree { margin: 0.5rem 0; }
+
+/* GC-2b / GC-21: run-setup controls in the difficulty row. */
+.run-seed-input { width: 9rem; font-family: monospace; text-transform: uppercase; }
+#ironman-toggle-button.active, #ironman-toggle-button[aria-pressed="true"] { font-weight: 700; }
+#undo-build-button { width: 100%; margin-top: 0.3rem; }
+#peek-forecast-button { margin-top: 0.3rem; }
+
+/* GC-15: Perfect Round streak. The flame is decorative; the number and bonus are written out. */
+.perfect-streak { font-size: 0.85rem; }
+
+/* GC-25: the surprise-offer banner. */
+.grant-banner { border: 1px solid rgba(240, 228, 66, 0.55); }
+.grant-banner p { margin: 0 0 0.4rem; }
+
+/* GC-4: plant nicknames under each row's header, and the coal eulogy with its demolition puff. */
+.plant-nicknames { margin: 0.1rem 0 0.2rem 0.2rem; font-size: 0.72rem; font-style: italic; opacity: 0.75; }
+.plant-nicknames:empty { display: none; }
+.eulogy-display { margin: 0.3rem 0; padding: 0.4rem 0.6rem; font-size: 0.85rem; font-style: italic; border-left: 3px solid rgba(180, 180, 180, 0.6); }
+.eulogy-display::before { content: "\1F4A8  "; display: inline-block; }
+.eulogy-display.eulogy-puff::before { animation: grid-demolition-puff 1.4s ease-out 1; }
+@keyframes grid-demolition-puff {
+  0% { transform: scale(0.4) translateY(6px); opacity: 0; }
+  40% { transform: scale(1.5) translateY(-4px); opacity: 1; }
+  100% { transform: scale(1) translateY(-10px); opacity: 0.6; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .eulogy-display.eulogy-puff::before { animation: none; }
+}
+.run-setup-details { margin-top: 0.4rem; font-size: 0.85rem; }
+.run-setup-details > summary { cursor: pointer; font-weight: 600; }
+
+/* C-4: hovering or focusing a mix bar highlights that plant's row and the bar itself. */
+.mix-row { border-radius: 6px; }
+.mix-row:hover, .mix-row:focus-visible, .mix-row.mix-row--active { background: rgba(140, 160, 255, 0.12); outline: none; }
+.mix-row:focus-visible { box-shadow: 0 0 0 2px rgba(240, 228, 66, 0.8); }
+.plant-row.plant-row--highlight { box-shadow: 0 0 0 2px rgba(111, 179, 255, 0.85); border-radius: 8px; }
+.mix-hover-readout { min-height: 2.4em; margin: 0.2rem 0 0.4rem; }
+.changelog-load-note { font-size: 0.82rem; margin: 0.2rem 0 0.6rem; padding: 0.3rem 0.5rem; border-left: 3px solid rgba(240, 228, 66, 0.7); }
+
+/* B-7: visually hidden but read by screen readers (the game's own live region, used when the shared announcer is absent). */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* B-7: Grid has no tile map; its controls are the build / retire / maintain buttons in each plant row, all native
+   buttons reached with Tab. A thick, high-contrast ring shows which one the keyboard is on. */
+.plant-row button:focus-visible,
+.plant-row select:focus-visible,
+#advance-round-button:focus-visible,
+#auto-advance-button:focus-visible,
+#demand-response-button:focus-visible,
+#undo-build-button:focus-visible {
+  outline: 3px solid #f0e442;
+  outline-offset: 2px;
+}
