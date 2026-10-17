@@ -514,3 +514,25 @@ def test_archive_panel_stays_in_its_own_place_on_wide_screens(base):
         assert page.evaluate("document.getElementById('archive-panel').parentNode !== document.body")
         browser.close()
     assert errors == []
+
+
+def test_the_four_settings_switches_set_their_attribute_survive_a_reload_and_reset(base):
+    errors = []
+    switches = {"no-haptics-checkbox": "data-no-haptics", "info-list-checkbox": "data-info-list",
+                "hide-board-checkbox": "data-hide-board", "no-pull-archive-checkbox": "data-no-pull-archive"}
+    with pw.sync_playwright() as p:
+        browser = p.chromium.launch()
+        ctx, page = _open(browser, base, errors)
+        for box, attr in switches.items():
+            assert page.get_attribute("html", attr) == "false", attr
+            page.evaluate("(id) => { const c = document.getElementById(id); c.checked = true; c.dispatchEvent(new Event('change', {bubbles: true})); }", box)
+            assert page.get_attribute("html", attr) == "true", attr
+        page.reload()
+        page.wait_for_function(READY, timeout=90000)
+        for box, attr in switches.items():
+            assert page.get_attribute("html", attr) == "true" and page.is_checked("#" + box), attr
+        page.evaluate("document.getElementById('settings-reset-button').click()")
+        for box, attr in switches.items():
+            assert page.get_attribute("html", attr) == "false" and not page.is_checked("#" + box), attr
+        browser.close()
+    assert errors == []
