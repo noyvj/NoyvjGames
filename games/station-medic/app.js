@@ -330,7 +330,7 @@
     b.type = "button";
     b.setAttribute("aria-pressed", String(picked));
     b.setAttribute("aria-label", i.name + ": " + plural(i.count, "left", "left") + " of " + i.start + ". Used for " + i.uses.join(", ") +
-      (i.count ? (picked ? ". Picked up: choose a patient." : ". Press to pick it up, then choose a patient.") : ". None left."));
+      (i.count ? (picked ? ". Picked up: choose a patient." : ". Press to pick it up, then choose a patient.") : ". None left.") + " Press and hold to borrow a spare.");
     b.appendChild(el("span", "letter", i.glyph));
     var body = el("span", "sname", i.name);
     body.appendChild(el("span", "uses", i.uses.join(", ")));
@@ -789,79 +789,33 @@
     heading.addEventListener("contextmenu", function (e) { e.preventDefault(); });   // a phone's long press would open its own menu
   }
 
-  // R4-SMMO-8: Long-press on supply shelf to borrow it via confirm sheet
-  var borrowItemIndex = null;
-  var borrowDownTime = null;
-  function _initBorrowConfirm() {
+  // R4-SMMO-8: press and hold a shelf to borrow a spare of it. Like the title hold above, the hold is judged when the finger
+  // or button is released (the event's own time stamp; the page uses no timers). It opens the shared confirm, which names the
+  // cost; the "Short of something?" buttons stay as the keyboard and one-tap way. An empty shelf can be held too.
+  function _initBorrowHold() {
     var list = $("cabinet-list");
-    if (!list) return;
-
+    var held = null, t0 = null, x0 = 0, y0 = 0, moved = false, swallow = false;
     list.addEventListener("pointerdown", function (e) {
-      var shelf = e.target.closest(".shelf-pick");
-      if (!shelf || !shelf.draggable) return; // Only draggable shelves can be long-pressed to borrow
-      
-      var itemIndex = parseInt(shelf.parentElement.dataset.item, 10);
-      borrowItemIndex = itemIndex;
-      borrowDownTime = e.timeStamp;
+      if (e.button) return;
+      swallow = false;
+      var li = e.target.closest ? e.target.closest("#cabinet-list li[data-item]") : null;
+      if (!li) { t0 = null; return; }
+      held = parseInt(li.dataset.item, 10); t0 = e.timeStamp; x0 = e.clientX; y0 = e.clientY; moved = false;
     });
-
-    list.addEventListener("pointermove", function (e) {
-      if (borrowItemIndex === null) return;
-      
-      // If user moves significantly, cancel the hold
-      var shelf = e.target.closest(".shelf-pick");
-      if (!shelf) return;
-      
-      var itemIndex = parseInt(shelf.parentElement.dataset.item, 10);
-      if (itemIndex !== borrowItemIndex) {
-        borrowItemIndex = null;
-        borrowDownTime = null;
-        return;
-      }
-    });
-
+    list.addEventListener("pointermove", function (e) { if (t0 !== null && (Math.abs(e.clientX - x0) > 10 || Math.abs(e.clientY - y0) > 10)) moved = true; });
     list.addEventListener("pointerup", function (e) {
-      if (borrowItemIndex !== null && borrowDownTime !== null && e.timeStamp - borrowDownTime >= HOLD_MS) {
-        showBorrowConfirm(borrowItemIndex);
-      }
-      borrowItemIndex = null;
-      borrowDownTime = null;
+      var long = t0 !== null && !moved && e.timeStamp - t0 >= HOLD_MS;
+      var k = held;
+      t0 = null; held = null;
+      if (!long || !view || !view.cabinet) return;
+      var item = itemByIndex(k);
+      if (!item) return;
+      swallow = true;   // the click that follows the release must not also pick the shelf up
+      askThen("station-medic-borrow-hold", "Borrow one spare " + item.name.toLowerCase() + " from the ring's reserve? It costs 1 on this shift (a cost only lowers the shift's seal) and it never runs out.", "Borrow it (cost 1)", function () { act({ action: "borrow", item: item.i }); });
     });
-
-    list.addEventListener("pointercancel", function () {
-      borrowItemIndex = null;
-      borrowDownTime = null;
-    });
-
-    $("borrow-confirm-yes").addEventListener("click", function () {
-      hideBorrowConfirm();
-      if (borrowItemIndex !== null) {
-        act({ action: "borrow", item: borrowItemIndex });
-        borrowItemIndex = null;
-      }
-    });
-
-    $("borrow-confirm-no").addEventListener("click", hideBorrowConfirm);
-  }
-
-  function showBorrowConfirm(itemIndex) {
-    var item = view.cabinet.items.filter(function (i) { return i.i === itemIndex; })[0];
-    if (!item) return;
-    
-    var text = "Borrow one " + item.name + "? It will cost 1 seal on this shift.";
-    setText($("borrow-confirm-text"), text);
-    
-    var sheet = $("borrow-confirm-sheet");
-    sheet.hidden = false;
-    // Force reflow for transition
-    void sheet.offsetWidth;
-    sheet.classList.add("visible");
-  }
-
-  function hideBorrowConfirm() {
-    var sheet = $("borrow-confirm-sheet");
-    sheet.classList.remove("visible");
-    sheet.hidden = true;
+    ["pointercancel", "pointerleave"].forEach(function (name) { list.addEventListener(name, function () { t0 = null; held = null; }); });
+    list.addEventListener("click", function (e) { if (swallow) { swallow = false; e.stopPropagation(); e.preventDefault(); } }, true);
+    list.addEventListener("contextmenu", function (e) { e.preventDefault(); });   // a phone's long press would open its own menu
   }
 
   function wire() {
@@ -890,7 +844,7 @@
     _initSheetGesture();
     _initHoldToRestore();
     _initNotesBanner();
-    _initBorrowConfirm();
+    _initBorrowHold();
     if (window.matchMedia) {
       var phoneQuery = window.matchMedia("(max-width: 600px)");
       if (phoneQuery.addEventListener) phoneQuery.addEventListener("change", function () { if (view) { renderCabinet(); } });
