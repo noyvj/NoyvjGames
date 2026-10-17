@@ -2051,9 +2051,19 @@
      "precached": false
     },
     {
+     "path": "games/thaw/archive-swipe.js",
+     "bytes": 4750,
+     "precached": true
+    },
+    {
      "path": "games/thaw/changelog.json",
      "bytes": 17814,
      "precached": false
+    },
+    {
+     "path": "games/thaw/focus-mode.js",
+     "bytes": 1669,
+     "precached": true
     },
     {
      "path": "games/thaw/game.py",
@@ -2061,8 +2071,28 @@
      "precached": true
     },
     {
+     "path": "games/thaw/haptic-feedback.js",
+     "bytes": 3161,
+     "precached": true
+    },
+    {
      "path": "games/thaw/index.html",
-     "bytes": 68825,
+     "bytes": 76340,
+     "precached": true
+    },
+    {
+     "path": "games/thaw/info-page-swipe.js",
+     "bytes": 2092,
+     "precached": true
+    },
+    {
+     "path": "games/thaw/landscape-grid.js",
+     "bytes": 2662,
+     "precached": true
+    },
+    {
+     "path": "games/thaw/mobile-invest.js",
+     "bytes": 7430,
      "precached": true
     },
     {
@@ -2077,7 +2107,7 @@
     },
     {
      "path": "games/thaw/pc.html",
-     "bytes": 73025,
+     "bytes": 80540,
      "precached": true
     },
     {
@@ -2087,8 +2117,8 @@
     },
     {
      "path": "games/thaw/settings.js",
-     "bytes": 9761,
-     "precached": false
+     "bytes": 10298,
+     "precached": true
     },
     {
      "path": "games/thaw/sources.json",
@@ -2097,7 +2127,7 @@
     },
     {
      "path": "games/thaw/style.css",
-     "bytes": 61580,
+     "bytes": 70591,
      "precached": true
     }
    ],
@@ -2330,7 +2360,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14744835,
+   "bytes": 14791177,
    "bytes_complete": true
   },
   "loop": {

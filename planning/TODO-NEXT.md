@@ -1,6 +1,6 @@
 # Next TODO list (from the Round 4 ideas, started 2026-10-12)
 
-**Progress: 138/921 items checked off (15.0%).** This is the NEXT list, written alongside the live `planning/TODO.md` (which is untouched). It becomes the live list once the current one is archived. Run `python3 scripts/todo-progress.py planning/TODO-NEXT.md` after ticking items.
+**Progress: 144/921 items checked off (15.6%).** This is the NEXT list, written alongside the live `planning/TODO.md` (which is untouched). It becomes the live list once the current one is archived. Run `python3 scripts/todo-progress.py planning/TODO-NEXT.md` after ticking items.
 
 How it is built: one section per Round 4 section on the ideas sheet (`planning/IMPROVEMENT-IDEAS-ROUND-4.md`), in the sheet's order, ids `R4-<section code>-<number>`. Only ideas you answered "yes" to are items, with your note where you wrote one. A section that is not fully answered keeps its heading and ends with one item to add the rest once you have answered them. "No" answers are dropped (listed under the heading); "later" answers are parked in `planning/LATER.md`.
 
@@ -18,6 +18,7 @@ How it is built: one section per Round 4 section on the ideas sheet (`planning/I
 | SMMO. Station Medic: mobile view | 8/10 | 80% | ████████░░ |
 | SIMO. Signal: mobile view | 7/10 | 70% | ███████░░░ |
 | LHMO. Lighthouse: mobile view | 7/10 | 70% | ███████░░░ |
+| THMO. Thaw: mobile view | 6/10 | 60% | ██████░░░░ |
 | HCPC. Heist Committee: PC view | 6/10 | 60% | ██████░░░░ |
 | HCMO. Heist Committee: mobile view | 6/10 | 60% | ██████░░░░ |
 | LHPC. Lighthouse: PC view | 6/10 | 60% | ██████░░░░ |
@@ -56,7 +57,6 @@ How it is built: one section per Round 4 section on the ideas sheet (`planning/I
 | AFPC. Aftermath: PC view | 0/10 | 0% | ░░░░░░░░░░ |
 | AFMO. Aftermath: mobile view | 0/10 | 0% | ░░░░░░░░░░ |
 | THPC. Thaw: PC view | 0/10 | 0% | ░░░░░░░░░░ |
-| THMO. Thaw: mobile view | 0/10 | 0% | ░░░░░░░░░░ |
 | LOPC. Loop: PC view | 0/10 | 0% | ░░░░░░░░░░ |
 | LOMO. Loop: mobile view | 0/10 | 0% | ░░░░░░░░░░ |
 | DR. Drift: general ideas | 0/10 | 0% | ░░░░░░░░░░ |
@@ -111,7 +111,7 @@ How it is built: one section per Round 4 section on the ideas sheet (`planning/I
 | OCP. Overclock: made for you | 0/1 | 0% | ░░░░░░░░░░ |
 | AU. Sound | 0/1 | 0% | ░░░░░░░░░░ |
 | **Done: 1 sections at 100%** (LEPC) | 10/10 | 100% | ██████████ |
-| **All sections** | **138/921** | **15.0%** | █░░░░░░░░░ |
+| **All sections** | **144/921** | **15.6%** | ██░░░░░░░░ |
 
 <!-- PROGRESS-CHART:END -->
 
@@ -644,15 +644,15 @@ Dropped (you said no): PG-30.
 10 ideas on the sheet: 10 yes, 0 no, 0 later, 0 not answered yet.
 
 - [ ] R4-THMO-1: (small) Add a bottom tab bar with A, B, C and D for the four regions, and let you swipe sideways between them. You can check any region with one thumb.
-- [ ] R4-THMO-2: (small) Replace funding sliders with a bar you drag, plus large plus and minus steps beside it. Splitting money is easy on a small screen.
+- [x] R4-THMO-2: (small) Replace funding sliders with a bar you drag, plus large plus and minus steps beside it. Splitting money is easy on a small screen.
 - [ ] R4-THMO-3: (small) Let you swipe a science log card away to mark it read, with the unread count shown on the tab. The log becomes a quick inbox you clear.
-- [ ] R4-THMO-4: (small) Add an escalating haptic pattern as temperature crosses each threshold, where the browser allows. The warming trend is something you feel.
-- [ ] R4-THMO-5: (small) Turn the phone sideways to show the four regions as a 2 by 2 grid of mini graphs. Landscape becomes a comparison board.
+- [x] R4-THMO-4: (small) Add an escalating haptic pattern as temperature crosses each threshold, where the browser allows. The warming trend is something you feel.
+- [x] R4-THMO-5: (small) Turn the phone sideways to show the four regions as a 2 by 2 grid of mini graphs. Landscape becomes a comparison board.
 - [ ] R4-THMO-6: (big) Let you pinch two region graphs together to overlay them on one chart, with the gap shaded. Comparing regions works with a gesture.
-- [ ] R4-THMO-7: (small) Add a one-region focus mode that shows only your region and shrinks the others to dots you can tap. The screen is calm and simple.
-- [ ] R4-THMO-8: (small) Let you read The Real Story as swipeable cards that work fully offline. A class break is enough to read one.
+- [x] R4-THMO-7: (small) Add a one-region focus mode that shows only your region and shrinks the others to dots you can tap. The screen is calm and simple.
+- [x] R4-THMO-8: (small) Let you read The Real Story as swipeable cards that work fully offline. A class break is enough to read one.
 - [ ] R4-THMO-9: (small) Add a Skip ahead three rounds button with a single summary screen at the end, using the same choices as before. A short session covers more ground.
-- [ ] R4-THMO-10: (small) Pull down on the main screen to open the climate archive as a bottom sheet. History is one gesture away.
+- [x] R4-THMO-10: (small) Pull down on the main screen to open the climate archive as a bottom sheet. History is one gesture away.
 
 ## LO. Loop: general ideas
 
