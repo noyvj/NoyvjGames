@@ -180,4 +180,60 @@
     container.addEventListener("mousedown", handleStart);
     container.addEventListener("mouseup", handleEnd);
   })();
+
+  // R4-DRMO-9: Long-press on glossary terms opens a bottom-sheet definition.
+  (function glossaryLongPress() {
+    const sheet = document.getElementById("glossary-bottom-sheet");
+    const titleEl = document.getElementById("glossary-bottom-sheet-title");
+    const defEl = document.getElementById("glossary-bottom-sheet-def");
+    const moreBtn = document.getElementById("glossary-bottom-sheet-more");
+    if (!sheet || !titleEl || !defEl || !moreBtn) return;
+
+    const GLOSSARY_DEFS = {
+      capacity: "Total housing, services, and infrastructure capacity built so far. Counts against arrival pressure.",
+      strain: "How far cumulative arrivals have outrun cumulative capacity over the whole run. Higher strain cuts income each round.",
+      integration: "Only Integration Services moves people from pending to integrated. Integrated people contribute funds back every round.",
+      control: "An unmanaged passive region experiencing the same background pressure, with zero investment. Shown for contrast.",
+    };
+
+    let timer = null;
+    const terms = document.querySelectorAll(".glossary-row .chip");
+
+    function showSheet(term) {
+      titleEl.textContent = term.charAt(0).toUpperCase() + term.slice(1);
+      defEl.textContent = GLOSSARY_DEFS[term] || "Definition not available.";
+      sheet.classList.add("visible");
+      sheet.hidden = false;
+      const infoBtn = document.getElementById("info-page-toggle-button");
+      if (infoBtn) {
+        moreBtn.onclick = function () {
+          infoBtn.click();
+          sheet.classList.remove("visible");
+          setTimeout(function () { sheet.hidden = true; }, 300);
+        };
+      }
+    }
+
+    terms.forEach(function (btn) {
+      const term = btn.id.replace("glossary-", "").replace("-button", "");
+      btn.addEventListener("touchstart", function (e) {
+        timer = setTimeout(function () { showSheet(term); }, 500);
+      });
+      btn.addEventListener("touchend", function () { clearTimeout(timer); });
+      btn.addEventListener("touchmove", function () { clearTimeout(timer); });
+      btn.addEventListener("mousedown", function (e) {
+        if (e.button !== 0) return;
+        timer = setTimeout(function () { showSheet(term); }, 500);
+      });
+      btn.addEventListener("mouseup", function () { clearTimeout(timer); });
+      btn.addEventListener("mouseleave", function () { clearTimeout(timer); });
+    });
+
+    document.addEventListener("click", function (e) {
+      if (!sheet.classList.contains("visible")) return;
+      if (sheet.contains(e.target)) return;
+      sheet.classList.remove("visible");
+      setTimeout(function () { sheet.hidden = true; }, 300);
+    });
+  })();
 })();

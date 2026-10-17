@@ -2000,4 +2000,28 @@ html.high-contrast[data-theme="light"] #save-nudge, html.high-contrast[data-them
   #mobile-swipe-container #neighbor-panel { display: block !important; }
   /* Hide the manual open button since swipe replaces it */
   #neighbor-panel #neighbor-open-button { display: none !important; }
+
+  /* R4-DRMO-9: mobile bottom-sheet glossary for long-press on terms */
+  .glossary-bottom-sheet {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 200;
+    padding: 1rem;
+    background: rgba(24, 27, 43, 0.95);
+    border-top: 1px solid rgba(140, 160, 255, 0.2);
+    backdrop-filter: blur(10px);
+    transform: translateY(100%);
+    transition: transform 0.3s ease;
+  }
+  .glossary-bottom-sheet[hidden] { display: none; }
+  .glossary-bottom-sheet.visible { transform: translateY(0); }
+  .glossary-bottom-sheet-content { max-width: 480px; margin: 0 auto; }
+  .glossary-bottom-sheet-title { font-size: 1rem; font-weight: 600; margin: 0 0 0.3rem; color: #e8e9f0; }
+  .glossary-bottom-sheet-def { font-size: 0.9rem; opacity: 0.85; margin: 0 0 0.75rem; line-height: 1.4; color: #e8e9f0; }
+  .glossary-bottom-sheet-more { width: 100%; }
+  @media (prefers-reduced-motion: reduce) {
+    .glossary-bottom-sheet { transition: none; }
+  }
 }
