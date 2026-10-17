@@ -4,9 +4,10 @@ own hum switch present in both pages."""
 
 import re
 from pathlib import Path
+from .pagefiles import app_text
 
 GAME_DIR = Path(__file__).resolve().parent.parent
-APP = (GAME_DIR / "app.js").read_text(encoding="utf-8")
+APP = app_text()
 
 
 def test_the_view_only_calls_the_shared_synth_with_known_cues():

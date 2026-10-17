@@ -18,6 +18,7 @@ import story
 from state import Keep
 
 from .test_story_data import BANNED
+from .pagefiles import app_files
 
 GAME_DIR = Path(__file__).resolve().parent.parent
 
@@ -141,7 +142,7 @@ def test_no_banned_word_in_any_string_of_the_game_modules():
 
 
 def test_no_dashes_and_calm_punctuation_in_player_facing_files():
-    for name in ("app.js", "index.html", "changelog.json", "achievements.json", "lore.py", "mysteries.py", "info.py", "sim.py", "story.py", "day.py", "view.py"):
+    for name in (*app_files(), "index.html", "changelog.json", "achievements.json", "lore.py", "mysteries.py", "info.py", "sim.py", "story.py", "day.py", "view.py"):
         text = (GAME_DIR / name).read_text(encoding="utf-8")
         text = text.replace("Advertisement — not part of the game", "")
         assert "—" not in text and "–" not in text, name

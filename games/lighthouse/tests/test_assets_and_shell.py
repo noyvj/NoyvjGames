@@ -4,10 +4,11 @@ the script expects that the HTML lacks, or a shared include in the wrong order. 
 import json
 import re
 from pathlib import Path
+from .pagefiles import app_files, app_text
 
 GAME_DIR = Path(__file__).resolve().parent.parent
 HTML = (GAME_DIR / "index.html").read_text(encoding="utf-8")
-APP = (GAME_DIR / "app.js").read_text(encoding="utf-8")
+APP = app_text()
 NOT_ENGINE = {"game", "harness"}
 LOCAL = {p.stem for p in GAME_DIR.glob("*.py") if p.stem not in NOT_ENGINE}
 
@@ -96,7 +97,7 @@ def test_the_favicon_is_code_drawn_svg():
 
 
 def test_no_audio_anywhere():
-    for name in ("app.js", "index.html", "style.css"):
+    for name in (*app_files(), "index.html", "style.css"):
         text = (GAME_DIR / name).read_text(encoding="utf-8")
         assert not re.search(r"new Audio\(|<audio|AudioContext|\.mp3\b|\.ogg\b|\.wav\b", text), name
 
