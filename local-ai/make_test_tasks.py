@@ -16,7 +16,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 # Every game folder with Python and tests (2026-10-17; was a fixed list of the small games). The six games whose
 # files do not fit even the 192k model are left out, like their parked feature tasks.
-TOO_BIG = {"sol", "canopy", "grid", "aftermath", "trade-empire", "champ-de-mots"}
+TOO_BIG = set()   # SP-1 split every big game's files on 2026-10-17 (Loop and Drift: see local-ai/FOR-CLAUDE.md)
 GAMES = sorted(d.name for d in (ROOT / "games").iterdir()
                if d.is_dir() and d.name not in TOO_BIG and list(d.glob("*.py")) and (d / "tests").is_dir())
 SKIP_MODULES = {"render", "harness", "info"}   # game.py is in now: the 64k model holds most of them
