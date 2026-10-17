@@ -1765,6 +1765,40 @@ html[data-lite="true"] .crate-visual.crate-opening { animation: none; }
 }
 
 /* R4-THMO-5: Landscape comparison board — show all four regions as a compact 2x2 grid of mini graphs. */
+/* R4-THMO-10: pull-down archive bottom sheet (mobile only) */
+@media (max-width: 600px) {
+  #archive-panel {
+    position: fixed;
+    left: 0; right: 0; bottom: -75vh;
+    height: 75vh;
+    max-height: 80vh;
+    z-index: 100;
+    border-radius: 16px 16px 0 0;
+    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.4);
+    transition: bottom 0.3s ease;
+    padding: 1rem;
+    overflow-y: auto;
+    background: linear-gradient(165deg, rgba(24, 27, 43, 0.95), rgba(14, 16, 28, 0.98));
+    border: 1px solid rgba(140, 160, 255, 0.14);
+    border-bottom: none;
+  }
+  #archive-panel::before {
+    content: "";
+    display: block;
+    width: 3rem;
+    height: 4px;
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 2px;
+    margin: 0 auto 1rem;
+  }
+  #archive-panel.archive-sheet-open {
+    bottom: 0;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    #archive-panel { transition-duration: 0.01ms; }
+  }
+}
+
 @media (max-width: 600px) and (orientation: landscape) {
   #focus-mode-dots { display: none; }
 
