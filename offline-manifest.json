@@ -1066,18 +1066,38 @@
      "precached": false
     },
     {
+     "path": "games/tide/boot.js",
+     "bytes": 3455,
+     "precached": true
+    },
+    {
      "path": "games/tide/changelog.json",
      "bytes": 17154,
      "precached": false
     },
     {
+     "path": "games/tide/community-coastline.js",
+     "bytes": 1785,
+     "precached": true
+    },
+    {
+     "path": "games/tide/copy-wiring.js",
+     "bytes": 3054,
+     "precached": true
+    },
+    {
+     "path": "games/tide/feedback.js",
+     "bytes": 2082,
+     "precached": true
+    },
+    {
      "path": "games/tide/game.py",
-     "bytes": 341026,
+     "bytes": 16152,
      "precached": true
     },
     {
      "path": "games/tide/index.html",
-     "bytes": 77086,
+     "bytes": 62964,
      "precached": true
     },
     {
@@ -1092,7 +1112,7 @@
     },
     {
      "path": "games/tide/pc.html",
-     "bytes": 81412,
+     "bytes": 67290,
      "precached": true
     },
     {
@@ -1103,7 +1123,12 @@
     {
      "path": "games/tide/settings.js",
      "bytes": 7936,
-     "precached": false
+     "precached": true
+    },
+    {
+     "path": "games/tide/shortcuts.js",
+     "bytes": 1414,
+     "precached": true
     },
     {
      "path": "games/tide/sources.json",
@@ -1111,8 +1136,173 @@
      "precached": false
     },
     {
+     "path": "games/tide/style-1-base.css",
+     "bytes": 10001,
+     "precached": true
+    },
+    {
+     "path": "games/tide/style-2-visuals.css",
+     "bytes": 19002,
+     "precached": true
+    },
+    {
+     "path": "games/tide/style-3-panels.css",
+     "bytes": 13472,
+     "precached": true
+    },
+    {
      "path": "games/tide/style.css",
-     "bytes": 61589,
+     "bytes": 20443,
+     "precached": true
+    },
+    {
+     "path": "games/tide/tide_achievements.py",
+     "bytes": 18156,
+     "precached": true
+    },
+    {
+     "path": "games/tide/tide_actions.py",
+     "bytes": 4000,
+     "precached": true
+    },
+    {
+     "path": "games/tide/tide_almanac.py",
+     "bytes": 14232,
+     "precached": true
+    },
+    {
+     "path": "games/tide/tide_bridge.py",
+     "bytes": 3174,
+     "precached": true
+    },
+    {
+     "path": "games/tide/tide_chrome.py",
+     "bytes": 7882,
+     "precached": true
+    },
+    {
+     "path": "games/tide/tide_coastline.py",
+     "bytes": 12669,
+     "precached": true
+    },
+    {
+     "path": "games/tide/tide_coasts.py",
+     "bytes": 2373,
+     "precached": true
+    },
+    {
+     "path": "games/tide/tide_controls.py",
+     "bytes": 13353,
+     "precached": true
+    },
+    {
+     "path": "games/tide/tide_daily.py",
+     "bytes": 11327,
+     "precached": true
+    },
+    {
+     "path": "games/tide/tide_events.py",
+     "bytes": 11160,
+     "precached": true
+    },
+    {
+     "path": "games/tide/tide_flavour.py",
+     "bytes": 9584,
+     "precached": true
+    },
+    {
+     "path": "games/tide/tide_graphs.py",
+     "bytes": 13542,
+     "precached": true
+    },
+    {
+     "path": "games/tide/tide_handlers.py",
+     "bytes": 15704,
+     "precached": true
+    },
+    {
+     "path": "games/tide/tide_library.py",
+     "bytes": 6865,
+     "precached": true
+    },
+    {
+     "path": "games/tide/tide_libraryview.py",
+     "bytes": 6918,
+     "precached": true
+    },
+    {
+     "path": "games/tide/tide_loading.py",
+     "bytes": 20957,
+     "precached": true
+    },
+    {
+     "path": "games/tide/tide_model_economy.py",
+     "bytes": 22325,
+     "precached": true
+    },
+    {
+     "path": "games/tide/tide_model_season.py",
+     "bytes": 25942,
+     "precached": true
+    },
+    {
+     "path": "games/tide/tide_model_town.py",
+     "bytes": 28936,
+     "precached": true
+    },
+    {
+     "path": "games/tide/tide_panels.py",
+     "bytes": 8023,
+     "precached": true
+    },
+    {
+     "path": "games/tide/tide_readouts.py",
+     "bytes": 17336,
+     "precached": true
+    },
+    {
+     "path": "games/tide/tide_renderer.py",
+     "bytes": 8528,
+     "precached": true
+    },
+    {
+     "path": "games/tide/tide_rules.py",
+     "bytes": 20288,
+     "precached": true
+    },
+    {
+     "path": "games/tide/tide_runcode.py",
+     "bytes": 14183,
+     "precached": true
+    },
+    {
+     "path": "games/tide/tide_runstate.py",
+     "bytes": 4232,
+     "precached": true
+    },
+    {
+     "path": "games/tide/tide_savestate.py",
+     "bytes": 12510,
+     "precached": true
+    },
+    {
+     "path": "games/tide/tide_seasonflow.py",
+     "bytes": 8420,
+     "precached": true
+    },
+    {
+     "path": "games/tide/tide_ticker.py",
+     "bytes": 9969,
+     "precached": true
+    },
+    {
+     "path": "games/tide/tide_workshop.py",
+     "bytes": 5011,
+     "precached": true
+    },
+    {
+     "path": "games/tide/tutorial-steps.js",
+     "bytes": 3472,
      "precached": true
     },
     {
@@ -1210,11 +1400,6 @@
     {
      "path": "shared/info-page.css",
      "bytes": 1092,
-     "precached": true
-    },
-    {
-     "path": "shared/info_page.py",
-     "bytes": 3410,
      "precached": true
     },
     {
@@ -1375,7 +1560,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14883027,
+   "bytes": 14900689,
    "bytes_complete": true
   },
   "aftermath": {
