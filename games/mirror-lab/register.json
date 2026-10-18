@@ -1,0 +1,17 @@
+{
+  "name": "Mirror Lab",
+  "working_title": true,
+  "blurb": "A dark optics bench: place mirrors, splitters, prisms and filters on the dashed slots so one beam lights every sensor and no decoy. Forty proved benches in five chapters, nothing timed. Working title.",
+  "tags": ["quick"],
+  "tag_labels": ["Quick"],
+  "glow": "#8fd0ff",
+  "bg": ["#121722", "#07090d"],
+  "status": "All 7 folder milestones complete: you are the optics technician at Arden Relay; place mirrors, splitters, prisms, filters and absorbers on a dark bench so one beam lights every sensor and no decoy (40 benches in five chapters, each proved solvable by a solver, a hint ladder, three goals, a Bench Log, 14 achievements, Easy/Normal/Hard, Desktop boot, 216 tests). Nothing is timed or lost. Hub-linked, no BCM tag",
+  "smoke_actions": [
+    {"action": "reset"}, {"action": "open"}, {"action": "next"}, {"action": "pick", "bench": "c1-1"}, {"action": "pick", "bench": "c1-2"},
+    {"action": "place", "r": 3, "c": 4, "piece": "mirror"}, {"action": "place", "r": 3, "c": 2, "piece": "mirror"}, {"action": "flip", "r": 3, "c": 4},
+    {"action": "pickup", "r": 3, "c": 4}, {"action": "move", "r": 3, "c": 4, "to_r": 3, "to_c": 2}, {"action": "clear_bench"}, {"action": "hint"},
+    {"action": "place_answer"}, {"action": "difficulty", "level": "easy"}, {"action": "difficulty", "level": "normal"}
+  ],
+  "smoke_steps": 300
+}

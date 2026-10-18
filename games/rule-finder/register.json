@@ -1,0 +1,17 @@
+{
+  "name": "Rule Finder",
+  "working_title": true,
+  "blurb": "A signal-room sorting game: an old relay lets some items through its gate and stops others. Build your own test items, work out the hidden rule and name it. Forty-eight cases in six drawers, nothing timed. Working title.",
+  "tags": ["quick"],
+  "tag_labels": ["Quick"],
+  "glow": "#e0bd72",
+  "bg": ["#181c24", "#0d0f13"],
+  "status": "All 7 folder milestones complete: a signal-room sorting game where you send test items through a relay gate, work out the hidden rule and name it with a rule builder (48 cases in six drawers of numbers, shape strings and 3x3 patterns, every case proved fair by a solver that finds the shortest set of tests, a hint ladder, gold/silver/bronze medals, a Rule Codex, 14 achievements, Desktop boot, 329 tests). Nothing is timed or lost. Hub-linked, no BCM tag",
+  "smoke_actions": [
+    {"action": "reset"}, {"action": "open"}, {"action": "next"}, {"action": "pick", "case": "latch"}, {"action": "pick", "case": "valve"},
+    {"action": "test", "item": 7}, {"action": "test", "item": 12}, {"action": "test", "item": 64}, {"action": "test", "item": "tdt"},
+    {"action": "preview", "rule": {"lits": [["even", 0]], "ops": []}}, {"action": "name", "rule": {"lits": [["even", 0]], "ops": []}},
+    {"action": "name", "rule": {"lits": [["ge:50", 1]], "ops": []}}, {"action": "hint"}, {"action": "restart"}, {"action": "page", "case": "latch"}
+  ],
+  "smoke_steps": 300
+}

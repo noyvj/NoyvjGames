@@ -1,0 +1,17 @@
+{
+  "name": "Slingshot",
+  "working_title": true,
+  "blurb": "Plan a probe's burns on a quiet chart, watch the flight play out exactly as planned, and use planets' gravity to reach the Moon, Mars and its moons on a fuel budget. Real orbit numbers, simplified physics, nothing timed. Working title.",
+  "tags": ["space", "deep-systems"],
+  "tag_labels": ["Space", "Deep Systems"],
+  "glow": "#f1d58a",
+  "bg": ["#121a30", "#070b16"],
+  "status": "Milestones 1 to 3 of 7 built (not finished: chapters 4 and 5, the hint ladder, goals, the standard kit, achievements and the Desktop boot are still to come): plan a probe's burns on a chart, watch the flight play out exactly as planned and use gravity assists to reach the Moon, Mars and its moons on a fuel budget (22 missions in three chapters, every mission proved solvable by a stored reference plan, real NASA/JPL numbers, a Moon Atlas, 326 tests). Nothing is timed or lost. Hub-linked, no BCM tag",
+  "smoke_actions": [
+    {"action": "reset"}, {"action": "open"}, {"action": "next"}, {"action": "pick", "mission": "c1m1"}, {"action": "pick", "mission": "c1m2"},
+    {"action": "burn_add", "t": 10, "head": 0, "dv": 3.2, "at": "time"}, {"action": "burn_add", "t": 40, "head": 90, "dv": 0.5, "at": "peri"},
+    {"action": "burn_set", "i": 0, "dv": 2.9}, {"action": "burn_del", "i": 0}, {"action": "pass_set", "body": "moon", "dv": -0.3},
+    {"action": "plan_clear"}, {"action": "undo"}, {"action": "redo"}, {"action": "fly"}, {"action": "scrub", "n": 5}
+  ],
+  "smoke_steps": 200
+}

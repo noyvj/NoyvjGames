@@ -1,0 +1,19 @@
+{
+  "name": "Picture Grid",
+  "working_title": true,
+  "blurb": "Nonograms in a quiet gallery: fill each grid from the number clues on its rows and columns, and every solved picture is hung on a wall of space, robot and machine scenes. Sixty pictures, each with exactly one solution, nothing timed. Working title.",
+  "tags": ["quick"],
+  "tag_labels": ["Quick"],
+  "glow": "#e8c77a",
+  "bg": ["#1b2232", "#0e1118"],
+  "status": "All 7 folder milestones complete: nonograms in a quiet gallery; fill each grid from its row and column clues and every solved picture is hung on a wall (60 pictures in six galleries, each proved to have exactly one solution that line logic alone finishes, undo and redo, optional check/auto-dot/focus assists, a line-logic hint ladder, a slideshow of hung pictures, 14 achievements, Easy/Normal/Hard, Desktop boot, 442 tests). Nothing is timed. Hub-linked, no BCM tag",
+  "smoke_actions": [
+    {"action": "reset"}, {"action": "open"}, {"action": "next"}, {"action": "pick", "picture": "hammer"}, {"action": "pick", "picture": "key"},
+    {"action": "paint", "cells": [[0, 1], [0, 2], [0, 3]], "value": 1}, {"action": "paint", "cells": [[0, 0], [0, 4]], "value": 2},
+    {"action": "paint", "cells": [[1, 1], [1, 2]], "value": 1}, {"action": "paint", "cells": [[0, 1]], "value": 0}, {"action": "undo"}, {"action": "redo"},
+    {"action": "assist", "name": "check", "on": true}, {"action": "assist", "name": "autodot", "on": true}, {"action": "assist", "name": "focus", "on": false},
+    {"action": "retry"}, {"action": "hint"}, {"action": "hint", "confirm": true}, {"action": "slideshow"},
+    {"action": "difficulty", "level": "easy"}, {"action": "difficulty", "level": "normal"}
+  ],
+  "smoke_steps": 300
+}
