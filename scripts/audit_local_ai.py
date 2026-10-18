@@ -390,7 +390,7 @@ def cmd_finish(args):
     print("merged %s, ticked %d, worktree and branch closed" % (slug, len(accepted)))
     if args.delete_remote:
         git("fetch", "-q", "--prune")
-        handled = set(accepted) | set(partial)
+        handled = set(accepted) | set(partial) | ticked_ids((ROOT / "planning" / "TODO-NEXT.md").read_text())   # ticked earlier = audited earlier
         victims = []
         for b in [x.strip() for x in git("branch", "-r").splitlines() if "/local-ai/" in x]:
             ids = {parse_subject(s) for s in git("log", "--no-merges", "--format=%s", "main.." + b).splitlines()} - {None}
