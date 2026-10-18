@@ -1,0 +1,1 @@
+# Drafted 2026-10-18 for LA-8 (local AI steps), game: drift. No steps: every open Drift item turned out to need a design decision, a shared file or a feature the code does not have (see drift-notes.md).
