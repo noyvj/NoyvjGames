@@ -10,8 +10,8 @@ GAME_DIR = Path(__file__).resolve().parent.parent
 MAX_TOKENS = 14_000
 
 # Not edited by hand by the AI: the Desktop page is generated (scripts/generate-pc-pages.py), the JSON files are
-# data, CLAUDE.md is documentation for the main session.
-EXEMPT = {"pc.html", "CLAUDE.md", "achievements.json", "changelog.json", "sources.json", "pc-config.json"}
+# data, CLAUDE.md and NOTES.md are documentation (NOTES.md is the long history, read one section at a time).
+EXEMPT = {"pc.html", "CLAUDE.md", "NOTES.md", "achievements.json", "changelog.json", "sources.json", "pc-config.json"}
 # index.html is the page's markup (about 57 KB once every script and stylesheet is a separate file). It is the one file
 # allowed above the usual limit, with a hard cap so it cannot keep growing.
 CAPS = {"index.html": 15_000}

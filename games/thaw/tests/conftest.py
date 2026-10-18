@@ -14,6 +14,11 @@ GAME_PY = GAME_DIR / "game.py"
 # folder has to be importable, the same way the Pyodide boot script in boot.js writes them next to game.py.
 if str(GAME_DIR) not in sys.path:
     sys.path.insert(0, str(GAME_DIR))
+# tests/browser_helpers.py (the shared browser-test set-up) is imported by plain name: `from browser_helpers import base, open_game`.
+TESTS_DIR = Path(__file__).resolve().parent
+if str(TESTS_DIR) not in sys.path:
+    sys.path.insert(0, str(TESTS_DIR))
+from browser_helpers import base  # noqa: E402,F401  (fixture for the browser tests)
 
 # game.py imports the shared info-page widget (shared/info_page.py) the
 # same way the real Pyodide boot script does -- see any game's index.html
