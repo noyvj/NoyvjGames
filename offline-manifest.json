@@ -36,6 +36,16 @@
      "precached": true
     },
     {
+     "path": "games/sol/data/transfer_data.json",
+     "bytes": 2681,
+     "precached": false
+    },
+    {
+     "path": "games/sol/data/wonders.json",
+     "bytes": 30210,
+     "precached": false
+    },
+    {
      "path": "games/sol/game.py",
      "bytes": 26328,
      "precached": true
@@ -249,6 +259,16 @@
      "path": "games/sol/style.css",
      "bytes": 13808,
      "precached": true
+    },
+    {
+     "path": "games/sol/tools/fetch_transfer_data.py",
+     "bytes": 7460,
+     "precached": false
+    },
+    {
+     "path": "games/sol/tools/fetch_wonders.py",
+     "bytes": 8467,
+     "precached": false
     },
     {
      "path": "games/sol/tutorial-steps.js",
@@ -495,7 +515,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14982854,
+   "bytes": 15031672,
    "bytes_complete": true
   },
   "canopy": {
@@ -761,6 +781,21 @@
      "precached": true
     },
     {
+     "path": "games/canopy/data/forest_carbon.json",
+     "bytes": 3462,
+     "precached": false
+    },
+    {
+     "path": "games/canopy/data/region_losses.json",
+     "bytes": 40253,
+     "precached": false
+    },
+    {
+     "path": "games/canopy/data/wildlife_status.json",
+     "bytes": 16773,
+     "precached": false
+    },
+    {
      "path": "games/canopy/feedback.js",
      "bytes": 1837,
      "precached": true
@@ -849,6 +884,21 @@
      "path": "games/canopy/todays-run.js",
      "bytes": 763,
      "precached": true
+    },
+    {
+     "path": "games/canopy/tools/fetch_forest_carbon.py",
+     "bytes": 7310,
+     "precached": false
+    },
+    {
+     "path": "games/canopy/tools/fetch_region_losses.py",
+     "bytes": 4607,
+     "precached": false
+    },
+    {
+     "path": "games/canopy/tools/fetch_wildlife.py",
+     "bytes": 6433,
+     "precached": false
     },
     {
      "path": "games/canopy/tutorial-steps.js",
@@ -1145,7 +1195,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 15232489,
+   "bytes": 15311327,
    "bytes_complete": true
   },
   "grid": {
@@ -1174,6 +1224,26 @@
      "path": "games/grid/copy-and-credits.js",
      "bytes": 2368,
      "precached": true
+    },
+    {
+     "path": "games/grid/data/capacity_factors.json",
+     "bytes": 19792,
+     "precached": false
+    },
+    {
+     "path": "games/grid/data/moon_facts.json",
+     "bytes": 2276,
+     "precached": false
+    },
+    {
+     "path": "games/grid/data/reference_plants.json",
+     "bytes": 8069,
+     "precached": false
+    },
+    {
+     "path": "games/grid/data/solar_learning_curve.json",
+     "bytes": 6017,
+     "precached": false
     },
     {
      "path": "games/grid/feedback.js",
@@ -1466,6 +1536,26 @@
      "precached": true
     },
     {
+     "path": "games/grid/tools/fetch_capacity_factors.py",
+     "bytes": 5184,
+     "precached": false
+    },
+    {
+     "path": "games/grid/tools/fetch_moon_facts.py",
+     "bytes": 4353,
+     "precached": false
+    },
+    {
+     "path": "games/grid/tools/fetch_reference_plants.py",
+     "bytes": 8571,
+     "precached": false
+    },
+    {
+     "path": "games/grid/tools/fetch_solar_curve.py",
+     "bytes": 3598,
+     "precached": false
+    },
+    {
      "path": "games/grid/tutorial-steps.js",
      "bytes": 3895,
      "precached": true
@@ -1725,7 +1815,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14910891,
+   "bytes": 14968751,
    "bytes_complete": true
   },
   "tide": {
@@ -1754,6 +1844,16 @@
      "path": "games/tide/copy-wiring.js",
      "bytes": 3054,
      "precached": true
+    },
+    {
+     "path": "games/tide/data/sea_level_pathways.json",
+     "bytes": 8815,
+     "precached": false
+    },
+    {
+     "path": "games/tide/data/specimens.json",
+     "bytes": 44193,
+     "precached": false
     },
     {
      "path": "games/tide/feedback.js",
@@ -1969,6 +2069,16 @@
      "path": "games/tide/tide_workshop.py",
      "bytes": 5011,
      "precached": true
+    },
+    {
+     "path": "games/tide/tools/fetch_sea_level.py",
+     "bytes": 4837,
+     "precached": false
+    },
+    {
+     "path": "games/tide/tools/fetch_specimens.py",
+     "bytes": 6791,
+     "precached": false
     },
     {
      "path": "games/tide/tutorial-steps.js",
@@ -2230,7 +2340,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14900689,
+   "bytes": 14965325,
    "bytes_complete": true
   },
   "aftermath": {
@@ -3286,6 +3396,11 @@
      "precached": true
     },
     {
+     "path": "games/thaw/data/ice_cores.json",
+     "bytes": 31340,
+     "precached": false
+    },
+    {
      "path": "games/thaw/feedback.js",
      "bytes": 4048,
      "precached": true
@@ -3504,6 +3619,11 @@
      "path": "games/thaw/thaw_views.py",
      "bytes": 11024,
      "precached": true
+    },
+    {
+     "path": "games/thaw/tools/fetch_ice_cores.py",
+     "bytes": 7807,
+     "precached": false
     },
     {
      "path": "games/thaw/tutorial-steps.js",
@@ -3725,7 +3845,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14769043,
+   "bytes": 14808190,
    "bytes_complete": true
   },
   "loop": {
@@ -3749,6 +3869,11 @@
      "path": "games/loop/community-compare.js",
      "bytes": 1591,
      "precached": true
+    },
+    {
+     "path": "games/loop/data/materials.json",
+     "bytes": 12404,
+     "precached": false
     },
     {
      "path": "games/loop/feedback.js",
@@ -3959,6 +4084,11 @@
      "path": "games/loop/style.css",
      "bytes": 877,
      "precached": true
+    },
+    {
+     "path": "games/loop/tools/fetch_materials.py",
+     "bytes": 3874,
+     "precached": false
     },
     {
      "path": "games/loop/tutorial-steps.js",
@@ -4185,7 +4315,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14731963,
+   "bytes": 14748241,
    "bytes_complete": true
   },
   "drift": {
