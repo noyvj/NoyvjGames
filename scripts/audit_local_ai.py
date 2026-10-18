@@ -31,7 +31,7 @@ import sys
 from pathlib import Path
 
 ROOT = Path(os.environ.get("NOYVJ_ROOT") or Path(__file__).resolve().parent.parent)
-IDEA = re.compile(r"^local-ai: (R4-[A-Z]+-\d+|[A-Z]{1,4}-\d+[a-z]?\d*)\b")
+IDEA = re.compile(r"^local-ai: (R4-[A-Z]+-\d+|[A-Z]{1,4}-\d+[a-z]?\d*|T-[^:\s]+):")
 TOOLING_PATHS = ("local-ai/", "BCM206-DEV-LOG.md", "BCM114-DEV-LOG.md")
 LOCAL_REF = re.compile(r"""(?:src|href)=["']([^"'#?:]+\.(?:js|css|py|json|svg))["']""")
 GH = ["git", "-c", "credential.helper=!gh auth git-credential"]
@@ -99,6 +99,39 @@ def missing_precache(html_text, slug, sw_text, exists):
         if exists(path) and ('"%s"' % path) not in sw_text and path not in missing:
             missing.append(path)
     return missing
+
+
+def weak_tests(source):
+    """Test functions in `source` that prove little: no assert, assert True, or only None-checks."""
+    import ast
+    try:
+        tree = ast.parse(source)
+    except SyntaxError as exc:
+        return ["does not parse: %s" % exc]
+    weak = []
+    for node in ast.walk(tree):
+        if isinstance(node, ast.FunctionDef) and node.name.startswith("test_"):
+            asserts = [n for n in ast.walk(node) if isinstance(n, ast.Assert)]
+            raises = [n for n in ast.walk(node) if isinstance(n, ast.With) and "raises" in ast.dump(n)]
+            if not asserts and not raises:
+                weak.append("%s: no assert" % node.name)
+                continue
+            useful = False
+            for a in asserts:
+                t = a.test
+                if isinstance(t, ast.Constant):
+                    continue
+                dump = ast.dump(t)
+                if isinstance(t, ast.Compare) and all(isinstance(op, (ast.Is, ast.IsNot)) for op in t.ops) and "None" in dump:
+                    continue
+                useful = True
+            if not useful and not raises:
+                weak.append("%s: only trivial asserts (True / is None)" % node.name)
+    # An edge-case test that only checks "returns None" is fine while the file also has tests with real asserts.
+    all_names = [n.name for n in ast.walk(tree) if isinstance(n, ast.FunctionDef) and n.name.startswith("test_")]
+    if weak and len(weak) < len(all_names) and all(w.endswith("(True / is None)") for w in weak):
+        return []
+    return weak
 
 
 def new_findings(after_lines, before_lines):
@@ -170,7 +203,8 @@ def cmd_prepare(args):
     slug = args.slug
     git("fetch", "-q", "--prune")
     _, ideas, _ = collect_ideas()
-    commits = [i for i in ideas if i["game"] == slug]
+    done = ticked_ids((ROOT / "planning" / "TODO-NEXT.md").read_text())
+    commits = [i for i in ideas if i["game"] == slug and i["id"] not in done]   # already-ticked ids are re-runs of audited work
     if not commits:
         print("nothing waiting for %s" % slug)
         return 0
@@ -193,6 +227,11 @@ def cmd_prepare(args):
         print("  files: %s" % ", ".join(p.replace("games/%s/" % slug, "") for p in item["paths"]))
         print("  scope: %s" % ("OUTSIDE FOLDER " + ", ".join(bad) if bad else "ok"))
         print("  tests added: %s" % (", ".join(Path(t).name for t in tests) if tests else "NONE"))
+        for t in tests:
+            tp = wt / t
+            if tp.exists() and t.endswith(".py"):
+                for w in weak_tests(tp.read_text()):
+                    print("  WEAK TEST %s::%s" % (Path(t).name, w))
         print("  static findings: %s" % ("none" if not findings else ""))
         for line in findings:
             print("    " + line)
@@ -298,7 +337,7 @@ def cmd_live(args):
 
 def tick(todo_path, ids):
     text = todo_path.read_text()
-    for rid in ids:
+    for rid in [i for i in ids if not i.startswith("T-")]:
         text, n = re.subn(r"^(\s*)- \[ \] (%s):" % re.escape(rid), r"\1- [x] \2:", text, flags=re.M)
         if not n:
             print("  note: %s not found as an open item (already ticked?)" % rid)
@@ -309,6 +348,10 @@ def cmd_finish(args):
     slug = args.slug
     accepted = [i for i in (args.accepted or "").split(",") if i]
     partial = [i for i in (args.partial or "").split(",") if i]
+    if "T-*" in accepted:   # every waiting test-writing task of this game (they have no TODO-NEXT item to tick)
+        accepted.remove("T-*")
+        _, waiting, _ = collect_ideas()
+        accepted += [i["id"] for i in waiting if i["game"] == slug and i["id"].startswith("T-")]
     wt = worktree_path(slug)
     branch = "audit/" + slug
     if wt.exists() and git("status", "--porcelain", "--untracked-files=no", cwd=wt).strip():
