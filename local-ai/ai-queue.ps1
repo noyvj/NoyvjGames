@@ -58,6 +58,9 @@ function Sync-WithGitHub {
         }
         else { Write-Host "  Your $branchNow is $ahead ahead and $behind behind GitHub: not pulled automatically (needs a merge)." }
     }
+    # Noy2's audits and splits make more TODO items possible; this adds them to queue.txt (TODO.md work right
+    # after the tests, Round 4 after that). See local-ai/refresh_queue.py.
+    python (Join-Path $aiDir "refresh_queue.py") | ForEach-Object { Write-Host "  $_" }
     # 2. Push finished local-ai branches (only ever local-ai/..., never main).
     if ((Setting "push" "off") -ne "on") { Write-Host "  Pushing is off (push = off in config.txt)."; return }
     $pushed = 0

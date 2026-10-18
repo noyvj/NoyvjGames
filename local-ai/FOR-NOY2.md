@@ -46,7 +46,7 @@ of test-writing tasks.
   ai.ps1's -Chain/-Step) so each step starts from the previous step's branch.
 - local-ai/queue.txt is not in git (it exists only on the Windows laptop), so don't edit it. Commit the steps
   as `local-ai/incoming-tasks.txt` (same line format; a `# replaces: <ITEM-ID>, ...` comment line above each
-  group). The Windows session moves them into the queue and removes the whole-milestone lines they replace.
+  group). The runner picks them up by itself every 10 tasks (local-ai/refresh_queue.py, after its GitHub sync): it adds the steps and removes the whole items they replace. Items you relabel `[local AI: yes]` in the TODO lists are picked up the same way, current TODO.md first.
 - There is a proposed session card in the Windows session for exactly this ("Split new-game milestones into
   local-AI-sized steps"); this item replaces it if Noy2 does it.
 
