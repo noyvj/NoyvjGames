@@ -1,0 +1,17 @@
+{
+  "name": "Reaction Bench",
+  "working_title": true,
+  "blurb": "A quiet night-shift lab on a research station: balance each chemical equation with dials, put the compound on the shelf, and light a new tile on the periodic table for every element you use. Forty orders in five chapters, nothing timed. Working title.",
+  "tags": ["quick"],
+  "tag_labels": ["Quick"],
+  "glow": "#6fd6c8",
+  "bg": ["#16232e", "#0b1218"],
+  "status": "All 7 folder milestones complete: balance chemical equations with dials while an atom ledger shows both sides, shelve each compound and light a periodic-table tile for every element used (40 orders in five chapters including product-choice rounds and two-step routes, every equation proved balanceable, a hint ladder, three goals, 14 achievements, Easy/Normal/Hard, live PubChem facts, Desktop boot, 450 tests). Nothing is timed. Hub-linked, no BCM tag",
+  "smoke_actions": [
+    {"action": "reset"}, {"action": "open"}, {"action": "next"}, {"action": "pick", "reaction": "carbon-dioxide"}, {"action": "pick", "reaction": "table-salt"},
+    {"action": "pick", "reaction": "water"}, {"action": "dial", "index": 0, "value": 2}, {"action": "dial", "index": 1, "delta": 1}, {"action": "dial", "index": 2, "delta": -1},
+    {"action": "reset_dials"}, {"action": "choose", "option": 0}, {"action": "run"}, {"action": "hint"}, {"action": "hint", "confirm": true},
+    {"action": "difficulty", "level": "easy"}, {"action": "difficulty", "level": "normal"}
+  ],
+  "smoke_steps": 300
+}

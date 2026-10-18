@@ -1,0 +1,18 @@
+{
+  "name": "Constellations",
+  "working_title": true,
+  "blurb": "A night-sky logic puzzle: numbers on stars say how many lines must touch them, and the shape that falls out is a real constellation you keep in your Sky Atlas. Forty charts in five seasons, real stars, nothing timed. Working title.",
+  "tags": ["space", "quick"],
+  "tag_labels": ["Space", "Quick"],
+  "glow": "#f1d58a",
+  "bg": ["#121a30", "#070b16"],
+  "status": "All 7 folder milestones complete: a night-sky logic puzzle where numbers on stars say how many lines must touch them and the shape that falls out is a real constellation kept in a Sky Atlas (40 charts in five seasons from real star data, each proved to have exactly one valid figure that line logic finishes, a hint ladder, three goals, 14 achievements, Easy/Normal/Hard, Desktop boot, 575 tests). Nothing is timed or lost. Hub-linked, no BCM tag",
+  "smoke_actions": [
+    {"action": "reset"}, {"action": "open"}, {"action": "next"}, {"action": "pick", "chart": "auriga"}, {"action": "pick", "chart": "columba"},
+    {"action": "toggle", "a": 0, "b": 1}, {"action": "toggle", "a": 0, "b": 2}, {"action": "toggle", "a": 0, "b": 3}, {"action": "toggle", "a": 0, "b": 4},
+    {"action": "toggle", "a": 1, "b": 3}, {"action": "undo"}, {"action": "redo"}, {"action": "clear"}, {"action": "finish"},
+    {"action": "hint"}, {"action": "hint", "confirm": true}, {"action": "hint_draw"},
+    {"action": "difficulty", "level": "easy"}, {"action": "difficulty", "level": "normal"}
+  ],
+  "smoke_steps": 300
+}

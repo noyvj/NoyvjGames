@@ -1,0 +1,16 @@
+{
+  "name": "Teach the Machine",
+  "working_title": true,
+  "blurb": "Switch features on and off for a small, patient learning machine, press Train, and open up every wrong answer to see exactly which feature fooled it. A toy with invented data, not a claim about larger systems. Working title.",
+  "tags": ["deep-systems"],
+  "tag_labels": ["Deep Systems"],
+  "glow": "#ffb454",
+  "bg": ["#18222c", "#0b0f13"],
+  "status": "Milestones 1 to 3 and 5 of 7 built (not finished: shelves 4 and 5, the hint ladder, achievements and the Desktop boot are still to come): switch features on and off for a small learning machine called Pip, press Train, press Test, and open every wrong answer in a Why panel (24 lessons on three shelves, every lesson proved clearable by trying every set of switches, a Failure Notebook, the standard kit, 240 tests). Invented data only, nothing timed or lost. Hub-linked, no BCM tag",
+  "smoke_actions": [
+    {"action": "reset"}, {"action": "open"}, {"action": "next"}, {"action": "pick", "lesson": "ripe-crates"}, {"action": "pick", "lesson": "safe-doors"},
+    {"action": "toggle", "feature": "glow"}, {"action": "toggle", "feature": "stripes"}, {"action": "toggle", "feature": "weight"}, {"action": "reset_switches"},
+    {"action": "train"}, {"action": "test"}, {"action": "why", "case": "U1"}, {"action": "close_why"}
+  ],
+  "smoke_steps": 300
+}
