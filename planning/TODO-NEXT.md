@@ -125,7 +125,7 @@ How it is built: one section per Round 4 section on the ideas sheet (`planning/I
 - `[Claude: ...]`: needs a Claude session (site-wide or shared files, backend, live web data, hub registration, or not tied to one game).
 - `[needs you]`: waits on your answer, account or decision. `[on hold]`: the QA pass, on hold until closing time.
 
-Open items now: [local AI: yes] 362, [local AI: after split] 92, [needs you] 75, [local AI: after the game is built] 58, [Claude: backend] 50, [Claude: site-wide] 39, [Claude: design] 25, [local AI: in steps] 18, [Claude: live web data] 13, [Claude: shared] 5, [Claude: story writing] 5, [Claude: not one game] 5, [Claude: art] 4, [Claude: new puzzle engine] 3, [Claude: 3D] 2, [Claude: drag] 2, [Claude: look and animals] 1, [Claude: painted art] 1, [Claude: look and levels] 1, [Claude: achievements] 1, [Claude: cutaway art] 1, [Claude: zoom and pan] 1, [Claude: drag UI] 1, [Claude: gestures] 1, [Claude: story text and scenario balance] 1, [Claude: drag UI and a map] 1, [Claude: swipe gesture] 1, [Claude: pointer events, after R4-GRPC-4 merges] 1, [Claude: look and art] 1, [Claude: layered SVG art] 1, [Claude: map UI and placement model] 1, [Claude: gesture] 1, [Claude: swipe] 1, [Claude: hold gesture and sheet] 1.
+Open items now: [local AI: yes] 363, [needs you] 86, [local AI: after the game is built] 58, [Claude: design] 51, [Claude: backend] 50, [local AI: after split] 47, [Claude: site-wide] 39, [local AI: in steps] 22, [Claude: live web data] 13, [Claude: shared] 6, [Claude: art] 6, [Claude: story writing] 5, [Claude: not one game] 5, [Claude: new puzzle engine] 3, [Claude: 3D] 2, [Claude: drag] 2, [Claude: look and animals] 1, [Claude: painted art] 1, [Claude: look and levels] 1, [Claude: achievements] 1, [Claude: cutaway art] 1, [Claude: zoom and pan] 1, [Claude: drag UI] 1, [Claude: gestures] 1, [Claude: story text and scenario balance] 1, [Claude: drag UI and a map] 1, [Claude: swipe gesture] 1, [Claude: pointer events, after R4-GRPC-4 merges] 1, [Claude: look and art] 1, [Claude: layered SVG art] 1, [Claude: map UI and placement model] 1, [Claude: gesture] 1, [Claude: swipe] 1, [Claude: hold gesture and sheet] 1.
 <!-- LOCAL-AI-LABELS:END -->
 
 ## XG. Whole site: general ideas
@@ -535,11 +535,11 @@ Dropped (you said no): PG-30.
 
 30 ideas on the sheet: 6 yes, 0 no, 0 later, 24 not answered yet.
 
-- [ ] R4-PA-1: (big) Add relief convoys: after an event you can send some of your resources to a neighbouring settlement run by the computer, and it sends back help in a later run. It fits your helper role and costs you only what you choose to give. [local AI: after split]
-- [ ] R4-PA-2: (big) Add a field clinic puzzle after heatwaves: sort simple cases with limited supplies, nobody dies on screen, and a bad plan simply lets you retry. It is a healer role, and its result feeds your recovery so the minigame always counts. [local AI: after split]
+- [ ] R4-PA-1: (big) Add relief convoys: after an event you can send some of your resources to a neighbouring settlement run by the computer, and it sends back help in a later run. It fits your helper role and costs you only what you choose to give. [Claude: design]
+- [ ] R4-PA-2: (big) Add a field clinic puzzle after heatwaves: sort simple cases with limited supplies, nobody dies on screen, and a bad plan simply lets you retry. It is a healer role, and its result feeds your recovery so the minigame always counts. [Claude: design]
 - [ ] R4-PA-3: (small) Add a Memento Cabinet: each kind of event you survive leaves a small keepsake (a flood marker, a lantern, a stuck clock) in a low-poly cabinet. You get a collection with a clear percent complete. [local AI: yes]
 - [ ] R4-PA-4: (small) Add a Night After view: a dark low-poly settlement where every lit window is a household that came through safe, so your result looks like a glowing town. It gives you a moody picture of what your choices saved. [local AI: yes]
-- [ ] R4-PA-5: (big) Add a Marathon mode of 40 events across a long timeline, with save anywhere and no pressure, for those over-three-hours evenings. It gives you a long, optional way to play. [local AI: after split]
+- [ ] R4-PA-5: (big) Add a Marathon mode of 40 events across a long timeline, with save anywhere and no pressure, for those over-three-hours evenings. It gives you a long, optional way to play. [Claude: design]
 - [ ] R4-PA-6: (small) Add three resilience goals shown at all times, each "get this branch of the tree to level 5 to unlock that", in any order. You always know what to work on next. [local AI: yes]
 - [ ] R4-PA-add: When you have answered the rest of this section on the ideas sheet (24 ideas: 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30), read the answers from the owner note and add the yes ones here as items. [needs you]
 
@@ -547,12 +547,12 @@ Dropped (you said no): PG-30.
 
 10 ideas on the sheet: 10 yes, 0 no, 0 later, 0 not answered yet.
 
-- [ ] R4-AFPC-1: (big) Show the skill tree as a pannable, zoomable map with the mouse wheel and a drag, with a hover card on each node showing cost, effect and which runs used it. You can plan your resilience build like in a big PC skill tree. [local AI: after split]
+- [ ] R4-AFPC-1: (big) Show the skill tree as a pannable, zoomable map with the mouse wheel and a drag, with a hover card on each node showing cost, effect and which runs used it. You can plan your resilience build like in a big PC skill tree. [needs you]
 - [ ] R4-AFPC-2: (small) Add a hotkey bar along the bottom of the run screen with big keys for Invest, Face event and Undo that light up when pressed. The key bindings are visible and easy to learn. [local AI: yes]
 - [ ] R4-AFPC-3: (small) Add a right-click menu on an investment with Pin as a goal, Show linked nodes and Compare with last run. You get quick tools while planning. [local AI: yes]
 - [ ] R4-AFPC-4: (small) Add Ctrl+F search above the skill tree that dims every node except those matching a word like "flood", with Enter to jump to the next match. You find the part of the tree you want at once. [local AI: yes]
 - [ ] R4-AFPC-5: (small) Let you detach the Disaster Codex into a floating window you can resize and keep open during a run. You look up the next event type while you decide. [local AI: yes]
-- [ ] R4-AFPC-6: (big) Add a Past Runs table with sortable columns (date, severity, damage prevented, resilience reached) and a click that opens a run's event ribbon. You can analyse your history like a spreadsheet. [local AI: after split]
+- [ ] R4-AFPC-6: (big) Add a Past Runs table with sortable columns (date, severity, damage prevented, resilience reached) and a click that opens a run's event ribbon. You can analyse your history like a spreadsheet. [local AI: in steps]
 - [ ] R4-AFPC-7: (small) Add a UI scale and density setting (compact, normal, roomy) that resizes every panel together. The game fits a 1080p monitor or a 4K screen. [local AI: yes]
 - [ ] R4-AFPC-8: (small) Keep a strip of up to three pinned skill goals above the tree, each with a progress bar and a click to jump to the node. You always see your next three goals. [local AI: yes]
 - [ ] R4-AFPC-9: (small) Show a hover preview on each upcoming event slot that lists the damage types it is known to bring. You can plan against what you know. [local AI: yes]
@@ -562,12 +562,12 @@ Dropped (you said no): PG-30.
 
 10 ideas on the sheet: 10 yes, 0 no, 0 later, 0 not answered yet.
 
-- [ ] R4-AFMO-1: (big) Make each run a stack of event cards that you swipe through, with Invest as a bottom sheet of large buttons. A run plays as a short card-sized session. [local AI: after split]
+- [ ] R4-AFMO-1: (big) Make each run a stack of event cards that you swipe through, with Invest as a bottom sheet of large buttons. A run plays as a short card-sized session. [Claude: design]
 - [ ] R4-AFMO-2: (small) Show the coming disaster as a full-width banner card at the top with its icon and a plain word for severity, and let a swipe down expand its codex entry. You see the threat before you spend. [local AI: yes]
-- [ ] R4-AFMO-3: (small) Put the Invest buttons in a bottom sheet with three snap heights (peek, half, full) that you drag between. You choose how much of the run stays visible while you decide. [local AI: after split]
+- [ ] R4-AFMO-3: (small) Put the Invest buttons in a bottom sheet with three snap heights (peek, half, full) that you drag between. You choose how much of the run stays visible while you decide. [Claude: design]
 - [ ] R4-AFMO-4: (small) Add a home-screen card with your resilience level, total knowledge points and the next affordable skill node. You can see where your tree stands at a glance. [local AI: yes]
 - [ ] R4-AFMO-5: (small) Put the skill tree on a vertical scroll of branch cards, each with a locked count and a tap to expand. The big tree fits a thumb. [local AI: yes]
-- [ ] R4-AFMO-6: (small) Add a swipe from a skill node to the left to pin it as a goal. Planning your next unlock is one gesture. [local AI: after split]
+- [ ] R4-AFMO-6: (small) Add a swipe from a skill node to the left to pin it as a goal. Planning your next unlock is one gesture. [local AI: yes]
 - [ ] R4-AFMO-7: (small) Add a bed-time mode that dims the screen, enlarges buttons and offers one recommended investment per round. A tired player still makes sensible progress. [local AI: yes]
 - [ ] R4-AFMO-8: (small) Let a double-tap on an affordable skill node buy it, with a confirm tick. Unlocking is a gesture. [local AI: yes]
 - [ ] R4-AFMO-9: (small) Pin knowledge points and resilience in a thin top strip that stays visible while you scroll. You keep your main numbers in sight. [local AI: yes]
@@ -584,23 +584,23 @@ Dropped (you said no): PG-30.
 30 ideas on the sheet: 5 yes, 0 no, 0 later, 25 not answered yet.
 
 - [ ] R4-PH-1: (small) Add a Field Notebook of wild animals that return as you rewild (hares, owls, bees, frogs), each ticked off the first time it appears. You get a completable collection that rewards good decisions. [local AI: yes]
-- [ ] R4-PH-2: (big) Add an Extension Officer role: you advise three computer-run farms on how to decouple, spending your effort on the lever that helps each one most. It is a helper mode where you improve other farms instead of competing. [local AI: after split]
+- [ ] R4-PH-2: (big) Add an Extension Officer role: you advise three computer-run farms on how to decouple, spending your effort on the lever that helps each one most. It is a helper mode where you improve other farms instead of competing. [Claude: design]
 - [ ] R4-PH-3: (small) Add a Night Pasture calm mode: a dark low-poly field under stars where the herd grazes and methane glows as a faint green haze, with only gentle controls. It suits late-night play and counts toward your totals. [local AI: yes]
-- [ ] R4-PH-4: (big) Add barn robots (milking robot, feed pusher, methane-sniffer drone) as low-poly upgrades you can collect and watch working. This brings robots and machines into the game. [local AI: after split]
-- [ ] R4-PH-5: (big) Add three farm identities (Techie, Naturalist, Dealmaker), each with its own list of goals and badge so every identity can reach 100%. It gives you many ways to play inside one game. [local AI: after split]
+- [ ] R4-PH-4: (big) Add barn robots (milking robot, feed pusher, methane-sniffer drone) as low-poly upgrades you can collect and watch working. This brings robots and machines into the game. [Claude: art]
+- [ ] R4-PH-5: (big) Add three farm identities (Techie, Naturalist, Dealmaker), each with its own list of goals and badge so every identity can reach 100%. It gives you many ways to play inside one game. [needs you]
 - [ ] R4-PH-add: When you have answered the rest of this section on the ideas sheet (25 ideas: 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30), read the answers from the owner note and add the yes ones here as items. [needs you]
 
 ## HEPC. Herd: PC view
 
 10 ideas on the sheet: 10 yes, 0 no, 0 later, 0 not answered yet.
 
-- [ ] R4-HEPC-1: (big) Draw the farm as a pasture you can click: hover a paddock to see herd size, methane and income, and click to apply a lever such as feed change or capture. The levers sit on the farm instead of in a list. [local AI: after split]
+- [ ] R4-HEPC-1: (big) Draw the farm as a pasture you can click: hover a paddock to see herd size, methane and income, and click to apply a lever such as feed change or capture. The levers sit on the farm instead of in a list. [Claude: design]
 - [ ] R4-HEPC-2: (small) Show a hover card on each gauge with its last five rounds and what moved it most. You see cause and effect without opening the report. [local AI: yes]
 - [x] R4-HEPC-3: (small) Add a right-click menu on a lever with Buy, Pin as a goal, Show cost over time and Compare with baseline farm. You get tools at your cursor.
 - [x] R4-HEPC-4: (small) Hold I to label every part of the pasture with what it is and which lever affects it. New players learn the farm by pointing.
 - [ ] R4-HEPC-5: (big) Add a baseline-farm ghost mode where a second, greyed pasture beside yours shows the "grow unchecked" farm round by round with a drag handle between them. You see the decoupling payoff directly. [Claude: backend]
 - [ ] R4-HEPC-6: (small) Let you resize the Report Card and dock it beside the pasture. You read your score while choosing levers. [local AI: yes]
-- [ ] R4-HEPC-7: (big) Add a three-round lever planner where you queue levers for the next rounds and see a projected methane line before you commit. You can plan ahead like a strategy game. [local AI: after split]
+- [ ] R4-HEPC-7: (big) Add a three-round lever planner where you queue levers for the next rounds and see a projected methane line before you commit. You can plan ahead like a strategy game. [needs you]
 - [ ] R4-HEPC-8: (small) Show the Collection and lever history as a sortable table with a click that replays that round's state. You can browse your farm's story like a save file. [local AI: yes]
 - [ ] R4-HEPC-9: (small) Add a big-screen live graph of herd, methane and funds that fills the lower centre on wide monitors. Trends are always visible. [local AI: yes]
 - [ ] R4-HEPC-10: (small) Add a UI scale slider and a high-contrast outline mode in Settings. The game stays readable on any monitor. [local AI: yes]
@@ -609,7 +609,7 @@ Dropped (you said no): PG-30.
 
 10 ideas on the sheet: 10 yes, 0 no, 0 later, 0 not answered yet.
 
-- [ ] R4-HEMO-1: (big) Make the farm a portrait scene with levers as large cards below it, where a swipe on a card buys it and a long-press shows the cost over time. A round plays with one thumb. [local AI: after split]
+- [ ] R4-HEMO-1: (big) Make the farm a portrait scene with levers as large cards below it, where a swipe on a card buys it and a long-press shows the cost over time. A round plays with one thumb. [Claude: design]
 - [x] R4-HEMO-2: (small) Pin round, funds and methane in a thin sticky top strip that gently changes label when methane crosses a band. The main trade-off stays in sight.
 - [ ] R4-HEMO-3: (small) Put levers in a sideways shelf of large tiles above Advance, grouped as feed, herd and capture. You pick a lever without scrolling the page. [local AI: yes]
 - [x] R4-HEMO-4: (small) Show methane as a tall thermometer on the screen edge that opens its breakdown sheet when tapped. The key risk stays in view.
@@ -630,8 +630,8 @@ Dropped (you said no): PG-30.
 
 30 ideas on the sheet: 5 yes, 0 no, 0 later, 25 not answered yet.
 
-- [ ] R4-PT-1: (big) Add a drone fleet: you build, name and upgrade low-poly monitoring drones, and each upgrade is a small wiring puzzle. This brings robots and logic puzzles into the game. [local AI: after split]
-- [ ] R4-PT-2: (big) Add field team missions: send a small team to help a failing research station or a village with sinking ground, with no clock and a retry if it goes wrong. It gives you a helper role. [local AI: after split]
+- [ ] R4-PT-1: (big) Add a drone fleet: you build, name and upgrade low-poly monitoring drones, and each upgrade is a small wiring puzzle. This brings robots and logic puzzles into the game. [Claude: design]
+- [ ] R4-PT-2: (big) Add field team missions: send a small team to help a failing research station or a village with sinking ground, with no clock and a retry if it goes wrong. It gives you a helper role. [Claude: design]
 - [ ] R4-PT-3: (small) Add the station AI's log, written in the quiet voice of a gentle program that is slowly breaking and remembers one mistake it made. You get a tragic, quiet character who comments on your run. [local AI: yes]
 - [ ] R4-PT-4: (small) Add an Ice Core Archive of thirty cores, each from a different era with a short fact read live from a named source such as NOAA's paleoclimate data. You get a collection to complete. [Claude: live web data]
 - [ ] R4-PT-5: (big) Add a Long Winter watch mode: the station runs your saved plan slowly while a one-line log scrolls past, for leaving on a second screen. It is a calm mode with a friendly summary when you return. [Claude: backend]
@@ -641,12 +641,12 @@ Dropped (you said no): PG-30.
 
 10 ideas on the sheet: 10 yes, 0 no, 0 later, 0 not answered yet.
 
-- [ ] R4-THPC-1: (big) Show the four regions as four panes with one shared time cursor, so dragging on one temperature graph moves the cursor on all four. You compare the same round across regions at a glance. [local AI: after split]
-- [ ] R4-THPC-2: (small) Add pattern markers and a clickable legend on the temperature chart to hide or show each region's line. You declutter the chart in one click. [local AI: after split]
+- [ ] R4-THPC-1: (big) Show the four regions as four panes with one shared time cursor, so dragging on one temperature graph moves the cursor on all four. You compare the same round across regions at a glance. [local AI: in steps]
+- [ ] R4-THPC-2: (small) Add pattern markers and a clickable legend on the temperature chart to hide or show each region's line. You declutter the chart in one click. [needs you]
 - [ ] R4-THPC-3: (small) Add a right-click menu on a region with Focus (hide the others), Pin to the side column and Show its science log. You can give one region the whole screen. [local AI: yes]
 - [ ] R4-THPC-4: (small) Let you click a funding amount and type a number, with the arrow keys for fine steps and Shift for big steps. Setting a split is quick on a keyboard. [local AI: yes]
 - [ ] R4-THPC-5: (small) Show the Carbon Bank as a wide table with sortable columns for deposit, round and dampening effect, plus a total row. You can read the lever like a ledger. [local AI: yes]
-- [ ] R4-THPC-6: (small) Add mouse-wheel zoom on the temperature graph to switch between the last 10 rounds and the whole run. You choose how close to look. [local AI: after split]
+- [ ] R4-THPC-6: (small) Add mouse-wheel zoom on the temperature graph to switch between the last 10 rounds and the whole run. You choose how close to look. [needs you]
 - [ ] R4-THPC-7: (small) Add a Data window that lists every round's raw numbers in a table with a Copy as CSV button. You get a mod-style data viewer for your own analysis. [local AI: yes]
 - [ ] R4-THPC-8: (small) Add named window layouts such as "Forecasting" and "Review" that switch with F1 and F2. Each sitting gets the screen it needs. [local AI: yes]
 - [ ] R4-THPC-9: (small) Double-click a point on a graph to open that round's full details in a window. You inspect any past moment. [local AI: yes]
@@ -661,7 +661,7 @@ Dropped (you said no): PG-30.
 - [ ] R4-THMO-3: (small) Let you swipe a science log card away to mark it read, with the unread count shown on the tab. The log becomes a quick inbox you clear. [local AI: yes]
 - [x] R4-THMO-4: (small) Add an escalating haptic pattern as temperature crosses each threshold, where the browser allows. The warming trend is something you feel.
 - [x] R4-THMO-5: (small) Turn the phone sideways to show the four regions as a 2 by 2 grid of mini graphs. Landscape becomes a comparison board.
-- [ ] R4-THMO-6: (big) Let you pinch two region graphs together to overlay them on one chart, with the gap shaded. Comparing regions works with a gesture. [local AI: after split]
+- [ ] R4-THMO-6: (big) Let you pinch two region graphs together to overlay them on one chart, with the gap shaded. Comparing regions works with a gesture. [Claude: design]
 - [x] R4-THMO-7: (small) Add a one-region focus mode that shows only your region and shrinks the others to dots you can tap. The screen is calm and simple.
 - [x] R4-THMO-8: (small) Let you read The Real Story as swipeable cards that work fully offline. A class break is enough to read one.
 - [ ] R4-THMO-9: (small) Add a Skip ahead three rounds button with a single summary screen at the end, using the same choices as before. A short session covers more ground. [local AI: yes]
@@ -785,19 +785,19 @@ Dropped (you said no): PG-30.
 - [ ] R4-PE-2: (small) Relief runs: when a colony is short of something, you can send a free relief run for a permanent goodwill bonus and a thank-you note. You get a helper role in a trading game. [local AI: yes]
 - [ ] R4-PE-3: (small) Colony postcards: each colony you develop sends a short invented postcard, and you collect the full album. You get a collector's goal with a gentle story. [local AI: yes]
 - [ ] R4-PE-4: (small) Night freight: a calm view that follows one ship at a time across a dim map, with nothing needing a click. You get a quiet way to leave it running half asleep. [local AI: yes]
-- [ ] R4-PE-5: (big) Ship minds: each automated ship gets a robot mind with a name and a quirk, and you collect all of them. You get a robots-and-collecting hook inside the trading loop. [local AI: after split]
-- [ ] R4-PE-6: (big) Low-poly galaxy view: an optional rotating low-poly view of the colonies and lanes, dark and moody. You get your favourite look on top of the same game. [local AI: after split]
+- [ ] R4-PE-5: (big) Ship minds: each automated ship gets a robot mind with a name and a quirk, and you collect all of them. You get a robots-and-collecting hook inside the trading loop. [Claude: design]
+- [ ] R4-PE-6: (big) Low-poly galaxy view: an optional rotating low-poly view of the colonies and lanes, dark and moody. You get your favourite look on top of the same game. [Claude: art]
 - [ ] R4-PE-add: When you have answered the rest of this section on the ideas sheet (24 ideas: 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30), read the answers from the owner note and add the yes ones here as items. [needs you]
 
 ## TEPC. Trade Empire: PC view
 
 10 ideas on the sheet: 10 yes, 0 no, 0 later, 0 not answered yet.
 
-- [ ] R4-TEPC-1: (big) Make the map a full-window star chart with mouse-wheel zoom, drag pan and a click-and-drag to draw a new route from one colony to another. Building a trade network feels like a real strategy game. [local AI: after split]
+- [ ] R4-TEPC-1: (big) Make the map a full-window star chart with mouse-wheel zoom, drag pan and a click-and-drag to draw a new route from one colony to another. Building a trade network feels like a real strategy game. [Claude: design]
 - [ ] R4-TEPC-2: (small) Show a hover card on each colony with its needs, stockpile and the ships serving it. You read a colony without opening a window. [local AI: yes]
 - [ ] R4-TEPC-3: (small) Add a right-click menu on a ship with Send to colony, Set priority, Rename and Show its history. Fleet orders sit at the cursor. [local AI: yes]
-- [ ] R4-TEPC-4: (big) Let you drag ships from the Fleet Captains list onto routes on the map to assign them, with a preview of profit per trip. Assigning a fleet is direct and visual. [local AI: after split]
-- [ ] R4-TEPC-5: (small) Add box-select on the map to pick several ships with a drag and give them a shared order. You can move a group in one action. [local AI: after split]
+- [ ] R4-TEPC-4: (big) Let you drag ships from the Fleet Captains list onto routes on the map to assign them, with a preview of profit per trip. Assigning a fleet is direct and visual. [Claude: design]
+- [ ] R4-TEPC-5: (small) Add box-select on the map to pick several ships with a drag and give them a shared order. You can move a group in one action. [Claude: design]
 - [ ] R4-TEPC-6: (small) Add Ctrl+1 to Ctrl+9 control groups for ships and colonies, and 1 to 9 to jump to them. Experienced players get an RTS-style quick recall. [local AI: yes]
 - [ ] R4-TEPC-7: (small) Add a route-profit overlay on key P that shades routes by profit with a pattern as well as colour. You spot weak routes at a glance. [local AI: yes]
 - [ ] R4-TEPC-8: (small) Show a permanent ledger ribbon along the bottom of a wide monitor that scrolls profit per route in real time. Income is always in view. [local AI: yes]
@@ -808,12 +808,12 @@ Dropped (you said no): PG-30.
 
 10 ideas on the sheet: 10 yes, 0 no, 0 later, 0 not answered yet.
 
-- [ ] R4-TEMO-1: (big) Make the map a portrait view where you tap a colony and then another to draw a route, with a bottom sheet to assign a ship. Route building is a two-tap job. [local AI: after split]
+- [ ] R4-TEMO-1: (big) Make the map a portrait view where you tap a colony and then another to draw a route, with a bottom sheet to assign a ship. Route building is a two-tap job. [Claude: design]
 - [ ] R4-TEMO-2: (small) Put ships in a horizontal strip above the thumb zone that you can tap to open their orders. Fleet control is one-handed. [local AI: yes]
 - [ ] R4-TEMO-3: (small) Let a long-press on a ship open a radial menu with Send, Assign route and Rename. Fleet orders are one gesture. [local AI: yes]
 - [ ] R4-TEMO-4: (small) Add a Send all idle ships button that gives each idle ship its last route and shows a summary sheet. A short session keeps the fleet working. [local AI: yes]
 - [ ] R4-TEMO-5: (small) Add a home-screen card with profit per minute, automation slots used and the next colony need. You can check on the empire in class. [local AI: yes]
-- [ ] R4-TEMO-6: (small) Let you pinch to zoom the map and double-tap a colony to centre it. The map works like a phone map. [local AI: after split]
+- [ ] R4-TEMO-6: (small) Let you pinch to zoom the map and double-tap a colony to centre it. The map works like a phone map. [Claude: design]
 - [ ] R4-TEMO-7: (small) Add a half-asleep mode that shows one big card for the most valuable idle ship with a Send button. A tired player can keep the network running with a tap. [local AI: yes]
 - [ ] R4-TEMO-8: (small) Add a battery-saver mode that stops ship animation and updates positions every few seconds. The phone lasts longer. [local AI: yes]
 - [ ] R4-TEMO-9: (small) Swipe a colony card left to see its needs and right to see its stockpile. A colony fits a card. [local AI: yes]
@@ -829,10 +829,10 @@ Dropped (you said no): PG-30.
 
 30 ideas on the sheet: 5 yes, 0 no, 0 later, 25 not answered yet.
 
-- [ ] R4-PO-1: (big) Lantern keeper: a hands-on mode where you walk the city carrying supplies to residents who need them, each delivery lifting a stat. You get a first-person helper role inside your city. [local AI: after split]
-- [ ] R4-PO-2: (big) Relic hunt: each era leaves relics to find in the Look Back views, eight per era, filling a museum case. You get a collection with a clear 100 percent. [local AI: after split]
+- [ ] R4-PO-1: (big) Lantern keeper: a hands-on mode where you walk the city carrying supplies to residents who need them, each delivery lifting a stat. You get a first-person helper role inside your city. [Claude: design]
+- [ ] R4-PO-2: (big) Relic hunt: each era leaves relics to find in the Look Back views, eight per era, filling a museum case. You get a collection with a clear 100 percent. [needs you]
 - [ ] R4-PO-3: (small) Night and fog look: a preset that shows the 3D city at night with lantern glow and low fog. You get the dark, moody feel you like. [local AI: yes]
-- [ ] R4-PO-4: (big) Robot caretakers: in the last eras you commission and name robot helpers that each take a job, and collect all the models. You get your robots theme late in the game. [local AI: after split]
+- [ ] R4-PO-4: (big) Robot caretakers: in the last eras you commission and name robot helpers that each take a job, and collect all the models. You get your robots theme late in the game. [Claude: design]
 - [ ] R4-PO-5: (small) Era sprints: play one era alone from a fixed start in under 20 minutes, with a medal that fills a tile on a grid of all eight. You get short wins that add up to the full picture. [local AI: yes]
 - [ ] R4-PO-add: When you have answered the rest of this section on the ideas sheet (25 ideas: 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30), read the answers from the owner note and add the yes ones here as items. [needs you]
 
@@ -840,10 +840,10 @@ Dropped (you said no): PG-30.
 
 10 ideas on the sheet: 10 yes, 0 no, 0 later, 0 not answered yet.
 
-- [ ] R4-COPC-1: (big) Add mouse-wheel zoom, middle-drag orbit and right-drag pan on the 3D settlement, with the 1 to 4 camera presets kept as shortcuts. The scene becomes a proper strategy-game view. [local AI: after split]
+- [ ] R4-COPC-1: (big) Add mouse-wheel zoom, middle-drag orbit and right-drag pan on the 3D settlement, with the 1 to 4 camera presets kept as shortcuts. The scene becomes a proper strategy-game view. [local AI: in steps]
 - [ ] R4-COPC-2: (small) Show a hover card on every building in the 3D scene with its output, workers and the next upgrade. You read the settlement by pointing. [local AI: yes]
 - [ ] R4-COPC-3: (small) Add a right-click menu on a building with Upgrade, Assign workers, Show its research and Look back. Common jobs sit at the cursor. [local AI: yes]
-- [ ] R4-COPC-4: (big) Add a wide mission-control layout that tiles the City Views dashboard, the civic map and the flow diagram as three docked panes with resizable dividers. A big monitor holds the whole city. [local AI: after split]
+- [ ] R4-COPC-4: (big) Add a wide mission-control layout that tiles the City Views dashboard, the civic map and the flow diagram as three docked panes with resizable dividers. A big monitor holds the whole city. [Claude: shared]
 - [ ] R4-COPC-5: (small) Add WASD and edge-of-screen camera movement in the 3D scene with Q and E to rotate and Shift for speed. The camera moves like in a city builder. [local AI: yes]
 - [ ] R4-COPC-6: (small) Add a Ctrl+K command palette to jump to a research node, building, citizen, heritage site or era by name. You find things by typing. [local AI: yes]
 - [ ] R4-COPC-7: (small) Let the log sit as a docked, scrollable side panel with filter chips for events, research and citizens on a wide screen. History stays in view. [local AI: yes]
@@ -855,12 +855,12 @@ Dropped (you said no): PG-30.
 
 10 ideas on the sheet: 10 yes, 0 no, 0 later, 0 not answered yet.
 
-- [ ] R4-COMO-1: (big) Make the 3D scene full-screen in portrait with a one-finger orbit, a pinch to zoom, and a bottom sheet that opens when you tap a building. The settlement is something you touch. [local AI: after split]
+- [ ] R4-COMO-1: (big) Make the 3D scene full-screen in portrait with a one-finger orbit, a pinch to zoom, and a bottom sheet that opens when you tap a building. The settlement is something you touch. [Claude: design]
 - [ ] R4-COMO-2: (small) Keep the camera presets as four large buttons along the bottom edge, with a fifth for "my last view". Camera changes are one tap. [local AI: yes]
 - [ ] R4-COMO-3: (small) Add a bottom tab bar (City, Research, Look back, Log) so the main areas are one thumb tap apart. The big game fits four tabs. [local AI: yes]
-- [ ] R4-COMO-4: (small) Reset the camera to the last preset with a two-finger tap on the 3D scene. A lost camera is fixed in one gesture. [local AI: after split]
+- [ ] R4-COMO-4: (small) Reset the camera to the last preset with a two-finger tap on the 3D scene. A lost camera is fixed in one gesture. [local AI: in steps]
 - [ ] R4-COMO-5: (small) Add a first-run picker for text size and 3D detail (small, standard, large) that sets phone-friendly defaults. The game starts comfortable instead of cramped. [Claude: backend]
-- [ ] R4-COMO-6: (big) Add a low-power 2D view for old phones that replaces the 3D scene with a flat illustrated map and the same tap sheet. Weak phones still get a full game. [local AI: after split]
+- [ ] R4-COMO-6: (big) Add a low-power 2D view for old phones that replaces the 3D scene with a flat illustrated map and the same tap sheet. Weak phones still get a full game. [needs you]
 - [ ] R4-COMO-7: (small) Add swipeable era cards in the Look Back panel with a tap to open each era's snapshot. History is a card flick. [local AI: yes]
 - [ ] R4-COMO-8: (small) Let a pull-down on the scene advance one season with a confirm tick. A one-gesture turn suits short sessions. [local AI: yes]
 - [ ] R4-COMO-9: (small) Add a half-asleep mode that dims the city, shows a single suggested action and a Next season button. A tired player can still make progress. [local AI: yes]
@@ -1001,25 +1001,25 @@ Dropped (you said no): PG-30.
 30 ideas on the sheet: 29 yes, 0 no, 1 later, 0 not answered yet.
 Parked in LATER.md (you said later): PX-25.
 
-- [ ] R4-PX-1: (big) The machine planet: a language that is secretly a tiny machine instruction set, where you learn what each code does and then write a short program. You get computers and robots as the puzzle. [local AI: after split]
-- [ ] R4-PX-2: (big) The broken guardian: a lone damaged robot on an abandoned station whose log you piece together, with a quiet, tragic story and optional reading. You get a character in the spirit of the ones you like. [local AI: after split]
-- [ ] R4-PX-3: (big) Crew choices: between planets, short branching talks with the crew, with a captain who makes real mistakes and no effect on the puzzles. You get optional story told your way. [local AI: after split]
+- [ ] R4-PX-1: (big) The machine planet: a language that is secretly a tiny machine instruction set, where you learn what each code does and then write a short program. You get computers and robots as the puzzle. [Claude: design]
+- [ ] R4-PX-2: (big) The broken guardian: a lone damaged robot on an abandoned station whose log you piece together, with a quiet, tragic story and optional reading. You get a character in the spirit of the ones you like. [needs you]
+- [ ] R4-PX-3: (big) Crew choices: between planets, short branching talks with the crew, with a captain who makes real mistakes and no effect on the puzzles. You get optional story told your way. [needs you]
 - [x] R4-PX-4: (small) Glyph museum: all signs from every planet on one wall, with the meanings you have confirmed filling in. You get a collector's page.
 - [ ] R4-PX-5: (small) Three open goals: three contact goals visible across planets at all times, in any order. You get the goal layout you like. [local AI: yes]
 - [ ] R4-PX-6: (small) Listening post: a calm screen where the ship plays back messages you have already decoded as a quiet running log. You get a watch mode for late at night. [local AI: yes]
-- [ ] R4-PX-7: (big) Branching voyage: choose which planet to visit next, and the crew react differently depending on your order. You get a Lifeline-style path with your own choices (your branching-story taste). Your note: "Yes but you get to all of them at some point and give an initial signal that everyone gives. Always the same message just different languages as a show of difficulty" [local AI: after split]
-- [ ] R4-PX-8: (big) The silent courier: a drone that never speaks and answers only in the signs you have learned, its meaning growing as you learn. You get a quiet robot character who shows feeling (your droid taste). [local AI: after split]
+- [ ] R4-PX-7: (big) Branching voyage: choose which planet to visit next, and the crew react differently depending on your order. You get a Lifeline-style path with your own choices (your branching-story taste). Your note: "Yes but you get to all of them at some point and give an initial signal that everyone gives. Always the same message just different languages as a show of difficulty" [needs you]
+- [ ] R4-PX-8: (big) The silent courier: a drone that never speaks and answers only in the signs you have learned, its meaning growing as you learn. You get a quiet robot character who shows feeling (your droid taste). [Claude: design]
 - [ ] R4-PX-9: (small) Dry crew asides: dry, dark one-line asides added to the crew log, never about mental health. You get humour in your tone (your dry-and-dark taste). [local AI: yes]
 - [ ] R4-PX-10: (small) Specimen shelf: objects seen in the scenes, such as lamps and trays, kept as specimens on a shelf. You get a one-of-each collection (your collect-everything taste). [local AI: yes]
 - [ ] R4-PX-11: (big) Translator pair: one friend sees the scene, the other holds the notebook, and they talk it out in any app. You get a co-op puzzle (your Keep Talking taste). [Claude: backend]
 - [ ] R4-PX-12: (small) Mystery message: make a short message from your languages for a friend to decode. You get a friend gift with no chat (your gifts-and-notes taste). [Claude: backend]
-- [ ] R4-PX-13: (big) Grammar filter: decide which garbled messages obey a language's rules, like regular expressions. You get a coding-style puzzle (your coding taste). [local AI: after split]
+- [ ] R4-PX-13: (big) Grammar filter: decide which garbled messages obey a language's rules, like regular expressions. You get a coding-style puzzle (your coding taste). [Claude: design]
 - [x] R4-PX-14: (small) Number bench: convert and add Pulse numbers with binary switches. You get a binary puzzle (your maths and binary taste).
-- [ ] R4-PX-15: (big) Spectrum planet: a planet that speaks in light lines, and you decide which element each means. You get sci-fi science to decode (your chemistry and science-fiction taste). [local AI: after split]
+- [ ] R4-PX-15: (big) Spectrum planet: a planet that speaks in light lines, and you decide which element each means. You get sci-fi science to decode (your chemistry and science-fiction taste). [Claude: design]
 - [ ] R4-PX-16: (small) Base puzzle: numbers written in base 5 or base 12 from tally marks. You get a maths puzzle (your maths taste). [local AI: yes]
-- [ ] R4-PX-17: (big) Sign tiles: slide signs on a board to change a world rule in a small sandbox. You get a Baba Is You style puzzle (your rule-puzzle taste). [local AI: after split]
-- [ ] R4-PX-18: (big) Path panels: draw a path through signs that spells a valid message. You get a Witness-style puzzle from the grammar (your Witness taste). [local AI: after split]
-- [ ] R4-PX-19: (big) Evidence board: pin fragments of an impossible message and name what is sending it, creepy but calm. You get an investigation (your Phasmophobia-style taste). [local AI: after split]
+- [ ] R4-PX-17: (big) Sign tiles: slide signs on a board to change a world rule in a small sandbox. You get a Baba Is You style puzzle (your rule-puzzle taste). [Claude: design]
+- [ ] R4-PX-18: (big) Path panels: draw a path through signs that spells a valid message. You get a Witness-style puzzle from the grammar (your Witness taste). [Claude: design]
+- [ ] R4-PX-19: (big) Evidence board: pin fragments of an impossible message and name what is sending it, creepy but calm. You get an investigation (your Phasmophobia-style taste). [needs you]
 - [x] R4-PX-20: (small) Low-poly globes: each planet as a dark low-poly globe with its lamps lit. You get a moody look (your dark low-poly taste).
 - [ ] R4-PX-21: (small) Previously on Marigold: a two-line recap of your last scene when you return. You get a friendly welcome back (your welcome-back taste). [Claude: backend]
 - [ ] R4-PX-22: (small) Full completion bar: one percentage bar across signs, scenes and achievements. You get a reachable 100 percent (your reachable-100% taste). [local AI: yes]
