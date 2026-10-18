@@ -2,7 +2,7 @@
 
 from fastapi.testclient import TestClient
 
-import main
+import routes_core
 from main import app
 
 client = TestClient(app)
@@ -25,7 +25,7 @@ def test_health_reports_degraded_instead_of_failing_when_the_database_is_down(mo
         def connect(self):
             raise RuntimeError("database unreachable")
 
-    monkeypatch.setattr(main, "engine", DeadEngine())
+    monkeypatch.setattr(routes_core, "engine", DeadEngine())
     resp = client.get("/health")
     assert resp.status_code == 200
     assert resp.json() == {"status": "degraded", "db": False}

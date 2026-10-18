@@ -7,6 +7,7 @@ real Neon database.
 from fastapi.testclient import TestClient
 
 import main
+import routes_accounts
 from database import SessionLocal
 from main import app
 from models import User
@@ -167,7 +168,7 @@ def test_signup_commit_time_username_collision_returns_409_not_500(monkeypatch):
     # existing user" branch via monkeypatch while a real competing row is
     # already in the database reproduces the commit-time collision without
     # needing actual concurrent requests.
-    monkeypatch.setattr(main, "_username_exists", lambda db, username: False)
+    monkeypatch.setattr(routes_accounts, "_username_exists", lambda db, username: False)
 
     db = SessionLocal()
     try:

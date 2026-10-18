@@ -273,7 +273,8 @@ def test_a_profile_cannot_grow_without_bound():
 
 def test_progress_posts_are_rate_limited_per_account(monkeypatch):
     import main
-    monkeypatch.setattr(main, "PROFILE_UPDATE_LIMITER", main.FailureLimiter(max_failures=3, window_seconds=3600))
+    import routes_profiles
+    monkeypatch.setattr(routes_profiles, "PROFILE_UPDATE_LIMITER", main.FailureLimiter(max_failures=3, window_seconds=3600))
     headers = _account("pf-limited")
     codes = [client.put("/users/me/profile", json={"progress": {"game": "sol", "add_seconds": 1}}, headers=headers).status_code for _ in range(5)]
     assert codes == [200, 200, 200, 429, 429]
@@ -283,7 +284,8 @@ def test_progress_posts_are_rate_limited_per_account(monkeypatch):
 
 def test_public_lookups_are_rate_limited_per_address(monkeypatch):
     import main
-    monkeypatch.setattr(main, "PROFILE_LOOKUP_LIMITER", main.FailureLimiter(max_failures=2, window_seconds=3600))
+    import routes_profiles
+    monkeypatch.setattr(routes_profiles, "PROFILE_LOOKUP_LIMITER", main.FailureLimiter(max_failures=2, window_seconds=3600))
     assert [client.get("/profiles/pf-whoever").status_code for _ in range(4)] == [404, 404, 429, 429]
 
 
@@ -359,7 +361,8 @@ def test_backfill_needs_sign_in_and_only_reads_the_callers_saves():
 
 def test_backfill_is_rate_limited_like_other_profile_writes(monkeypatch):
     import main
+    import routes_profiles
     headers = _account("pf-backfill-limit")
-    monkeypatch.setattr(main, "PROFILE_UPDATE_LIMITER", main.FailureLimiter(max_failures=1, window_seconds=3600))
+    monkeypatch.setattr(routes_profiles, "PROFILE_UPDATE_LIMITER", main.FailureLimiter(max_failures=1, window_seconds=3600))
     assert client.post("/users/me/profile/backfill", headers=headers).status_code == 200
     assert client.post("/users/me/profile/backfill", headers=headers).status_code == 429

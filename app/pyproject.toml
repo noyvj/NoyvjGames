@@ -17,4 +17,5 @@ requires = ["setuptools>=68"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools]
-py-modules = ["main", "database", "models", "stats", "leaderboards", "boards", "account_data", "market", "pools", "throttle"]
+py-modules = ["main", "database", "models", "stats", "leaderboards", "boards", "account_data", "market", "pools", "throttle",
+              "auth", "constants", "passwords", "rate_limits", "schemas_saves", "schemas_admin", "routes_core", "routes_answer_reports", "routes_accounts", "routes_account_saves", "routes_owner", "routes_me", "routes_feedback", "routes_email", "routes_admin_users", "routes_stats", "routes_leaderboards", "routes_scores", "routes_market_pools", "routes_account_data", "routes_admin_timeseries", "routes_votes", "routes_bug_reports", "routes_profiles"]

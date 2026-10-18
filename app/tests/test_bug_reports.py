@@ -113,7 +113,8 @@ def test_anonymous_unless_the_player_is_signed_in_and_asks_to_be_linked():
 
 def test_rate_limit_per_address(monkeypatch):
     import main
-    monkeypatch.setattr(main, "BUG_REPORT_LIMITER", main.FailureLimiter(max_failures=3, window_seconds=3600))
+    import routes_bug_reports
+    monkeypatch.setattr(routes_bug_reports, "BUG_REPORT_LIMITER", main.FailureLimiter(max_failures=3, window_seconds=3600))
     codes = [client.post("/bug-reports", json={**GOOD, "game_id": "br-rate"}).status_code for _ in range(5)]
     assert codes == [200, 200, 200, 429, 429]
 
