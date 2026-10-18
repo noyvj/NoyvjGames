@@ -1,6 +1,6 @@
 # Next TODO list (from the Round 4 ideas, started 2026-10-12)
 
-**Progress: 144/921 items checked off (15.6%).** This is the NEXT list, written alongside the live `planning/TODO.md` (which is untouched). It becomes the live list once the current one is archived. Run `python3 scripts/todo-progress.py planning/TODO-NEXT.md` after ticking items.
+**Progress: 145/921 items checked off (15.7%).** This is the NEXT list, written alongside the live `planning/TODO.md` (which is untouched). It becomes the live list once the current one is archived. Run `python3 scripts/todo-progress.py planning/TODO-NEXT.md` after ticking items.
 
 How it is built: one section per Round 4 section on the ideas sheet (`planning/IMPROVEMENT-IDEAS-ROUND-4.md`), in the sheet's order, ids `R4-<section code>-<number>`. Only ideas you answered "yes" to are items, with your note where you wrote one. A section that is not fully answered keeps its heading and ends with one item to add the rest once you have answered them. "No" answers are dropped (listed under the heading); "later" answers are parked in `planning/LATER.md`.
 
@@ -27,11 +27,11 @@ How it is built: one section per Round 4 section on the ideas sheet (`planning/I
 | HRMO. Hull Repair: mobile view | 6/10 | 60% | ██████░░░░ |
 | HEMO. Herd: mobile view | 4/10 | 40% | ████░░░░░░ |
 | LGMO. Logic Gates: mobile view | 4/10 | 40% | ████░░░░░░ |
+| DRMO. Drift: mobile view | 3/10 | 30% | ███░░░░░░░ |
 | DEMO. Dead Reckoning: mobile view | 3/10 | 30% | ███░░░░░░░ |
 | RSPC. Robot Script: PC view | 3/10 | 30% | ███░░░░░░░ |
 | PX. Lexis: made for you | 6/29 | 21% | ██░░░░░░░░ |
 | HEPC. Herd: PC view | 2/10 | 20% | ██░░░░░░░░ |
-| DRMO. Drift: mobile view | 2/10 | 20% | ██░░░░░░░░ |
 | DEPC. Dead Reckoning: PC view | 2/10 | 20% | ██░░░░░░░░ |
 | LGPC. Logic Gates: PC view | 2/10 | 20% | ██░░░░░░░░ |
 | PU. Signal: made for you | 1/6 | 17% | ██░░░░░░░░ |
@@ -111,7 +111,7 @@ How it is built: one section per Round 4 section on the ideas sheet (`planning/I
 | OCP. Overclock: made for you | 0/1 | 0% | ░░░░░░░░░░ |
 | AU. Sound | 0/1 | 0% | ░░░░░░░░░░ |
 | **Done: 1 sections at 100%** (LEPC) | 10/10 | 100% | ██████████ |
-| **All sections** | **144/921** | **15.6%** | ██░░░░░░░░ |
+| **All sections** | **145/921** | **15.7%** | ██░░░░░░░░ |
 
 <!-- PROGRESS-CHART:END -->
 
@@ -767,7 +767,7 @@ Dropped (you said no): PG-30.
 - [ ] R4-DRMO-6: (small) Add a text size picker (small, normal, large) with a live preview, remembered on the phone. Long labels stay comfortable to read. [local AI: yes]
 - [ ] R4-DRMO-7: (small) Turn long lists of investments into cards you swipe right to buy. Choices are gestures. [local AI: after split]
 - [ ] R4-DRMO-8: (small) Keep a sticky bar with the number of people arriving next round and an arrow for the trend. You always see what is coming while you scroll. [local AI: yes]
-- [ ] R4-DRMO-9: (small) Let a long-press on any term open a bottom-sheet glossary line with a link to The Real Story. Definitions fit a small screen. [local AI: yes]
+- [x] R4-DRMO-9: (small) Let a long-press on any term open a bottom-sheet glossary line with a link to The Real Story. Definitions fit a small screen. [local AI: yes]
 - [ ] R4-DRMO-10: (small) Add a quiet dusk mode that dims the region and hides all numbers except a single word for how the region feels. It suits bed-time play. [local AI: yes]
 
 ## TE. Trade Empire: general ideas

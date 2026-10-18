@@ -2014,3 +2014,56 @@ html.high-contrast[data-theme="light"] #save-nudge, html.high-contrast[data-them
 @media (max-width: 600px) and (prefers-reduced-motion: no-preference) {
   #mobile-swipe-container { scroll-behavior: smooth; }
 }
+
+/* R4-DRMO-9: phone term sheet. A long-press on a Terms chip (ui.js termSheet) opens its definition in a card pinned
+   above the Advance Round button, the floating theme and story buttons on the left and the 50px ad bar, with a way on to The Real Story. Phones only: outside the
+   media block the sheet and its keyboard button are never shown. [hidden] really hides it. */
+.glossary-sheet, .glossary-sheet-open { display: none; }
+@media (max-width: 600px) {
+  .glossary-sheet-open { display: inline-block; margin-top: 0.3rem; }
+  .glossary-sheet-open[hidden] { display: none; }
+  .glossary-row .chip {
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    user-select: none;
+    touch-action: manipulation;
+  }
+  .glossary-sheet {
+    display: block;
+    position: fixed;
+    left: 0.5rem;
+    right: 0.5rem;
+    bottom: calc(170px + env(safe-area-inset-bottom, 0px));
+    z-index: 300;
+    max-width: 480px;
+    max-height: 40vh;
+    overflow-y: auto;
+    margin: 0 auto;
+    padding: 0.75rem 0.9rem;
+    box-sizing: border-box;
+    border: 1px solid rgba(140, 160, 255, 0.45);
+    border-radius: 12px 12px 8px 8px;
+    background: #181b2b;
+    color: #e8e9f0;
+    box-shadow: 0 -4px 18px rgba(0, 0, 0, 0.5);
+  }
+  .glossary-sheet[hidden] { display: none; }
+  .glossary-sheet:focus-visible { outline: 2px solid #8fa8ff; outline-offset: 2px; }
+  .glossary-sheet-head { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; }
+  .glossary-sheet-title { margin: 0; font-size: 1rem; }
+  .glossary-sheet-text { margin: 0.4rem 0 0.6rem; font-size: 0.9rem; line-height: 1.45; }
+  .glossary-sheet button { min-height: 44px; padding: 0.4rem 0.9rem; font-size: 0.85rem; }
+  .glossary-sheet-open { min-height: 44px; }
+  html[data-theme="light"] .glossary-sheet { background: #ffffff; color: #1b2033; border-color: rgba(60, 80, 160, 0.5); box-shadow: 0 -4px 18px rgba(0, 0, 0, 0.2); }
+  html.high-contrast .glossary-sheet { background: #000000; color: #ffffff; border-color: #ffffff; }
+  html.high-contrast[data-theme="light"] .glossary-sheet { background: #ffffff; color: #000000; border-color: #000000; }
+}
+/* It slides up unless motion is off in any of the game's four places; lite mode drops it too. */
+@media (max-width: 600px) and (prefers-reduced-motion: no-preference) {
+  .glossary-sheet:not([hidden]) { animation: glossary-sheet-in calc(0.2s * var(--drift-anim-scale, 1)) ease-out; }
+  html.reduce-motion .glossary-sheet, html.lite-mode .glossary-sheet, html[data-anim-speed="off"] .glossary-sheet { animation: none; }
+}
+@keyframes glossary-sheet-in {
+  from { opacity: 0; transform: translateY(24px); }
+  to { opacity: 1; transform: translateY(0); }
+}
