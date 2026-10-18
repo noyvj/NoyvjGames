@@ -125,7 +125,7 @@ How it is built: one section per Round 4 section on the ideas sheet (`planning/I
 - `[Claude: ...]`: needs a Claude session (site-wide or shared files, backend, live web data, hub registration, or not tied to one game).
 - `[needs you]`: waits on your answer, account or decision. `[on hold]`: the QA pass, on hold until closing time.
 
-Open items now: [local AI: yes] 362, [local AI: after split] 155, [local AI: after the game is built] 58, [needs you] 54, [Claude: backend] 50, [Claude: site-wide] 39, [Claude: design] 25, [Claude: live web data] 13, [local AI: in steps] 6, [Claude: shared] 5, [Claude: not one game] 5, [Claude: art] 4.
+Open items now: [local AI: yes] 362, [local AI: after split] 92, [needs you] 75, [local AI: after the game is built] 58, [Claude: backend] 50, [Claude: site-wide] 39, [Claude: design] 25, [local AI: in steps] 18, [Claude: live web data] 13, [Claude: shared] 5, [Claude: story writing] 5, [Claude: not one game] 5, [Claude: art] 4, [Claude: new puzzle engine] 3, [Claude: 3D] 2, [Claude: drag] 2, [Claude: look and animals] 1, [Claude: painted art] 1, [Claude: look and levels] 1, [Claude: achievements] 1, [Claude: cutaway art] 1, [Claude: zoom and pan] 1, [Claude: drag UI] 1, [Claude: gestures] 1, [Claude: story text and scenario balance] 1, [Claude: drag UI and a map] 1, [Claude: swipe gesture] 1, [Claude: pointer events, after R4-GRPC-4 merges] 1, [Claude: look and art] 1, [Claude: layered SVG art] 1, [Claude: map UI and placement model] 1, [Claude: gesture] 1, [Claude: swipe] 1, [Claude: hold gesture and sheet] 1.
 <!-- LOCAL-AI-LABELS:END -->
 
 ## XG. Whole site: general ideas
@@ -275,9 +275,9 @@ Dropped (you said no): SOMO-9.
 15 ideas on the sheet: 14 yes, 1 no, 0 later, 0 not answered yet.
 Dropped (you said no): CA-15.
 
-- [ ] R4-CA-1: (big) Add a river across the forest: plots next to the water grow faster, and clearing upstream plots dries out the ones downstream. You see how one decision travels across the map. [local AI: after split]
-- [ ] R4-CA-2: (big) Add access roads: clearing plots that touch a road is cheaper, but each road splits the forest and lowers wildlife counts on both sides. You get a real spatial trade-off to plan around. [local AI: after split]
-- [ ] R4-CA-3: (big) Add natural regrowth: a bare plot beside three or more mature plots slowly recovers for free, with visible drifting seeds. You see that protecting an intact core helps the whole forest heal. [local AI: after split]
+- [ ] R4-CA-1: (big) Add a river across the forest: plots next to the water grow faster, and clearing upstream plots dries out the ones downstream. You see how one decision travels across the map. [needs you]
+- [ ] R4-CA-2: (big) Add access roads: clearing plots that touch a road is cheaper, but each road splits the forest and lowers wildlife counts on both sides. You get a real spatial trade-off to plan around. [needs you]
+- [ ] R4-CA-3: (big) Add natural regrowth: a bare plot beside three or more mature plots slowly recovers for free, with visible drifting seeds. You see that protecting an intact core helps the whole forest heal. [needs you]
 - [ ] R4-CA-4: (big) Add two new regions, a boreal forest and a tropical rainforest, each with its own growth speed, wildlife list and one main real-world cause of loss with a named source. You get fresh maps to replay with different rhythms. [Claude: live web data]
 - [ ] R4-CA-5: (small) Add a meadow strip option for a cleared plot: a cheap, quick habitat that earns a little biodiversity but little timber value. You get a middle path between clearing and full replanting. [local AI: yes]
 - [ ] R4-CA-6: (small) Add a paint tool: pick Clear, Replant or Adopt, then drag across many plots to apply it. Big forests become quick to manage. [local AI: yes]
@@ -294,30 +294,30 @@ Dropped (you said no): CA-15.
 
 30 ideas on the sheet: 30 yes, 0 no, 0 later, 0 not answered yet.
 
-- [ ] R4-PC-1: (big) Add wildlife rescue: when you clear a plot, displaced animals appear and you can carry them to a mature plot by tapping both, earning a shelter badge for each species. This is a gentle healer role with no failure state. [local AI: after split]
-- [ ] R4-PC-2: (big) Add a Night Forest look: a dark low-poly version of the grid where fireflies, owls and bats appear and eight new night animals join the wildlife log. It gives you a moody look and a new collection to complete. [local AI: after split]
+- [ ] R4-PC-1: (big) Add wildlife rescue: when you clear a plot, displaced animals appear and you can carry them to a mature plot by tapping both, earning a shelter badge for each species. This is a gentle healer role with no failure state. [needs you]
+- [ ] R4-PC-2: (big) Add a Night Forest look: a dark low-poly version of the grid where fireflies, owls and bats appear and eight new night animals join the wildlife log. It gives you a moody look and a new collection to complete. [Claude: look and animals]
 - [ ] R4-PC-3: (small) Add a Quiet Grove calm mode: no requests, no events, just tending and watching the forest grow, with the same progress counting toward your totals. It is a relaxed mode where progress can never be lost. [local AI: yes]
-- [ ] R4-PC-4: (big) Add a Dome Garden level set on Mars: the same forest rules with thin soil, a sealed dome and strange hardy wildlife. It brings your space and science fiction taste into the forest. [local AI: after split]
-- [ ] R4-PC-5: (big) Add a Valley Map where each short forest you finish (about five minutes) restores one patch of a large painted valley, and the full map shows every patch. Short wins build one bigger picture you can see. [local AI: after split]
-- [ ] R4-PC-6: (big) Add three ways to master the forest (Ranger, Naturalist, Planner), each with its own list of goals and badge so you can reach 100% in different ways. This gives you the many-ways-to-play feel. [local AI: after split]
-- [ ] R4-PC-7: (big) Add forest fog: unexplored plots start hidden in mist and clear as you tend their neighbours, though fog never stops play. This follows your dark foggy-forest taste and exploration. [local AI: after split]
-- [ ] R4-PC-8: (big) Add forest floor finds: tending mature plots reveals 30 small things (fungi, feathers, old tools) that go on a shelf. This follows your "one of everything" collecting habit. [local AI: after split]
+- [ ] R4-PC-4: (big) Add a Dome Garden level set on Mars: the same forest rules with thin soil, a sealed dome and strange hardy wildlife. It brings your space and science fiction taste into the forest. [needs you]
+- [ ] R4-PC-5: (big) Add a Valley Map where each short forest you finish (about five minutes) restores one patch of a large painted valley, and the full map shows every patch. Short wins build one bigger picture you can see. [Claude: painted art]
+- [ ] R4-PC-6: (big) Add three ways to master the forest (Ranger, Naturalist, Planner), each with its own list of goals and badge so you can reach 100% in different ways. This gives you the many-ways-to-play feel. [needs you]
+- [ ] R4-PC-7: (big) Add forest fog: unexplored plots start hidden in mist and clear as you tend their neighbours, though fog never stops play. This follows your dark foggy-forest taste and exploration. [needs you]
+- [ ] R4-PC-8: (big) Add forest floor finds: tending mature plots reveals 30 small things (fungi, feathers, old tools) that go on a shelf. This follows your "one of everything" collecting habit. [local AI: in steps]
 - [ ] R4-PC-9: (small) Add a ranger's field notebook drawn in a rough hand-sketched look that fills with sketches as you discover things. This follows your liking for hand-drawn art and a notebook you fill in. [local AI: yes]
-- [ ] R4-PC-10: (big) Add a Gothic Hollow level: twisted dark woods with ravens and lantern light, using the same rules. This follows your dark, moody and gothic taste. [local AI: after split]
-- [ ] R4-PC-11: (big) Add a branching story where you steer a ranger who made a costly mistake years ago and must decide how to face it. This follows your Lifeline-style story taste and your rule against all-good heroes. [local AI: after split]
-- [ ] R4-PC-12: (big) Add farmer partners: neighbouring farmers ask you to plan hedgerows and tree lines on their land, and each has their own view. This follows your helper role and the multiple-viewpoints rule. [local AI: after split]
+- [ ] R4-PC-10: (big) Add a Gothic Hollow level: twisted dark woods with ravens and lantern light, using the same rules. This follows your dark, moody and gothic taste. [Claude: look and levels]
+- [ ] R4-PC-11: (big) Add a branching story where you steer a ranger who made a costly mistake years ago and must decide how to face it. This follows your Lifeline-style story taste and your rule against all-good heroes. [Claude: story writing]
+- [ ] R4-PC-12: (big) Add farmer partners: neighbouring farmers ask you to plan hedgerows and tree lines on their land, and each has their own view. This follows your helper role and the multiple-viewpoints rule. [needs you]
 - [ ] R4-PC-13: (big) Add a shared grove: two friends tend one forest by invite link, each owning half the plots and sending help across the border. This follows your wish for optional friend ties and co-op play. [Claude: backend]
-- [ ] R4-PC-14: (big) Add a low-poly 3D view of the forest you can rotate, alongside the flat grid. This follows your low-poly taste and your wish for scenes over charts. [local AI: after split]
-- [ ] R4-PC-15: (small) Add an Explorer family of ten achievements for trying every kind of action, season and plot state. This follows your preference for exploration and completion achievements. [local AI: after split]
+- [ ] R4-PC-14: (big) Add a low-poly 3D view of the forest you can rotate, alongside the flat grid. This follows your low-poly taste and your wish for scenes over charts. [Claude: 3D]
+- [ ] R4-PC-15: (small) Add an Explorer family of ten achievements for trying every kind of action, season and plot state. This follows your preference for exploration and completion achievements. [Claude: achievements]
 - [ ] R4-PC-16: (small) Add a routine card where you pick three chores (water, tend, check wildlife) shown as a strip you tick each visit. This follows your preference for a calm routine you know by heart. [local AI: yes]
 - [ ] R4-PC-17: (small) Add a mystery of the dying plot: you check soil, camera trap and water samples and name the cause. This follows your investigation and deduction taste. [local AI: yes]
-- [ ] R4-PC-18: (big) Add grove puzzles: stone panels hidden in the forest ask you to plant tree lines that satisfy clues, with every solved panel unlocking something. This follows your love of spatial and logic puzzles with an intricate Witness-style depth. [local AI: after split]
+- [ ] R4-PC-18: (big) Add grove puzzles: stone panels hidden in the forest ask you to plant tree lines that satisfy clues, with every solved panel unlocking something. This follows your love of spatial and logic puzzles with an intricate Witness-style depth. [Claude: new puzzle engine]
 - [ ] R4-PC-19: (small) Add a silent stag companion that follows the pointer and shows feelings with its posture, never words. This follows your liking for wordless companions that show emotion. [local AI: yes]
-- [ ] R4-PC-20: (big) Add a cabin in the woods: a side-view cutaway of a little cabin that you furnish with the things you find. This follows your dream game's cabin and cutaway views. [local AI: after split]
+- [ ] R4-PC-20: (big) Add a cabin in the woods: a side-view cutaway of a little cabin that you furnish with the things you find. This follows your dream game's cabin and cutaway views. [Claude: cutaway art]
 - [ ] R4-PC-21: (small) Add a carbon balance puzzle: match what a plot takes in and gives out to earn a growth boost. This follows your maths and chemistry interest, and the result visibly counts. [local AI: yes]
 - [ ] R4-PC-22: (small) Add a drone surveyor, a small low-poly robot that scans plots and fills a scan log. This follows your robot and computers taste. [local AI: yes]
 - [ ] R4-PC-23: (small) Add camera traps: frame a shot of each animal for a photo album. This follows your collecting habit and the photo taste. [local AI: yes]
-- [ ] R4-PC-24: (big) Add three voices: short branching days as a logger, a ranger and a landowner who each see the same forest differently. This follows your wish for several points of view. [local AI: after split]
+- [ ] R4-PC-24: (big) Add three voices: short branching days as a logger, a ranger and a landowner who each see the same forest differently. This follows your wish for several points of view. [Claude: story writing]
 - [ ] R4-PC-25: (small) Add a guided ramp where new tools appear every few minutes of play during the first half hour. This follows your wish to start simple and then pick up fast. [local AI: yes]
 - [ ] R4-PC-26: (small) Add seed merging: three matching seedlings combine into a rarer kind, with no timers or energy. This follows your liking for merge games without their timers. [local AI: yes]
 - [ ] R4-PC-27: (big) Give adopted trees favourites and dislikes that they hint at, with small gifts (water, mulch) raising their friendship for perks. This follows your dream-game friendship and gift ideas. [Claude: backend]
@@ -330,13 +330,13 @@ Dropped (you said no): CA-15.
 10 ideas on the sheet: 10 yes, 0 no, 0 later, 0 not answered yet.
 
 - [ ] R4-CAPC-1: (small) Show a hover card on a plot with its tree age, income per tick, recovery stage and what a click would do. You read a plot without clicking it. [local AI: yes]
-- [ ] R4-CAPC-2: (big) Add mouse-wheel zoom, drag panning and a corner minimap that shows plot health on big forests. You can manage a large grid from one screen. [local AI: after split]
+- [ ] R4-CAPC-2: (big) Add mouse-wheel zoom, drag panning and a corner minimap that shows plot health on big forests. You can manage a large grid from one screen. [Claude: zoom and pan]
 - [ ] R4-CAPC-3: (small) Add a right-click menu on a plot with Tend, Golden seedling, Clear, Replant, Adopt and Inspect, each showing its hotkey. You learn the keys by using the mouse. [local AI: yes]
 - [ ] R4-CAPC-4: (small) Let Ctrl+1 to Ctrl+4 save named cursor spots (for example "the poacher edge") and 1 to 4 jump back to them. You can hop between trouble areas in one key. [local AI: yes]
 - [ ] R4-CAPC-5: (small) Pin the Ranger contracts as a permanent right-hand tray whose lines jump the cursor to the requested plot when clicked. Contracts stay in view while you work. [local AI: yes]
-- [ ] R4-CAPC-6: (big) Add a seasons scrub bar under the forest that you drag to replay how the grid changed over the last 20 seasons. You see your forest grow back like a time-lapse. [local AI: after split]
+- [ ] R4-CAPC-6: (big) Add a seasons scrub bar under the forest that you drag to replay how the grid changed over the last 20 seasons. You see your forest grow back like a time-lapse. [local AI: in steps]
 - [ ] R4-CAPC-7: (small) Add a Controls tab in Settings that lists all twelve Canopy keys and lets you rebind each one. You can move the cursor and tend plots with your own layout. [local AI: yes]
-- [ ] R4-CAPC-8: (small) Let you drag a plot onto the Seed Vault tray to store its seedling and drag a stored seed back to a bare plot. Moving seeds feels like handling real objects. [local AI: after split]
+- [ ] R4-CAPC-8: (small) Let you drag a plot onto the Seed Vault tray to store its seedling and drag a stored seed back to a bare plot. Moving seeds feels like handling real objects. [Claude: drag UI]
 - [ ] R4-CAPC-9: (small) When the window is wider than 1700px, show income, biodiversity and relations as three stacked live graphs in the side column. Big screens show trends at a glance. [local AI: yes]
 - [ ] R4-CAPC-10: (small) Show a faint ring on the grid cursor with an arrow-key trail of where it has been this minute. You can see which plots you keep missing. [local AI: yes]
 
@@ -344,13 +344,13 @@ Dropped (you said no): CA-15.
 
 10 ideas on the sheet: 10 yes, 0 no, 0 later, 0 not answered yet.
 
-- [ ] R4-CAMO-1: (big) Make the forest fill a portrait screen with plots sized for thumbs, so a pinch zooms the grid and a two-finger drag moves it. A big forest stays playable on a phone. [local AI: after split]
+- [ ] R4-CAMO-1: (big) Make the forest fill a portrait screen with plots sized for thumbs, so a pinch zooms the grid and a two-finger drag moves it. A big forest stays playable on a phone. [Claude: gestures]
 - [ ] R4-CAMO-2: (small) Let a swipe across a row of plots queue Tend on each plot you touch. One finger waters a whole row. [local AI: yes]
 - [ ] R4-CAMO-3: (small) Add an optional light buzz when a plot is replanted or a golden seedling is caught, where the browser allows. Good actions feel solid under your thumb. [local AI: yes]
 - [ ] R4-CAMO-4: (small) Reopen Canopy on the exact plot you last selected, with its bottom sheet already open if it was. Short sessions pick up at once. [local AI: yes]
 - [ ] R4-CAMO-5: (small) Put the three most useful buttons (Tend, Golden, Replant) in a thumb arc at the bottom right and let you swap sides for left-handed play. One hand reaches everything. [local AI: yes]
 - [ ] R4-CAMO-6: (small) Show a home-screen summary card with standing value, forest health and the next contract on opening the installed app. You can check the forest before the game boots. [local AI: yes]
-- [ ] R4-CAMO-7: (big) Add a calm bed-time forest mode that dims to a slow dark canopy, hides numbers except one, and lets the forest pass seasons quietly while you watch. A tired player still gets a pleasant screen. [local AI: after split]
+- [ ] R4-CAMO-7: (big) Add a calm bed-time forest mode that dims to a slow dark canopy, hides numbers except one, and lets the forest pass seasons quietly while you watch. A tired player still gets a pleasant screen. [needs you]
 - [ ] R4-CAMO-8: (small) Make the poacher alert a large edge-of-screen banner you can swipe away or tap to drive them off. A phone player can respond with one touch. [local AI: yes]
 - [ ] R4-CAMO-9: (small) Collapse each side panel into a bottom tab strip with icons (Plots, Contracts, Vault, Almanac) that you swipe between. You get card-sized screens instead of one long scroll. [local AI: yes]
 - [ ] R4-CAMO-10: (small) Add pull-down on the forest to run a quick Tend All with a short summary of what changed. A one-gesture upkeep pass fits a two-minute visit. [local AI: yes]
@@ -359,10 +359,10 @@ Dropped (you said no): CA-15.
 
 15 ideas on the sheet: 15 yes, 0 no, 0 later, 0 not answered yet.
 
-- [ ] R4-GR-1: (big) Add city growth that includes electrifying transport and heating, so demand jumps are announced as stories ("Bus fleets go electric in 3 rounds"). You learn why clean power matters for more than lights. [local AI: after split]
+- [ ] R4-GR-1: (big) Add city growth that includes electrifying transport and heating, so demand jumps are announced as stories ("Bus fleets go electric in 3 rounds"). You learn why clean power matters for more than lights. [local AI: in steps]
 - [ ] R4-GR-2: (small) Announce big new demand a few rounds ahead ("A data centre opens in 3 rounds, +40 demand"). You can plan builds instead of being surprised. [local AI: yes]
-- [ ] R4-GR-3: (big) Add transmission lines: plants far from the city can only deliver fully if you build and pay for lines. You get a planning puzzle about where power is made versus used. [local AI: after split]
-- [ ] R4-GR-4: (big) Add a winter and summer split to each round, because summer air conditioning and winter heating create different peaks that different plants cover best. You see why one plant type is never enough. [local AI: after split]
+- [ ] R4-GR-3: (big) Add transmission lines: plants far from the city can only deliver fully if you build and pay for lines. You get a planning puzzle about where power is made versus used. [needs you]
+- [ ] R4-GR-4: (big) Add a winter and summer split to each round, because summer air conditioning and winter heating create different peaks that different plants cover best. You see why one plant type is never enough. [needs you]
 - [ ] R4-GR-5: (big) Add community consultation when you build: residents voice different views (jobs, noise, safety, view) and you pick a compensation option. You see several points of view on every plant. [Claude: backend]
 - [ ] R4-GR-6: (small) Add repowering: convert an old coal plant into a gas or biomass plant for a fee instead of fully retiring it. You get a middle option and a taste of how real utilities decide. [local AI: yes]
 - [ ] R4-GR-7: (small) Add a carbon capture retrofit for fossil plants, with a short note giving the arguments for and against it. You get a debated option to weigh yourself. [local AI: yes]
@@ -382,60 +382,60 @@ Dropped (you said no): PG-30.
 
 - [ ] R4-PG-1: (small) Add a control room terminal: a dark console where you can type short commands such as "build solar 2" or "advance 3" as an alternative to buttons. It suits your computers-and-code taste and is a second way to play. [local AI: yes]
 - [ ] R4-PG-2: (small) Add a work orders board with three open jobs at all times ("Reach 40% clean", "Build 2 batteries", "Go 3 rounds with no brownout"), done in any order, each unlocking something when finished. You always have three goals in view and no strict order. [local AI: yes]
-- [ ] R4-PG-3: (big) Add Incident Files: every kind of disruption gets a file the first time you handle it, with what caused it and what stops it, and a completion percent. This gives you a collection to fill that doubles as the lesson. [local AI: after split]
-- [ ] R4-PG-4: (big) Add an island rescue scenario: a remote island has lost power after a storm and you rebuild its grid from scratch, with islanders, fishers and the clinic each voicing what they need. It is a helper story that shows several points of view. [local AI: after split]
-- [ ] R4-PG-5: (big) Add three operator styles (Engineer, Economist, Campaigner) that change which numbers the dashboard highlights and which perks you earn, each with its own badge to complete. You get many ways to play inside one game. [local AI: after split]
+- [ ] R4-PG-3: (big) Add Incident Files: every kind of disruption gets a file the first time you handle it, with what caused it and what stops it, and a completion percent. This gives you a collection to fill that doubles as the lesson. [local AI: in steps]
+- [ ] R4-PG-4: (big) Add an island rescue scenario: a remote island has lost power after a storm and you rebuild its grid from scratch, with islanders, fishers and the clinic each voicing what they need. It is a helper story that shows several points of view. [Claude: story text and scenario balance]
+- [ ] R4-PG-5: (big) Add three operator styles (Engineer, Economist, Campaigner) that change which numbers the dashboard highlights and which perks you earn, each with its own badge to complete. You get many ways to play inside one game. [needs you]
 - [ ] R4-PG-6: (small) Add a clever-solution badge for finishing a scenario with the cheapest or neatest plan, not the fastest. This follows your preference for rewarding clever over fast. [local AI: yes]
 - [ ] R4-PG-7: (big) Add a two-operator mode where one friend runs supply and the other runs demand programmes, each seeing different screens and talking it out. This follows your Keep Talking enjoyment and co-op puzzle idea. [Claude: backend]
 - [ ] R4-PG-8: (small) Add a blackout restore sequence: after a big outage you rebuild in a named order with a clear ending, so no run is lost. This follows your wish that a failure should offer a way to restore. [local AI: yes]
 - [ ] R4-PG-9: (small) After three bad rounds in a row, offer a "would you like help?" button that eases demand or gives a hint, never forced. This follows your wish for an offer of easier play after repeated failures. [local AI: yes]
 - [ ] R4-PG-10: (small) Add line-crew robots you name and upgrade that handle maintenance on plants. This follows your robot taste. [local AI: yes]
 - [ ] R4-PG-11: (big) Add a Moon base scenario powering a colony through long lunar nights, with the day length read live from a named source such as NASA. This follows your space and sci-fi taste. [Claude: live web data]
-- [ ] R4-PG-12: (big) Add a Brownout City story scenario in a dark dystopian city that rations power by district, played from several residents' views. This follows your dystopia taste and the multiple-viewpoints rule. [local AI: after split]
+- [ ] R4-PG-12: (big) Add a Brownout City story scenario in a dark dystopian city that rations power by district, played from several residents' views. This follows your dystopia taste and the multiple-viewpoints rule. [Claude: story writing]
 - [ ] R4-PG-13: (small) Add a priority list for shortages (hospital, school, homes, factory) with the consequences explained in plain words. This follows your care about healthcare and housing. [local AI: yes]
 - [ ] R4-PG-14: (big) Add a parts catalogue of 40 components (turbines, panels, transformers) with specs read live from a named source such as the US Energy Information Administration. This follows your collect-one-of-everything habit. [Claude: live web data]
 - [ ] R4-PG-15: (small) Add amber and green phosphor display themes for a retro control room. This follows your old computers and dark colour taste. [local AI: yes]
 - [ ] R4-PG-16: (small) Add a silent droid called Spark that shows feelings with lights and never speaks. This follows your wordless droid companion idea. [local AI: yes]
-- [ ] R4-PG-17: (big) Add fault tracing: a flicker happens, you check three instruments, and you name the cause for a bonus. This follows your deduction and investigation taste. [local AI: after split]
-- [ ] R4-PG-18: (big) Add rule-tile puzzles where grid rules are words you rearrange ("coal costs double", "wind pays more") to reach a goal. This follows your love of Baba Is You style puzzles. [local AI: after split]
+- [ ] R4-PG-17: (big) Add fault tracing: a flicker happens, you check three instruments, and you name the cause for a bonus. This follows your deduction and investigation taste. [needs you]
+- [ ] R4-PG-18: (big) Add rule-tile puzzles where grid rules are words you rearrange ("coal costs double", "wind pays more") to reach a goal. This follows your love of Baba Is You style puzzles. [Claude: new puzzle engine]
 - [ ] R4-PG-19: (small) Add own-best bars for cost, emissions and rounds on each scenario so you can beat yourself without ranking against anyone. This follows your preference for optimising without competing. [local AI: yes]
-- [ ] R4-PG-20: (big) Add equippable parts for each plant, three slots each, with fixed unlocks from milestones (no random drops). This follows your looter-style taste without luck. [local AI: after split]
+- [ ] R4-PG-20: (big) Add equippable parts for each plant, three slots each, with fixed unlocks from milestones (no random drops). This follows your looter-style taste without luck. [needs you]
 - [ ] R4-PG-21: (small) Add a neon-on-black Tron-style skin with glowing lines. This follows your Tron fandom and dark look. [local AI: yes]
-- [ ] R4-PG-22: (big) Add a Continental Grid endgame where several regions run together and numbers reach billions. This follows your love of huge exponential growth. [local AI: after split]
+- [ ] R4-PG-22: (big) Add a Continental Grid endgame where several regions run together and numbers reach billions. This follows your love of huge exponential growth. [needs you]
 - [ ] R4-PG-23: (small) Add a hand-drawn blueprint look for plant pictures. This follows your occasional liking for hand-drawn art. [local AI: yes]
 - [ ] R4-PG-24: (small) Add spare capacity favours: a friend's grid can send you one gift of spare capacity, and you can send one back. This follows your helper role and optional friend ties. [Claude: backend]
-- [ ] R4-PG-25: (small) Add a physics bench where you adjust voltage, current and distance to see why power is lost in wires. This follows your physics interest. [local AI: after split]
+- [ ] R4-PG-25: (small) Add a physics bench where you adjust voltage, current and distance to see why power is lost in wires. This follows your physics interest. [local AI: in steps]
 - [ ] R4-PG-26: (small) Add unit conversion mini-puzzles (kW, MW, GW) that give a small funds bonus when right. This follows your maths interest, and the puzzle visibly counts. [local AI: yes]
-- [ ] R4-PG-27: (big) Add script puzzles where you write the shortest set of if-then rules that survive a storm. This follows your wish to learn coding through puzzles. [local AI: after split]
-- [ ] R4-PG-28: (big) Add a household story following one family across the run through branching choices about bills and heating. This follows your Lifeline-style story taste and your housing concerns. [local AI: after split]
+- [ ] R4-PG-27: (big) Add script puzzles where you write the shortest set of if-then rules that survive a storm. This follows your wish to learn coding through puzzles. [Claude: new puzzle engine]
+- [ ] R4-PG-28: (big) Add a household story following one family across the run through branching choices about bills and heating. This follows your Lifeline-style story taste and your housing concerns. [Claude: story writing]
 - [ ] R4-PG-29: (small) Add a haunted substation scenario with odd readings you must explain, with no jump scares. This follows your liking for anomaly and eerie games. [local AI: yes]
 
 ## GRPC. Grid: PC view
 
 10 ideas on the sheet: 10 yes, 0 no, 0 later, 0 not answered yet.
 
-- [ ] R4-GRPC-1: (big) Let you drag plants from a parts bin straight onto a grid map and drag them off to retire them, with the cost shown as you hover. Building a power system feels like a real tycoon game. [local AI: after split]
+- [ ] R4-GRPC-1: (big) Let you drag plants from a parts bin straight onto a grid map and drag them off to retire them, with the cost shown as you hover. Building a power system feels like a real tycoon game. [Claude: drag UI and a map]
 - [ ] R4-GRPC-2: (small) Show a hover card on each plant with output, cost, emissions and its learning-curve price after your next build. You compare options without a calculation. [local AI: yes]
 - [ ] R4-GRPC-3: (small) Add a right-click menu on a plant to Upgrade, Retire, Pin to the plan and Show in the weather log. Common jobs sit one click from the plant. [local AI: yes]
-- [ ] R4-GRPC-4: (big) Add a live demand-versus-supply chart that fills the centre of a wide screen and shows next round's forecast as a dashed line. You see shortfalls coming on a big display. [local AI: after split]
+- [ ] R4-GRPC-4: (big) Add a live demand-versus-supply chart that fills the centre of a wide screen and shows next round's forecast as a dashed line. You see shortfalls coming on a big display. [local AI: in steps]
 - [ ] R4-GRPC-5: (small) Let number keys 1 to 6 pick plant types and Enter build the selected one, with Backspace to retire. You can play a whole round from the keyboard. [local AI: yes]
 - [ ] R4-GRPC-6: (small) Let you save window layouts such as "Planner" (chart, plants and weather log) and "Review" (summary and career), switched with F1 and F2. The screen fits the task. [local AI: yes]
 - [ ] R4-GRPC-7: (small) Add a bottom bar of F1 to F8 labelled keys (Build, Retire, Advance, Chart, Weather, Career and more) that works by key or click. Mouse and keyboard players share one clear control strip. [local AI: yes]
-- [ ] R4-GRPC-8: (big) Add a wide Plan Table window where every plant is a row with sortable columns for cost, output, emissions and payback, and a click in a row builds one. You can optimise like a spreadsheet inside the game. [local AI: after split]
-- [ ] R4-GRPC-9: (small) Add a draggable what-if slider for the next round's weather variability that redraws the forecast chart as you move it. You test how risky a mix is before committing. [local AI: after split]
+- [ ] R4-GRPC-8: (big) Add a wide Plan Table window where every plant is a row with sortable columns for cost, output, emissions and payback, and a click in a row builds one. You can optimise like a spreadsheet inside the game. [local AI: in steps]
+- [ ] R4-GRPC-9: (small) Add a draggable what-if slider for the next round's weather variability that redraws the forecast chart as you move it. You test how risky a mix is before committing. [local AI: in steps]
 - [ ] R4-GRPC-10: (small) Add a compare-to-last-run strip under the chart that shows your previous run's mix as a ghost outline. You can see at once whether you are doing better. [Claude: backend]
 
 ## GRMO. Grid: mobile view
 
 10 ideas on the sheet: 10 yes, 0 no, 0 later, 0 not answered yet.
 
-- [ ] R4-GRMO-1: (big) Make the plant list a vertical stack of large cards where a swipe right builds one and each card shows its price change. Managing the grid works with one thumb. [local AI: after split]
+- [ ] R4-GRMO-1: (big) Make the plant list a vertical stack of large cards where a swipe right builds one and each card shows its price change. Managing the grid works with one thumb. [Claude: swipe gesture]
 - [ ] R4-GRMO-2: (small) Pin round, funds and the supply-versus-demand gap in a thin top strip that turns bold when demand outruns supply. You see the main number without scrolling. [local AI: yes]
-- [ ] R4-GRMO-3: (small) Let you drag a finger along the demand chart to read each round's supply and demand in a floating bubble. You read the chart by touch. [local AI: after split]
+- [ ] R4-GRMO-3: (small) Let you drag a finger along the demand chart to read each round's supply and demand in a floating bubble. You read the chart by touch. [Claude: pointer events, after R4-GRPC-4 merges]
 - [ ] R4-GRMO-4: (small) Show a warning chip when forecast demand exceeds supply that opens a sheet of fixes when tapped. A problem comes with a one-tap path to solve it. [local AI: yes]
 - [ ] R4-GRMO-5: (small) Add a card density option (compact, normal, roomy) in Settings. The plant cards fit your phone and your eyes. [local AI: yes]
 - [ ] R4-GRMO-6: (small) Show an installed-app home card with the current round, emissions trend and a "next best build" line before the game opens. You can glance at your grid in class. [local AI: yes]
-- [ ] R4-GRMO-7: (big) Add a half-asleep Auto-plan that suggests one build per round as a big single button and shows the effect in plain words. A tired player can still make steady progress. [local AI: after split]
+- [ ] R4-GRMO-7: (big) Add a half-asleep Auto-plan that suggests one build per round as a big single button and shows the effect in plain words. A tired player can still make steady progress. [local AI: in steps]
 - [ ] R4-GRMO-8: (small) Turn the weather log into a horizontal card strip you swipe through, one card per round. Reading the past is a thumb flick. [local AI: yes]
 - [ ] R4-GRMO-9: (small) Show emissions as a thin line along the top edge that fills across the screen as they grow. The long-term goal is visible without a panel. [local AI: yes]
 - [ ] R4-GRMO-10: (small) Let a long-press on any gauge pop up a bottom sheet with a plain-words explanation and its last five values. You get the detail without a hover. [local AI: yes]
@@ -447,7 +447,7 @@ Dropped (you said no): PG-30.
 - [ ] R4-TI-1: (small) Add a fishing quota dial: set how much you catch each season against the fish stock. You learn overfishing as a separate pressure from acidity. [local AI: yes]
 - [ ] R4-TI-2: (big) Add managed retreat: you can deliberately move the lowest row inland, with residents, farmers and the council each reacting differently. You face a hard real-world choice from several points of view. [local AI: after split]
 - [ ] R4-TI-3: (big) Add a town meeting every five seasons where three groups argue for different plans and you choose a compromise. You see how a community actually decides. [Claude: backend]
-- [ ] R4-TI-4: (big) Add seaweed farms that soak up some acidity locally but cost upkeep. You get a new, researched way to fight acidification besides spending points. [local AI: after split]
+- [ ] R4-TI-4: (big) Add seaweed farms that soak up some acidity locally but cost upkeep. You get a new, researched way to fight acidification besides spending points. [local AI: in steps]
 - [ ] R4-TI-5: (small) Add a hatchery industry whose young die at lower acidity than adult fish, acting as an early warning. You learn how some businesses feel ocean change first. [local AI: yes]
 - [ ] R4-TI-6: (small) Add king tide seasons that are shown in advance and make storm surges worse when they overlap. You get a sensible reason to prepare for particular seasons. [local AI: yes]
 - [ ] R4-TI-7: (small) Add zoning: ban new homes on the lowest row to cut future damage at the cost of slower growth. You see the trade-off real planners face. [local AI: yes]
@@ -464,49 +464,49 @@ Dropped (you said no): PG-30.
 
 30 ideas on the sheet: 30 yes, 0 no, 0 later, 0 not answered yet.
 
-- [ ] R4-PI-1: (big) Add Lighthouse Night: a dark, low-poly night harbour with a lighthouse beam, and the water glowing a stranger blue as acidity climbs. It gives you the creepy ocean tone you like. [local AI: after split]
-- [ ] R4-PI-2: (big) Add rescue boats: in storm seasons, boats call for help and you choose which harbour gate or light to open for them, with nobody lost on screen and a "restore and try again" if you misjudge. This gives you a helper role. [local AI: after split]
+- [ ] R4-PI-1: (big) Add Lighthouse Night: a dark, low-poly night harbour with a lighthouse beam, and the water glowing a stranger blue as acidity climbs. It gives you the creepy ocean tone you like. [Claude: look and art]
+- [ ] R4-PI-2: (big) Add rescue boats: in storm seasons, boats call for help and you choose which harbour gate or light to open for them, with nobody lost on screen and a "restore and try again" if you misjudge. This gives you a helper role. [needs you]
 - [ ] R4-PI-3: (big) Add Specimen Jars: unusual deep-water creatures that appear as the ocean changes, each stored in a jar on a shelf with a short fact read live from a named source such as the World Register of Marine Species. You get a creepy-but-calm collection to complete. [Claude: live web data]
 - [ ] R4-PI-4: (small) Add a survey robot you can send to scan one stretch of sea and reveal its acidity, with twelve buoy sites to place and collect. It is a robot helper with a clear collection goal. [local AI: yes]
 - [ ] R4-PI-5: (small) Add a Harbor Charter board with three standing goals (Seawall level 5, Reef level 5, Fleet level 5), each unlocking a named upgrade, done in any order. You always see three goals and no strict route. [local AI: yes]
 - [ ] R4-PI-6: (small) Add sea fog that hides distant rows until buoys or the lighthouse reveal them. This follows your dark foggy taste and exploration. [local AI: yes]
-- [ ] R4-PI-7: (big) Add a marine radio story with branching replies to fishers and a lighthouse keeper with a secret, told at your own pace. This follows your Lifeline-style story taste. [local AI: after split]
+- [ ] R4-PI-7: (big) Add a marine radio story with branching replies to fishers and a lighthouse keeper with a secret, told at your own pace. This follows your Lifeline-style story taste. [Claude: story writing]
 - [ ] R4-PI-8: (small) Let a friend's saved harbour become your sister settlement so you can compare choices with no chat. This follows your optional friend ties. [Claude: backend]
 - [ ] R4-PI-9: (small) Add the Warden Engine, a seawall automaton that once saved the town and is now blamed for floods, and let you decide how to treat it. This follows your fondness for tragic, misunderstood savior characters. [local AI: yes]
-- [ ] R4-PI-10: (big) Add harbour mysteries (lights under water, empty boats) that you solve from tide logs by naming the cause. This follows your deduction and eerie taste. [local AI: after split]
+- [ ] R4-PI-10: (big) Add harbour mysteries (lights under water, empty boats) that you solve from tide logs by naming the cause. This follows your deduction and eerie taste. [needs you]
 - [ ] R4-PI-11: (small) Add a shell shelf of 30 shells that wash up after storms by storm type, with no randomness. This follows your collecting habit. [local AI: yes]
-- [ ] R4-PI-12: (small) Add a wave physics bench where you stack tide and surge waves to see why they combine. This follows your maths and physics interest. [local AI: after split]
+- [ ] R4-PI-12: (small) Add a wave physics bench where you stack tide and surge waves to see why they combine. This follows your maths and physics interest. [local AI: in steps]
 - [ ] R4-PI-13: (small) Add an acid balance puzzle that rebalances carbonate pieces on a board for a one-off boost. This follows your chemistry interest. [local AI: yes]
 - [ ] R4-PI-14: (small) Add drain lines, a Flow-Free-style puzzle that routes floodwater out of town, lowering the next storm's damage. This follows your Flow Free fondness, and it visibly counts. [local AI: yes]
-- [ ] R4-PI-15: (big) Add a harbour cross-section showing seabed, pilings, pipes and fish in layers. This follows your dream game's cutaway views. [local AI: after split]
-- [ ] R4-PI-16: (big) Add a Europa dome harbour scenario under an icy moon's surface. This follows your space and dark-ocean taste. [local AI: after split]
+- [ ] R4-PI-15: (big) Add a harbour cross-section showing seabed, pilings, pipes and fish in layers. This follows your dream game's cutaway views. [Claude: layered SVG art]
+- [ ] R4-PI-16: (big) Add a Europa dome harbour scenario under an icy moon's surface. This follows your space and dark-ocean taste. [needs you]
 - [ ] R4-PI-17: (small) Add a salvage beach where you sort washed-up objects onto a shelf in a calm puzzle. This follows your liking for the calm of tidy-up games. [local AI: yes]
 - [ ] R4-PI-18: (small) Add a harbour saboteur puzzle where you find who is secretly overfishing from catch records. This follows your Among Us and deduction taste. [local AI: yes]
 - [ ] R4-PI-19: (small) Add a harbour watch screen that runs your saved plan through a slow sunrise-to-sunset time-lapse. This follows your calm watch mode taste. [local AI: yes]
 - [ ] R4-PI-20: (small) Add a hand-drawn nautical chart look with a compass rose. This follows your occasional liking for hand-drawn art. [local AI: yes]
 - [ ] R4-PI-21: (small) Add bottle messages: you can send a friend a bottle with a shell and a picked icon note. This follows your wish for gifts and notes with no chat. [Claude: backend]
-- [ ] R4-PI-22: (big) Add wreck sites revealed by survey, each with three salvage items to collect. This follows your creepy ocean and collecting taste. [local AI: after split]
+- [ ] R4-PI-22: (big) Add wreck sites revealed by survey, each with three salvage items to collect. This follows your creepy ocean and collecting taste. [needs you]
 - [ ] R4-PI-23: (big) Give harbour residents favourite and hated things they hint at, with small gifts raising friendship for perks. This follows your dream-game friendship idea. [Claude: backend]
-- [ ] R4-PI-24: (small) Add chart-reading puzzles that use bearings and soundings to place a lighthouse. This follows your spatial puzzle and maths taste. [local AI: after split]
-- [ ] R4-PI-25: (big) Add a boatyard where you sort parts to restore old boats, each joining a shelf with the last captain's quiet log. This follows your restoring-machines idea. [local AI: after split]
+- [ ] R4-PI-24: (small) Add chart-reading puzzles that use bearings and soundings to place a lighthouse. This follows your spatial puzzle and maths taste. [needs you]
+- [ ] R4-PI-25: (big) Add a boatyard where you sort parts to restore old boats, each joining a shelf with the last captain's quiet log. This follows your restoring-machines idea. [needs you]
 - [ ] R4-PI-26: (small) Add a lighthouse lens puzzle where mirrors and prisms steer the beam. This follows your spatial puzzle taste. [local AI: yes]
 - [ ] R4-PI-27: (small) Add a tide routine, a fixed three-step harbour round you can do by heart each season. This follows your preference for a calm routine. [local AI: yes]
 - [ ] R4-PI-28: (small) Add signal flag decoding puzzles that unlock messages. This follows your code and cipher interest. [local AI: yes]
-- [ ] R4-PI-29: (big) Add a low-poly 3D coast you can rotate with water rising visibly. This follows your low-poly taste. [local AI: after split]
+- [ ] R4-PI-29: (big) Add a low-poly 3D coast you can rotate with water rising visibly. This follows your low-poly taste. [Claude: 3D]
 - [ ] R4-PI-30: (small) Add a tidal turbine gear puzzle where you fit gears to turn a tidal turbine. This follows your tinkering and spatial taste. [local AI: yes]
 
 ## TIPC. Tide: PC view
 
 10 ideas on the sheet: 10 yes, 0 no, 0 later, 0 not answered yet.
 
-- [ ] R4-TIPC-1: (big) Draw the harbour as a wide scene where you click a stretch of coast to place a seawall or wetland and see its flood protection range as you hover. Adaptation becomes a map you edit. [local AI: after split]
+- [ ] R4-TIPC-1: (big) Draw the harbour as a wide scene where you click a stretch of coast to place a seawall or wetland and see its flood protection range as you hover. Adaptation becomes a map you edit. [Claude: map UI and placement model]
 - [ ] R4-TIPC-2: (small) Add a hover crosshair on the sea-level and acidity graphs that shows the exact season, value and which of your choices drove it. You can read the delay between cause and effect directly. [local AI: yes]
 - [ ] R4-TIPC-3: (small) Add a right-click menu on the coastline with Build seawall, Restore wetland, Inspect and Add to the planner. You reach the choices from the map. [local AI: yes]
 - [ ] R4-TIPC-4: (small) Let you resize the Season Planner window and pin it beside the harbour scene while you play. You can edit the plan and watch the result together. [local AI: yes]
 - [ ] R4-TIPC-5: (small) Add a Pin button on each graph that floats it as a small always-on-top window beside the scene. You watch acidity or sea level while you work. [local AI: yes]
-- [ ] R4-TIPC-6: (big) Add a dual-view pane that shows the coastline "then" and "now" side by side with a draggable divider that wipes between them. You can see how much the sea has taken in one gesture. [local AI: after split]
+- [ ] R4-TIPC-6: (big) Add a dual-view pane that shows the coastline "then" and "now" side by side with a draggable divider that wipes between them. You can see how much the sea has taken in one gesture. [Claude: drag]
 - [ ] R4-TIPC-7: (small) Let a middle-click on a coast section toggle between seawall and wetland previews. Comparing defences is fast. [local AI: yes]
-- [ ] R4-TIPC-8: (small) Show season history as a filmstrip under the scene so a click on any frame displays the harbour as it was. You can browse your timeline like a video editor. [local AI: after split]
+- [ ] R4-TIPC-8: (small) Show season history as a filmstrip under the scene so a click on any frame displays the harbour as it was. You can browse your timeline like a video editor. [local AI: in steps]
 - [ ] R4-TIPC-9: (small) Let you save planner layouts as named "plans" that you load from a dropdown and compare with the current one in a split view. You can try two strategies without losing either. [local AI: yes]
 - [ ] R4-TIPC-10: (small) On wide screens, keep the Harbor Ledger open as a right-hand table that auto-scrolls to the newest season. A permanent record sits next to the action. [local AI: yes]
 
@@ -514,14 +514,14 @@ Dropped (you said no): PG-30.
 
 10 ideas on the sheet: 10 yes, 0 no, 0 later, 0 not answered yet.
 
-- [ ] R4-TIMO-1: (big) Turn the harbour scene into a full-width portrait view where you drag a seawall icon onto the coast and release to place it. Adapting the coast is a direct touch. [local AI: after split]
+- [ ] R4-TIMO-1: (big) Turn the harbour scene into a full-width portrait view where you drag a seawall icon onto the coast and release to place it. Adapting the coast is a direct touch. [Claude: drag]
 - [ ] R4-TIMO-2: (small) Keep Advance Season as a large button at the bottom centre with a ring showing seasons left in the year. The main action sits under your thumb. [local AI: yes]
 - [ ] R4-TIMO-3: (small) Keep a slim sea-level gauge on the screen edge with the flood line marked. The main danger stays visible while you scroll. [local AI: yes]
-- [ ] R4-TIMO-4: (small) Zoom the harbour into the stretch of coast you are protecting with a double-tap. Detail is one gesture away. [local AI: after split]
+- [ ] R4-TIMO-4: (small) Zoom the harbour into the stretch of coast you are protecting with a double-tap. Detail is one gesture away. [Claude: gesture]
 - [ ] R4-TIMO-5: (small) Show a swipeable season strip at the top with tiny bars for each season's income and sea level, and a tap to open one. History is a flick. [local AI: yes]
-- [ ] R4-TIMO-6: (small) Show the three meters as large swipeable cards that fit one screen each, with the graph on the back of each card. You read one thing at a time. [local AI: after split]
+- [ ] R4-TIMO-6: (small) Show the three meters as large swipeable cards that fit one screen each, with the graph on the back of each card. You read one thing at a time. [Claude: swipe]
 - [ ] R4-TIMO-7: (small) Add a calm harbour mode that dims the scene, slows the water, and hides all numbers except a single health word. It suits playing in bed half asleep. [local AI: yes]
-- [ ] R4-TIMO-8: (small) Let you tap and hold a season on the graph to see what you decided then in a bottom sheet. History is a thumb away. [local AI: after split]
+- [ ] R4-TIMO-8: (small) Let you tap and hold a season on the graph to see what you decided then in a bottom sheet. History is a thumb away. [Claude: hold gesture and sheet]
 - [ ] R4-TIMO-9: (small) Add a battery-saver toggle that stops the waves and cloud movement and redraws only when you advance. The game stops draining your phone. [local AI: yes]
 - [ ] R4-TIMO-10: (small) Make invest buttons a vertical thumb rail on the right edge, with a flip to the left for left-handers. The most-used controls are in reach. [local AI: yes]
 
