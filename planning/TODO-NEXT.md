@@ -124,7 +124,7 @@ How it is built: one section per Round 4 section on the ideas sheet (`planning/I
 - `[Claude: ...]`: needs a Claude session (site-wide or shared files, backend, live web data, hub registration, or not tied to one game).
 - `[needs you]`: waits on your answer, account or decision. `[on hold]`: the QA pass, on hold until closing time.
 
-Open items now: [local AI: yes] 362, [local AI: after split] 214, [local AI: after the game is built] 58, [Claude: backend] 50, [Claude: site-wide] 39, [needs you] 36, [Claude: live web data] 13, [Claude: not one game] 5.
+Open items now: [local AI: yes] 361, [local AI: after split] 214, [local AI: after the game is built] 58, [Claude: backend] 50, [Claude: site-wide] 39, [needs you] 36, [Claude: live web data] 13, [Claude: not one game] 5.
 <!-- LOCAL-AI-LABELS:END -->
 
 ## XG. Whole site: general ideas
