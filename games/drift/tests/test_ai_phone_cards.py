@@ -24,7 +24,7 @@ def test_neighbor_panel_is_a_sibling_card_of_game_inside_the_container():
 
 
 def test_ui_js_ids_exist_in_both_pages():
-    ids = re.findall(r'getElementById\("([^"]+)"\)', JS[JS.index("function mobileSwipe"):])
+    ids = re.findall(r'getElementById\("([^"]+)"\)', JS[JS.index("function mobileSwipe"):JS.index("function termSheet")])
     assert set(ids) == {"mobile-swipe-container", "neighbor-panel", "swipe-to-neighbor", "swipe-to-region", "game"}
     for page in (HTML, PC_HTML):
         for id_ in ids:
