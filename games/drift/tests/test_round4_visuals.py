@@ -3,6 +3,8 @@ animation speed (I-21) and density (I-19) settings."""
 
 from pathlib import Path
 
+from .pagefiles import game_css
+
 GAME_DIR = Path(__file__).resolve().parent.parent
 
 
@@ -118,7 +120,7 @@ def test_settings_js_stores_validates_and_resets_the_two_choices():
 
 
 def test_css_stops_the_animations_when_speed_is_off_and_respects_reduce_motion():
-    css = _read("style.css")
+    css = game_css()
     assert 'html[data-anim-speed="off"] .arrival-dot' in css
     assert "animation: none !important" in css
     assert 'html[data-density="compact"] .section' in css

@@ -4,6 +4,8 @@ import json
 import sys
 from pathlib import Path
 
+from .pagefiles import game_css
+
 GAME_DIR = Path(__file__).resolve().parent.parent
 
 
@@ -130,7 +132,7 @@ def test_the_choice_never_rides_the_save(game_env):
 
 
 def test_css_has_a_palette_for_every_skin_and_reset_returns_to_dusk():
-    css = (GAME_DIR / "style.css").read_text(encoding="utf-8")
+    css = game_css()
     for skin in ("seaside", "alpine", "desert", "neon"):
         assert f'.region-visual[data-skin="{skin}"]' in css
     js = (GAME_DIR / "settings.js").read_text(encoding="utf-8")

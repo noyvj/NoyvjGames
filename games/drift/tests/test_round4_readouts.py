@@ -3,6 +3,8 @@ pending-by-age pipeline (I-23)."""
 
 from pathlib import Path
 
+from .pagefiles import page_text
+
 GAME_DIR = Path(__file__).resolve().parent.parent
 
 
@@ -33,7 +35,7 @@ def test_hud_band_name_changes_with_the_score(game_env):
 
 
 def test_the_page_mirrors_those_two_sources_in_the_sticky_bar():
-    html = (GAME_DIR / "index.html").read_text(encoding="utf-8")
+    html = page_text("index.html")
     assert '{ selector: "#hud-round-display", label: "" }' in html
     assert '{ selector: "#hud-strain-display", label: "Strain" }' in html
     assert '{ selector: "#hud-wellbeing-display", label: "Wellbeing" }' in html

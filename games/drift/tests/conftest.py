@@ -7,7 +7,20 @@ import pytest
 
 from .fakes import FakeDocument, FakeElement, FakeTimers, create_proxy
 
-GAME_PY = Path(__file__).resolve().parent.parent / "game.py"
+GAME_DIR = Path(__file__).resolve().parent.parent
+GAME_PY = GAME_DIR / "game.py"
+
+# game.py is split into drift_*.py modules in the same folder (see "File map" in CLAUDE.md), so the game
+# folder has to be importable, the same way the Pyodide boot script in boot.js writes them next to game.py.
+if str(GAME_DIR) not in sys.path:
+    sys.path.insert(0, str(GAME_DIR))
+
+# tests/browser_helpers.py (the shared browser-test set-up) is imported by plain name: `from browser_helpers import open_game`;
+# the `base` fixture is registered below for every test.
+TESTS_DIR = Path(__file__).resolve().parent
+if str(TESTS_DIR) not in sys.path:
+    sys.path.insert(0, str(TESTS_DIR))
+from browser_helpers import base  # noqa: E402,F401  (pytest fixture: the local server for browser tests)
 
 # game.py imports the shared info-page widget (shared/info_page.py) the
 # same way the real Pyodide boot script does -- see any game's index.html
@@ -366,3 +379,13 @@ def game_env():
     yield GameEnv(module, elements, timers)
 
     _remove_pyodide_fakes()
+    _forget_game_modules()
+
+
+def _forget_game_modules():
+    # game.py is split into drift_*.py modules next to it; each binds `document` and `setTimeout` from the fake `js`
+    # at import, so every test needs fresh copies, exactly as it needs a fresh game.py.
+    for name, module in list(sys.modules.items()):
+        path = getattr(module, "__file__", None)
+        if path and Path(path).resolve().parent == GAME_DIR:
+            sys.modules.pop(name, None)

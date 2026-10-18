@@ -8,6 +8,8 @@ from pathlib import Path
 
 import pytest
 
+from .pagefiles import page_text
+
 GAME_DIR = Path(__file__).resolve().parent.parent
 SLUG = "drift"
 NAME = "Drift"
@@ -65,7 +67,7 @@ def test_copy_result_container_exists_once(name):
 
 @pytest.mark.parametrize("name", PAGES)
 def test_copy_result_is_mounted_from_the_games_own_figures(name):
-    html = page(name)
+    html = page_text(name)
     assert 'mountButton("#result-copy"' in html
     assert 'globals.get("share_result")' in html
 

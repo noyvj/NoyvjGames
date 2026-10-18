@@ -3,6 +3,8 @@
 import xml.etree.ElementTree as ET
 from pathlib import Path
 
+from .pagefiles import game_css
+
 GAME_DIR = Path(__file__).resolve().parent.parent
 
 
@@ -84,7 +86,7 @@ def test_a_loaded_save_does_not_flourish_every_old_badge(game_env):
 
 
 def test_css_stops_the_flourish_for_reduce_motion_and_speed_off():
-    css = (GAME_DIR / "style.css").read_text(encoding="utf-8")
+    css = game_css()
     assert "html[data-anim-speed=\"off\"] .achievement-glyph--fresh" in css
     assert "html.reduce-motion .achievement-glyph--fresh" in css
     assert "prefers-reduced-motion: reduce" in css

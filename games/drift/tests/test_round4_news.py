@@ -3,6 +3,8 @@
 import re
 from pathlib import Path
 
+from .pagefiles import game_css
+
 GAME_DIR = Path(__file__).resolve().parent.parent
 
 
@@ -71,7 +73,7 @@ def test_render_writes_the_line_and_it_is_never_saved(game_env):
 
 def test_settings_toggle_defaults_off_and_is_reset_by_reset_to_default():
     js = (GAME_DIR / "settings.js").read_text(encoding="utf-8")
-    css = (GAME_DIR / "style.css").read_text(encoding="utf-8")
+    css = game_css()
     html = (GAME_DIR / "index.html").read_text(encoding="utf-8")
     assert 'applyFlag(NEWS_KEY, "news-ticker-on", readFlag(NEWS_KEY))' in js  # absent key reads false
     assert 'applyFlag(NEWS_KEY, "news-ticker-on", false)' in js

@@ -5,6 +5,8 @@ import json
 import re
 from pathlib import Path
 
+from .pagefiles import game_css, game_source, page_text
+
 GAME_DIR = Path(__file__).resolve().parent.parent
 
 NEW_IDS = [
@@ -29,7 +31,7 @@ def test_every_new_element_exists_in_both_pages():
 
 
 def test_every_id_game_py_looks_up_for_batch_3_is_in_the_fake_dom_list(game_env):
-    source = (GAME_DIR / "game.py").read_text(encoding="utf-8")
+    source = game_source()
     block = source[source.index("# Oct 11 batch 3"):source.index("def get_state():")]
     used = set(re.findall(r'getElementById\("([a-z0-9-]+)"\)', block))
     used |= {f"tier-{t}-button" for t in ("gentle", "standard", "rigorous", "demanding")}
@@ -56,12 +58,12 @@ def test_new_controls_sit_in_zones_the_desktop_shows():
 def test_the_print_sheet_is_a_direct_child_of_the_body_so_print_css_can_isolate_it():
     html = (GAME_DIR / "index.html").read_text(encoding="utf-8")
     assert re.search(r'</div>\n\s*<!-- I-4: print-only copy[^\n]*\n\s*<div id="report-print-sheet"', html)
-    css = (GAME_DIR / "style.css").read_text(encoding="utf-8")
+    css = game_css()
     assert "body > *:not(#report-print-sheet) { display: none !important; }" in css
 
 
 def test_the_report_has_a_keyboard_panel_entry():
-    html = (GAME_DIR / "index.html").read_text(encoding="utf-8")
+    html = page_text("index.html")
     assert '{ toggle: "report-toggle-button", panel: "report-panel" }' in html
 
 
