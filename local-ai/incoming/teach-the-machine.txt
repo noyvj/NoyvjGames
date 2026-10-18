@@ -1,0 +1,1 @@
+# Drafted 2026-10-19 for LA-8 (local AI steps), game: teach-the-machine. No steps: all three open items are C (see teach-the-machine-notes.md).

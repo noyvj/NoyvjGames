@@ -1,0 +1,1 @@
+# Drafted 2026-10-19 for LA-8 (local AI steps), game: slingshot. No steps: all four open items are C (see slingshot-notes.md).
