@@ -10,6 +10,8 @@ from pathlib import Path
 
 import pytest
 
+from .pagefiles import notes_text
+
 GAME_DIR = Path(__file__).resolve().parent.parent
 
 
@@ -283,5 +285,5 @@ def test_the_desktop_menu_lists_modes_first_under_empire():
 
 
 def test_the_guideline_is_written_up_in_the_game_notes():
-    notes = (GAME_DIR / "CLAUDE.md").read_text(encoding="utf-8")
+    notes = notes_text()
     assert "## Modes as levels" in notes

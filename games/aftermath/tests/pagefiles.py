@@ -38,3 +38,9 @@ def game_source():
     entry = (GAME_DIR / "game.py").read_text(encoding="utf-8")
     names = re.findall(r'^    "(aftermath_[a-z_]+)",$', entry, re.M)
     return entry + "\n" + "\n".join((GAME_DIR / f"{name}.py").read_text(encoding="utf-8") for name in names)
+
+
+def notes_text():
+    """CLAUDE.md followed by NOTES.md: the game's notes, which were split into a short CLAUDE.md and a long NOTES.md
+    on 2026-10-18. A test that looks for a rule written in the notes reads both through this."""
+    return "\n".join((GAME_DIR / name).read_text(encoding="utf-8") for name in ("CLAUDE.md", "NOTES.md"))

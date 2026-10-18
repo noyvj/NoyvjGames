@@ -37,3 +37,9 @@ def game_source():
     """game.py followed by every trade_*.py module, the Python the old single game.py held."""
     names = ["game.py"] + sorted(p.name for p in GAME_DIR.glob("trade_*.py"))
     return "\n".join((GAME_DIR / name).read_text(encoding="utf-8") for name in names)
+
+
+def notes_text():
+    """CLAUDE.md followed by NOTES.md: the game's notes, which were split into a short CLAUDE.md and a long NOTES.md
+    on 2026-10-18. A test that looks for a rule written in the notes reads both through this."""
+    return "\n".join((GAME_DIR / name).read_text(encoding="utf-8") for name in ("CLAUDE.md", "NOTES.md"))

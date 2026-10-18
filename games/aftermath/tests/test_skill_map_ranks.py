@@ -7,7 +7,7 @@ import json
 from pathlib import Path
 
 import skill_tree as shared
-from .pagefiles import game_css, page_text
+from .pagefiles import game_css, notes_text, page_text
 
 GAME_DIR = Path(__file__).resolve().parent.parent
 
@@ -614,7 +614,7 @@ def test_the_changelog_announces_the_map_the_ranks_and_the_reveal():
 
 
 def test_claude_md_documents_every_rank_rule_with_its_thresholds(game_env):
-    notes = (GAME_DIR / "CLAUDE.md").read_text(encoding="utf-8")
+    notes = notes_text()
     for skill_id, rule in game_env.module.SKILL_RANK_RULES.items():
         a, b, c = rule["thresholds"]
         assert f"{a} / {b} / {c}" in notes, skill_id
