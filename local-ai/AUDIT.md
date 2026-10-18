@@ -30,6 +30,14 @@ browser) should only be spent on what the free checks cannot decide.
    `local-ai/*` branches whose idea commits are all handled. Questions for the owner go in `planning/FOR-YOU.md`
    (one question each), then `python3 scripts/generate-ideas-data.py`.
 
+## Test-writing tasks (T-*) are a fast lane
+The queue also makes tasks that only add `tests/test_ai_*.py` for one function ("T-<name>" branches, one new test file
+each). They need no judgement when every gate is green, so `python3 scripts/audit_local_ai.py sweep-tests`
+fetches, prepares each game that has only such tasks, and merges and closes it unattended when: the cherry-picks
+apply, scope is the game's tests folder, pytest passes, no test is trivially weak (no assert, `assert True`, or only
+None-checks in a file with nothing else), static findings are none. Any game that fails a gate is left prepared with
+a report file for a reviewer. First sweep (2026-10-18): 13 games, about 150 test files, all green, none rejected.
+
 ## What counts as accepted, partial, rejected
 - **Accepted:** the owner's item works in the browser, follows the standing rules, has a wiring test.
 - **Partial:** works but a stated part is missing; tick it only if the missing part is minor and the reviewer

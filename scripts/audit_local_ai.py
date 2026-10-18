@@ -2,6 +2,7 @@
 """The default way to audit the local AI's work, cheapest checks first.
 
     python3 scripts/audit_local_ai.py intake                 what is waiting (read-only, after a fetch)
+    python3 scripts/audit_local_ai.py sweep-tests            merge test-writing (T-*) branches whose every gate is green, unattended
     python3 scripts/audit_local_ai.py prepare <slug>         audit branch + worktree, cherry-pick, automatic gates
     python3 scripts/audit_local_ai.py live <slug>            one generic browser pass on the audit worktree
     python3 scripts/audit_local_ai.py finish <slug> --accepted R4-AB-1,R4-AB-2 [--partial R4-AB-3] [--delete-remote]
@@ -402,10 +403,43 @@ def cmd_finish(args):
     return 0
 
 
+def cmd_sweep_tests(_args):
+    """Test-writing tasks (T-*) need no judgement when every gate is green: prepare, check, and finish them unattended.
+    A game whose report has a conflict, a weak test, a scope problem or a red gate is left prepared for a reviewer."""
+    import contextlib
+    import io
+    git("fetch", "-q", "--prune")
+    _, ideas, _ = collect_ideas()
+    slugs = sorted({i["game"] for i in ideas if i["id"].startswith("T-") and i["game"] not in ("", "*")})
+    for slug in slugs:
+        only_tests = all(i["id"].startswith("T-") for i in ideas if i["game"] == slug)
+        if not only_tests:
+            print("%-18s has idea commits too: use prepare/finish by hand" % slug)
+            continue
+        buf = io.StringIO()
+        with contextlib.redirect_stdout(buf):
+            cmd_prepare(argparse.Namespace(slug=slug))
+        report = buf.getvalue()
+        gates = re.search(r"pytest: (.*)", report)
+        clean = (gates and "passed" in gates.group(1) and "failed" not in gates.group(1) and "error" not in gates.group(1).lower()
+                 and not re.search(r"CONFLICT|WEAK TEST|OUTSIDE FOLDER|STALE|static findings:\s*$|NONE", report)
+                 and "static findings: none" in report)
+        if clean:
+            cmd_finish(argparse.Namespace(slug=slug, accepted="T-*", partial="", delete_remote=True))
+            print("%-18s merged (%s)" % (slug, gates.group(1).strip()))
+        else:
+            (ROOT / ".claude" / "worktrees" / ("audit-%s-report.txt" % slug)).write_text(report)
+            print("%-18s LEFT FOR REVIEW: see .claude/worktrees/audit-%s-report.txt (worktree audit-%s)" % (slug, slug, slug))
+    if not slugs:
+        print("no test-writing tasks waiting")
+    return 0
+
+
 def main(argv):
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     sub = ap.add_subparsers(dest="cmd", required=True)
     sub.add_parser("intake")
+    sub.add_parser("sweep-tests")
     for name in ("prepare", "live", "finish"):
         p = sub.add_parser(name)
         p.add_argument("slug")
@@ -414,7 +448,7 @@ def main(argv):
             p.add_argument("--partial", default="")
             p.add_argument("--delete-remote", action="store_true")
     args = ap.parse_args(argv)
-    return {"intake": cmd_intake, "prepare": cmd_prepare, "live": cmd_live, "finish": cmd_finish}[args.cmd](args)
+    return {"intake": cmd_intake, "sweep-tests": cmd_sweep_tests, "prepare": cmd_prepare, "live": cmd_live, "finish": cmd_finish}[args.cmd](args)
 
 
 if __name__ == "__main__":
