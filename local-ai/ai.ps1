@@ -123,7 +123,9 @@ $haveRemote = ($null -ne (git -C $root rev-parse -q --verify $remoteBase 2>$null
 $start = if ($Pr -and $prOn -and $haveRemote) { $remoteBase } else { $Base }
 if ($Chain -and $Step -gt 1) {
     $prev = @(git -C $root for-each-ref --sort=-committerdate --format="%(refname:short)" "refs/heads/local-ai/$Chain-$($Step - 1)-*")
-    if ($prev.Count -eq 0 -or -not $prev[0]) { Fail "step $($Step - 1) of $Chain has not passed, so step $Step cannot start" }
+    # exit 3, not Fail's exit 2: a chain blocked by its own failed step is not broken setup, and must not count
+    # toward the queue's "5 setup failures in a row" stop (one failed 6-step chain would end the run).
+    if ($prev.Count -eq 0 -or -not $prev[0]) { Write-Host "SKIPPED: step $($Step - 1) of $Chain has not passed, so step $Step cannot start" -ForegroundColor Yellow; exit 3 }
     $start = $prev[0]
 }
 # Feature tasks for the same game build on each other through local-ai/stack-<game>: each starts from
@@ -131,6 +133,9 @@ if ($Chain -and $Step -gt 1) {
 # conflict (2026-10-12: six Signal pc.js branches could not be combined). Test-writing tasks (T-, EDGE-)
 # only add new files and still start from main. A reviewer reviews the stack, one commit per TODO item.
 $isFeature = -not $Chain -and $Item -notmatch '^(T|EDGE)-'
+# Chain steps (Noy2's split steps) build features too: they get the same test rule and static checks, but not
+# the per-game stack (each step starts from the previous step's branch instead).
+$checkFeature = $isFeature -or [bool]$Chain
 $stack = "local-ai/stack-$Game"
 $haveStack = $isFeature -and ($null -ne (git -C $root rev-parse -q --verify "refs/heads/$stack" 2>$null))
 # A stack that no longer merges with GitHub's main has been superseded there (2026-10-14: the audit rebuilt
@@ -383,7 +388,7 @@ while (-not $timedOut -and $repairs -lt 3) {
     # test). Until now a missing test failed the task at the very end and threw the work away; now the model
     # gets a repair round to add it, like a failing test.
     $checkLines = ""
-    if ($passing -and $isFeature) {
+    if ($passing -and $checkFeature) {
         $checkLines = Get-NewFindings
         if ($checkLines) { $passing = $false; $verifiedState = $null }
     }
@@ -533,7 +538,7 @@ if (-not $testsOk) { $problems += "tests failed" }
 # and lost its data on reload).
 $gamePy = @($inside | Where-Object { $_ -like "*.py" -and $_ -notmatch "/tests/" })
 $testFiles = @($inside | Where-Object { $_ -match "/tests/[^/]+\.py$" })
-if ($isFeature -and -not $testOnly -and $inside.Count -gt 0 -and $testFiles.Count -eq 0) {
+if ($checkFeature -and -not $testOnly -and $inside.Count -gt 0 -and $testFiles.Count -eq 0) {
     # every TODO feature comes with a test (owner, 2026-10-14): Python or page code alike
     $what = if ($gamePy.Count -gt 0) { "changed the game's Python ($($gamePy -join ', '))" } else { "changed the page ($((@($inside | Where-Object { $_ -notlike '*/pc.html' }) | Select-Object -First 3) -join ', '))" }
     $problems += "it $what but added or changed no test in games/$Game/tests/"
@@ -566,7 +571,7 @@ if (@($inside | Where-Object { $_ -match '\.(js|html|css)$' -and $_ -notlike "*/
 }
 # The same checker as in the repair rounds, as a final gate (findings go in the report for the reviewer).
 $staticOut = ""
-if ($isFeature -and -not $testOnly -and $inside.Count -gt 0) {
+if ($checkFeature -and -not $testOnly -and $inside.Count -gt 0) {
     $staticOut = Get-NewFindings
     if ($staticOut) { $problems += "static_check.py found problems (see below)" }
 }

@@ -157,8 +157,11 @@ while ($true) {
     # though nothing was broken). Setup failures (ai.ps1 exit 2: git, Ollama, a working copy) mean something IS
     # broken: stop after 5 in a row. Ordinary failures (the AI tried) only stop the run after 25 in a row, which
     # still catches a silent problem like the model never writing an answer.
-    $setupStreak = if ($code -eq 2) { $setupStreak + 1 } else { 0 }
-    $failStreak = if ($status -eq "FAILED") { $failStreak + 1 } else { 0 }
+    # exit 3 = a chain step skipped because an earlier step failed: counts toward neither streak
+    if ($code -ne 3) {
+        $setupStreak = if ($code -eq 2) { $setupStreak + 1 } else { 0 }
+        $failStreak = if ($status -eq "FAILED") { $failStreak + 1 } else { 0 }
+    }
     if ($setupStreak -ge 5) {
         Write-Host "5 tasks in a row could not even start (git, Ollama or the disk). Stopping; the rest stay in queue.txt. See the STOPPED lines above." -ForegroundColor Red
         break
