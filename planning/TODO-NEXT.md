@@ -125,7 +125,7 @@ How it is built: one section per Round 4 section on the ideas sheet (`planning/I
 - `[Claude: ...]`: needs a Claude session (site-wide or shared files, backend, live web data, hub registration, or not tied to one game).
 - `[needs you]`: waits on your answer, account or decision. `[on hold]`: the QA pass, on hold until closing time.
 
-Open items now: [local AI: yes] 363, [needs you] 86, [local AI: after the game is built] 58, [Claude: design] 51, [Claude: backend] 50, [local AI: after split] 47, [Claude: site-wide] 39, [local AI: in steps] 22, [Claude: live web data] 13, [Claude: shared] 6, [Claude: art] 6, [Claude: story writing] 5, [Claude: not one game] 5, [Claude: new puzzle engine] 3, [Claude: 3D] 2, [Claude: drag] 2, [Claude: look and animals] 1, [Claude: painted art] 1, [Claude: look and levels] 1, [Claude: achievements] 1, [Claude: cutaway art] 1, [Claude: zoom and pan] 1, [Claude: drag UI] 1, [Claude: gestures] 1, [Claude: story text and scenario balance] 1, [Claude: drag UI and a map] 1, [Claude: swipe gesture] 1, [Claude: pointer events, after R4-GRPC-4 merges] 1, [Claude: look and art] 1, [Claude: layered SVG art] 1, [Claude: map UI and placement model] 1, [Claude: gesture] 1, [Claude: swipe] 1, [Claude: hold gesture and sheet] 1.
+Open items now: [local AI: yes] 364, [needs you] 87, [Claude: design] 81, [local AI: after the game is built] 58, [Claude: backend] 50, [Claude: site-wide] 39, [local AI: in steps] 28, [Claude: live web data] 13, [local AI: after split] 9, [Claude: shared] 6, [Claude: art] 6, [Claude: story writing] 5, [Claude: not one game] 5, [Claude: new puzzle engine] 3, [Claude: 3D] 2, [Claude: drag] 2, [Claude: look and animals] 1, [Claude: painted art] 1, [Claude: look and levels] 1, [Claude: achievements] 1, [Claude: cutaway art] 1, [Claude: zoom and pan] 1, [Claude: drag UI] 1, [Claude: gestures] 1, [Claude: story text and scenario balance] 1, [Claude: drag UI and a map] 1, [Claude: swipe gesture] 1, [Claude: pointer events, after R4-GRPC-4 merges] 1, [Claude: look and art] 1, [Claude: layered SVG art] 1, [Claude: map UI and placement model] 1, [Claude: gesture] 1, [Claude: swipe] 1, [Claude: hold gesture and sheet] 1.
 <!-- LOCAL-AI-LABELS:END -->
 
 ## XG. Whole site: general ideas
@@ -956,7 +956,7 @@ Dropped (you said no): PG-30.
 - [ ] R4-PU-1: (small) Pattern album: every layout of transmitters you meet, such as pairs, triangles and lines, is filed in an album with a count of how many you have discovered. You get a collector's page. [local AI: yes]
 - [x] R4-PU-2: (small) Quiet streak: the total number of puzzles you have solved is shown big and can never go down, with the streak small beside it. You get steady progress that cannot be lost.
 - [ ] R4-PU-3: (small) Three goals panel: three standing goals, such as "ten Hard solves at par", "fill six album pages" and "three archive weeks". You get the goal layout you like. [local AI: yes]
-- [ ] R4-PU-4: (big) Distress calls: each solve locates a lost probe on a sector map, and clearing a sector opens the next. You get short wins that build into a bigger picture, in space. [local AI: after split]
+- [ ] R4-PU-4: (big) Distress calls: each solve locates a lost probe on a sector map, and clearing a sector opens the next. You get short wins that build into a bigger picture, in space. [Claude: design]
 - [ ] R4-PU-5: (big) Two listeners: an invite link splits a board's pings between two players who each see only their own readings and talk it out in any app they like. You get an optional friend tie with no chat built in. [Claude: backend]
 - [ ] R4-PU-add: When you have answered the rest of this section on the ideas sheet (25 ideas: 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30), read the answers from the owner note and add the yes ones here as items. [needs you]
 
@@ -968,7 +968,7 @@ Dropped (you said no): PG-30.
 - [x] R4-SIPC-2: (small) Let a right-click on a tile toggle a small pencil "maybe" note in the corner that does not count as an answer. You can think on the board the way you do on paper.
 - [x] R4-SIPC-3: (small) Add a readings sheet beside the board that lists each ping's tile and number in sortable rows, with a click that highlights the tile. Your evidence sits in one table.
 - [ ] R4-SIPC-4: (small) Add Ctrl+Z and Ctrl+Y for markers and pencil notes, with a visible history list. You can try theories and step back. [local AI: yes]
-- [ ] R4-SIPC-5: (big) Hold Space to overlay each ping's reach rings across the whole board, so the overlap points show where a transmitter must sit. You can see the logic of the puzzle at a glance. [local AI: after split]
+- [ ] R4-SIPC-5: (big) Hold Space to overlay each ping's reach rings across the whole board, so the overlap points show where a transmitter must sit. You can see the logic of the puzzle at a glance. [needs you]
 - [x] R4-SIPC-6: (small) Show the archive as a wide month grid with hover previews of each puzzle's board size and your result. You browse past puzzles like a calendar app.
 - [x] R4-SIPC-7: (small) Add mouse-wheel zoom and drag pan for large practice boards, with a recentre key. Big boards stay comfortable on a monitor.
 - [x] R4-SIPC-8: (small) Hold Shift to draw a ruler line from the cursor tile to the nearest ping showing distance and reading difference. You check the geometry quickly.
@@ -979,7 +979,7 @@ Dropped (you said no): PG-30.
 
 10 ideas on the sheet: 10 yes, 0 no, 0 later, 0 not answered yet.
 
-- [ ] R4-SIMO-1: (big) Hold a tile to show a magnifier bubble above your finger with the tile's coordinate and a ping preview, so your thumb never hides the target. Precise tapping works on a small screen. [local AI: after split]
+- [ ] R4-SIMO-1: (big) Hold a tile to show a magnifier bubble above your finger with the tile's coordinate and a ping preview, so your thumb never hides the target. Precise tapping works on a small screen. [Claude: design]
 - [x] R4-SIMO-2: (small) Put the Ping and Mark tool switch as two big buttons at the bottom edge. The main choice sits under your thumb.
 - [ ] R4-SIMO-3: (small) Let a tap ping the tile and a long-press mark it, as an option in Settings. One finger does both jobs without a tool switch. [local AI: yes]
 - [x] R4-SIMO-4: (small) Add a haptic pulse on each ping that grows stronger with a bigger reading, where the browser allows. You feel how close you are.
@@ -1081,7 +1081,7 @@ Parked in LATER.md (you said later): PX-25.
 - [x] R4-HCPC-2: (small) Add a right-click menu on a cell with Clear, Copy to another beat, Swap with and Show odds. Cell jobs sit at the cursor.
 - [x] R4-HCPC-3: (small) Let a drag-box select several cells and arrow keys nudge the whole block one beat. You can shift a plan without redoing it.
 - [x] R4-HCPC-4: (small) Add Ctrl+C and Ctrl+V to copy a block of actions from one crew row to another. You reuse a good routine.
-- [ ] R4-HCPC-5: (big) Add a playback film strip under the timeline with J, K and L stepping, a speed key and a draggable playhead. You can study exactly how a complication chained. [local AI: after split]
+- [ ] R4-HCPC-5: (big) Add a playback film strip under the timeline with J, K and L stepping, a speed key and a draggable playhead. You can study exactly how a complication chained. [local AI: in steps]
 - [x] R4-HCPC-6: (small) Highlight every cell changed since your last run with a small dot, and list them in a side panel. You can see what your edits did.
 - [x] R4-HCPC-7: (small) Add a second-screen playback log with big text you can pop out into its own window. The story plays on one screen while you plan on the other.
 - [ ] R4-HCPC-8: (built by the local AI but its toggle button was never created, so the panel cannot be opened; reopen as a small task)  (small) Add a pop-out client brief window you can park on a second monitor, listing the target's rules and complications. The brief stays visible and the timeline gets the full screen. [local AI: yes]
@@ -1092,16 +1092,16 @@ Parked in LATER.md (you said later): PX-25.
 
 10 ideas on the sheet: 10 yes, 0 no, 0 later, 0 not answered yet.
 
-- [ ] R4-HCMO-1: (big) Show the timeline one crew row at a time, with swipe up and down between crew and sideways scroll for beats, and a bottom sheet to pick an action for a tapped cell. Planning works on a portrait screen. [local AI: after split]
+- [ ] R4-HCMO-1: (big) Show the timeline one crew row at a time, with swipe up and down between crew and sideways scroll for beats, and a bottom sheet to pick an action for a tapped cell. Planning works on a portrait screen. [Claude: design]
 - [x] R4-HCMO-2: (small) Put the action tray as a thumb-height carousel at the bottom with the odds shown as one word. You pick an action in one flick.
 - [x] R4-HCMO-3: (small) Add a short buzz for each link in a complication chain during playback, where the browser allows. A chain reaction is felt.
-- [ ] R4-HCMO-4: (big) Play the heist as full-screen story cards where a tap anywhere moves to the next beat. Playback is a one-thumb show. [local AI: after split]
+- [ ] R4-HCMO-4: (big) Play the heist as full-screen story cards where a tap anywhere moves to the next beat. Playback is a one-thumb show. [Claude: design]
 - [ ] R4-HCMO-5: (small) Resume playback at the exact beat you left. A two-minute pause never loses the story. [local AI: yes]
 - [x] R4-HCMO-6: (small) Let a long-press on a cell open a sheet that explains its odds in plain words. Detail comes without a hover.
 - [x] R4-HCMO-7: (small) Let the crew sheet slide in from the left edge with a swipe and slide away with another. The timeline gets the whole screen when you plan.
 - [x] R4-HCMO-8: (small) In landscape, show the whole timeline with crew rows and allow a pinch to zoom. Turning the phone gives the full plan view.
 - [x] R4-HCMO-9: (small) Add a dim cosy-night theme with bigger cells. Bed-time planning stays easy.
-- [ ] R4-HCMO-10: (small) Add a swipe on a past job in the career list to replay it. History is one flick away. [local AI: after split]
+- [ ] R4-HCMO-10: (small) Add a swipe on a past job in the career list to replay it. History is one flick away. [Claude: design]
 
 ## LH. Lighthouse: general ideas
 
@@ -1119,13 +1119,13 @@ Parked in LATER.md (you said later): PX-25.
 
 10 ideas on the sheet: 10 yes, 0 no, 0 later, 0 not answered yet.
 
-- [ ] R4-LHPC-1: (big) Make the lighthouse picture clickable: hover the lamp, clockwork or trouble spot to see a glowing label and click to act. The keeper's rounds happen in the place itself. [local AI: after split]
+- [ ] R4-LHPC-1: (big) Make the lighthouse picture clickable: hover the lamp, clockwork or trouble spot to see a glowing label and click to act. The keeper's rounds happen in the place itself. [Claude: design]
 - [x] R4-LHPC-2: (small) Show a hover card on a ship with its name, cargo, mood toward the light and last letter. You read the sea by pointing.
 - [x] R4-LHPC-3: (small) Add a Controls tab in Settings that rebinds W, T, Space, brackets and the lamp keys. The keys fit your hand.
 - [x] R4-LHPC-4: (small) Make the letters window a two-pane mail reader with J and K to move between letters, the sailor on the left and the letter on the right. Reading is smooth.
 - [ ] R4-LHPC-5: (small) Add a small storm scope as a dockable circular window you can place anywhere. You watch the weather without changing screens. [local AI: yes]
 - [x] R4-LHPC-6: (small) Add HUD scale and fade sliders in Settings, with an option to hide the HUD while nothing needs you. The scene stays cinematic.
-- [ ] R4-LHPC-7: (big) Add a camera key C that cycles three fixed views (the sea, the gallery and the lantern room) with a slow drift. The place feels like a world you look around. [local AI: after split]
+- [ ] R4-LHPC-7: (big) Add a camera key C that cycles three fixed views (the sea, the gallery and the lantern room) with a slow drift. The place feels like a world you look around. [Claude: design]
 - [x] R4-LHPC-8: (small) Save window arrangements such as "Keeper desk" and "Quiet night" and switch with F1 and F2. The screen fits the sitting.
 - [ ] R4-LHPC-9: (small) Add a letterbox cinema option with a choice of 16:9 or 21:9 framing and optional film grain. The scene is framed like a short film. [local AI: yes]
 - [x] R4-LHPC-10: (small) Add an opacity slider for each window so reports and letters can sit as see-through panels over the scene. You read while the sea stays in view.
@@ -1140,7 +1140,7 @@ Parked in LATER.md (you said later): PX-25.
 - [x] R4-LHMO-4: (small) Show letters as paper cards you flip with a tap and swipe away to file. Reading feels like handling mail.
 - [ ] R4-LHMO-5: (small) Keep a night summary strip in the header that expands into the full phase report when tapped. The main screen stays about the light. [local AI: yes]
 - [x] R4-LHMO-6: (small) Open the letters drawer with a swipe from the left edge. Reading mail is one thumb flick away.
-- [ ] R4-LHMO-7: (big) Make the scene a tall portrait view with the lighthouse on top and phase panels in a bottom sheet. The place fits a phone. [local AI: after split]
+- [ ] R4-LHMO-7: (big) Make the scene a tall portrait view with the lighthouse on top and phase panels in a bottom sheet. The place fits a phone. [Claude: design]
 - [x] R4-LHMO-8: (small) Add a battery-saver night that draws one still frame and a moving beam only. The phone lasts through a long watch.
 - [x] R4-LHMO-9: (small) Keep four lamp-level buttons as a one-thumb rail on the bottom edge. Quick changes are one tap.
 - [x] R4-LHMO-10: (small) Show oil and repair as large icons with numbers in the top bar that glow gently when low, never loudly. Warnings are calm and clear.
@@ -1164,7 +1164,7 @@ Parked in LATER.md (you said later): PX-25.
 - [x] R4-PBPC-1: (small) Hover a piece to highlight every piece it can merge with and show what the merge would make. You see good moves before you take them.
 - [x] R4-PBPC-2: (small) Add a right-click menu on a piece with Sell, Hand over to a customer and Pick up. Piece jobs sit at the cursor.
 - [x] R4-PBPC-3: (small) Hover a customer to show their liked goods and patience in beats. You can read the queue without opening anything.
-- [ ] R4-PBPC-4: (big) On wide screens, let you drag decorations around a free-form stall scene to arrange them anywhere. Your stall becomes your own layout. [local AI: after split]
+- [ ] R4-PBPC-4: (big) On wide screens, let you drag decorations around a free-form stall scene to arrange them anywhere. Your stall becomes your own layout. [Claude: design]
 - [x] R4-PBPC-5: (small) Hold Shift to select several pieces and press D to hand them all to one customer. A big order is one action.
 - [x] R4-PBPC-6: (small) Show a large chain counter on wide screens that grows and changes style as a combo builds. A good combo feels like a moment.
 - [x] R4-PBPC-7: (small) Add a board size slider from 80 percent to 160 percent in Settings. The board fits any monitor.
@@ -1204,12 +1204,12 @@ Parked in LATER.md (you said later): PX-25.
 10 ideas on the sheet: 10 yes, 0 no, 0 later, 0 not answered yet.
 
 - [x] R4-DEPC-1: (small) Let you type a leg as "090 6kn 2h" in a one-line box and press Enter to add it. Planning is fast for keyboard users.
-- [ ] R4-DEPC-2: (small) Add mouse-wheel zoom and drag pan on the chart with a scale bar and a recentre key. You can read a big chart closely. [local AI: after split]
-- [ ] R4-DEPC-3: (small) Show the position in nautical miles, the current arrow and the tide at that spot as you hover over the chart. The chart tells you what is under the cursor. [local AI: after split]
-- [ ] R4-DEPC-4: (small) Add a right-click menu on the chart with Drop a fix mark, Measure from the ship and Add a waypoint. Chart tools sit at the cursor. [local AI: after split]
-- [ ] R4-DEPC-5: (small) Hold R and drag to measure distance and bearing like parallel rules. You get a real chart tool. [local AI: after split]
+- [ ] R4-DEPC-2: (small) Add mouse-wheel zoom and drag pan on the chart with a scale bar and a recentre key. You can read a big chart closely. [Claude: design]
+- [ ] R4-DEPC-3: (small) Show the position in nautical miles, the current arrow and the tide at that spot as you hover over the chart. The chart tells you what is under the cursor. [local AI: in steps]
+- [ ] R4-DEPC-4: (small) Add a right-click menu on the chart with Drop a fix mark, Measure from the ship and Add a waypoint. Chart tools sit at the cursor. [Claude: design]
+- [ ] R4-DEPC-5: (small) Hold R and drag to measure distance and bearing like parallel rules. You get a real chart tool. [local AI: in steps]
 - [ ] R4-DEPC-6: (small) Add a layers panel to toggle currents, wind, hazards, grid and labels. The chart can be as plain or rich as you like. [local AI: yes]
-- [ ] R4-DEPC-7: (big) Add an editable plan table where every leg is a row with heading, speed and time cells you tab through, and the chart redraws as you type. You can plan like a spreadsheet. [local AI: after split]
+- [ ] R4-DEPC-7: (big) Add an editable plan table where every leg is a row with heading, speed and time cells you tab through, and the chart redraws as you type. You can plan like a spreadsheet. [Claude: design]
 - [ ] R4-DEPC-8: (small) Dock the tide table as a window beside the chart and highlight the row for the hour of your current leg. You read tides without hunting. [local AI: yes]
 - [x] R4-DEPC-9: (small) Add a Ctrl+P print layout that produces a clean chart sheet with your plan listed. You get a paper chart to keep.
 - [ ] R4-DEPC-10: (small) Add save slots as a file-style list with chart name, stars and a thumbnail of the track. Loading looks like a real PC menu. [local AI: yes]
@@ -1219,14 +1219,14 @@ Parked in LATER.md (you said later): PX-25.
 10 ideas on the sheet: 10 yes, 0 no, 0 later, 0 not answered yet.
 
 - [ ] R4-DEMO-1: (small) Set speed and time with two large wheel pickers at the bottom of the screen. Entering a leg is a thumb spin. [local AI: yes]
-- [ ] R4-DEMO-2: (small) Let you pinch to zoom the chart and drag to pan. The chart works like a phone map. [local AI: after split]
-- [ ] R4-DEMO-3: (small) Long-press the chart to drop a fix mark. A common job becomes a gesture. [local AI: after split]
+- [ ] R4-DEMO-2: (small) Let you pinch to zoom the chart and drag to pan. The chart works like a phone map. [Claude: design]
+- [ ] R4-DEMO-3: (small) Long-press the chart to drop a fix mark. A common job becomes a gesture. [Claude: design]
 - [x] R4-DEMO-4: (small) Add a short buzz when the reveal shows your estimate within one nautical mile, where the browser allows. Accuracy is felt.
 - [x] R4-DEMO-5: (small) Show legs as cards you swipe to delete with an undo bar. Editing a plan is a flick.
-- [ ] R4-DEMO-6: (big) Make the chart fill a portrait screen with the plan as a bottom sheet that peeks up. The chart and plan share a phone. [local AI: after split]
+- [ ] R4-DEMO-6: (big) Make the chart fill a portrait screen with the plan as a bottom sheet that peeks up. The chart and plan share a phone. [Claude: design]
 - [x] R4-DEMO-7: (small) Resume the plan you were drafting, with every leg kept. Short visits never lose a plan.
-- [ ] R4-DEMO-8: (small) Let the leg editor float as a draggable card over the chart that you can slide to the top or bottom. You keep the part of the chart you are working on in view. [local AI: after split]
-- [ ] R4-DEMO-9: (small) In landscape, show the chart full-screen with a floating leg editor. Turning the phone gives a chart table. [local AI: after split]
+- [ ] R4-DEMO-8: (small) Let the leg editor float as a draggable card over the chart that you can slide to the top or bottom. You keep the part of the chart you are working on in view. [Claude: design]
+- [ ] R4-DEMO-9: (small) In landscape, show the chart full-screen with a floating leg editor. Turning the phone gives a chart table. [Claude: design]
 - [ ] R4-DEMO-10: (small) Make downloaded charts work fully offline with a small list of what is saved. Navigation works on the bus. [local AI: yes]
 
 ## CL. Chronicle: general ideas
@@ -1428,14 +1428,14 @@ Parked in LATER.md (you said later): PX-25.
 
 10 ideas on the sheet: 10 yes, 0 no, 0 later, 0 not answered yet.
 
-- [ ] R4-LGPC-1: (big) Let you drag a wire from one pin to another with a live preview line and a snap to the nearest pin, alongside the tap-tap path. Wiring feels like a real circuit editor. [local AI: after split]
-- [ ] R4-LGPC-2: (big) Add mouse-wheel zoom and drag pan on the board, with a minimap for the big computer levels. Large circuits stay easy to navigate. [local AI: after split]
+- [ ] R4-LGPC-1: (big) Let you drag a wire from one pin to another with a live preview line and a snap to the nearest pin, alongside the tap-tap path. Wiring feels like a real circuit editor. [Claude: design]
+- [ ] R4-LGPC-2: (big) Add mouse-wheel zoom and drag pan on the board, with a minimap for the big computer levels. Large circuits stay easy to navigate. [Claude: design]
 - [x] R4-LGPC-3: (small) Show a hover card on a wire with its live value and the truth-table rows where it is high. You can read a signal by pointing at it.
-- [ ] R4-LGPC-4: (big) Add a right-click menu on a built chip with Open inside, Duplicate and Delete, where Open inside shows its own circuit in a window. You can see how any chip you made works. [local AI: after split]
+- [ ] R4-LGPC-4: (big) Add a right-click menu on a built chip with Open inside, Duplicate and Delete, where Open inside shows its own circuit in a window. You can see how any chip you made works. [Claude: design]
 - [ ] R4-LGPC-5: (small) Let a drag-box select several parts, move them together and copy them with Ctrl+C and Ctrl+V. You can repeat a half-adder without rebuilding it. [local AI: yes]
 - [x] R4-LGPC-6: (small) Dock the truth table beside the board and highlight the row for the current inputs, with a click on a row that sets the switches. You test every case fast.
 - [ ] R4-LGPC-7: (small) Add hotkeys A, O, N and X that put an AND, OR, NOT or XOR gate under the cursor. A circuit can be built with one hand on the keyboard. [local AI: yes]
-- [ ] R4-LGPC-8: (big) Add a timing-diagram window for sequence levels showing each wire's 0 and 1 over the steps like a logic analyser. You see memory and clocks the way engineers do. [local AI: after split]
+- [ ] R4-LGPC-8: (big) Add a timing-diagram window for sequence levels showing each wire's 0 and 1 over the steps like a logic analyser. You see memory and clocks the way engineers do. [local AI: in steps]
 - [ ] R4-LGPC-9: (small) Let you drop a circuit text file onto the page to load it into the sandbox. You can keep and share circuits as small files. [local AI: yes]
 - [ ] R4-LGPC-10: (small) Add a Controls tab in Settings that rebinds every Logic Gates key. The keys match your hand. [local AI: yes]
 
@@ -1445,7 +1445,7 @@ Parked in LATER.md (you said later): PX-25.
 
 - [x] R4-LGMO-1: (small) Make pin hit areas grow when a wire is armed, with a gentle magnet toward the nearest pin. Wiring on a small screen stops missing.
 - [x] R4-LGMO-2: (small) Put the chip tray in a bottom drawer you pull up and tap to place. Chips are always in thumb reach.
-- [ ] R4-LGMO-3: (big) Add pinch to zoom and two-finger pan on the board with a double-tap to fit it to the screen. Big circuits work on a phone. [local AI: after split]
+- [ ] R4-LGMO-3: (big) Add pinch to zoom and two-finger pan on the board with a double-tap to fit it to the screen. Big circuits work on a phone. [Claude: design]
 - [ ] R4-LGMO-4: (small) Add a light haptic tick when a switch flips and a longer buzz when a level solves, where the browser allows. The circuit feels alive. [local AI: yes]
 - [ ] R4-LGMO-5: (small) Reopen on the exact wiring of the level you were in. A short visit never loses a circuit. [local AI: yes]
 - [ ] R4-LGMO-6: (small) Show the result as a bottom sheet with a scrolling truth table and the failing row highlighted. You can see what is wrong without leaving the board. [local AI: yes]
@@ -1458,11 +1458,11 @@ Parked in LATER.md (you said later): PX-25.
 
 10 ideas on the sheet: 10 yes, 0 no, 0 later, 0 not answered yet.
 
-- [ ] R4-RSPC-1: (big) Let you drag instruction blocks from a palette into the list, reorder them by dragging and drop them inside repeat blocks. Building a program feels like a real visual coding tool. [local AI: after split]
-- [ ] R4-RSPC-2: (big) Add a step debugger where F10 runs one instruction, the current line is highlighted and a side panel shows the robot's position and what it holds. You can find a mistake by watching it happen. [local AI: after split]
+- [ ] R4-RSPC-1: (big) Let you drag instruction blocks from a palette into the list, reorder them by dragging and drop them inside repeat blocks. Building a program feels like a real visual coding tool. [Claude: design]
+- [ ] R4-RSPC-2: (big) Add a step debugger where F10 runs one instruction, the current line is highlighted and a side panel shows the robot's position and what it holds. You can find a mistake by watching it happen. [local AI: yes]
 - [x] R4-RSPC-3: (small) Let you click the gutter beside a line to set a breakpoint where a run pauses. You can stop exactly where you want to look.
 - [ ] R4-RSPC-4: (small) Show a hover card on a line with the tiles it visited last run. You can see what each step did. [local AI: yes]
-- [ ] R4-RSPC-5: (big) Add a text view where the same program appears as numbered lines you can edit directly, with Ctrl+Enter to run. Keyboard players can type a whole program. [local AI: after split]
+- [ ] R4-RSPC-5: (big) Add a text view where the same program appears as numbered lines you can edit directly, with Ctrl+Enter to run. Keyboard players can type a whole program. [local AI: in steps]
 - [ ] R4-RSPC-6: (small) Add a snippets drawer where you save a routine and drag it into any room. You can reuse a good routine. [local AI: yes]
 - [x] R4-RSPC-7: (small) Add a playback slider with the bracket keys for speed and the arrow keys for frame stepping. You control how closely you watch.
 - [x] R4-RSPC-8: (small) Add a medals table window sorting every room by your length against par. You can find rooms to improve.
@@ -1473,7 +1473,7 @@ Parked in LATER.md (you said later): PX-25.
 
 10 ideas on the sheet: 10 yes, 0 no, 0 later, 0 not answered yet.
 
-- [ ] R4-RSMO-1: (big) Build programs from a bottom keypad of large instruction buttons, with a scrolling list above and long-press handles to reorder. Writing a program works with one thumb. [local AI: after split]
+- [ ] R4-RSMO-1: (big) Build programs from a bottom keypad of large instruction buttons, with a scrolling list above and long-press handles to reorder. Writing a program works with one thumb. [Claude: design]
 - [x] R4-RSMO-2: (small) Add a soft tick as the robot takes each step and a longer buzz at the exit, where the browser allows. Watching a run is felt.
 - [ ] R4-RSMO-3: (small) Split the screen into room on top and list below with a draggable divider. You choose how much of each you see. [local AI: yes]
 - [x] R4-RSMO-4: (small) Swipe an instruction left to delete it with an undo bar. Editing is a flick.
@@ -1488,7 +1488,7 @@ Parked in LATER.md (you said later): PX-25.
 
 10 ideas on the sheet: 10 yes, 0 no, 0 later, 0 not answered yet.
 
-- [ ] R4-HRPC-1: (big) Draw the station as a large cutaway you can zoom with the mouse wheel and pan with a drag, where hover shows a room's status and a click opens its board. The bigger picture is something you explore. [local AI: after split]
+- [ ] R4-HRPC-1: (big) Draw the station as a large cutaway you can zoom with the mouse wheel and pan with a drag, where hover shows a room's status and a click opens its board. The bigger picture is something you explore. [Claude: design]
 - [x] R4-HRPC-2: (small) Hover a port to light its twin and its current path, and hover a line to show its length. You read the board by pointing.
 - [ ] R4-HRPC-3: (small) Add a lock on finished lines through a right-click so dragging cannot cut them. You can protect work as you finish others. [local AI: yes]
 - [x] R4-HRPC-4: (small) Let Tab pick the next line, arrow keys extend it, and Backspace trim it. You can route a whole board without the mouse.
@@ -1505,10 +1505,10 @@ Parked in LATER.md (you said later): PX-25.
 
 - [x] R4-HRMO-1: (small) Show a faint ghost of the line a little above your finger as you drag. Your thumb never hides the route.
 - [x] R4-HRMO-2: (small) Add a haptic tick for each cell entered and a short pulse when a line connects, where the browser allows. Routing feels tactile.
-- [ ] R4-HRMO-3: (small) Add two-finger pan and pinch zoom for 9 by 9 boards with a double-tap to fit. The biggest boards remain playable. [local AI: after split]
-- [ ] R4-HRMO-4: (big) Show the station as a vertical scroll of decks, each with room thumbnails you tap to open. The bigger picture fits a phone. [local AI: after split]
+- [ ] R4-HRMO-3: (small) Add two-finger pan and pinch zoom for 9 by 9 boards with a double-tap to fit. The biggest boards remain playable. [Claude: design]
+- [ ] R4-HRMO-4: (big) Show the station as a vertical scroll of decks, each with room thumbnails you tap to open. The bigger picture fits a phone. [Claude: design]
 - [x] R4-HRMO-5: (small) Add undo with a two-finger tap and a large undo button at thumb height. Mistakes are cheap.
-- [ ] R4-HRMO-6: (small) Let a drag backward from the end of a line trim it with a soft tick per cell. Fixing a mistake is one smooth gesture. [local AI: after split]
+- [ ] R4-HRMO-6: (small) Let a drag backward from the end of a line trim it with a soft tick per cell. Fixing a mistake is one smooth gesture. [Claude: design]
 - [ ] R4-HRMO-7: (small) Add a home-screen card with rooms restored out of forty and the current deck. You can see how much of the station is lit. [local AI: yes]
 - [x] R4-HRMO-8: (small) Add left-hand and right-hand layouts that move the undo and next-board buttons to your thumb side. Both hands can play comfortably.
 - [x] R4-HRMO-9: (small) Add a big-shape mode that draws ports larger with their letters. Ports are easy to tell apart on small screens.
@@ -1518,12 +1518,12 @@ Parked in LATER.md (you said later): PX-25.
 
 10 ideas on the sheet: 10 yes, 0 no, 0 later, 0 not answered yet.
 
-- [ ] R4-SMPC-1: (big) Let you drag a treatment from the supply cabinet onto a patient's bed, and a scan onto a patient to run it. Treating the ward feels hands-on. [local AI: after split]
+- [ ] R4-SMPC-1: (big) Let you drag a treatment from the supply cabinet onto a patient's bed, and a scan onto a patient to run it. Treating the ward feels hands-on. [Claude: design]
 - [x] R4-SMPC-2: (small) Hover a sign or scan result to show which conditions on the sheet carry it. You can reason without searching.
 - [x] R4-SMPC-3: (small) Add a notepad on the Condition Sheet where a click strikes out a condition and a second click restores it. You can rule things out as you go.
 - [x] R4-SMPC-4: (small) Add a right-click menu on a patient with Scan, Treat, Isolate and Comfort. Ward jobs sit at the cursor.
 - [x] R4-SMPC-5: (small) Let 1 to 4 pick patients, S open scans, T open treatments and Z step back. A whole shift can be played from the keyboard.
-- [ ] R4-SMPC-6: (big) Show every action in a history list where a click on an earlier step rewinds to it, leaving later steps ready to re-run. You can retry from any point without restarting the shift. [local AI: after split]
+- [ ] R4-SMPC-6: (big) Show every action in a history list where a click on an earlier step rewinds to it, leaving later steps ready to re-run. You can retry from any point without restarting the shift. [local AI: in steps]
 - [x] R4-SMPC-7: (small) On wide screens, show all patient beds side by side with a permanent strip for chart notes. You can compare cases at a glance.
 - [x] R4-SMPC-8: (small) Keep a supply tray along the bottom with stock counts and a hover preview of which patient could use each item. You never open the cabinet to check.
 - [x] R4-SMPC-9: (small) Add a Ctrl+P print layout for the shift report with seal and notes. You get a clean record of the shift.
@@ -1533,10 +1533,10 @@ Parked in LATER.md (you said later): PX-25.
 
 10 ideas on the sheet: 10 yes, 0 no, 0 later, 0 not answered yet.
 
-- [ ] R4-SMMO-1: (big) Show one patient per screen with swipe left and right between beds, and scans and treatments in a bottom drawer. The ward fits a phone. [local AI: after split]
+- [ ] R4-SMMO-1: (big) Show one patient per screen with swipe left and right between beds, and scans and treatments in a bottom drawer. The ward fits a phone. [Claude: design]
 - [x] R4-SMMO-2: (small) Let you tap a supply chip and then a patient to use it, or drag it. Two ways to act suit different thumbs.
 - [x] R4-SMMO-3: (small) Add a soft pulse for a clean cure and a gentle double pulse when a cost is added, where the browser allows. The result is felt.
-- [ ] R4-SMMO-4: (small) Pull down to open the Condition Sheet as a bottom sheet. The reference is one gesture away. [local AI: after split]
+- [ ] R4-SMMO-4: (small) Pull down to open the Condition Sheet as a bottom sheet. The reference is one gesture away. [Claude: design]
 - [x] R4-SMMO-5: (small) Hold the shift title to Restore the shift with a confirm. Starting over is deliberate and easy.
 - [x] R4-SMMO-6: (small) Show each patient's signs as large icon chips whose tap lists the conditions that carry them. Reading a patient takes a glance.
 - [x] R4-SMMO-7: (small) Split the drawer into Scans and Treatments tabs with a supply count on each. You see what is left before you tap.
