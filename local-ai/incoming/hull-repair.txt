@@ -1,0 +1,1 @@
+# Drafted 2026-10-19 for LA-8 (local AI steps), game: hull-repair. No steps: all four open items are C (see hull-repair-notes.md).
