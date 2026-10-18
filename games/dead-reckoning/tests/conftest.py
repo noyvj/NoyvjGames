@@ -8,6 +8,12 @@ GAME_DIR = Path(__file__).resolve().parent.parent
 if str(GAME_DIR) not in sys.path:
     sys.path.insert(0, str(GAME_DIR))
 
+# tests/browser_helpers.py (the shared browser-test set-up) is imported by plain name: `from browser_helpers import base, open_game`.
+TESTS_DIR = Path(__file__).resolve().parent
+if str(TESTS_DIR) not in sys.path:
+    sys.path.insert(0, str(TESTS_DIR))
+from browser_helpers import base  # noqa: E402,F401  (fixture for the browser tests)
+
 import pytest  # noqa: E402
 
 BASE_CHART = {
