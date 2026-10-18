@@ -16,11 +16,11 @@ CODE_SUFFIXES = {".py", ".js", ".css", ".html"}
 
 # index.html of the games whose markup is bigger than the limit (bytes). Documented in each game's tests/test_file_sizes.py.
 INDEX_CAPS = {
-    "aftermath": 15_000 * 4, "canopy": 15_000 * 4, "champ-de-mots": 78_000, "continuum": 17_500 * 4,
+    "aftermath": 15_000 * 4, "canopy": 15_000 * 4, "champ-de-mots": 78_000, "continuum": 17_500 * 4, "drift": 15_000 * 4,
     "grid": 15_500 * 4, "herd": 14_000 * 4, "sol": 21_500 * 4, "thaw": 15_000 * 4,
     "tide": 16_000 * 4, "trade-empire": 27_500 * 4,
 }
-# Games not split yet: listed so the list shrinks. Remove an entry when its split lands (SP-0a Loop, SP-1b Drift).
+# Games not split yet: listed so the list shrinks. Remove an entry when its split lands (SP-0a Loop).
 NOT_SPLIT_YET = {"drift": 5}   # (game -> how many files may still be over the limit)
 # Other files over the limit on purpose: path (relative to the repo root) -> why.
 EXEMPT = {

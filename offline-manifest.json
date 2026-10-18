@@ -4196,18 +4196,143 @@
      "precached": false
     },
     {
+     "path": "games/drift/boot.js",
+     "bytes": 2587,
+     "precached": true
+    },
+    {
      "path": "games/drift/changelog.json",
      "bytes": 14757,
      "precached": false
     },
     {
+     "path": "games/drift/drift_achievements.py",
+     "bytes": 19143,
+     "precached": true
+    },
+    {
+     "path": "games/drift/drift_assist.py",
+     "bytes": 8825,
+     "precached": true
+    },
+    {
+     "path": "games/drift/drift_calendar.py",
+     "bytes": 10789,
+     "precached": true
+    },
+    {
+     "path": "games/drift/drift_collection.py",
+     "bytes": 22918,
+     "precached": true
+    },
+    {
+     "path": "games/drift/drift_handlers.py",
+     "bytes": 23894,
+     "precached": true
+    },
+    {
+     "path": "games/drift/drift_ledger.py",
+     "bytes": 6640,
+     "precached": true
+    },
+    {
+     "path": "games/drift/drift_loading.py",
+     "bytes": 13601,
+     "precached": true
+    },
+    {
+     "path": "games/drift/drift_messages.py",
+     "bytes": 20868,
+     "precached": true
+    },
+    {
+     "path": "games/drift/drift_model_region.py",
+     "bytes": 32996,
+     "precached": true
+    },
+    {
+     "path": "games/drift/drift_newsview.py",
+     "bytes": 6470,
+     "precached": true
+    },
+    {
+     "path": "games/drift/drift_pages.py",
+     "bytes": 16121,
+     "precached": true
+    },
+    {
+     "path": "games/drift/drift_plans.py",
+     "bytes": 11024,
+     "precached": true
+    },
+    {
+     "path": "games/drift/drift_regional.py",
+     "bytes": 5766,
+     "precached": true
+    },
+    {
+     "path": "games/drift/drift_renderer.py",
+     "bytes": 18055,
+     "precached": true
+    },
+    {
+     "path": "games/drift/drift_report.py",
+     "bytes": 10802,
+     "precached": true
+    },
+    {
+     "path": "games/drift/drift_rules.py",
+     "bytes": 23698,
+     "precached": true
+    },
+    {
+     "path": "games/drift/drift_runstate.py",
+     "bytes": 3401,
+     "precached": true
+    },
+    {
+     "path": "games/drift/drift_savestate.py",
+     "bytes": 12467,
+     "precached": true
+    },
+    {
+     "path": "games/drift/drift_settings.py",
+     "bytes": 8082,
+     "precached": true
+    },
+    {
+     "path": "games/drift/drift_tiers.py",
+     "bytes": 9900,
+     "precached": true
+    },
+    {
+     "path": "games/drift/drift_trendgraph.py",
+     "bytes": 12242,
+     "precached": true
+    },
+    {
+     "path": "games/drift/drift_undo.py",
+     "bytes": 8365,
+     "precached": true
+    },
+    {
+     "path": "games/drift/drift_visuals.py",
+     "bytes": 6251,
+     "precached": true
+    },
+    {
+     "path": "games/drift/feedback.js",
+     "bytes": 2058,
+     "precached": true
+    },
+    {
      "path": "games/drift/game.py",
-     "bytes": 299842,
+     "bytes": 9565,
      "precached": true
     },
     {
      "path": "games/drift/index.html",
-     "bytes": 65530,
+     "bytes": 56826,
      "precached": true
     },
     {
@@ -4222,7 +4347,7 @@
     },
     {
      "path": "games/drift/pc.html",
-     "bytes": 68704,
+     "bytes": 60000,
      "precached": true
     },
     {
@@ -4231,8 +4356,18 @@
      "precached": true
     },
     {
+     "path": "games/drift/result-copy.js",
+     "bytes": 541,
+     "precached": true
+    },
+    {
      "path": "games/drift/settings.js",
      "bytes": 11734,
+     "precached": true
+    },
+    {
+     "path": "games/drift/shortcuts.js",
+     "bytes": 1080,
      "precached": true
     },
     {
@@ -4246,8 +4381,28 @@
      "precached": false
     },
     {
+     "path": "games/drift/style-1-base.css",
+     "bytes": 28168,
+     "precached": true
+    },
+    {
+     "path": "games/drift/style-2-console.css",
+     "bytes": 19058,
+     "precached": true
+    },
+    {
+     "path": "games/drift/style-3-panels.css",
+     "bytes": 14621,
+     "precached": true
+    },
+    {
      "path": "games/drift/style.css",
-     "bytes": 73063,
+     "bytes": 12795,
+     "precached": true
+    },
+    {
+     "path": "games/drift/tutorial-steps.js",
+     "bytes": 4122,
      "precached": true
     },
     {
@@ -4335,11 +4490,6 @@
     {
      "path": "shared/info-page.css",
      "bytes": 1092,
-     "precached": true
-    },
-    {
-     "path": "shared/info_page.py",
-     "bytes": 3410,
      "precached": true
     },
     {
@@ -4485,7 +4635,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14766380,
+   "bytes": 14779570,
    "bytes_complete": true
   },
   "champ-de-mots": {

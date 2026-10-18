@@ -2,7 +2,7 @@
 // the precache list; ordinary content deploys don't need it, because
 // same-origin requests are network-first (see the fetch handler below) and
 // so always pick up fresh files whenever the player is online.
-const SW_VERSION = 79;
+const SW_VERSION = 80;
 const CACHE_NAME = "site-cache-v" + SW_VERSION;
 // How long a same-origin network request may take before we give up and
 // serve the cached copy instead (a slow/flaky connection shouldn't hang).
@@ -507,6 +507,37 @@ const PRECACHE_URLS = [
   "games/drift/settings.js",
   "games/drift/style.css",
   "games/drift/game.py",
+  "games/drift/boot.js",
+  "games/drift/drift_achievements.py",
+  "games/drift/drift_assist.py",
+  "games/drift/drift_calendar.py",
+  "games/drift/drift_collection.py",
+  "games/drift/drift_handlers.py",
+  "games/drift/drift_ledger.py",
+  "games/drift/drift_loading.py",
+  "games/drift/drift_messages.py",
+  "games/drift/drift_model_region.py",
+  "games/drift/drift_newsview.py",
+  "games/drift/drift_pages.py",
+  "games/drift/drift_plans.py",
+  "games/drift/drift_regional.py",
+  "games/drift/drift_renderer.py",
+  "games/drift/drift_report.py",
+  "games/drift/drift_rules.py",
+  "games/drift/drift_runstate.py",
+  "games/drift/drift_savestate.py",
+  "games/drift/drift_settings.py",
+  "games/drift/drift_tiers.py",
+  "games/drift/drift_trendgraph.py",
+  "games/drift/drift_undo.py",
+  "games/drift/drift_visuals.py",
+  "games/drift/feedback.js",
+  "games/drift/result-copy.js",
+  "games/drift/shortcuts.js",
+  "games/drift/style-1-base.css",
+  "games/drift/style-2-console.css",
+  "games/drift/style-3-panels.css",
+  "games/drift/tutorial-steps.js",
   "games/drift/ui.js",
   "games/champ-de-mots/index.html",
   "games/champ-de-mots/style.css",
