@@ -1,0 +1,101 @@
+{
+ "topic": "forest_carbon",
+ "read": "2026-10-19",
+ "fao_fra2020": {
+  "carbon_stock_gt": {
+   "1990": 668.0,
+   "2020": 662.0
+  },
+  "carbon_density_t_per_ha": {
+   "1990": 159.0,
+   "2020": 163.0
+  },
+  "share_of_forest_carbon_in_living_biomass_percent": 44.0,
+  "share_in_soil_organic_matter_percent": 45.0,
+  "forest_area_billion_ha": 4.06,
+  "forest_share_of_land_percent": 31.0,
+  "living_biomass_gt": 606.0,
+  "dead_wood_gt": 59.0,
+  "exact_sentences": [
+   "The total carbon stock in forests decreased from 668 gigatonnes in 1990 to 662 gigatonnes in 2020; carbon density increased slightly over the same period, from 159 tonnes to 163 tonnes per ha.",
+   "Most forest carbon is found in the living biomass (44 percent) and soil organic matter (45 percent), with the remainder in dead wood and litter.",
+   "The world has a total forest area of 4.06 billion hectares (ha), which is 31 percent of the total land area.",
+   "The world’s forests contain about 606 gigatonnes of living biomass (above- and below-ground) and 59 gigatonnes of dead wood."
+  ],
+  "name": "Global Forest Resources Assessment 2020: Key findings",
+  "publisher": "Food and Agriculture Organization of the United Nations (FAO)",
+  "url": "https://www.fao.org/3/ca8753en/ca8753en.pdf",
+  "licence": "FAO publication. No licence line was found in the PDF text, so only the numbers and four short sentences are kept, credited to FAO; check FAO's terms before copying more text",
+  "live": false
+ },
+ "owid_above_ground_biomass": {
+  "series": "15.2.1 - Above-ground biomass in forest (tonnes per hectare) - AG_LND_FRSTBIOPHA",
+  "unit": "tonnes per hectare",
+  "timespan": "1990-2025",
+  "source_last_updated": "2026-07-31",
+  "citation": "Food and Agriculture Organization of the United Nations",
+  "csv_url": "https://ourworldindata.org/grapher/above-ground-biomass-in-forest-per-hectare.csv",
+  "chart_url": "https://ourworldindata.org/grapher/above-ground-biomass-in-forest-per-hectare",
+  "latest": {
+   "World": {
+    "year": 2025,
+    "above_ground_biomass_t_per_ha": 123.29
+   },
+   "Canada": {
+    "year": 2025,
+    "above_ground_biomass_t_per_ha": 86.88
+   },
+   "Russia": {
+    "year": 2025,
+    "above_ground_biomass_t_per_ha": 83.43
+   },
+   "Sweden": {
+    "year": 2025,
+    "above_ground_biomass_t_per_ha": 76.82
+   },
+   "Finland": {
+    "year": 2025,
+    "above_ground_biomass_t_per_ha": 61.09
+   },
+   "Norway": {
+    "year": 2025,
+    "above_ground_biomass_t_per_ha": 62.54
+   },
+   "United States": {
+    "year": 2025,
+    "above_ground_biomass_t_per_ha": 129.5
+   },
+   "Brazil": {
+    "year": 2025,
+    "above_ground_biomass_t_per_ha": 172.43
+   },
+   "Indonesia": {
+    "year": 2025,
+    "above_ground_biomass_t_per_ha": 193.39
+   },
+   "Democratic Republic of Congo": {
+    "year": 2025,
+    "above_ground_biomass_t_per_ha": 228.3
+   },
+   "Colombia": {
+    "year": 2025,
+    "above_ground_biomass_t_per_ha": 202.98
+   },
+   "Peru": {
+    "year": 2025,
+    "above_ground_biomass_t_per_ha": 195.02
+   },
+   "Malaysia": {
+    "year": 2025,
+    "above_ground_biomass_t_per_ha": 209.02
+   }
+  },
+  "publisher": "Our World in Data, data from FAO (SDG indicator 15.2.1)",
+  "licence": "CC BY 4.0 (Our World in Data); credit OWID and FAO",
+  "live": true
+ },
+ "co2_per_carbon": {
+  "formula": "tonnes CO2 = tonnes of carbon x 44.01 / 12.011",
+  "note": "ratio of the molar masses of carbon dioxide and carbon: the game's own arithmetic, not a measured figure"
+ }
+}

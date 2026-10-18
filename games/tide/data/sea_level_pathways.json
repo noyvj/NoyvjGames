@@ -1,0 +1,444 @@
+{
+ "topic": "sea_level_pathways",
+ "read": "2026-10-19",
+ "source": {
+  "name": "IPCC AR6 WGI Chapter 9, Table 9.9: Global mean sea level projections for five SSP scenarios, relative to 1995-2014",
+  "publisher": "Intergovernmental Panel on Climate Change (IPCC), Working Group I, Sixth Assessment Report (2021)",
+  "url": "https://www.ipcc.ch/report/ar6/wg1/chapter/chapter-9/",
+  "licence": "IPCC reports may be reproduced with credit for non-commercial use (IPCC copyright terms); only the numbers are kept here"
+ },
+ "live": false,
+ "live_note": "No CORS header on the IPCC page: a browser cannot read it, the snapshot is the data.",
+ "baseline": "1995-2014",
+ "scenarios": [
+  "SSP1-1.9",
+  "SSP1-2.6",
+  "SSP2-4.5",
+  "SSP3-7.0",
+  "SSP5-8.5",
+  "SSP5-8.5 low confidence"
+ ],
+ "note": "Each value is a median with its likely range (assessed 17th-83rd percentile). The last scenario is SSP5-8.5 with low-confidence ice-sheet processes: its range is a p-box, not an assessed likely range.",
+ "rows": {
+  "thermal_expansion_2100": {
+   "unit": "m",
+   "values": {
+    "SSP1-1.9": {
+     "median": 0.12,
+     "likely_low": 0.09,
+     "likely_high": 0.15
+    },
+    "SSP1-2.6": {
+     "median": 0.14,
+     "likely_low": 0.11,
+     "likely_high": 0.18
+    },
+    "SSP2-4.5": {
+     "median": 0.2,
+     "likely_low": 0.16,
+     "likely_high": 0.24
+    },
+    "SSP3-7.0": {
+     "median": 0.25,
+     "likely_low": 0.21,
+     "likely_high": 0.3
+    },
+    "SSP5-8.5": {
+     "median": 0.3,
+     "likely_low": 0.24,
+     "likely_high": 0.36
+    },
+    "SSP5-8.5 low confidence": {
+     "median": 0.3,
+     "likely_low": 0.24,
+     "likely_high": 0.36
+    }
+   }
+  },
+  "greenland_2100": {
+   "unit": "m",
+   "values": {
+    "SSP1-1.9": {
+     "median": 0.05,
+     "likely_low": 0.0,
+     "likely_high": 0.09
+    },
+    "SSP1-2.6": {
+     "median": 0.06,
+     "likely_low": 0.01,
+     "likely_high": 0.1
+    },
+    "SSP2-4.5": {
+     "median": 0.08,
+     "likely_low": 0.04,
+     "likely_high": 0.13
+    },
+    "SSP3-7.0": {
+     "median": 0.11,
+     "likely_low": 0.07,
+     "likely_high": 0.16
+    },
+    "SSP5-8.5": {
+     "median": 0.13,
+     "likely_low": 0.09,
+     "likely_high": 0.18
+    },
+    "SSP5-8.5 low confidence": {
+     "median": 0.18,
+     "likely_low": 0.09,
+     "likely_high": 0.59
+    }
+   }
+  },
+  "antarctica_2100": {
+   "unit": "m",
+   "values": {
+    "SSP1-1.9": {
+     "median": 0.1,
+     "likely_low": 0.03,
+     "likely_high": 0.25
+    },
+    "SSP1-2.6": {
+     "median": 0.11,
+     "likely_low": 0.03,
+     "likely_high": 0.27
+    },
+    "SSP2-4.5": {
+     "median": 0.11,
+     "likely_low": 0.03,
+     "likely_high": 0.29
+    },
+    "SSP3-7.0": {
+     "median": 0.11,
+     "likely_low": 0.03,
+     "likely_high": 0.31
+    },
+    "SSP5-8.5": {
+     "median": 0.12,
+     "likely_low": 0.03,
+     "likely_high": 0.34
+    },
+    "SSP5-8.5 low confidence": {
+     "median": 0.19,
+     "likely_low": 0.02,
+     "likely_high": 0.56
+    }
+   }
+  },
+  "glaciers_2100": {
+   "unit": "m",
+   "values": {
+    "SSP1-1.9": {
+     "median": 0.08,
+     "likely_low": 0.06,
+     "likely_high": 0.1
+    },
+    "SSP1-2.6": {
+     "median": 0.09,
+     "likely_low": 0.07,
+     "likely_high": 0.11
+    },
+    "SSP2-4.5": {
+     "median": 0.12,
+     "likely_low": 0.1,
+     "likely_high": 0.15
+    },
+    "SSP3-7.0": {
+     "median": 0.16,
+     "likely_low": 0.13,
+     "likely_high": 0.18
+    },
+    "SSP5-8.5": {
+     "median": 0.18,
+     "likely_low": 0.15,
+     "likely_high": 0.21
+    },
+    "SSP5-8.5 low confidence": {
+     "median": 0.17,
+     "likely_low": 0.11,
+     "likely_high": 0.21
+    }
+   }
+  },
+  "land_water_storage_2100": {
+   "unit": "m",
+   "values": {
+    "SSP1-1.9": {
+     "median": 0.03,
+     "likely_low": 0.01,
+     "likely_high": 0.04
+    },
+    "SSP1-2.6": {
+     "median": 0.03,
+     "likely_low": 0.01,
+     "likely_high": 0.04
+    },
+    "SSP2-4.5": {
+     "median": 0.03,
+     "likely_low": 0.01,
+     "likely_high": 0.04
+    },
+    "SSP3-7.0": {
+     "median": 0.03,
+     "likely_low": 0.02,
+     "likely_high": 0.04
+    },
+    "SSP5-8.5": {
+     "median": 0.03,
+     "likely_low": 0.01,
+     "likely_high": 0.04
+    },
+    "SSP5-8.5 low confidence": {
+     "median": 0.03,
+     "likely_low": 0.01,
+     "likely_high": 0.04
+    }
+   }
+  },
+  "total_2030": {
+   "unit": "m",
+   "values": {
+    "SSP1-1.9": {
+     "median": 0.09,
+     "likely_low": 0.08,
+     "likely_high": 0.12
+    },
+    "SSP1-2.6": {
+     "median": 0.09,
+     "likely_low": 0.08,
+     "likely_high": 0.12
+    },
+    "SSP2-4.5": {
+     "median": 0.09,
+     "likely_low": 0.08,
+     "likely_high": 0.12
+    },
+    "SSP3-7.0": {
+     "median": 0.1,
+     "likely_low": 0.08,
+     "likely_high": 0.12
+    },
+    "SSP5-8.5": {
+     "median": 0.1,
+     "likely_low": 0.09,
+     "likely_high": 0.12
+    },
+    "SSP5-8.5 low confidence": {
+     "median": 0.1,
+     "likely_low": 0.09,
+     "likely_high": 0.15
+    }
+   }
+  },
+  "total_2050": {
+   "unit": "m",
+   "values": {
+    "SSP1-1.9": {
+     "median": 0.18,
+     "likely_low": 0.15,
+     "likely_high": 0.23
+    },
+    "SSP1-2.6": {
+     "median": 0.19,
+     "likely_low": 0.16,
+     "likely_high": 0.25
+    },
+    "SSP2-4.5": {
+     "median": 0.2,
+     "likely_low": 0.17,
+     "likely_high": 0.26
+    },
+    "SSP3-7.0": {
+     "median": 0.22,
+     "likely_low": 0.18,
+     "likely_high": 0.27
+    },
+    "SSP5-8.5": {
+     "median": 0.23,
+     "likely_low": 0.2,
+     "likely_high": 0.29
+    },
+    "SSP5-8.5 low confidence": {
+     "median": 0.24,
+     "likely_low": 0.2,
+     "likely_high": 0.4
+    }
+   }
+  },
+  "total_2090": {
+   "unit": "m",
+   "values": {
+    "SSP1-1.9": {
+     "median": 0.35,
+     "likely_low": 0.26,
+     "likely_high": 0.49
+    },
+    "SSP1-2.6": {
+     "median": 0.39,
+     "likely_low": 0.3,
+     "likely_high": 0.54
+    },
+    "SSP2-4.5": {
+     "median": 0.48,
+     "likely_low": 0.38,
+     "likely_high": 0.65
+    },
+    "SSP3-7.0": {
+     "median": 0.56,
+     "likely_low": 0.46,
+     "likely_high": 0.74
+    },
+    "SSP5-8.5": {
+     "median": 0.63,
+     "likely_low": 0.52,
+     "likely_high": 0.83
+    },
+    "SSP5-8.5 low confidence": {
+     "median": 0.71,
+     "likely_low": 0.52,
+     "likely_high": 1.3
+    }
+   }
+  },
+  "total_2100": {
+   "unit": "m",
+   "values": {
+    "SSP1-1.9": {
+     "median": 0.38,
+     "likely_low": 0.28,
+     "likely_high": 0.55
+    },
+    "SSP1-2.6": {
+     "median": 0.44,
+     "likely_low": 0.32,
+     "likely_high": 0.62
+    },
+    "SSP2-4.5": {
+     "median": 0.56,
+     "likely_low": 0.44,
+     "likely_high": 0.76
+    },
+    "SSP3-7.0": {
+     "median": 0.68,
+     "likely_low": 0.55,
+     "likely_high": 0.9
+    },
+    "SSP5-8.5": {
+     "median": 0.77,
+     "likely_low": 0.63,
+     "likely_high": 1.01
+    },
+    "SSP5-8.5 low confidence": {
+     "median": 0.88,
+     "likely_low": 0.63,
+     "likely_high": 1.6
+    }
+   }
+  },
+  "total_2150": {
+   "unit": "m",
+   "values": {
+    "SSP1-1.9": {
+     "median": 0.57,
+     "likely_low": 0.37,
+     "likely_high": 0.86
+    },
+    "SSP1-2.6": {
+     "median": 0.68,
+     "likely_low": 0.46,
+     "likely_high": 0.99
+    },
+    "SSP2-4.5": {
+     "median": 0.92,
+     "likely_low": 0.66,
+     "likely_high": 1.33
+    },
+    "SSP3-7.0": {
+     "median": 1.19,
+     "likely_low": 0.89,
+     "likely_high": 1.65
+    },
+    "SSP5-8.5": {
+     "median": 1.32,
+     "likely_low": 0.98,
+     "likely_high": 1.88
+    },
+    "SSP5-8.5 low confidence": {
+     "median": 1.98,
+     "likely_low": 0.98,
+     "likely_high": 4.82
+    }
+   }
+  },
+  "rate_2040_2060": {
+   "unit": "mm per year",
+   "values": {
+    "SSP1-1.9": {
+     "median": 4.1,
+     "likely_low": 2.8,
+     "likely_high": 6.0
+    },
+    "SSP1-2.6": {
+     "median": 4.8,
+     "likely_low": 3.5,
+     "likely_high": 6.8
+    },
+    "SSP2-4.5": {
+     "median": 5.8,
+     "likely_low": 4.4,
+     "likely_high": 8.0
+    },
+    "SSP3-7.0": {
+     "median": 6.4,
+     "likely_low": 5.0,
+     "likely_high": 8.7
+    },
+    "SSP5-8.5": {
+     "median": 7.2,
+     "likely_low": 5.6,
+     "likely_high": 9.7
+    },
+    "SSP5-8.5 low confidence": {
+     "median": 7.9,
+     "likely_low": 5.6,
+     "likely_high": 16.1
+    }
+   }
+  },
+  "rate_2080_2100": {
+   "unit": "mm per year",
+   "values": {
+    "SSP1-1.9": {
+     "median": 4.2,
+     "likely_low": 2.4,
+     "likely_high": 6.6
+    },
+    "SSP1-2.6": {
+     "median": 5.2,
+     "likely_low": 3.2,
+     "likely_high": 8.0
+    },
+    "SSP2-4.5": {
+     "median": 7.7,
+     "likely_low": 5.2,
+     "likely_high": 11.6
+    },
+    "SSP3-7.0": {
+     "median": 10.4,
+     "likely_low": 7.4,
+     "likely_high": 14.8
+    },
+    "SSP5-8.5": {
+     "median": 12.1,
+     "likely_low": 8.6,
+     "likely_high": 17.6
+    },
+    "SSP5-8.5 low confidence": {
+     "median": 15.8,
+     "likely_low": 8.6,
+     "likely_high": 30.1
+    }
+   }
+  }
+ }
+}

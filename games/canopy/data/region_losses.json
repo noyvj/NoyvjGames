@@ -1,0 +1,1218 @@
+{
+ "topic": "region_losses",
+ "read": "2026-10-19",
+ "source": {
+  "name": "Tree cover loss by dominant driver",
+  "publisher": "Our World in Data; data from Global Forest Watch (World Resources Institute / University of Maryland)",
+  "url": "https://ourworldindata.org/grapher/tree-cover-loss-by-dominant-driver",
+  "csv_url": "https://ourworldindata.org/grapher/tree-cover-loss-by-dominant-driver.csv",
+  "metadata_url": "https://ourworldindata.org/grapher/tree-cover-loss-by-dominant-driver.metadata.json",
+  "citation": "Global Forest Watch (2025)",
+  "licence": "CC BY 4.0 (Our World in Data); credit OWID and Global Forest Watch"
+ },
+ "unit": "hectares of tree cover lost per year",
+ "note": "Estimated tree cover loss attributed to each of the seven main drivers. Logging, shifting cultivation, wildfires, and other natural disturbances cause temporary tree cover loss, whilst permanent agriculture, infrastructure for mining and energy, and urbanization cause permanent tree cover loss.",
+ "driver_meaning": {
+  "Settlements and infrastructure": "Tree cover loss  due to the expansion and intensification of roads, settlements, urban areas, or other built infrastructure.",
+  "Mining and energy industry": "Tree cover loss due to the establishment or expansion of mining or energy infrastructure.",
+  "Other natural disturbances": "Tree cover loss due to other non-fire natural disturbances such as landslides, insect outbreaks, river meandering.",
+  "Shifting cultivation": "Tree cover loss due to small- to medium-scale clearing for temporary cultivation that is later abandoned and followed by subsequent regrowth of secondary forest or vegetation.",
+  "Logging": "Tree cover loss due to forest management and logging activities occurring within managed, natural or semi-natural forests and plantations, often with evidence of forest regrowth or planting in subsequent years.",
+  "Permanent agriculture": "Long-term, permanent tree cover loss for small- to large-scale agriculture.",
+  "Wildfire": "Tree cover loss due to fire with no visible human conversion or agricultural activity afterward. Fires may be started by natural causes (e.g. lightning) or may be related to human activities (accidental or deliberate)."
+ },
+ "regions": {
+  "boreal": [
+   "Canada",
+   "Russia"
+  ],
+  "tropical": [
+   "Brazil",
+   "Indonesia",
+   "Democratic Republic of Congo"
+  ]
+ },
+ "drivers": [
+  "Settlements and infrastructure",
+  "Mining and energy industry",
+  "Other natural disturbances",
+  "Shifting cultivation",
+  "Logging",
+  "Permanent agriculture",
+  "Wildfire"
+ ],
+ "live": true,
+ "live_note": "CORS open. Live: GET csv_url?country=<name> and add the last ten years; fall back to this file.",
+ "countries": {
+  "Canada": {
+   "years": {
+    "2001": {
+     "Settlements and infrastructure": 5101.1753,
+     "Mining and energy industry": 5714.515,
+     "Other natural disturbances": 24557.77,
+     "Shifting cultivation": null,
+     "Logging": 736627.25,
+     "Permanent agriculture": 13764.653,
+     "Wildfire": 562661.5
+    },
+    "2002": {
+     "Settlements and infrastructure": 5771.746,
+     "Mining and energy industry": 7746.794,
+     "Other natural disturbances": 71805.56,
+     "Shifting cultivation": null,
+     "Logging": 794614.44,
+     "Permanent agriculture": 13312.678,
+     "Wildfire": 1412631.0
+    },
+    "2003": {
+     "Settlements and infrastructure": 4824.577,
+     "Mining and energy industry": 4134.3345,
+     "Other natural disturbances": 18742.566,
+     "Shifting cultivation": null,
+     "Logging": 605186.94,
+     "Permanent agriculture": 10057.989,
+     "Wildfire": 960025.2
+    },
+    "2004": {
+     "Settlements and infrastructure": 9535.391,
+     "Mining and energy industry": 9748.192,
+     "Other natural disturbances": 41280.99,
+     "Shifting cultivation": null,
+     "Logging": 1047064.06,
+     "Permanent agriculture": 18115.69,
+     "Wildfire": 1571287.2
+    },
+    "2005": {
+     "Settlements and infrastructure": 8876.45,
+     "Mining and energy industry": 10272.749,
+     "Other natural disturbances": 49212.652,
+     "Shifting cultivation": null,
+     "Logging": 1026316.06,
+     "Permanent agriculture": 16571.652,
+     "Wildfire": 1802264.1
+    },
+    "2006": {
+     "Settlements and infrastructure": 9594.366,
+     "Mining and energy industry": 14051.073,
+     "Other natural disturbances": 62981.94,
+     "Shifting cultivation": null,
+     "Logging": 945957.56,
+     "Permanent agriculture": 18994.793,
+     "Wildfire": 1346099.5
+    },
+    "2007": {
+     "Settlements and infrastructure": 8799.238,
+     "Mining and energy industry": 14669.48,
+     "Other natural disturbances": 67154.0,
+     "Shifting cultivation": null,
+     "Logging": 903862.25,
+     "Permanent agriculture": 11554.349,
+     "Wildfire": 1104224.0
+    },
+    "2008": {
+     "Settlements and infrastructure": 7898.888,
+     "Mining and energy industry": 14922.154,
+     "Other natural disturbances": 50857.56,
+     "Shifting cultivation": null,
+     "Logging": 743120.9,
+     "Permanent agriculture": 12930.182,
+     "Wildfire": 1110830.6
+    },
+    "2009": {
+     "Settlements and infrastructure": 7071.476,
+     "Mining and energy industry": 13672.188,
+     "Other natural disturbances": 43634.15,
+     "Shifting cultivation": null,
+     "Logging": 653952.06,
+     "Permanent agriculture": 13977.079,
+     "Wildfire": 810645.9
+    },
+    "2010": {
+     "Settlements and infrastructure": 7393.5938,
+     "Mining and energy industry": 15882.679,
+     "Other natural disturbances": 48183.75,
+     "Shifting cultivation": null,
+     "Logging": 664122.56,
+     "Permanent agriculture": 13084.64,
+     "Wildfire": 1346574.4
+    },
+    "2011": {
+     "Settlements and infrastructure": 5111.3364,
+     "Mining and energy industry": 15649.739,
+     "Other natural disturbances": 41646.402,
+     "Shifting cultivation": null,
+     "Logging": 674815.1,
+     "Permanent agriculture": 12342.17,
+     "Wildfire": 1402294.6
+    },
+    "2012": {
+     "Settlements and infrastructure": 7728.215,
+     "Mining and energy industry": 24855.98,
+     "Other natural disturbances": 73037.414,
+     "Shifting cultivation": null,
+     "Logging": 807181.9,
+     "Permanent agriculture": 27374.943,
+     "Wildfire": 1589862.1
+    },
+    "2013": {
+     "Settlements and infrastructure": 4304.3696,
+     "Mining and energy industry": 14513.342,
+     "Other natural disturbances": 24804.143,
+     "Shifting cultivation": null,
+     "Logging": 724148.44,
+     "Permanent agriculture": 12332.322,
+     "Wildfire": 2014390.0
+    },
+    "2014": {
+     "Settlements and infrastructure": 5951.9434,
+     "Mining and energy industry": 15915.943,
+     "Other natural disturbances": 37007.53,
+     "Shifting cultivation": null,
+     "Logging": 764169.25,
+     "Permanent agriculture": 18638.666,
+     "Wildfire": 1792949.4
+    },
+    "2015": {
+     "Settlements and infrastructure": 4466.747,
+     "Mining and energy industry": 11318.216,
+     "Other natural disturbances": 14883.544,
+     "Shifting cultivation": null,
+     "Logging": 769598.44,
+     "Permanent agriculture": 19895.809,
+     "Wildfire": 1909631.9
+    },
+    "2016": {
+     "Settlements and infrastructure": 7254.439,
+     "Mining and energy industry": 14540.667,
+     "Other natural disturbances": 21151.553,
+     "Shifting cultivation": null,
+     "Logging": 904391.25,
+     "Permanent agriculture": 29657.768,
+     "Wildfire": 1102925.0
+    },
+    "2017": {
+     "Settlements and infrastructure": 7314.677,
+     "Mining and energy industry": 13053.488,
+     "Other natural disturbances": 51389.066,
+     "Shifting cultivation": null,
+     "Logging": 959095.06,
+     "Permanent agriculture": 25082.938,
+     "Wildfire": 1501145.1
+    },
+    "2018": {
+     "Settlements and infrastructure": 6454.96,
+     "Mining and energy industry": 12293.825,
+     "Other natural disturbances": 19195.281,
+     "Shifting cultivation": null,
+     "Logging": 886704.3,
+     "Permanent agriculture": 23398.34,
+     "Wildfire": 1192115.6
+    },
+    "2019": {
+     "Settlements and infrastructure": 5498.7925,
+     "Mining and energy industry": 10551.996,
+     "Other natural disturbances": 22962.326,
+     "Shifting cultivation": null,
+     "Logging": 856748.6,
+     "Permanent agriculture": 17769.008,
+     "Wildfire": 1258382.1
+    },
+    "2020": {
+     "Settlements and infrastructure": 5603.6387,
+     "Mining and energy industry": 11166.218,
+     "Other natural disturbances": 39841.824,
+     "Shifting cultivation": null,
+     "Logging": 768123.8,
+     "Permanent agriculture": 15166.423,
+     "Wildfire": 351274.9
+    },
+    "2021": {
+     "Settlements and infrastructure": 6574.994,
+     "Mining and energy industry": 9075.885,
+     "Other natural disturbances": 22771.715,
+     "Shifting cultivation": null,
+     "Logging": 847726.3,
+     "Permanent agriculture": 17693.781,
+     "Wildfire": 1618428.4
+    },
+    "2022": {
+     "Settlements and infrastructure": 6808.2285,
+     "Mining and energy industry": 8181.351,
+     "Other natural disturbances": 12301.646,
+     "Shifting cultivation": null,
+     "Logging": 808092.3,
+     "Permanent agriculture": 11504.851,
+     "Wildfire": 1450840.6
+    },
+    "2023": {
+     "Settlements and infrastructure": 4870.152,
+     "Mining and energy industry": 6827.743,
+     "Other natural disturbances": 12155.894,
+     "Shifting cultivation": null,
+     "Logging": 745858.6,
+     "Permanent agriculture": 10316.287,
+     "Wildfire": 7789589.0
+    },
+    "2024": {
+     "Settlements and infrastructure": 4706.9985,
+     "Mining and energy industry": 6955.556,
+     "Other natural disturbances": 41654.953,
+     "Shifting cultivation": null,
+     "Logging": 658489.56,
+     "Permanent agriculture": 12629.966,
+     "Wildfire": 4440485.0
+    }
+   },
+   "ten_year_window": [
+    "2015",
+    "2024"
+   ],
+   "ten_year_total_ha": {
+    "Settlements and infrastructure": 59553.627,
+    "Mining and energy industry": 103964.945,
+    "Other natural disturbances": 258307.802,
+    "Shifting cultivation": 0.0,
+    "Logging": 8204828.21,
+    "Permanent agriculture": 183115.171,
+    "Wildfire": 22614817.6
+   },
+   "largest_driver": "Wildfire"
+  },
+  "Russia": {
+   "years": {
+    "2001": {
+     "Settlements and infrastructure": 2884.2087,
+     "Mining and energy industry": 8679.54,
+     "Other natural disturbances": 17353.977,
+     "Shifting cultivation": 7.35759,
+     "Logging": 493213.66,
+     "Permanent agriculture": 5618.0195,
+     "Wildfire": 1275005.0
+    },
+    "2002": {
+     "Settlements and infrastructure": 2923.7197,
+     "Mining and energy industry": 9125.073,
+     "Other natural disturbances": 12679.259,
+     "Shifting cultivation": 4.7131324,
+     "Logging": 534123.1,
+     "Permanent agriculture": 3465.6658,
+     "Wildfire": 2118938.2
+    },
+    "2003": {
+     "Settlements and infrastructure": 1989.0302,
+     "Mining and energy industry": 7571.623,
+     "Other natural disturbances": 7669.184,
+     "Shifting cultivation": 0.6201575,
+     "Logging": 436479.2,
+     "Permanent agriculture": 1244.193,
+     "Wildfire": 2564308.8
+    },
+    "2004": {
+     "Settlements and infrastructure": 3682.426,
+     "Mining and energy industry": 16579.668,
+     "Other natural disturbances": 24901.115,
+     "Shifting cultivation": 2.3822284,
+     "Logging": 738276.2,
+     "Permanent agriculture": 2924.873,
+     "Wildfire": 2709702.0
+    },
+    "2005": {
+     "Settlements and infrastructure": 4002.162,
+     "Mining and energy industry": 18058.592,
+     "Other natural disturbances": 16725.87,
+     "Shifting cultivation": 2.1250844,
+     "Logging": 711883.44,
+     "Permanent agriculture": 1867.3944,
+     "Wildfire": 818551.25
+    },
+    "2006": {
+     "Settlements and infrastructure": 4437.376,
+     "Mining and energy industry": 23319.424,
+     "Other natural disturbances": 20685.826,
+     "Shifting cultivation": 1.0480329,
+     "Logging": 676236.9,
+     "Permanent agriculture": 1972.9338,
+     "Wildfire": 1486973.5
+    },
+    "2007": {
+     "Settlements and infrastructure": 5817.1636,
+     "Mining and energy industry": 30347.342,
+     "Other natural disturbances": 17297.6,
+     "Shifting cultivation": 1.5841343,
+     "Logging": 780052.0,
+     "Permanent agriculture": 2046.7451,
+     "Wildfire": 1485783.6
+    },
+    "2008": {
+     "Settlements and infrastructure": 5604.855,
+     "Mining and energy industry": 32380.396,
+     "Other natural disturbances": 18333.625,
+     "Shifting cultivation": 0.7047653,
+     "Logging": 744952.1,
+     "Permanent agriculture": 1725.0278,
+     "Wildfire": 2225516.8
+    },
+    "2009": {
+     "Settlements and infrastructure": 5191.733,
+     "Mining and energy industry": 31123.713,
+     "Other natural disturbances": 23533.273,
+     "Shifting cultivation": 1.3554705,
+     "Logging": 783301.1,
+     "Permanent agriculture": 2437.7944,
+     "Wildfire": 1245171.8
+    },
+    "2010": {
+     "Settlements and infrastructure": 6338.244,
+     "Mining and energy industry": 35254.336,
+     "Other natural disturbances": 24620.32,
+     "Shifting cultivation": 3.4500237,
+     "Logging": 835053.1,
+     "Permanent agriculture": 3096.625,
+     "Wildfire": 931467.2
+    },
+    "2011": {
+     "Settlements and infrastructure": 6755.5874,
+     "Mining and energy industry": 29860.549,
+     "Other natural disturbances": 26519.107,
+     "Shifting cultivation": 3.47026,
+     "Logging": 773255.06,
+     "Permanent agriculture": 2994.9097,
+     "Wildfire": 2160798.2
+    },
+    "2012": {
+     "Settlements and infrastructure": 7187.586,
+     "Mining and energy industry": 42732.555,
+     "Other natural disturbances": 46873.434,
+     "Shifting cultivation": 0.7072867,
+     "Logging": 945780.5,
+     "Permanent agriculture": 3088.09,
+     "Wildfire": 4308706.0
+    },
+    "2013": {
+     "Settlements and infrastructure": 4078.5798,
+     "Mining and energy industry": 22425.867,
+     "Other natural disturbances": 35961.52,
+     "Shifting cultivation": 0.43823606,
+     "Logging": 739355.0,
+     "Permanent agriculture": 703.4281,
+     "Wildfire": 4137215.5
+    },
+    "2014": {
+     "Settlements and infrastructure": 5512.18,
+     "Mining and energy industry": 35143.1,
+     "Other natural disturbances": 31802.62,
+     "Shifting cultivation": 0.32270434,
+     "Logging": 773744.3,
+     "Permanent agriculture": 912.5371,
+     "Wildfire": 3627336.5
+    },
+    "2015": {
+     "Settlements and infrastructure": 3872.5261,
+     "Mining and energy industry": 32614.154,
+     "Other natural disturbances": 29028.045,
+     "Shifting cultivation": 0.50572455,
+     "Logging": 761441.44,
+     "Permanent agriculture": 852.4906,
+     "Wildfire": 1495586.1
+    },
+    "2016": {
+     "Settlements and infrastructure": 6143.054,
+     "Mining and energy industry": 54055.246,
+     "Other natural disturbances": 108379.516,
+     "Shifting cultivation": 6.014564,
+     "Logging": 1002604.9,
+     "Permanent agriculture": 2562.902,
+     "Wildfire": 3870042.8
+    },
+    "2017": {
+     "Settlements and infrastructure": 4828.6606,
+     "Mining and energy industry": 56218.594,
+     "Other natural disturbances": 545047.94,
+     "Shifting cultivation": 1.0659953,
+     "Logging": 1119262.4,
+     "Permanent agriculture": 2862.9795,
+     "Wildfire": 3553219.0
+    },
+    "2018": {
+     "Settlements and infrastructure": 3436.4585,
+     "Mining and energy industry": 48521.297,
+     "Other natural disturbances": 694789.8,
+     "Shifting cultivation": null,
+     "Logging": 1106441.1,
+     "Permanent agriculture": 1816.3407,
+     "Wildfire": 3700898.8
+    },
+    "2019": {
+     "Settlements and infrastructure": 3470.1462,
+     "Mining and energy industry": 43267.934,
+     "Other natural disturbances": 45659.77,
+     "Shifting cultivation": 0.9678261,
+     "Logging": 1002451.6,
+     "Permanent agriculture": 1199.5221,
+     "Wildfire": 2586253.8
+    },
+    "2020": {
+     "Settlements and infrastructure": 3521.4294,
+     "Mining and energy industry": 46684.367,
+     "Other natural disturbances": 106698.17,
+     "Shifting cultivation": 2.1561563,
+     "Logging": 1009268.94,
+     "Permanent agriculture": 1342.9841,
+     "Wildfire": 4267667.5
+    },
+    "2021": {
+     "Settlements and infrastructure": 3577.5327,
+     "Mining and energy industry": 43635.098,
+     "Other natural disturbances": 29801.416,
+     "Shifting cultivation": 0.49402165,
+     "Logging": 1027566.0,
+     "Permanent agriculture": 1100.9491,
+     "Wildfire": 5408222.5
+    },
+    "2022": {
+     "Settlements and infrastructure": 3803.155,
+     "Mining and energy industry": 47268.465,
+     "Other natural disturbances": 31043.66,
+     "Shifting cultivation": 0.30153492,
+     "Logging": 1025688.06,
+     "Permanent agriculture": 1277.5747,
+     "Wildfire": 3174097.8
+    },
+    "2023": {
+     "Settlements and infrastructure": 3830.9158,
+     "Mining and energy industry": 51995.965,
+     "Other natural disturbances": 35052.62,
+     "Shifting cultivation": null,
+     "Logging": 897071.06,
+     "Permanent agriculture": 1785.5502,
+     "Wildfire": 2363272.2
+    },
+    "2024": {
+     "Settlements and infrastructure": 4217.3335,
+     "Mining and energy industry": 42078.45,
+     "Other natural disturbances": 46454.08,
+     "Shifting cultivation": 0.86386335,
+     "Logging": 881561.6,
+     "Permanent agriculture": 2050.323,
+     "Wildfire": 4201268.0
+    }
+   },
+   "ten_year_window": [
+    "2015",
+    "2024"
+   ],
+   "ten_year_total_ha": {
+    "Settlements and infrastructure": 40701.212,
+    "Mining and energy industry": 466339.57,
+    "Other natural disturbances": 1671955.017,
+    "Shifting cultivation": 12.37,
+    "Logging": 9833357.1,
+    "Permanent agriculture": 16851.616,
+    "Wildfire": 34620528.5
+   },
+   "largest_driver": "Wildfire"
+  },
+  "Brazil": {
+   "years": {
+    "2001": {
+     "Settlements and infrastructure": 7701.47,
+     "Mining and energy industry": 6873.9146,
+     "Other natural disturbances": 18891.428,
+     "Shifting cultivation": 49205.89,
+     "Logging": 231318.38,
+     "Permanent agriculture": 2380528.5,
+     "Wildfire": 41269.16
+    },
+    "2002": {
+     "Settlements and infrastructure": 8955.538,
+     "Mining and energy industry": 7432.824,
+     "Other natural disturbances": 16513.416,
+     "Shifting cultivation": 57218.297,
+     "Logging": 272996.88,
+     "Permanent agriculture": 3085216.2,
+     "Wildfire": 51532.3
+    },
+    "2003": {
+     "Settlements and infrastructure": 6709.723,
+     "Mining and energy industry": 5906.189,
+     "Other natural disturbances": 16833.865,
+     "Shifting cultivation": 38049.297,
+     "Logging": 240533.55,
+     "Permanent agriculture": 2871820.5,
+     "Wildfire": 62111.344
+    },
+    "2004": {
+     "Settlements and infrastructure": 7872.405,
+     "Mining and energy industry": 7849.157,
+     "Other natural disturbances": 14754.936,
+     "Shifting cultivation": 53807.715,
+     "Logging": 291476.7,
+     "Permanent agriculture": 3400468.2,
+     "Wildfire": 64941.227
+    },
+    "2005": {
+     "Settlements and infrastructure": 8004.403,
+     "Mining and energy industry": 9011.321,
+     "Other natural disturbances": 21677.197,
+     "Shifting cultivation": 43658.16,
+     "Logging": 297878.34,
+     "Permanent agriculture": 3032134.2,
+     "Wildfire": 67188.45
+    },
+    "2006": {
+     "Settlements and infrastructure": 7766.9575,
+     "Mining and energy industry": 6868.788,
+     "Other natural disturbances": 19470.662,
+     "Shifting cultivation": 49553.066,
+     "Logging": 288097.75,
+     "Permanent agriculture": 2427099.2,
+     "Wildfire": 71245.12
+    },
+    "2007": {
+     "Settlements and infrastructure": 9585.193,
+     "Mining and energy industry": 10840.33,
+     "Other natural disturbances": 23175.416,
+     "Shifting cultivation": 44495.168,
+     "Logging": 272701.3,
+     "Permanent agriculture": 2138195.8,
+     "Wildfire": 114979.24
+    },
+    "2008": {
+     "Settlements and infrastructure": 9753.115,
+     "Mining and energy industry": 11379.181,
+     "Other natural disturbances": 18416.617,
+     "Shifting cultivation": 49916.71,
+     "Logging": 265693.22,
+     "Permanent agriculture": 2007460.9,
+     "Wildfire": 74023.19
+    },
+    "2009": {
+     "Settlements and infrastructure": 8596.593,
+     "Mining and energy industry": 11408.5625,
+     "Other natural disturbances": 24383.31,
+     "Shifting cultivation": 59749.387,
+     "Logging": 223292.11,
+     "Permanent agriculture": 1405454.2,
+     "Wildfire": 78119.695
+    },
+    "2010": {
+     "Settlements and infrastructure": 9942.476,
+     "Mining and energy industry": 12803.367,
+     "Other natural disturbances": 34753.535,
+     "Shifting cultivation": 52330.426,
+     "Logging": 286848.75,
+     "Permanent agriculture": 2083885.9,
+     "Wildfire": 199079.38
+    },
+    "2011": {
+     "Settlements and infrastructure": 8441.718,
+     "Mining and energy industry": 12594.597,
+     "Other natural disturbances": 35256.258,
+     "Shifting cultivation": 31385.049,
+     "Logging": 255572.25,
+     "Permanent agriculture": 1448066.0,
+     "Wildfire": 123215.555
+    },
+    "2012": {
+     "Settlements and infrastructure": 13346.757,
+     "Mining and energy industry": 18872.057,
+     "Other natural disturbances": 50189.945,
+     "Shifting cultivation": 44919.258,
+     "Logging": 357053.84,
+     "Permanent agriculture": 2196285.8,
+     "Wildfire": 209075.38
+    },
+    "2013": {
+     "Settlements and infrastructure": 9789.453,
+     "Mining and energy industry": 13568.716,
+     "Other natural disturbances": 19157.68,
+     "Shifting cultivation": 92996.84,
+     "Logging": 229603.05,
+     "Permanent agriculture": 1445133.8,
+     "Wildfire": 126586.85
+    },
+    "2014": {
+     "Settlements and infrastructure": 11884.171,
+     "Mining and energy industry": 25775.55,
+     "Other natural disturbances": 44593.72,
+     "Shifting cultivation": 77958.7,
+     "Logging": 288848.38,
+     "Permanent agriculture": 2054881.1,
+     "Wildfire": 178819.2
+    },
+    "2015": {
+     "Settlements and infrastructure": 7013.9023,
+     "Mining and energy industry": 25627.791,
+     "Other natural disturbances": 27391.594,
+     "Shifting cultivation": 51641.855,
+     "Logging": 196001.38,
+     "Permanent agriculture": 1699627.9,
+     "Wildfire": 211138.53
+    },
+    "2016": {
+     "Settlements and infrastructure": 10598.016,
+     "Mining and energy industry": 30220.193,
+     "Other natural disturbances": 98113.92,
+     "Shifting cultivation": 154457.0,
+     "Logging": 321336.72,
+     "Permanent agriculture": 2980399.8,
+     "Wildfire": 1776195.2
+    },
+    "2017": {
+     "Settlements and infrastructure": 12593.054,
+     "Mining and energy industry": 39361.65,
+     "Other natural disturbances": 60885.207,
+     "Shifting cultivation": 137623.12,
+     "Logging": 357637.6,
+     "Permanent agriculture": 2756616.5,
+     "Wildfire": 1144367.8
+    },
+    "2018": {
+     "Settlements and infrastructure": 6603.2085,
+     "Mining and energy industry": 25760.773,
+     "Other natural disturbances": 29017.918,
+     "Shifting cultivation": 105576.07,
+     "Logging": 271221.12,
+     "Permanent agriculture": 2121335.0,
+     "Wildfire": 385744.1
+    },
+    "2019": {
+     "Settlements and infrastructure": 5562.62,
+     "Mining and energy industry": 25818.23,
+     "Other natural disturbances": 33063.402,
+     "Shifting cultivation": 64975.41,
+     "Logging": 238980.5,
+     "Permanent agriculture": 1998742.5,
+     "Wildfire": 325869.16
+    },
+    "2020": {
+     "Settlements and infrastructure": 5809.897,
+     "Mining and energy industry": 25624.84,
+     "Other natural disturbances": 42896.633,
+     "Shifting cultivation": 78676.69,
+     "Logging": 228227.4,
+     "Permanent agriculture": 2049395.4,
+     "Wildfire": 855987.7
+    },
+    "2021": {
+     "Settlements and infrastructure": 5440.4287,
+     "Mining and energy industry": 26156.34,
+     "Other natural disturbances": 34746.855,
+     "Shifting cultivation": 59394.14,
+     "Logging": 233312.33,
+     "Permanent agriculture": 2138359.8,
+     "Wildfire": 488422.4
+    },
+    "2022": {
+     "Settlements and infrastructure": 5629.2314,
+     "Mining and energy industry": 28026.979,
+     "Other natural disturbances": 25740.146,
+     "Shifting cultivation": 57115.54,
+     "Logging": 228009.27,
+     "Permanent agriculture": 2479101.2,
+     "Wildfire": 480311.3
+    },
+    "2023": {
+     "Settlements and infrastructure": 6121.0005,
+     "Mining and energy industry": 29197.256,
+     "Other natural disturbances": 37524.484,
+     "Shifting cultivation": 81310.98,
+     "Logging": 196026.36,
+     "Permanent agriculture": 1953454.8,
+     "Wildfire": 499881.38
+    },
+    "2024": {
+     "Settlements and infrastructure": 5799.194,
+     "Mining and energy industry": 25966.893,
+     "Other natural disturbances": 53478.57,
+     "Shifting cultivation": 81114.555,
+     "Logging": 217132.77,
+     "Permanent agriculture": 1820189.8,
+     "Wildfire": 2184201.5
+    }
+   },
+   "ten_year_window": [
+    "2015",
+    "2024"
+   ],
+   "ten_year_total_ha": {
+    "Settlements and infrastructure": 71170.552,
+    "Mining and energy industry": 281760.945,
+    "Other natural disturbances": 442858.729,
+    "Shifting cultivation": 871885.36,
+    "Logging": 2487885.45,
+    "Permanent agriculture": 21997222.7,
+    "Wildfire": 8352119.07
+   },
+   "largest_driver": "Permanent agriculture"
+  },
+  "Indonesia": {
+   "years": {
+    "2001": {
+     "Settlements and infrastructure": 2670.5586,
+     "Mining and energy industry": 9527.717,
+     "Other natural disturbances": 6508.978,
+     "Shifting cultivation": 56784.438,
+     "Logging": 97144.6,
+     "Permanent agriculture": 556142.06,
+     "Wildfire": 12698.487
+    },
+    "2002": {
+     "Settlements and infrastructure": 4005.3303,
+     "Mining and energy industry": 12482.454,
+     "Other natural disturbances": 10503.697,
+     "Shifting cultivation": 68011.08,
+     "Logging": 112056.52,
+     "Permanent agriculture": 603239.3,
+     "Wildfire": 42454.062
+    },
+    "2003": {
+     "Settlements and infrastructure": 1725.5529,
+     "Mining and energy industry": 10791.991,
+     "Other natural disturbances": 7034.4243,
+     "Shifting cultivation": 38133.566,
+     "Logging": 63909.113,
+     "Permanent agriculture": 334844.0,
+     "Wildfire": 86888.77
+    },
+    "2004": {
+     "Settlements and infrastructure": 4871.168,
+     "Mining and energy industry": 20936.969,
+     "Other natural disturbances": 9662.549,
+     "Shifting cultivation": 74815.73,
+     "Logging": 180231.05,
+     "Permanent agriculture": 960149.75,
+     "Wildfire": 35784.727
+    },
+    "2005": {
+     "Settlements and infrastructure": 4839.0513,
+     "Mining and energy industry": 19726.309,
+     "Other natural disturbances": 7098.7285,
+     "Shifting cultivation": 52013.29,
+     "Logging": 147528.64,
+     "Permanent agriculture": 902557.0,
+     "Wildfire": 46783.61
+    },
+    "2006": {
+     "Settlements and infrastructure": 5389.063,
+     "Mining and energy industry": 21398.994,
+     "Other natural disturbances": 8858.818,
+     "Shifting cultivation": 72518.336,
+     "Logging": 143411.17,
+     "Permanent agriculture": 1142890.5,
+     "Wildfire": 36359.934
+    },
+    "2007": {
+     "Settlements and infrastructure": 4731.8384,
+     "Mining and energy industry": 25771.623,
+     "Other natural disturbances": 9689.981,
+     "Shifting cultivation": 48808.277,
+     "Logging": 179590.95,
+     "Permanent agriculture": 976105.1,
+     "Wildfire": 140931.23
+    },
+    "2008": {
+     "Settlements and infrastructure": 4701.3403,
+     "Mining and energy industry": 23628.287,
+     "Other natural disturbances": 6236.742,
+     "Shifting cultivation": 54057.08,
+     "Logging": 179611.1,
+     "Permanent agriculture": 1100036.8,
+     "Wildfire": 26168.86
+    },
+    "2009": {
+     "Settlements and infrastructure": 9424.252,
+     "Mining and energy industry": 41016.367,
+     "Other natural disturbances": 15508.471,
+     "Shifting cultivation": 82773.67,
+     "Logging": 157667.9,
+     "Permanent agriculture": 1581538.5,
+     "Wildfire": 54006.633
+    },
+    "2010": {
+     "Settlements and infrastructure": 4698.616,
+     "Mining and energy industry": 23684.79,
+     "Other natural disturbances": 8310.317,
+     "Shifting cultivation": 42802.32,
+     "Logging": 184423.4,
+     "Permanent agriculture": 979392.6,
+     "Wildfire": 33309.324
+    },
+    "2011": {
+     "Settlements and infrastructure": 5820.0767,
+     "Mining and energy industry": 38340.48,
+     "Other natural disturbances": 9979.837,
+     "Shifting cultivation": 48196.523,
+     "Logging": 199412.08,
+     "Permanent agriculture": 1201726.2,
+     "Wildfire": 36973.098
+    },
+    "2012": {
+     "Settlements and infrastructure": 8851.927,
+     "Mining and energy industry": 60455.387,
+     "Other natural disturbances": 16682.756,
+     "Shifting cultivation": 73039.305,
+     "Logging": 224653.22,
+     "Permanent agriculture": 1790526.5,
+     "Wildfire": 78872.36
+    },
+    "2013": {
+     "Settlements and infrastructure": 2865.4885,
+     "Mining and energy industry": 24943.693,
+     "Other natural disturbances": 5605.131,
+     "Shifting cultivation": 53056.33,
+     "Logging": 114873.984,
+     "Permanent agriculture": 900467.75,
+     "Wildfire": 35340.51
+    },
+    "2014": {
+     "Settlements and infrastructure": 6440.456,
+     "Mining and energy industry": 41299.613,
+     "Other natural disturbances": 14789.797,
+     "Shifting cultivation": 99843.41,
+     "Logging": 166016.28,
+     "Permanent agriculture": 1410073.1,
+     "Wildfire": 152202.88
+    },
+    "2015": {
+     "Settlements and infrastructure": 5789.3677,
+     "Mining and energy industry": 35198.53,
+     "Other natural disturbances": 18780.81,
+     "Shifting cultivation": 112257.83,
+     "Logging": 157002.73,
+     "Permanent agriculture": 1127747.4,
+     "Wildfire": 286901.9
+    },
+    "2016": {
+     "Settlements and infrastructure": 7169.383,
+     "Mining and energy industry": 45075.992,
+     "Other natural disturbances": 25365.723,
+     "Shifting cultivation": 129051.35,
+     "Logging": 178093.1,
+     "Permanent agriculture": 1308823.2,
+     "Wildfire": 725432.56
+    },
+    "2017": {
+     "Settlements and infrastructure": 6662.569,
+     "Mining and energy industry": 29010.22,
+     "Other natural disturbances": 14872.285,
+     "Shifting cultivation": 109454.875,
+     "Logging": 126113.375,
+     "Permanent agriculture": 967856.4,
+     "Wildfire": 43657.39
+    },
+    "2018": {
+     "Settlements and infrastructure": 6003.8267,
+     "Mining and energy industry": 36320.164,
+     "Other natural disturbances": 13175.922,
+     "Shifting cultivation": 96863.69,
+     "Logging": 129413.32,
+     "Permanent agriculture": 896465.94,
+     "Wildfire": 39086.035
+    },
+    "2019": {
+     "Settlements and infrastructure": 5859.9165,
+     "Mining and energy industry": 34271.31,
+     "Other natural disturbances": 14349.941,
+     "Shifting cultivation": 87564.19,
+     "Logging": 132639.19,
+     "Permanent agriculture": 817833.6,
+     "Wildfire": 82901.94
+    },
+    "2020": {
+     "Settlements and infrastructure": 3741.3938,
+     "Mining and energy industry": 26702.018,
+     "Other natural disturbances": 9595.119,
+     "Shifting cultivation": 77412.78,
+     "Logging": 101618.82,
+     "Permanent agriculture": 664350.3,
+     "Wildfire": 76855.51
+    },
+    "2021": {
+     "Settlements and infrastructure": 3355.572,
+     "Mining and energy industry": 27257.957,
+     "Other natural disturbances": 9183.011,
+     "Shifting cultivation": 68883.47,
+     "Logging": 80322.484,
+     "Permanent agriculture": 622026.56,
+     "Wildfire": 28666.137
+    },
+    "2022": {
+     "Settlements and infrastructure": 3202.3423,
+     "Mining and energy industry": 28879.44,
+     "Other natural disturbances": 9561.3955,
+     "Shifting cultivation": 66953.02,
+     "Logging": 81960.58,
+     "Permanent agriculture": 664304.0,
+     "Wildfire": 28864.07
+    },
+    "2023": {
+     "Settlements and infrastructure": 5888.1978,
+     "Mining and energy industry": 47455.914,
+     "Other natural disturbances": 10132.803,
+     "Shifting cultivation": 92144.24,
+     "Logging": 96124.86,
+     "Permanent agriculture": 1074925.1,
+     "Wildfire": 67934.6
+    },
+    "2024": {
+     "Settlements and infrastructure": 3258.1455,
+     "Mining and energy industry": 31986.7,
+     "Other natural disturbances": 9762.061,
+     "Shifting cultivation": 81596.22,
+     "Logging": 95533.03,
+     "Permanent agriculture": 845360.5,
+     "Wildfire": 51984.6
+    }
+   },
+   "ten_year_window": [
+    "2015",
+    "2024"
+   ],
+   "ten_year_total_ha": {
+    "Settlements and infrastructure": 50930.714,
+    "Mining and energy industry": 342158.245,
+    "Other natural disturbances": 134779.071,
+    "Shifting cultivation": 922181.665,
+    "Logging": 1178821.489,
+    "Permanent agriculture": 8989693.0,
+    "Wildfire": 1432284.742
+   },
+   "largest_driver": "Permanent agriculture"
+  },
+  "Democratic Republic of Congo": {
+   "years": {
+    "2001": {
+     "Settlements and infrastructure": 2025.8773,
+     "Mining and energy industry": 315.0729,
+     "Other natural disturbances": 1488.9961,
+     "Shifting cultivation": 368887.9,
+     "Logging": 2407.5867,
+     "Permanent agriculture": 75481.71,
+     "Wildfire": 1025.1442
+    },
+    "2002": {
+     "Settlements and infrastructure": 2467.0403,
+     "Mining and energy industry": 658.8164,
+     "Other natural disturbances": 2794.3718,
+     "Shifting cultivation": 411599.56,
+     "Logging": 2277.2495,
+     "Permanent agriculture": 89331.81,
+     "Wildfire": 1171.3528
+    },
+    "2003": {
+     "Settlements and infrastructure": 1787.972,
+     "Mining and energy industry": 503.1913,
+     "Other natural disturbances": 1849.742,
+     "Shifting cultivation": 191247.77,
+     "Logging": 1553.155,
+     "Permanent agriculture": 73769.64,
+     "Wildfire": 573.08014
+    },
+    "2004": {
+     "Settlements and infrastructure": 2732.6047,
+     "Mining and energy industry": 298.49368,
+     "Other natural disturbances": 1916.2301,
+     "Shifting cultivation": 316521.97,
+     "Logging": 1900.4784,
+     "Permanent agriculture": 72281.43,
+     "Wildfire": 1648.8741
+    },
+    "2005": {
+     "Settlements and infrastructure": 3916.021,
+     "Mining and energy industry": 561.2321,
+     "Other natural disturbances": 2866.426,
+     "Shifting cultivation": 382846.53,
+     "Logging": 2218.3477,
+     "Permanent agriculture": 88597.48,
+     "Wildfire": 1088.4819
+    },
+    "2006": {
+     "Settlements and infrastructure": 2825.07,
+     "Mining and energy industry": 362.27393,
+     "Other natural disturbances": 2233.0178,
+     "Shifting cultivation": 359962.47,
+     "Logging": 2038.3284,
+     "Permanent agriculture": 82623.56,
+     "Wildfire": 809.0718
+    },
+    "2007": {
+     "Settlements and infrastructure": 4204.6626,
+     "Mining and energy industry": 1046.8212,
+     "Other natural disturbances": 2493.605,
+     "Shifting cultivation": 352124.1,
+     "Logging": 2354.6006,
+     "Permanent agriculture": 95648.45,
+     "Wildfire": 1856.8162
+    },
+    "2008": {
+     "Settlements and infrastructure": 3558.6777,
+     "Mining and energy industry": 765.9261,
+     "Other natural disturbances": 1878.8601,
+     "Shifting cultivation": 323815.0,
+     "Logging": 1474.7765,
+     "Permanent agriculture": 70511.64,
+     "Wildfire": 720.53204
+    },
+    "2009": {
+     "Settlements and infrastructure": 5551.159,
+     "Mining and energy industry": 2018.8527,
+     "Other natural disturbances": 2331.8445,
+     "Shifting cultivation": 489612.16,
+     "Logging": 2799.2605,
+     "Permanent agriculture": 128320.57,
+     "Wildfire": 1066.3619
+    },
+    "2010": {
+     "Settlements and infrastructure": 5972.902,
+     "Mining and energy industry": 869.5092,
+     "Other natural disturbances": 5083.423,
+     "Shifting cultivation": 633602.7,
+     "Logging": 3772.935,
+     "Permanent agriculture": 154806.2,
+     "Wildfire": 2259.6997
+    },
+    "2011": {
+     "Settlements and infrastructure": 3424.286,
+     "Mining and energy industry": 1588.6643,
+     "Other natural disturbances": 3922.97,
+     "Shifting cultivation": 305866.94,
+     "Logging": 2089.9614,
+     "Permanent agriculture": 106280.15,
+     "Wildfire": 2758.4846
+    },
+    "2012": {
+     "Settlements and infrastructure": 4286.412,
+     "Mining and energy industry": 2487.8232,
+     "Other natural disturbances": 3096.195,
+     "Shifting cultivation": 451716.3,
+     "Logging": 3734.0537,
+     "Permanent agriculture": 158850.9,
+     "Wildfire": 2872.3735
+    },
+    "2013": {
+     "Settlements and infrastructure": 4054.5007,
+     "Mining and energy industry": 1800.4073,
+     "Other natural disturbances": 2866.2178,
+     "Shifting cultivation": 781044.7,
+     "Logging": 7863.609,
+     "Permanent agriculture": 110509.86,
+     "Wildfire": 7263.133
+    },
+    "2014": {
+     "Settlements and infrastructure": 5695.0796,
+     "Mining and energy industry": 2554.468,
+     "Other natural disturbances": 4058.055,
+     "Shifting cultivation": 1128381.9,
+     "Logging": 11096.7295,
+     "Permanent agriculture": 174097.88,
+     "Wildfire": 4435.796
+    },
+    "2015": {
+     "Settlements and infrastructure": 2510.577,
+     "Mining and energy industry": 2473.0588,
+     "Other natural disturbances": 2371.4683,
+     "Shifting cultivation": 796021.3,
+     "Logging": 7593.7227,
+     "Permanent agriculture": 111882.88,
+     "Wildfire": 3472.3445
+    },
+    "2016": {
+     "Settlements and infrastructure": 4297.4116,
+     "Mining and energy industry": 2483.6592,
+     "Other natural disturbances": 2904.7192,
+     "Shifting cultivation": 1180488.6,
+     "Logging": 9488.4,
+     "Permanent agriculture": 154603.8,
+     "Wildfire": 25375.6
+    },
+    "2017": {
+     "Settlements and infrastructure": 4635.3745,
+     "Mining and energy industry": 2775.9783,
+     "Other natural disturbances": 4206.872,
+     "Shifting cultivation": 1251642.5,
+     "Logging": 12932.283,
+     "Permanent agriculture": 180988.0,
+     "Wildfire": 8641.001
+    },
+    "2018": {
+     "Settlements and infrastructure": 3529.4902,
+     "Mining and energy industry": 4353.1987,
+     "Other natural disturbances": 3219.13,
+     "Shifting cultivation": 1165076.0,
+     "Logging": 12378.994,
+     "Permanent agriculture": 169888.1,
+     "Wildfire": 13863.731
+    },
+    "2019": {
+     "Settlements and infrastructure": 2523.9033,
+     "Mining and energy industry": 3899.7285,
+     "Other natural disturbances": 3050.339,
+     "Shifting cultivation": 1044377.8,
+     "Logging": 12941.968,
+     "Permanent agriculture": 145368.17,
+     "Wildfire": 6799.508
+    },
+    "2020": {
+     "Settlements and infrastructure": 3168.4219,
+     "Mining and energy industry": 4237.3594,
+     "Other natural disturbances": 3549.8193,
+     "Shifting cultivation": 1079248.6,
+     "Logging": 15116.148,
+     "Permanent agriculture": 181309.69,
+     "Wildfire": 21720.736
+    },
+    "2021": {
+     "Settlements and infrastructure": 3112.6838,
+     "Mining and energy industry": 5037.308,
+     "Other natural disturbances": 3084.319,
+     "Shifting cultivation": 1025023.4,
+     "Logging": 16589.96,
+     "Permanent agriculture": 173906.48,
+     "Wildfire": 19704.584
+    },
+    "2022": {
+     "Settlements and infrastructure": 2971.9153,
+     "Mining and energy industry": 8581.936,
+     "Other natural disturbances": 3017.1396,
+     "Shifting cultivation": 1017132.5,
+     "Logging": 17452.32,
+     "Permanent agriculture": 154761.56,
+     "Wildfire": 14707.616
+    },
+    "2023": {
+     "Settlements and infrastructure": 2646.9724,
+     "Mining and energy industry": 8627.237,
+     "Other natural disturbances": 2475.0098,
+     "Shifting cultivation": 1092984.6,
+     "Logging": 19294.361,
+     "Permanent agriculture": 185502.89,
+     "Wildfire": 12323.693
+    },
+    "2024": {
+     "Settlements and infrastructure": 3294.0156,
+     "Mining and energy industry": 8063.379,
+     "Other natural disturbances": 6709.9443,
+     "Shifting cultivation": 1078649.8,
+     "Logging": 22654.424,
+     "Permanent agriculture": 191480.72,
+     "Wildfire": 64821.9
+    }
+   },
+   "ten_year_window": [
+    "2015",
+    "2024"
+   ],
+   "ten_year_total_ha": {
+    "Settlements and infrastructure": 32690.766,
+    "Mining and energy industry": 50532.843,
+    "Other natural disturbances": 34588.76,
+    "Shifting cultivation": 10730645.1,
+    "Logging": 146442.581,
+    "Permanent agriculture": 1649692.29,
+    "Wildfire": 191430.714
+   },
+   "largest_driver": "Shifting cultivation"
+  }
+ }
+}

@@ -1,0 +1,530 @@
+{
+ "topic": "history-of-computing",
+ "title": "A history of computing",
+ "item": "R4-CLP-5",
+ "read": "2026-10-19",
+ "format": "claims and sources as in sets/presidents-sample/claims.json and sources.json; events are proposals (id, title, date) without seq, place or people",
+ "events": [
+  {
+   "id": "e-lovelace-notes",
+   "kind": "event",
+   "title": "Ada Lovelace publishes her paper on the Analytical Engine",
+   "date": "1843",
+   "claim": "c-e-lovelace-notes"
+  },
+  {
+   "id": "e-eniac-announced",
+   "kind": "event",
+   "title": "ENIAC is announced to the public",
+   "date": "1946-02-14",
+   "claim": "c-e-eniac-announced"
+  },
+  {
+   "id": "e-transistor",
+   "kind": "event",
+   "title": "Bardeen and Brattain achieve transistor action",
+   "date": "1947-12",
+   "claim": "c-e-transistor"
+  },
+  {
+   "id": "e-baby",
+   "kind": "event",
+   "title": "The Manchester Baby runs the first stored program",
+   "date": "1948-06-21",
+   "claim": "c-e-baby"
+  },
+  {
+   "id": "e-arpanet-first",
+   "kind": "event",
+   "title": "The first message crosses the ARPANET",
+   "date": "1969-10-29",
+   "claim": "c-e-arpanet-first"
+  },
+  {
+   "id": "e-ibm-pc",
+   "kind": "event",
+   "title": "IBM unveils the IBM PC",
+   "date": "1981-08-12",
+   "claim": "c-e-ibm-pc"
+  },
+  {
+   "id": "e-tcpip-switch",
+   "kind": "event",
+   "title": "The ARPANET switches to TCP/IP",
+   "date": "1983-01-01",
+   "claim": "c-e-tcpip-switch"
+  },
+  {
+   "id": "e-web-proposal",
+   "kind": "event",
+   "title": "Berners-Lee writes the proposal that becomes the Web",
+   "date": "1989-03",
+   "claim": "c-e-web-proposal"
+  }
+ ],
+ "sources": {
+  "bodleian-lovelace": {
+   "title": "Ada Lovelace: celebrating 200 years of a computer visionary",
+   "institution": "Bodleian Libraries, University of Oxford",
+   "url": "https://blogs.bodleian.ox.ac.uk/adalovelace/",
+   "read": "2026-10-19",
+   "kind": "library",
+   "http_status": 200,
+   "text_checked_for": [
+    "1843",
+    "Analytical Engine"
+   ]
+  },
+  "cern-www-history": {
+   "title": "WWW Project History",
+   "institution": "CERN",
+   "url": "https://info.cern.ch/hypertext/WWW/History.html",
+   "read": "2026-10-19",
+   "kind": "research institute",
+   "http_status": 200,
+   "text_checked_for": [
+    "March 1989",
+    "First project proposal"
+   ]
+  },
+  "chm-1948": {
+   "title": "1948 (Timeline of Computer History)",
+   "institution": "Computer History Museum",
+   "url": "https://www.computerhistory.org/timeline/1948/",
+   "read": "2026-10-19",
+   "kind": "museum",
+   "http_status": 200,
+   "text_checked_for": [
+    "June 21st, 1948",
+    "Manchester"
+   ]
+  },
+  "chm-1981": {
+   "title": "1981 (Timeline of Computer History)",
+   "institution": "Computer History Museum",
+   "url": "https://www.computerhistory.org/timeline/1981/",
+   "read": "2026-10-19",
+   "kind": "museum",
+   "http_status": 200,
+   "text_checked_for": [
+    "IBM introduces its Personal Computer"
+   ]
+  },
+  "chm-eniac": {
+   "title": "ENIAC (CHM Revolution)",
+   "institution": "Computer History Museum",
+   "url": "https://www.computerhistory.org/revolution/birth-of-the-computer/4/78",
+   "read": "2026-10-19",
+   "kind": "museum",
+   "http_status": 200,
+   "text_checked_for": [
+    "February 15, 1946",
+    "front-page news"
+   ]
+  },
+  "chm-ibm-pc": {
+   "title": "The IBM PC (CHM Revolution)",
+   "institution": "Computer History Museum",
+   "url": "https://www.computerhistory.org/revolution/personal-computers/17/301",
+   "read": "2026-10-19",
+   "kind": "museum",
+   "http_status": 200,
+   "text_checked_for": [
+    "IBM introduced its PC in 1981"
+   ]
+  },
+  "chm-internet-60s": {
+   "title": "Internet History: the 1960s",
+   "institution": "Computer History Museum",
+   "url": "https://www.computerhistory.org/internethistory/1960s/",
+   "read": "2026-10-19",
+   "kind": "museum",
+   "http_status": 200,
+   "text_checked_for": [
+    "October 29, 1969",
+    "UCLA to SRI"
+   ]
+  },
+  "chm-internet-80s": {
+   "title": "Internet History: the 1980s",
+   "institution": "Computer History Museum",
+   "url": "https://www.computerhistory.org/internethistory/1980s/",
+   "read": "2026-10-19",
+   "kind": "museum",
+   "http_status": 200,
+   "text_checked_for": [
+    "standardizes on the TCP/IP protocols"
+   ]
+  },
+  "chm-lovelace": {
+   "title": "Ada Lovelace (Babbage Engine)",
+   "institution": "Computer History Museum",
+   "url": "https://www.computerhistory.org/babbage/adalovelace/",
+   "read": "2026-10-19",
+   "kind": "museum",
+   "http_status": 200,
+   "text_checked_for": [
+    "1843",
+    "Analytical Engine"
+   ]
+  },
+  "chm-transistor": {
+   "title": "1947: Invention of the Point-Contact Transistor (The Silicon Engine)",
+   "institution": "Computer History Museum",
+   "url": "https://www.computerhistory.org/siliconengine/invention-of-the-point-contact-transistor/",
+   "read": "2026-10-19",
+   "kind": "museum",
+   "http_status": 200,
+   "text_checked_for": [
+    "December 1947",
+    "Bardeen",
+    "Brattain"
+   ]
+  },
+  "ethw-arpanet": {
+   "title": "Milestones: Birthplace of the Internet, 1969",
+   "institution": "IEEE, Engineering and Technology History Wiki",
+   "url": "https://ethw.org/Milestones:Birthplace_of_the_Internet,_1969",
+   "read": "2026-10-19",
+   "kind": "society",
+   "http_status": 200,
+   "text_checked_for": [
+    "29 October 1969",
+    "Stanford Research Institute"
+   ]
+  },
+  "ethw-eniac": {
+   "title": "Milestones: Electronic Numerical Integrator and Computer, 1946",
+   "institution": "IEEE, Engineering and Technology History Wiki",
+   "url": "https://ethw.org/Milestones:Electronic_Numerical_Integrator_and_Computer,_1946",
+   "read": "2026-10-19",
+   "kind": "society",
+   "http_status": 200,
+   "text_checked_for": [
+    "14 February 1946",
+    "New York Times"
+   ]
+  },
+  "ethw-transistor": {
+   "title": "Milestones: Invention of the First Transistor at Bell Telephone Laboratories, Inc., 1947",
+   "institution": "IEEE, Engineering and Technology History Wiki",
+   "url": "https://ethw.org/Milestones:Invention_of_the_First_Transistor_at_Bell_Telephone_Laboratories,_Inc.,_1947",
+   "read": "2026-10-19",
+   "kind": "society",
+   "http_status": 200,
+   "text_checked_for": [
+    "17 November to 23 December 1947",
+    "Brattain"
+   ]
+  },
+  "ibm-pc": {
+   "title": "The IBM PC (IBM history)",
+   "institution": "IBM",
+   "url": "https://www.ibm.com/history/personal-computer",
+   "read": "2026-10-19",
+   "kind": "company archive",
+   "http_status": 200,
+   "text_checked_for": [
+    "August 12, 1981",
+    "IBM PC"
+   ]
+  },
+  "isoc-history": {
+   "title": "A Brief History of the Internet",
+   "institution": "Internet Society",
+   "url": "https://www.internetsociety.org/internet/history-internet/brief-history-internet/",
+   "read": "2026-10-19",
+   "kind": "society",
+   "http_status": 200,
+   "text_checked_for": [
+    "NCP to TCP/IP as of January 1, 1983"
+   ]
+  },
+  "manchester-cs": {
+   "title": "History and heritage, Department of Computer Science",
+   "institution": "The University of Manchester",
+   "url": "https://www.cs.manchester.ac.uk/about-us/history/",
+   "read": "2026-10-19",
+   "kind": "university",
+   "http_status": 200,
+   "text_checked_for": [
+    "21 June 1948",
+    "stored-program"
+   ]
+  },
+  "nobel-shockley": {
+   "title": "William B. Shockley: Facts (Nobel Prize in Physics 1956)",
+   "institution": "Nobel Prize Outreach",
+   "url": "https://www.nobelprize.org/prizes/physics/1956/shockley/facts/",
+   "read": "2026-10-19",
+   "kind": "archive",
+   "http_status": 200,
+   "text_checked_for": [
+    "1947 John Bardeen and Walter Brattain",
+    "transistor"
+   ]
+  },
+  "penn-eniac": {
+   "title": "ENIAC (Penn Engineering history)",
+   "institution": "University of Pennsylvania, School of Engineering and Applied Science",
+   "url": "https://www.seas.upenn.edu/about/history-heritage/eniac/",
+   "read": "2026-10-19",
+   "kind": "university",
+   "http_status": 200,
+   "text_checked_for": [
+    "February 14, 1946",
+    "first general-purpose electronic computer"
+   ]
+  },
+  "rfc801": {
+   "title": "RFC 801: NCP/TCP transition plan",
+   "institution": "RFC Editor (Internet Engineering Task Force documents)",
+   "url": "https://www.rfc-editor.org/rfc/rfc801",
+   "read": "2026-10-19",
+   "kind": "standards body",
+   "http_status": 200,
+   "text_checked_for": [
+    "1 January 1983",
+    "NCP"
+   ]
+  },
+  "sim-baby": {
+   "title": "Baby and modern computing",
+   "institution": "Science and Industry Museum, Manchester",
+   "url": "https://www.scienceandindustrymuseum.org.uk/objects-and-stories/baby-and-modern-computing",
+   "read": "2026-10-19",
+   "kind": "museum",
+   "http_status": 200,
+   "text_checked_for": [
+    "21 June 1948",
+    "stored-program"
+   ]
+  },
+  "smg-babbage": {
+   "title": "Charles Babbage's Difference Engines and the Science Museum",
+   "institution": "Science Museum Group",
+   "url": "https://www.sciencemuseum.org.uk/objects-and-stories/charles-babbages-difference-engines-and-science-museum",
+   "read": "2026-10-19",
+   "kind": "museum",
+   "http_status": 200,
+   "text_checked_for": [
+    "In 1843, Lovelace published an account of the Analytical Engine"
+   ]
+  },
+  "sri-arpanet": {
+   "title": "ARPANET (SRI History of Innovation)",
+   "institution": "SRI International",
+   "url": "https://www.sri.com/hoi/arpanet/",
+   "read": "2026-10-19",
+   "kind": "research institute",
+   "http_status": 200,
+   "text_checked_for": [
+    "October 29, 1969",
+    "UCLA attempted to send a message to SRI"
+   ]
+  },
+  "w3c-history": {
+   "title": "A Little History of the World Wide Web",
+   "institution": "World Wide Web Consortium (W3C)",
+   "url": "https://www.w3.org/History.html",
+   "read": "2026-10-19",
+   "kind": "standards body",
+   "http_status": 200,
+   "text_checked_for": [
+    "1989 March",
+    "Information Management: A Proposal"
+   ]
+  },
+  "w3c-proposal": {
+   "title": "Information Management: A Proposal (HTMLized original)",
+   "institution": "World Wide Web Consortium (W3C)",
+   "url": "https://www.w3.org/History/1989/proposal.html",
+   "read": "2026-10-19",
+   "kind": "standards body",
+   "http_status": 200,
+   "text_checked_for": [
+    "March 1989",
+    "Tim Berners-Lee",
+    "CERN"
+   ]
+  }
+ },
+ "claims": [
+  {
+   "id": "c-e-lovelace-notes",
+   "subject": "e-lovelace-notes",
+   "field": "date",
+   "value": "1843",
+   "text": "In 1843 Ada Lovelace published a paper on Charles Babbage's unbuilt Analytical Engine.",
+   "confidence": "documented",
+   "sources": [
+    {
+     "source": "chm-lovelace",
+     "note": "Dates the Lovelace work on the Analytical Engine to 1843."
+    },
+    {
+     "source": "bodleian-lovelace",
+     "note": "Says her 1843 paper about Babbage's unbuilt Analytical Engine holds the table of formulae sometimes called the first programme."
+    },
+    {
+     "source": "smg-babbage",
+     "note": "States that Lovelace published an account of the Analytical Engine in 1843."
+    }
+   ]
+  },
+  {
+   "id": "c-e-eniac-announced",
+   "subject": "e-eniac-announced",
+   "field": "date",
+   "value": "1946-02-14",
+   "text": "ENIAC, the first general-purpose electronic computer, was announced to the public on 14 February 1946 and was front-page news in The New York Times the next day.",
+   "confidence": "documented",
+   "sources": [
+    {
+     "source": "penn-eniac",
+     "note": "Says ENIAC was originally announced on 14 February 1946 and calls it the first general-purpose electronic computer."
+    },
+    {
+     "source": "ethw-eniac",
+     "note": "Says the New York Times announced the unveiling of the machine on 14 February 1946."
+    },
+    {
+     "source": "chm-eniac",
+     "note": "Puts the front-page New York Times story on 15 February 1946, one day later than the other two pages date the announcement."
+    }
+   ]
+  },
+  {
+   "id": "c-e-transistor",
+   "subject": "e-transistor",
+   "field": "date",
+   "value": "1947-12",
+   "text": "In December 1947 John Bardeen and Walter Brattain, working at Bell Telephone Laboratories, achieved transistor action in a germanium point-contact device.",
+   "confidence": "documented",
+   "sources": [
+    {
+     "source": "chm-transistor",
+     "note": "Names Bardeen and Brattain and gives December 1947 for transistor action in a germanium point-contact device."
+    },
+    {
+     "source": "ethw-transistor",
+     "note": "Gives 17 November to 23 December 1947 at Bell Laboratories for the work of Brattain and Bardeen under Shockley."
+    },
+    {
+     "source": "nobel-shockley",
+     "note": "Gives 1947 for the semiconductor amplifier of Bardeen and Brattain, later named the transistor; no month."
+    }
+   ]
+  },
+  {
+   "id": "c-e-baby",
+   "subject": "e-baby",
+   "field": "date",
+   "value": "1948-06-21",
+   "text": "The Manchester Baby, the first stored-program electronic computer, ran its first program on 21 June 1948.",
+   "confidence": "documented",
+   "sources": [
+    {
+     "source": "sim-baby",
+     "note": "Gives 21 June 1948 for the first program run by Baby, written by Kilburn."
+    },
+    {
+     "source": "manchester-cs",
+     "note": "Gives 21 June 1948 for the first successful program run of the machine built by Williams and Kilburn."
+    },
+    {
+     "source": "chm-1948",
+     "note": "Gives 21 June 1948 for the first program to run on an electronic stored-program computer at Manchester."
+    }
+   ]
+  },
+  {
+   "id": "c-e-arpanet-first",
+   "subject": "e-arpanet-first",
+   "field": "date",
+   "value": "1969-10-29",
+   "text": "On 29 October 1969 the first message was sent over the ARPANET, from UCLA to the Stanford Research Institute.",
+   "confidence": "documented",
+   "sources": [
+    {
+     "source": "ethw-arpanet",
+     "note": "Gives 10:30 p.m. on 29 October 1969 for the first ARPANET message, sent from UCLA to the Stanford Research Institute."
+    },
+    {
+     "source": "chm-internet-60s",
+     "note": "Records the first host-to-host connection, UCLA to SRI, on 29 October 1969."
+    },
+    {
+     "source": "sri-arpanet",
+     "note": "Gives 10:30 p.m. on 29 October 1969 for the first transmission, when UCLA tried to send a message to SRI."
+    }
+   ]
+  },
+  {
+   "id": "c-e-ibm-pc",
+   "subject": "e-ibm-pc",
+   "field": "date",
+   "value": "1981-08-12",
+   "text": "IBM unveiled its Personal Computer, the IBM PC, on 12 August 1981 in New York.",
+   "confidence": "documented",
+   "sources": [
+    {
+     "source": "ibm-pc",
+     "note": "Gives 12 August 1981 for the unveiling of the IBM PC at a New York hotel; the only one of the three that gives the day."
+    },
+    {
+     "source": "chm-1981",
+     "note": "Lists the introduction of IBM's Personal Computer under 1981; no day."
+    },
+    {
+     "source": "chm-ibm-pc",
+     "note": "Says IBM introduced its PC in 1981; no day."
+    }
+   ]
+  },
+  {
+   "id": "c-e-tcpip-switch",
+   "subject": "e-tcpip-switch",
+   "field": "date",
+   "value": "1983-01-01",
+   "text": "The ARPANET changed over from the NCP protocol to TCP/IP on 1 January 1983.",
+   "confidence": "documented",
+   "sources": [
+    {
+     "source": "isoc-history",
+     "note": "Describes the changeover of the ARPANET host protocol from NCP to TCP/IP as of 1 January 1983, in a single flag-day."
+    },
+    {
+     "source": "rfc801",
+     "note": "The 1981 plan for the changeover; it sets 1 January 1983 as the date for a complete switch from NCP to TCP."
+    },
+    {
+     "source": "chm-internet-80s",
+     "note": "Says the ARPANET standardised on TCP/IP in January 1983."
+    }
+   ]
+  },
+  {
+   "id": "c-e-web-proposal",
+   "subject": "e-web-proposal",
+   "field": "date",
+   "value": "1989-03",
+   "text": "In March 1989 Tim Berners-Lee wrote and circulated at CERN the proposal \"Information Management: A Proposal\", the first proposal for what became the World Wide Web.",
+   "confidence": "documented",
+   "sources": [
+    {
+     "source": "w3c-proposal",
+     "note": "Holds the proposal itself, written by Tim Berners-Lee at CERN in March 1989 and recirculated in May 1990."
+    },
+    {
+     "source": "cern-www-history",
+     "note": "Lists the first project proposal, written and circulated for comment, in March 1989."
+    },
+    {
+     "source": "w3c-history",
+     "note": "Dates the writing and circulation of the proposal at CERN to March 1989."
+    }
+   ]
+  }
+ ]
+}

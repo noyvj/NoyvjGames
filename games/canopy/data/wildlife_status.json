@@ -1,0 +1,432 @@
+{
+ "topic": "wildlife_status",
+ "read": "2026-10-19",
+ "sources": [
+  {
+   "name": "GBIF species API (IUCN Red List category as published through GBIF)",
+   "publisher": "Global Biodiversity Information Facility; category from the IUCN Red List of Threatened Species",
+   "url": "https://www.gbif.org/developer/species",
+   "licence": "GBIF API data CC0 / CC BY as marked per dataset; the IUCN Red List terms ask for credit to IUCN"
+  },
+  {
+   "name": "Wikipedia REST page summary",
+   "publisher": "Wikimedia Foundation",
+   "url": "https://en.wikipedia.org/api/rest_v1/",
+   "licence": "CC BY-SA 4.0 (article text); credit Wikipedia and link the article"
+  }
+ ],
+ "category_words": {
+  "LC": "Least Concern",
+  "NT": "Near Threatened",
+  "VU": "Vulnerable",
+  "EN": "Endangered",
+  "CR": "Critically Endangered",
+  "DD": "Data Deficient",
+  "EW": "Extinct in the Wild",
+  "EX": "Extinct"
+ },
+ "live": true,
+ "live_note": "CORS open. Live: GET gbif_key's iucnRedListCategory URL; a 204 answer means not assessed. Fallback: this file.",
+ "species": [
+  {
+   "group": "current",
+   "log_icon": "owl",
+   "common_name": "Tawny owl",
+   "scientific_name": "Strix aluco",
+   "gbif_key": 9282206,
+   "gbif_url": "https://www.gbif.org/species/9282206",
+   "iucn": {
+    "code": "LC",
+    "category": "LEAST_CONCERN",
+    "iucn_taxon_id": "22725469",
+    "scientific_name_in_iucn": "Strix aluco Linnaeus, 1758",
+    "taxonomic_status": "ACCEPTED"
+   },
+   "wikipedia": {
+    "title": "Tawny owl",
+    "url": "https://en.wikipedia.org/wiki/Tawny_owl",
+    "extract": "The tawny owl, also called the brown owl, is a stocky, medium-sized owl in the family Strigidae. It is commonly found in woodlands across Europe, as well as western Siberia, and has seven recognized subspecies."
+   }
+  },
+  {
+   "group": "current",
+   "log_icon": "fox",
+   "common_name": "Red fox",
+   "scientific_name": "Vulpes vulpes",
+   "gbif_key": 5219243,
+   "gbif_url": "https://www.gbif.org/species/5219243",
+   "iucn": {
+    "code": "LC",
+    "category": "LEAST_CONCERN",
+    "iucn_taxon_id": "23062",
+    "scientific_name_in_iucn": "Vulpes vulpes (Linnaeus, 1758)",
+    "taxonomic_status": "ACCEPTED"
+   },
+   "wikipedia": {
+    "title": "Red fox",
+    "url": "https://en.wikipedia.org/wiki/Red_fox",
+    "extract": "The red fox is the largest of the true foxes, and the most widely distributed member of the order Carnivora. It is present across the entire Northern Hemisphere, including most of North America, Europe and Asia, as well as parts of North Africa."
+   }
+  },
+  {
+   "group": "current",
+   "log_icon": "deer",
+   "common_name": "Red deer",
+   "scientific_name": "Cervus elaphus",
+   "gbif_key": 2440958,
+   "gbif_url": "https://www.gbif.org/species/2440958",
+   "iucn": {
+    "code": "LC",
+    "category": "LEAST_CONCERN",
+    "iucn_taxon_id": "55997072",
+    "scientific_name_in_iucn": "Cervus elaphus Linnaeus, 1758",
+    "taxonomic_status": "ACCEPTED"
+   },
+   "wikipedia": {
+    "title": "Red deer",
+    "url": "https://en.wikipedia.org/wiki/Red_deer",
+    "extract": "The red deer is a species of deer in the genus Cervus. It is one of the largest deer species."
+   }
+  },
+  {
+   "group": "current",
+   "log_icon": "frog",
+   "common_name": "Common frog",
+   "scientific_name": "Rana temporaria",
+   "gbif_key": 2426805,
+   "gbif_url": "https://www.gbif.org/species/2426805",
+   "iucn": {
+    "code": "LC",
+    "category": "LEAST_CONCERN",
+    "iucn_taxon_id": "173101508",
+    "scientific_name_in_iucn": "Rana temporaria Linnaeus, 1758",
+    "taxonomic_status": "ACCEPTED"
+   },
+   "wikipedia": {
+    "title": "Common frog",
+    "url": "https://en.wikipedia.org/wiki/Common_frog",
+    "extract": "The common frog or grass frog, also known as the European common frog, European common brown frog, European grass frog, European Holarctic true frog, European pond frog, European brown frog, or simply the frog, is a semi-aquatic amphibian of the family Ranidae, found throughout much of Europe as far north as Scandinavia and as far east as the Urals, except for most of the Iberian Peninsula, southern Italy, and the southern Balkans. The farthest west it can be found is Ireland."
+   }
+  },
+  {
+   "group": "current",
+   "log_icon": "butterfly",
+   "common_name": "Monarch butterfly",
+   "scientific_name": "Danaus plexippus",
+   "gbif_key": 5133088,
+   "gbif_url": "https://www.gbif.org/species/5133088",
+   "iucn": {
+    "code": "LC",
+    "category": "LEAST_CONCERN",
+    "iucn_taxon_id": "159971",
+    "scientific_name_in_iucn": "Danaus plexippus (Linnaeus, 1758)",
+    "taxonomic_status": "ACCEPTED"
+   },
+   "wikipedia": {
+    "title": "Monarch butterfly",
+    "url": "https://en.wikipedia.org/wiki/Monarch_butterfly",
+    "extract": "The monarch butterfly or simply monarch is a milkweed butterfly in the family Nymphalidae. Other common names, depending on region, include milkweed, common tiger, wanderer, and black-veined brown."
+   }
+  },
+  {
+   "group": "current",
+   "log_icon": "woodpecker",
+   "common_name": "Great spotted woodpecker",
+   "scientific_name": "Dendrocopos major",
+   "gbif_key": 2477968,
+   "gbif_url": "https://www.gbif.org/species/2477968",
+   "iucn": {
+    "code": "LC",
+    "category": "LEAST_CONCERN",
+    "iucn_taxon_id": "22681124",
+    "scientific_name_in_iucn": "Dendrocopos major (Linnaeus, 1758)",
+    "taxonomic_status": "ACCEPTED"
+   },
+   "wikipedia": {
+    "title": "Great spotted woodpecker",
+    "url": "https://en.wikipedia.org/wiki/Great_spotted_woodpecker",
+    "extract": "The great spotted woodpecker is a medium-sized woodpecker with pied black and white plumage and a red patch on the lower belly. Males and young birds also have red markings on the neck or head."
+   }
+  },
+  {
+   "group": "boreal",
+   "log_icon": null,
+   "common_name": "Canada lynx",
+   "scientific_name": "Lynx canadensis",
+   "gbif_key": 2435263,
+   "gbif_url": "https://www.gbif.org/species/2435263",
+   "iucn": {
+    "code": "LC",
+    "category": "LEAST_CONCERN",
+    "iucn_taxon_id": "12518",
+    "scientific_name_in_iucn": "Lynx canadensis (Kerr, 1792)",
+    "taxonomic_status": "ACCEPTED"
+   },
+   "wikipedia": {
+    "title": "Canada lynx",
+    "url": "https://en.wikipedia.org/wiki/Canada_lynx",
+    "extract": "The Canada lynx or Canadian lynx is one of the four living species in the genus Lynx. It is a medium-sized wild cat characterized by long, dense fur, triangular ears with black tufts at the tips, and broad, snowshoe-like paws."
+   }
+  },
+  {
+   "group": "boreal",
+   "log_icon": null,
+   "common_name": "Reindeer or caribou",
+   "scientific_name": "Rangifer tarandus",
+   "gbif_key": 5220114,
+   "gbif_url": "https://www.gbif.org/species/5220114",
+   "iucn": {
+    "code": "VU",
+    "category": "VULNERABLE",
+    "iucn_taxon_id": "29742",
+    "scientific_name_in_iucn": "Rangifer tarandus (Linnaeus, 1758)",
+    "taxonomic_status": "ACCEPTED"
+   },
+   "wikipedia": {
+    "title": "Reindeer",
+    "url": "https://en.wikipedia.org/wiki/Reindeer",
+    "extract": "The reindeer or caribou is a species of deer with circumpolar distribution, native to the Arctic, subarctic, tundra, boreal, and mountainous regions of Northern Europe, Siberia, and North America. It is the only representative of the genus Rangifer."
+   }
+  },
+  {
+   "group": "boreal",
+   "log_icon": null,
+   "common_name": "Wolverine",
+   "scientific_name": "Gulo gulo",
+   "gbif_key": 5219073,
+   "gbif_url": "https://www.gbif.org/species/5219073",
+   "iucn": {
+    "code": "LC",
+    "category": "LEAST_CONCERN",
+    "iucn_taxon_id": "9561",
+    "scientific_name_in_iucn": "Gulo gulo (Linnaeus, 1758)",
+    "taxonomic_status": "ACCEPTED"
+   },
+   "wikipedia": {
+    "title": "Wolverine",
+    "url": "https://en.wikipedia.org/wiki/Wolverine",
+    "extract": "The wolverine, also called the carcajou or quickhatch, is the largest land-dwelling member of the family Mustelidae. It is a muscular carnivore and a solitary animal."
+   }
+  },
+  {
+   "group": "boreal",
+   "log_icon": null,
+   "common_name": "Boreal owl",
+   "scientific_name": "Aegolius funereus",
+   "gbif_key": 5739298,
+   "gbif_url": "https://www.gbif.org/species/5739298",
+   "iucn": {
+    "code": "LC",
+    "category": "LEAST_CONCERN",
+    "iucn_taxon_id": "22689362",
+    "scientific_name_in_iucn": "Aegolius funereus (Linnaeus, 1758)",
+    "taxonomic_status": "ACCEPTED"
+   },
+   "wikipedia": {
+    "title": "Boreal owl",
+    "url": "https://en.wikipedia.org/wiki/Boreal_owl",
+    "extract": "The boreal owl or Tengmalm's owl is a small owl in the \"true owl\" family Strigidae. It is known as the boreal owl or, more rarely, Richardson's owl after Sir John Richardson, in North America, and as Tengmalm's owl in Europe and Asia, after the Swedish naturalist Peter Gustaf Tengmalm."
+   }
+  },
+  {
+   "group": "boreal",
+   "log_icon": null,
+   "common_name": "Moose",
+   "scientific_name": "Alces alces",
+   "gbif_key": 2440940,
+   "gbif_url": "https://www.gbif.org/species/2440940",
+   "iucn": {
+    "code": "LC",
+    "category": "LEAST_CONCERN",
+    "iucn_taxon_id": "56003281",
+    "scientific_name_in_iucn": "Alces alces (Linnaeus, 1758)",
+    "taxonomic_status": "ACCEPTED"
+   },
+   "wikipedia": {
+    "title": "Moose",
+    "url": "https://en.wikipedia.org/wiki/Moose",
+    "extract": "The moose or elk is the world's tallest, largest and heaviest extant species of deer and the only extant species in the genus Alces. It is also the tallest, and the second-largest, land animal in North America, falling short only to the American bison in body mass."
+   }
+  },
+  {
+   "group": "boreal",
+   "log_icon": null,
+   "common_name": "Canada warbler",
+   "scientific_name": "Cardellina canadensis",
+   "gbif_key": 6091946,
+   "gbif_url": "https://www.gbif.org/species/6091946",
+   "iucn": {
+    "code": "LC",
+    "category": "LEAST_CONCERN",
+    "iucn_taxon_id": "22721882",
+    "scientific_name_in_iucn": "Cardellina canadensis (Linnaeus, 1766)",
+    "taxonomic_status": "ACCEPTED"
+   },
+   "wikipedia": {
+    "title": "Canada warbler",
+    "url": "https://en.wikipedia.org/wiki/Canada_warbler",
+    "extract": "The Canada warbler is a small boreal songbird of the New World warbler family (Parulidae). It summers in Canada and northeastern United States and winters in northern South America."
+   }
+  },
+  {
+   "group": "tropical",
+   "log_icon": null,
+   "common_name": "Jaguar",
+   "scientific_name": "Panthera onca",
+   "gbif_key": 5219426,
+   "gbif_url": "https://www.gbif.org/species/5219426",
+   "iucn": {
+    "code": "NT",
+    "category": "NEAR_THREATENED",
+    "iucn_taxon_id": "15953",
+    "scientific_name_in_iucn": "Panthera onca (Linnaeus, 1758)",
+    "taxonomic_status": "ACCEPTED"
+   },
+   "wikipedia": {
+    "title": "Jaguar",
+    "url": "https://en.wikipedia.org/wiki/Jaguar",
+    "extract": "The jaguar is a large cat species and the only living member of the genus Panthera that is native to the Americas. Its coat features pale yellow to tan colored fur covered with spots that transition to rosettes on the sides; some individuals have a melanistic spotted coat."
+   }
+  },
+  {
+   "group": "tropical",
+   "log_icon": null,
+   "common_name": "Harpy eagle",
+   "scientific_name": "Harpia harpyja",
+   "gbif_key": 2480516,
+   "gbif_url": "https://www.gbif.org/species/2480516",
+   "iucn": {
+    "code": "VU",
+    "category": "VULNERABLE",
+    "iucn_taxon_id": "22695998",
+    "scientific_name_in_iucn": "Harpia harpyja (Linnaeus, 1758)",
+    "taxonomic_status": "ACCEPTED"
+   },
+   "wikipedia": {
+    "title": "Harpy eagle",
+    "url": "https://en.wikipedia.org/wiki/Harpy_eagle",
+    "extract": "The harpy eagle is a large neotropical species of eagle. It is also called the American harpy eagle to distinguish it from the Papuan eagle, which is sometimes known as the New Guinea harpy eagle or Papuan harpy eagle."
+   }
+  },
+  {
+   "group": "tropical",
+   "log_icon": null,
+   "common_name": "Red-eyed tree frog",
+   "scientific_name": "Agalychnis callidryas",
+   "gbif_key": 2428197,
+   "gbif_url": "https://www.gbif.org/species/2428197",
+   "iucn": {
+    "code": "LC",
+    "category": "LEAST_CONCERN",
+    "iucn_taxon_id": "55290",
+    "scientific_name_in_iucn": "Agalychnis callidryas (Cope, 1862)",
+    "taxonomic_status": "ACCEPTED"
+   },
+   "wikipedia": {
+    "title": "Agalychnis callidryas",
+    "url": "https://en.wikipedia.org/wiki/Agalychnis_callidryas",
+    "extract": "The red-eyed tree frog or red-eyed leaf frog is a species of tree frog in the subfamily Phyllomedusinae native to forests of Central America and northwestern South America. One of the most recognizable frog species, A. callidryas is known for its vibrant coloration, having a bright green body with blue and yellow stripes on the side, a white underside, bright red- to orange-colored feet, and its namesake bright red eyes."
+   }
+  },
+  {
+   "group": "tropical",
+   "log_icon": null,
+   "common_name": "Brown-throated sloth",
+   "scientific_name": "Bradypus variegatus",
+   "gbif_key": 2436353,
+   "gbif_url": "https://www.gbif.org/species/2436353",
+   "iucn": {
+    "code": "LC",
+    "category": "LEAST_CONCERN",
+    "iucn_taxon_id": "3038",
+    "scientific_name_in_iucn": "Bradypus variegatus Schinz, 1825",
+    "taxonomic_status": "ACCEPTED"
+   },
+   "wikipedia": {
+    "title": "Brown-throated sloth",
+    "url": "https://en.wikipedia.org/wiki/Brown-throated_sloth",
+    "extract": "The brown-throated sloth is a species of three-toed sloth found in the Neotropical realm of Central and South America."
+   }
+  },
+  {
+   "group": "tropical",
+   "log_icon": null,
+   "common_name": "Bornean orangutan",
+   "scientific_name": "Pongo pygmaeus",
+   "gbif_key": 5219532,
+   "gbif_url": "https://www.gbif.org/species/5219532",
+   "iucn": {
+    "code": "CR",
+    "category": "CRITICALLY_ENDANGERED",
+    "iucn_taxon_id": "17975",
+    "scientific_name_in_iucn": "Pongo pygmaeus (Linnaeus, 1760)",
+    "taxonomic_status": "ACCEPTED"
+   },
+   "wikipedia": {
+    "title": "Bornean orangutan",
+    "url": "https://en.wikipedia.org/wiki/Bornean_orangutan",
+    "extract": "The Bornean orangutan is an orangutan species endemic to the island of Borneo. It belongs to the only genus of great apes native to Asia and is the largest of the three Pongo species."
+   }
+  },
+  {
+   "group": "tropical",
+   "log_icon": null,
+   "common_name": "Toco toucan",
+   "scientific_name": "Ramphastos toco",
+   "gbif_key": 2478765,
+   "gbif_url": "https://www.gbif.org/species/2478765",
+   "iucn": {
+    "code": "LC",
+    "category": "LEAST_CONCERN",
+    "iucn_taxon_id": "22682164",
+    "scientific_name_in_iucn": "Ramphastos toco Müller, 1776",
+    "taxonomic_status": "ACCEPTED"
+   },
+   "wikipedia": {
+    "title": "Toco toucan",
+    "url": "https://en.wikipedia.org/wiki/Toco_toucan",
+    "extract": "The toco toucan is a species of bird in the toucan family Ramphastidae. It is the largest species of toucan and has a distinctive appearance, with a black body, a white throat, chest and uppertail-coverts, and red undertail-coverts."
+   }
+  },
+  {
+   "group": "tropical",
+   "log_icon": null,
+   "common_name": "Scarlet macaw",
+   "scientific_name": "Ara macao",
+   "gbif_key": 5959227,
+   "gbif_url": "https://www.gbif.org/species/5959227",
+   "iucn": {
+    "code": "LC",
+    "category": "LEAST_CONCERN",
+    "iucn_taxon_id": "22685563",
+    "scientific_name_in_iucn": "Ara macao (Linnaeus, 1758)",
+    "taxonomic_status": "ACCEPTED"
+   },
+   "wikipedia": {
+    "title": "Scarlet macaw",
+    "url": "https://en.wikipedia.org/wiki/Scarlet_macaw",
+    "extract": "The scarlet macaw also called the red-and-yellow macaw, red-and-blue macaw or red-breasted macaw, is a large yellow, green, red and blue Neotropical parrot native to humid evergreen forests of the Americas. Its range extends from southeastern Mexico to Peru, Ecuador, Colombia, Bolivia, Venezuela, Honduras, and Brazil in lowlands of 500 m (1,600 ft) up to 1,000 m (3,300 ft), the Caribbean island of Trinidad, as well as the Pacific island of Coiba."
+   }
+  },
+  {
+   "group": "tropical",
+   "log_icon": null,
+   "common_name": "Blue morpho",
+   "scientific_name": "Morpho menelaus",
+   "gbif_key": 5133523,
+   "gbif_url": "https://www.gbif.org/species/5133523",
+   "iucn": {
+    "code": "NE",
+    "category": "NOT_EVALUATED",
+    "iucn_taxon_id": null,
+    "scientific_name_in_iucn": "Morpho menelaus (Linnaeus, 1758)",
+    "taxonomic_status": "ACCEPTED"
+   },
+   "wikipedia": {
+    "title": "Morpho menelaus",
+    "url": "https://en.wikipedia.org/wiki/Morpho_menelaus",
+    "extract": "The Menelaus blue morpho is one of 30 species of butterfly in the subfamily Morphinae. Its wingspan is about 12 cm (4.7 in), and its dorsal forewings and hindwings are a bright, iridescent blue with black edges, while the ventral surfaces are brown."
+   }
+  }
+ ]
+}

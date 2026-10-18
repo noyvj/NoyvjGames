@@ -1,0 +1,965 @@
+{
+ "topic": "capacity_factors",
+ "read": "2026-10-19",
+ "source": {
+  "name": "Electric Power Monthly, Tables 6.07.A and 6.07.B: Capacity Factors for Utility Scale Generators",
+  "publisher": "U.S. Energy Information Administration (EIA)",
+  "url": "https://www.eia.gov/electricity/monthly/",
+  "licence": "U.S. government data, public domain; EIA asks that it is cited as the source"
+ },
+ "capacity_unit": "MW (time-adjusted capacity)",
+ "capacity_factor_unit": "percent of nameplate output over the year",
+ "tables": [
+  {
+   "table": "Table 6.07.A",
+   "url": "https://www.eia.gov/electricity/monthly/epm_table_grapher.php?t=epmt_6_07_a",
+   "data_for": "July 2026",
+   "release_date": "September 24, 2026",
+   "technologies": [
+    {
+     "label": "Coal",
+     "annual": [
+      {
+       "year": 2016,
+       "capacity_mw": 269477.1,
+       "capacity_factor_pct": 52.8
+      },
+      {
+       "year": 2017,
+       "capacity_mw": 259930.2,
+       "capacity_factor_pct": 53.1
+      },
+      {
+       "year": 2018,
+       "capacity_mw": 246866.8,
+       "capacity_factor_pct": 53.6
+      },
+      {
+       "year": 2019,
+       "capacity_mw": 235089.3,
+       "capacity_factor_pct": 47.5
+      },
+      {
+       "year": 2020,
+       "capacity_mw": 220623.2,
+       "capacity_factor_pct": 40.5
+      },
+      {
+       "year": 2021,
+       "capacity_mw": 212587.0,
+       "capacity_factor_pct": 49.1
+      },
+      {
+       "year": 2022,
+       "capacity_mw": 196396.3,
+       "capacity_factor_pct": 48.4
+      },
+      {
+       "year": 2023,
+       "capacity_mw": 182767.5,
+       "capacity_factor_pct": 42.4
+      },
+      {
+       "year": 2024,
+       "capacity_mw": 176028.6,
+       "capacity_factor_pct": 42.6
+      },
+      {
+       "year": 2025,
+       "capacity_mw": 171695.2,
+       "capacity_factor_pct": 48.7
+      }
+     ]
+    },
+    {
+     "label": "Natural gas: combined cycle",
+     "annual": [
+      {
+       "year": 2016,
+       "capacity_mw": 236442.8,
+       "capacity_factor_pct": 55.4
+      },
+      {
+       "year": 2017,
+       "capacity_mw": 242839.1,
+       "capacity_factor_pct": 51.2
+      },
+      {
+       "year": 2018,
+       "capacity_mw": 254403.3,
+       "capacity_factor_pct": 55.1
+      },
+      {
+       "year": 2019,
+       "capacity_mw": 266846.5,
+       "capacity_factor_pct": 57.4
+      },
+      {
+       "year": 2020,
+       "capacity_mw": 274300.4,
+       "capacity_factor_pct": 57.1
+      },
+      {
+       "year": 2021,
+       "capacity_mw": 277618.5,
+       "capacity_factor_pct": 55.0
+      },
+      {
+       "year": 2022,
+       "capacity_mw": 286467.1,
+       "capacity_factor_pct": 56.6
+      },
+      {
+       "year": 2023,
+       "capacity_mw": 291134.7,
+       "capacity_factor_pct": 59.7
+      },
+      {
+       "year": 2024,
+       "capacity_mw": 292189.2,
+       "capacity_factor_pct": 60.5
+      },
+      {
+       "year": 2025,
+       "capacity_mw": 291470.5,
+       "capacity_factor_pct": 58.4
+      }
+     ]
+    },
+    {
+     "label": "Natural gas: gas turbine",
+     "annual": [
+      {
+       "year": 2016,
+       "capacity_mw": 125148.4,
+       "capacity_factor_pct": 11.0
+      },
+      {
+       "year": 2017,
+       "capacity_mw": 125806.6,
+       "capacity_factor_pct": 9.6
+      },
+      {
+       "year": 2018,
+       "capacity_mw": 126763.4,
+       "capacity_factor_pct": 11.9
+      },
+      {
+       "year": 2019,
+       "capacity_mw": 128832.5,
+       "capacity_factor_pct": 11.4
+      },
+      {
+       "year": 2020,
+       "capacity_mw": 129085.6,
+       "capacity_factor_pct": 11.6
+      },
+      {
+       "year": 2021,
+       "capacity_mw": 130103.4,
+       "capacity_factor_pct": 11.7
+      },
+      {
+       "year": 2022,
+       "capacity_mw": 130170.6,
+       "capacity_factor_pct": 12.9
+      },
+      {
+       "year": 2023,
+       "capacity_mw": 130736.5,
+       "capacity_factor_pct": 12.9
+      },
+      {
+       "year": 2024,
+       "capacity_mw": 132099.1,
+       "capacity_factor_pct": 13.9
+      },
+      {
+       "year": 2025,
+       "capacity_mw": 133539.8,
+       "capacity_factor_pct": 14.1
+      }
+     ]
+    },
+    {
+     "label": "Natural gas: steam turbine",
+     "annual": [
+      {
+       "year": 2016,
+       "capacity_mw": 81225.1,
+       "capacity_factor_pct": 12.3
+      },
+      {
+       "year": 2017,
+       "capacity_mw": 79149.4,
+       "capacity_factor_pct": 10.7
+      },
+      {
+       "year": 2018,
+       "capacity_mw": 76177.8,
+       "capacity_factor_pct": 12.6
+      },
+      {
+       "year": 2019,
+       "capacity_mw": 72797.3,
+       "capacity_factor_pct": 14.1
+      },
+      {
+       "year": 2020,
+       "capacity_mw": 75462.3,
+       "capacity_factor_pct": 14.2
+      },
+      {
+       "year": 2021,
+       "capacity_mw": 74003.4,
+       "capacity_factor_pct": 12.5
+      },
+      {
+       "year": 2022,
+       "capacity_mw": 77518.8,
+       "capacity_factor_pct": 15.6
+      },
+      {
+       "year": 2023,
+       "capacity_mw": 76908.1,
+       "capacity_factor_pct": 17.4
+      },
+      {
+       "year": 2024,
+       "capacity_mw": 75196.7,
+       "capacity_factor_pct": 19.9
+      },
+      {
+       "year": 2025,
+       "capacity_mw": 76136.3,
+       "capacity_factor_pct": 19.8
+      }
+     ]
+    },
+    {
+     "label": "Natural gas: internal combustion",
+     "annual": [
+      {
+       "year": 2016,
+       "capacity_mw": 3684.3,
+       "capacity_factor_pct": 11.5
+      },
+      {
+       "year": 2017,
+       "capacity_mw": 4225.5,
+       "capacity_factor_pct": 11.6
+      },
+      {
+       "year": 2018,
+       "capacity_mw": 4446.6,
+       "capacity_factor_pct": 13.0
+      },
+      {
+       "year": 2019,
+       "capacity_mw": 4848.3,
+       "capacity_factor_pct": 15.3
+      },
+      {
+       "year": 2020,
+       "capacity_mw": 5123.0,
+       "capacity_factor_pct": 15.1
+      },
+      {
+       "year": 2021,
+       "capacity_mw": 5171.8,
+       "capacity_factor_pct": 18.2
+      },
+      {
+       "year": 2022,
+       "capacity_mw": 5526.9,
+       "capacity_factor_pct": 18.1
+      },
+      {
+       "year": 2023,
+       "capacity_mw": 5802.9,
+       "capacity_factor_pct": 20.1
+      },
+      {
+       "year": 2024,
+       "capacity_mw": 6044.6,
+       "capacity_factor_pct": 18.0
+      },
+      {
+       "year": 2025,
+       "capacity_mw": 6574.2,
+       "capacity_factor_pct": 17.4
+      }
+     ]
+    },
+    {
+     "label": "Petroleum: steam turbine",
+     "annual": [
+      {
+       "year": 2016,
+       "capacity_mw": 13993.7,
+       "capacity_factor_pct": 12.2
+      },
+      {
+       "year": 2017,
+       "capacity_mw": 13290.9,
+       "capacity_factor_pct": 13.7
+      },
+      {
+       "year": 2018,
+       "capacity_mw": 13300.1,
+       "capacity_factor_pct": 14.2
+      },
+      {
+       "year": 2019,
+       "capacity_mw": 11214.7,
+       "capacity_factor_pct": 12.8
+      },
+      {
+       "year": 2020,
+       "capacity_mw": 8443.3,
+       "capacity_factor_pct": 13.9
+      },
+      {
+       "year": 2021,
+       "capacity_mw": 8385.5,
+       "capacity_factor_pct": 14.2
+      },
+      {
+       "year": 2022,
+       "capacity_mw": 9839.0,
+       "capacity_factor_pct": 13.2
+      },
+      {
+       "year": 2023,
+       "capacity_mw": 8743.2,
+       "capacity_factor_pct": 10.1
+      },
+      {
+       "year": 2024,
+       "capacity_mw": 8122.7,
+       "capacity_factor_pct": 8.9
+      },
+      {
+       "year": 2025,
+       "capacity_mw": 7996.7,
+       "capacity_factor_pct": 11.3
+      }
+     ]
+    },
+    {
+     "label": "Petroleum: gas turbine",
+     "annual": [
+      {
+       "year": 2016,
+       "capacity_mw": 15114.0,
+       "capacity_factor_pct": 1.3
+      },
+      {
+       "year": 2017,
+       "capacity_mw": 14275.3,
+       "capacity_factor_pct": 1.0
+      },
+      {
+       "year": 2018,
+       "capacity_mw": 14234.9,
+       "capacity_factor_pct": 1.3
+      },
+      {
+       "year": 2019,
+       "capacity_mw": 14009.7,
+       "capacity_factor_pct": 1.0
+      },
+      {
+       "year": 2020,
+       "capacity_mw": 13875.8,
+       "capacity_factor_pct": 1.2
+      },
+      {
+       "year": 2021,
+       "capacity_mw": 13729.8,
+       "capacity_factor_pct": 1.6
+      },
+      {
+       "year": 2022,
+       "capacity_mw": 15005.7,
+       "capacity_factor_pct": 1.6
+      },
+      {
+       "year": 2023,
+       "capacity_mw": 14386.8,
+       "capacity_factor_pct": 1.3
+      },
+      {
+       "year": 2024,
+       "capacity_mw": 14167.2,
+       "capacity_factor_pct": 1.9
+      },
+      {
+       "year": 2025,
+       "capacity_mw": 13726.7,
+       "capacity_factor_pct": 2.1
+      }
+     ]
+    },
+    {
+     "label": "Petroleum: internal combustion",
+     "annual": [
+      {
+       "year": 2016,
+       "capacity_mw": 5082.8,
+       "capacity_factor_pct": 2.3
+      },
+      {
+       "year": 2017,
+       "capacity_mw": 5153.3,
+       "capacity_factor_pct": 2.1
+      },
+      {
+       "year": 2018,
+       "capacity_mw": 5289.7,
+       "capacity_factor_pct": 1.9
+      },
+      {
+       "year": 2019,
+       "capacity_mw": 5287.8,
+       "capacity_factor_pct": 2.0
+      },
+      {
+       "year": 2020,
+       "capacity_mw": 5300.7,
+       "capacity_factor_pct": 1.8
+      },
+      {
+       "year": 2021,
+       "capacity_mw": 5522.7,
+       "capacity_factor_pct": 1.8
+      },
+      {
+       "year": 2022,
+       "capacity_mw": 5407.0,
+       "capacity_factor_pct": 1.8
+      },
+      {
+       "year": 2023,
+       "capacity_mw": 5418.9,
+       "capacity_factor_pct": 1.8
+      },
+      {
+       "year": 2024,
+       "capacity_mw": 5461.8,
+       "capacity_factor_pct": 1.8
+      },
+      {
+       "year": 2025,
+       "capacity_mw": 5436.5,
+       "capacity_factor_pct": 1.9
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "table": "Table 6.07.B",
+   "url": "https://www.eia.gov/electricity/monthly/epm_table_grapher.php?t=epmt_6_07_b",
+   "data_for": "July 2026",
+   "release_date": "September 24, 2026",
+   "technologies": [
+    {
+     "label": "Geothermal",
+     "annual": [
+      {
+       "year": 2016,
+       "capacity_mw": 2516.6,
+       "capacity_factor_pct": 71.6
+      },
+      {
+       "year": 2017,
+       "capacity_mw": 2460.4,
+       "capacity_factor_pct": 73.2
+      },
+      {
+       "year": 2018,
+       "capacity_mw": 2391.5,
+       "capacity_factor_pct": 76.0
+      },
+      {
+       "year": 2019,
+       "capacity_mw": 2535.2,
+       "capacity_factor_pct": 69.6
+      },
+      {
+       "year": 2020,
+       "capacity_mw": 2561.5,
+       "capacity_factor_pct": 69.1
+      },
+      {
+       "year": 2021,
+       "capacity_mw": 2588.5,
+       "capacity_factor_pct": 69.8
+      },
+      {
+       "year": 2022,
+       "capacity_mw": 2616.0,
+       "capacity_factor_pct": 69.0
+      },
+      {
+       "year": 2023,
+       "capacity_mw": 2670.6,
+       "capacity_factor_pct": 69.4
+      },
+      {
+       "year": 2024,
+       "capacity_mw": 2690.2,
+       "capacity_factor_pct": 64.6
+      },
+      {
+       "year": 2025,
+       "capacity_mw": 2695.5,
+       "capacity_factor_pct": 65.9
+      }
+     ]
+    },
+    {
+     "label": "Hydroelectric",
+     "annual": [
+      {
+       "year": 2016,
+       "capacity_mw": 79806.0,
+       "capacity_factor_pct": 38.2
+      },
+      {
+       "year": 2017,
+       "capacity_mw": 79698.8,
+       "capacity_factor_pct": 43.0
+      },
+      {
+       "year": 2018,
+       "capacity_mw": 79771.9,
+       "capacity_factor_pct": 41.9
+      },
+      {
+       "year": 2019,
+       "capacity_mw": 79838.0,
+       "capacity_factor_pct": 41.2
+      },
+      {
+       "year": 2020,
+       "capacity_mw": 79810.4,
+       "capacity_factor_pct": 40.7
+      },
+      {
+       "year": 2021,
+       "capacity_mw": 79878.4,
+       "capacity_factor_pct": 36.0
+      },
+      {
+       "year": 2022,
+       "capacity_mw": 80054.5,
+       "capacity_factor_pct": 36.3
+      },
+      {
+       "year": 2023,
+       "capacity_mw": 79982.5,
+       "capacity_factor_pct": 35.0
+      },
+      {
+       "year": 2024,
+       "capacity_mw": 79883.9,
+       "capacity_factor_pct": 34.6
+      },
+      {
+       "year": 2025,
+       "capacity_mw": 79890.5,
+       "capacity_factor_pct": 35.3
+      }
+     ]
+    },
+    {
+     "label": "Nuclear",
+     "annual": [
+      {
+       "year": 2016,
+       "capacity_mw": 99364.8,
+       "capacity_factor_pct": 92.3
+      },
+      {
+       "year": 2017,
+       "capacity_mw": 99619.5,
+       "capacity_factor_pct": 92.3
+      },
+      {
+       "year": 2018,
+       "capacity_mw": 99605.2,
+       "capacity_factor_pct": 92.5
+      },
+      {
+       "year": 2019,
+       "capacity_mw": 98836.7,
+       "capacity_factor_pct": 93.4
+      },
+      {
+       "year": 2020,
+       "capacity_mw": 97238.3,
+       "capacity_factor_pct": 92.4
+      },
+      {
+       "year": 2021,
+       "capacity_mw": 95802.7,
+       "capacity_factor_pct": 92.8
+      },
+      {
+       "year": 2022,
+       "capacity_mw": 94969.9,
+       "capacity_factor_pct": 92.7
+      },
+      {
+       "year": 2023,
+       "capacity_mw": 95065.2,
+       "capacity_factor_pct": 93.0
+      },
+      {
+       "year": 2024,
+       "capacity_mw": 98022.9,
+       "capacity_factor_pct": 90.8
+      },
+      {
+       "year": 2025,
+       "capacity_mw": 98436.4,
+       "capacity_factor_pct": 91.0
+      }
+     ]
+    },
+    {
+     "label": "Other biomass",
+     "annual": [
+      {
+       "year": 2016,
+       "capacity_mw": 5099.5,
+       "capacity_factor_pct": 62.7
+      },
+      {
+       "year": 2017,
+       "capacity_mw": 5125.6,
+       "capacity_factor_pct": 61.8
+      },
+      {
+       "year": 2018,
+       "capacity_mw": 5059.0,
+       "capacity_factor_pct": 61.8
+      },
+      {
+       "year": 2019,
+       "capacity_mw": 4786.5,
+       "capacity_factor_pct": 62.5
+      },
+      {
+       "year": 2020,
+       "capacity_mw": 4653.8,
+       "capacity_factor_pct": 62.5
+      },
+      {
+       "year": 2021,
+       "capacity_mw": 4490.4,
+       "capacity_factor_pct": 63.2
+      },
+      {
+       "year": 2022,
+       "capacity_mw": 4402.5,
+       "capacity_factor_pct": 60.2
+      },
+      {
+       "year": 2023,
+       "capacity_mw": 4162.6,
+       "capacity_factor_pct": 60.4
+      },
+      {
+       "year": 2024,
+       "capacity_mw": 4054.5,
+       "capacity_factor_pct": 59.5
+      },
+      {
+       "year": 2025,
+       "capacity_mw": 3989.2,
+       "capacity_factor_pct": 59.0
+      }
+     ]
+    },
+    {
+     "label": "Other fossil gas",
+     "annual": [
+      {
+       "year": 2016,
+       "capacity_mw": 2458.8,
+       "capacity_factor_pct": 64.8
+      },
+      {
+       "year": 2017,
+       "capacity_mw": 2375.8,
+       "capacity_factor_pct": 62.8
+      },
+      {
+       "year": 2018,
+       "capacity_mw": 2543.9,
+       "capacity_factor_pct": 65.4
+      },
+      {
+       "year": 2019,
+       "capacity_mw": 2504.1,
+       "capacity_factor_pct": 67.4
+      },
+      {
+       "year": 2020,
+       "capacity_mw": 2275.2,
+       "capacity_factor_pct": 64.6
+      },
+      {
+       "year": 2021,
+       "capacity_mw": 1902.5,
+       "capacity_factor_pct": 60.9
+      },
+      {
+       "year": 2022,
+       "capacity_mw": 1716.0,
+       "capacity_factor_pct": 61.6
+      },
+      {
+       "year": 2023,
+       "capacity_mw": 1871.6,
+       "capacity_factor_pct": 53.8
+      },
+      {
+       "year": 2024,
+       "capacity_mw": 1685.1,
+       "capacity_factor_pct": 49.0
+      },
+      {
+       "year": 2025,
+       "capacity_mw": 1656.7,
+       "capacity_factor_pct": 52.2
+      }
+     ]
+    },
+    {
+     "label": "Solar: photovoltaic",
+     "annual": [
+      {
+       "year": 2016,
+       "capacity_mw": 14161.4,
+       "capacity_factor_pct": 25.0
+      },
+      {
+       "year": 2017,
+       "capacity_mw": 21940.9,
+       "capacity_factor_pct": 25.6
+      },
+      {
+       "year": 2018,
+       "capacity_mw": 27143.3,
+       "capacity_factor_pct": 25.1
+      },
+      {
+       "year": 2019,
+       "capacity_mw": 31840.8,
+       "capacity_factor_pct": 24.3
+      },
+      {
+       "year": 2020,
+       "capacity_mw": 39458.1,
+       "capacity_factor_pct": 24.2
+      },
+      {
+       "year": 2021,
+       "capacity_mw": 51219.7,
+       "capacity_factor_pct": 24.4
+      },
+      {
+       "year": 2022,
+       "capacity_mw": 64501.0,
+       "capacity_factor_pct": 24.4
+      },
+      {
+       "year": 2023,
+       "capacity_mw": 77130.8,
+       "capacity_factor_pct": 23.2
+      },
+      {
+       "year": 2024,
+       "capacity_mw": 102319.5,
+       "capacity_factor_pct": 23.2
+      },
+      {
+       "year": 2025,
+       "capacity_mw": 133940.2,
+       "capacity_factor_pct": 24.4
+      }
+     ]
+    },
+    {
+     "label": "Solar: thermal",
+     "annual": [
+      {
+       "year": 2016,
+       "capacity_mw": 1757.9,
+       "capacity_factor_pct": 22.1
+      },
+      {
+       "year": 2017,
+       "capacity_mw": 1757.9,
+       "capacity_factor_pct": 21.8
+      },
+      {
+       "year": 2018,
+       "capacity_mw": 1757.9,
+       "capacity_factor_pct": 23.6
+      },
+      {
+       "year": 2019,
+       "capacity_mw": 1758.1,
+       "capacity_factor_pct": 21.2
+      },
+      {
+       "year": 2020,
+       "capacity_mw": 1747.9,
+       "capacity_factor_pct": 20.6
+      },
+      {
+       "year": 2021,
+       "capacity_mw": 1629.0,
+       "capacity_factor_pct": 20.5
+      },
+      {
+       "year": 2022,
+       "capacity_mw": 1480.0,
+       "capacity_factor_pct": 23.1
+      },
+      {
+       "year": 2023,
+       "capacity_mw": 1480.0,
+       "capacity_factor_pct": 22.1
+      },
+      {
+       "year": 2024,
+       "capacity_mw": 1392.0,
+       "capacity_factor_pct": 25.0
+      },
+      {
+       "year": 2025,
+       "capacity_mw": 1392.0,
+       "capacity_factor_pct": 23.6
+      }
+     ]
+    },
+    {
+     "label": "Wind",
+     "annual": [
+      {
+       "year": 2016,
+       "capacity_mw": 74162.7,
+       "capacity_factor_pct": 34.5
+      },
+      {
+       "year": 2017,
+       "capacity_mw": 83355.6,
+       "capacity_factor_pct": 34.6
+      },
+      {
+       "year": 2018,
+       "capacity_mw": 89228.5,
+       "capacity_factor_pct": 34.6
+      },
+      {
+       "year": 2019,
+       "capacity_mw": 97564.8,
+       "capacity_factor_pct": 34.4
+      },
+      {
+       "year": 2020,
+       "capacity_mw": 107387.7,
+       "capacity_factor_pct": 35.3
+      },
+      {
+       "year": 2021,
+       "capacity_mw": 123757.1,
+       "capacity_factor_pct": 34.4
+      },
+      {
+       "year": 2022,
+       "capacity_mw": 136669.4,
+       "capacity_factor_pct": 35.9
+      },
+      {
+       "year": 2023,
+       "capacity_mw": 143443.5,
+       "capacity_factor_pct": 33.2
+      },
+      {
+       "year": 2024,
+       "capacity_mw": 149299.0,
+       "capacity_factor_pct": 34.3
+      },
+      {
+       "year": 2025,
+       "capacity_mw": 154574.1,
+       "capacity_factor_pct": 34.2
+      }
+     ]
+    },
+    {
+     "label": "Wood",
+     "annual": [
+      {
+       "year": 2016,
+       "capacity_mw": 8979.8,
+       "capacity_factor_pct": 58.3
+      },
+      {
+       "year": 2017,
+       "capacity_mw": 8807.5,
+       "capacity_factor_pct": 60.2
+      },
+      {
+       "year": 2018,
+       "capacity_mw": 8760.2,
+       "capacity_factor_pct": 60.6
+      },
+      {
+       "year": 2019,
+       "capacity_mw": 8485.0,
+       "capacity_factor_pct": 59.0
+      },
+      {
+       "year": 2020,
+       "capacity_mw": 8327.2,
+       "capacity_factor_pct": 57.8
+      },
+      {
+       "year": 2021,
+       "capacity_mw": 7959.0,
+       "capacity_factor_pct": 59.9
+      },
+      {
+       "year": 2022,
+       "capacity_mw": 7817.6,
+       "capacity_factor_pct": 57.9
+      },
+      {
+       "year": 2023,
+       "capacity_mw": 7830.2,
+       "capacity_factor_pct": 53.5
+      },
+      {
+       "year": 2024,
+       "capacity_mw": 7476.0,
+       "capacity_factor_pct": 55.8
+      },
+      {
+       "year": 2025,
+       "capacity_mw": 7331.2,
+       "capacity_factor_pct": 56.8
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

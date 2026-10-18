@@ -1,0 +1,270 @@
+{
+ "topic": "solar_learning_curve",
+ "read": "2026-10-19",
+ "title": "Solar photovoltaic module prices vs. cumulative capacity",
+ "source": {
+  "name": "Our World in Data, Solar photovoltaic module prices vs. cumulative capacity",
+  "publisher": "Our World in Data (data: IRENA 2025; Nemet 2009; Farmer and Lafond 2016)",
+  "url": "https://ourworldindata.org/grapher/solar-pv-prices-vs-cumulative-capacity",
+  "csv_url": "https://ourworldindata.org/grapher/solar-pv-prices-vs-cumulative-capacity.csv",
+  "metadata_url": "https://ourworldindata.org/grapher/solar-pv-prices-vs-cumulative-capacity.metadata.json",
+  "citation": "IRENA (2025) and other sources",
+  "source_last_updated": "2026-07-28",
+  "licence": "CC BY 4.0 (Our World in Data); credit Our World in Data and the data providers named in the citation"
+ },
+ "price_unit": "constant 2025 US$ per watt",
+ "capacity_unit": "megawatts",
+ "price_note": "Costs are expressed in constant 2025 US$ per watt. Global estimates are used before 2010; European market benchmarks thereafter due to limited data availability.",
+ "rows": [
+  {
+   "year": 1975,
+   "price_usd_per_watt": 132.3757,
+   "cumulative_capacity_mw": 0.54
+  },
+  {
+   "year": 1976,
+   "price_usd_per_watt": 99.59758,
+   "cumulative_capacity_mw": 1.08
+  },
+  {
+   "year": 1977,
+   "price_usd_per_watt": 72.66112,
+   "cumulative_capacity_mw": 2.16
+  },
+  {
+   "year": 1978,
+   "price_usd_per_watt": 51.408165,
+   "cumulative_capacity_mw": 3.51
+  },
+  {
+   "year": 1979,
+   "price_usd_per_watt": 43.19512,
+   "cumulative_capacity_mw": 5.235
+  },
+  {
+   "year": 1980,
+   "price_usd_per_watt": 36.604977,
+   "cumulative_capacity_mw": 7.965
+  },
+  {
+   "year": 1981,
+   "price_usd_per_watt": 29.266363,
+   "cumulative_capacity_mw": 12.88
+  },
+  {
+   "year": 1982,
+   "price_usd_per_watt": 26.295176,
+   "cumulative_capacity_mw": 19.405
+  },
+  {
+   "year": 1983,
+   "price_usd_per_watt": 21.2281,
+   "cumulative_capacity_mw": 29.255
+  },
+  {
+   "year": 1984,
+   "price_usd_per_watt": 19.725023,
+   "cumulative_capacity_mw": 46.705
+  },
+  {
+   "year": 1985,
+   "price_usd_per_watt": 17.220385,
+   "cumulative_capacity_mw": 66.455
+  },
+  {
+   "year": 1986,
+   "price_usd_per_watt": 14.24468,
+   "cumulative_capacity_mw": 89.155
+  },
+  {
+   "year": 1987,
+   "price_usd_per_watt": 12.110387,
+   "cumulative_capacity_mw": 113.655
+  },
+  {
+   "year": 1988,
+   "price_usd_per_watt": 11.311608,
+   "cumulative_capacity_mw": 140.6
+  },
+  {
+   "year": 1989,
+   "price_usd_per_watt": 11.690053,
+   "cumulative_capacity_mw": 173.35
+  },
+  {
+   "year": 1990,
+   "price_usd_per_watt": 12.091146,
+   "cumulative_capacity_mw": 212.3
+  },
+  {
+   "year": 1991,
+   "price_usd_per_watt": 11.200797,
+   "cumulative_capacity_mw": 257.15
+  },
+  {
+   "year": 1992,
+   "price_usd_per_watt": 10.435116,
+   "cumulative_capacity_mw": 309.05
+  },
+  {
+   "year": 1993,
+   "price_usd_per_watt": 9.758667,
+   "cumulative_capacity_mw": 365.9
+  },
+  {
+   "year": 1994,
+   "price_usd_per_watt": 9.231527,
+   "cumulative_capacity_mw": 423.75
+  },
+  {
+   "year": 1995,
+   "price_usd_per_watt": 8.535535,
+   "cumulative_capacity_mw": 489.25
+  },
+  {
+   "year": 1996,
+   "price_usd_per_watt": 7.9798346,
+   "cumulative_capacity_mw": 565.0
+  },
+  {
+   "year": 1997,
+   "price_usd_per_watt": 7.952008,
+   "cumulative_capacity_mw": 650.8
+  },
+  {
+   "year": 1998,
+   "price_usd_per_watt": 7.165558,
+   "cumulative_capacity_mw": 771.0
+  },
+  {
+   "year": 1999,
+   "price_usd_per_watt": 6.6192613,
+   "cumulative_capacity_mw": 914.5
+  },
+  {
+   "year": 2000,
+   "price_usd_per_watt": 6.495887,
+   "cumulative_capacity_mw": 1103.0
+  },
+  {
+   "year": 2001,
+   "price_usd_per_watt": 6.284449,
+   "cumulative_capacity_mw": 1373.0
+  },
+  {
+   "year": 2002,
+   "price_usd_per_watt": 5.747254,
+   "cumulative_capacity_mw": 1738.5
+  },
+  {
+   "year": 2003,
+   "price_usd_per_watt": 5.463806,
+   "cumulative_capacity_mw": 2229.2056
+  },
+  {
+   "year": 2004,
+   "price_usd_per_watt": 4.695495,
+   "cumulative_capacity_mw": 2916.281
+  },
+  {
+   "year": 2005,
+   "price_usd_per_watt": 4.7456656,
+   "cumulative_capacity_mw": 4391.368
+  },
+  {
+   "year": 2006,
+   "price_usd_per_watt": 5.172746,
+   "cumulative_capacity_mw": 5912.472
+  },
+  {
+   "year": 2007,
+   "price_usd_per_watt": 5.211057,
+   "cumulative_capacity_mw": 8266.139
+  },
+  {
+   "year": 2008,
+   "price_usd_per_watt": 4.7491965,
+   "cumulative_capacity_mw": 14445.004
+  },
+  {
+   "year": 2009,
+   "price_usd_per_watt": 3.1742926,
+   "cumulative_capacity_mw": 22483.068
+  },
+  {
+   "year": 2010,
+   "price_usd_per_watt": 2.5118067,
+   "cumulative_capacity_mw": 39849.207
+  },
+  {
+   "year": 2011,
+   "price_usd_per_watt": 2.060892,
+   "cumulative_capacity_mw": 70427.84
+  },
+  {
+   "year": 2012,
+   "price_usd_per_watt": 1.1107162,
+   "cumulative_capacity_mw": 99540.65
+  },
+  {
+   "year": 2013,
+   "price_usd_per_watt": 0.85660523,
+   "cumulative_capacity_mw": 134727.5
+  },
+  {
+   "year": 2014,
+   "price_usd_per_watt": 0.79053074,
+   "cumulative_capacity_mw": 172967.39
+  },
+  {
+   "year": 2015,
+   "price_usd_per_watt": 0.7357285,
+   "cumulative_capacity_mw": 220150.81
+  },
+  {
+   "year": 2016,
+   "price_usd_per_watt": 0.6802508,
+   "cumulative_capacity_mw": 291686.25
+  },
+  {
+   "year": 2017,
+   "price_usd_per_watt": 0.57135326,
+   "cumulative_capacity_mw": 384915.12
+  },
+  {
+   "year": 2018,
+   "price_usd_per_watt": 0.5090506,
+   "cumulative_capacity_mw": 479046.0
+  },
+  {
+   "year": 2019,
+   "price_usd_per_watt": 0.46694848,
+   "cumulative_capacity_mw": 580466.75
+  },
+  {
+   "year": 2020,
+   "price_usd_per_watt": 0.36974207,
+   "cumulative_capacity_mw": 710725.8
+  },
+  {
+   "year": 2021,
+   "price_usd_per_watt": 0.33192256,
+   "cumulative_capacity_mw": 854812.44
+  },
+  {
+   "year": 2022,
+   "price_usd_per_watt": 0.3658019,
+   "cumulative_capacity_mw": 1045691.4
+  },
+  {
+   "year": 2023,
+   "price_usd_per_watt": 0.32176703,
+   "cumulative_capacity_mw": 1410555.9
+  },
+  {
+   "year": 2024,
+   "price_usd_per_watt": 0.26518628,
+   "cumulative_capacity_mw": 1866897.9
+  }
+ ]
+}

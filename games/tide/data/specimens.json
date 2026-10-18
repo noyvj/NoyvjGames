@@ -1,0 +1,970 @@
+{
+ "topic": "specimens",
+ "read": "2026-10-19",
+ "sources": [
+  {
+   "name": "World Register of Marine Species (WoRMS) REST API",
+   "publisher": "WoRMS Editorial Board, Flanders Marine Institute (VLIZ)",
+   "url": "https://www.marinespecies.org/rest/",
+   "licence": "CC BY 4.0 (WoRMS data); cite the record's own citation string"
+  },
+  {
+   "name": "Wikipedia REST page summary",
+   "publisher": "Wikimedia Foundation",
+   "url": "https://en.wikipedia.org/api/rest_v1/",
+   "licence": "CC BY-SA 4.0 (article text); credit Wikipedia and link the article"
+  }
+ ],
+ "live": true,
+ "live_note": "Both APIs allow cross-origin reads; the page may fetch them and must fall back to this file, naming this file's read date.",
+ "specimens": [
+  {
+   "scientific_name": "Vampyroteuthis infernalis",
+   "authority": "Chun, 1903",
+   "english_names": [
+    "vampire squid"
+   ],
+   "aphia_id": 141887,
+   "rank": "Species",
+   "status": "accepted",
+   "taxonomy": {
+    "kingdom": "Animalia",
+    "phylum": "Mollusca",
+    "class": "Cephalopoda",
+    "order": "Vampyromorpha",
+    "family": "Vampyroteuthidae",
+    "genus": "Vampyroteuthis"
+   },
+   "worms_url": "https://www.marinespecies.org/aphia.php?p=taxdetails&id=141887",
+   "worms_lsid": "urn:lsid:marinespecies.org:taxname:141887",
+   "worms_citation": "MolluscaBase eds. (2026). MolluscaBase. Vampyroteuthis infernalis Chun, 1903. Accessed through: World Register of Marine Species at: https://www.marinespecies.org/aphia.php?p=taxdetails&id=141887 on 2026-10-18",
+   "worms_modified": "2018-02-07T15:28:10.423Z",
+   "body_size": [
+    {
+     "value": "40",
+     "unit": "cm",
+     "dimension": null,
+     "reference": "Norman, M.; Reid, A. (2000). guide to squid, cuttlefish and octopuses of Australasia. Gould League of Australia: Victoria. ISBN 0-643-06577-6. 96 pp."
+    },
+    {
+     "value": "20",
+     "unit": "mm",
+     "dimension": null,
+     "reference": "Wells, A.; Houston, W. W. K. (2001). Mollusca: Aplacophora, Polyplacophora, Scaphopoda, Cephalopoda. Zoological catalogue of Australia, 17(2). CSIRO Publishing (Commonwealth Scientific and Industrial Research Organization): Melbourne. ISBN 0-643-06070. "
+    }
+   ],
+   "wikipedia": {
+    "title": "Vampire squid",
+    "url": "https://en.wikipedia.org/wiki/Vampire_squid",
+    "extract": "The vampire squid is a small cephalopod found throughout temperate and tropical oceans in extreme deep sea conditions. The vampire squid uses its bioluminescent organs and its unique oxygen metabolism to thrive in the parts of the ocean with the lowest concentrations of oxygen.",
+    "revision": "1379029811"
+   }
+  },
+  {
+   "scientific_name": "Architeuthis dux",
+   "authority": "Steenstrup, 1857",
+   "english_names": [
+    "Atlantic giant squid",
+    "giant oceanic squid",
+    "giant squid"
+   ],
+   "aphia_id": 342218,
+   "rank": "Species",
+   "status": "accepted",
+   "taxonomy": {
+    "kingdom": "Animalia",
+    "phylum": "Mollusca",
+    "class": "Cephalopoda",
+    "order": "Oegopsida",
+    "family": "Architeuthidae",
+    "genus": "Architeuthis"
+   },
+   "worms_url": "https://www.marinespecies.org/aphia.php?p=taxdetails&id=342218",
+   "worms_lsid": "urn:lsid:marinespecies.org:taxname:342218",
+   "worms_citation": "MolluscaBase eds. (2026). MolluscaBase. Architeuthis dux Steenstrup, 1857. Accessed through: World Register of Marine Species at: https://www.marinespecies.org/aphia.php?p=taxdetails&id=342218 on 2026-10-18",
+   "worms_modified": "2018-02-07T15:28:10.423Z",
+   "body_size": [
+    {
+     "value": "975",
+     "unit": "mm",
+     "dimension": null,
+     "reference": "Boyle, P.R.; Rodhouse, P.G. (2005). Cephalopods: ecology and fisheries. Blackwell Science: Oxford. ISBN 0-632-06048-4. XII, 452, ill. pp."
+    },
+    {
+     "value": "1084",
+     "unit": "mm",
+     "dimension": null,
+     "reference": "Boyle, P.R.; Rodhouse, P.G. (2005). Cephalopods: ecology and fisheries. Blackwell Science: Oxford. ISBN 0-632-06048-4. XII, 452, ill. pp."
+    }
+   ],
+   "wikipedia": {
+    "title": "Giant squid",
+    "url": "https://en.wikipedia.org/wiki/Giant_squid",
+    "extract": "The giant squid is a species of deep-ocean dwelling squid in the family Architeuthidae. It can grow to a tremendous size, offering an example of abyssal gigantism; recent estimates put the maximum body size at around 5 m (16 ft) for females, with males slightly shorter, from the posterior fins to the tip of its long arms.",
+    "revision": "1379689328"
+   }
+  },
+  {
+   "scientific_name": "Mesonychoteuthis hamiltoni",
+   "authority": "G. C. Robson, 1925",
+   "english_names": [
+    "Colossal squid"
+   ],
+   "aphia_id": 325299,
+   "rank": "Species",
+   "status": "accepted",
+   "taxonomy": {
+    "kingdom": "Animalia",
+    "phylum": "Mollusca",
+    "class": "Cephalopoda",
+    "order": "Oegopsida",
+    "family": "Cranchiidae",
+    "genus": "Mesonychoteuthis"
+   },
+   "worms_url": "https://www.marinespecies.org/aphia.php?p=taxdetails&id=325299",
+   "worms_lsid": "urn:lsid:marinespecies.org:taxname:325299",
+   "worms_citation": "MolluscaBase eds. (2026). MolluscaBase. Mesonychoteuthis hamiltoni G. C. Robson, 1925. Accessed through: World Register of Marine Species at: https://www.marinespecies.org/aphia.php?p=taxdetails&id=325299 on 2026-10-18",
+   "worms_modified": "2022-08-27T09:38:30.867Z",
+   "body_size": [],
+   "wikipedia": {
+    "title": "Colossal squid",
+    "url": "https://en.wikipedia.org/wiki/Colossal_squid",
+    "extract": "The colossal squid (Mesonychoteuthis hamiltoni) is a species of very large squid belonging to the family Cranchiidae, that of the cockatoo squids, or glass squids. It is sometimes called the Antarctic cranch squid or giant squid and is believed to be the largest squid species in terms of mass.",
+    "revision": "1376203677"
+   }
+  },
+  {
+   "scientific_name": "Eurypharynx pelecanoides",
+   "authority": "Vaillant, 1882",
+   "english_names": [
+    "gulper eel",
+    "Pelican eel",
+    "pelican gulper"
+   ],
+   "aphia_id": 127165,
+   "rank": "Species",
+   "status": "accepted",
+   "taxonomy": {
+    "kingdom": "Animalia",
+    "phylum": "Chordata",
+    "class": "Teleostei",
+    "order": "Anguilliformes",
+    "family": "Eurypharyngidae",
+    "genus": "Eurypharynx"
+   },
+   "worms_url": "https://www.marinespecies.org/aphia.php?p=taxdetails&id=127165",
+   "worms_lsid": "urn:lsid:marinespecies.org:taxname:127165",
+   "worms_citation": "Froese, R. and D. Pauly. Editors. (2026). FishBase. Eurypharynx pelecanoides Vaillant, 1882. Accessed through: World Register of Marine Species at: https://www.marinespecies.org/aphia.php?p=taxdetails&id=127165 on 2026-10-18",
+   "worms_modified": "2008-01-15T17:27:08.177Z",
+   "body_size": [
+    {
+     "value": "100",
+     "unit": "cm",
+     "dimension": null,
+     "reference": "Reiner, F. (1996). Catálogo dos peixes do arquipélago de Cabo Verde. Publ. Avuls. Inst. Port. Invest. Mar. 2:339 p."
+    }
+   ],
+   "wikipedia": {
+    "title": "Pelican eel",
+    "url": "https://en.wikipedia.org/wiki/Pelican_eel",
+    "extract": "The pelican eel is a deep-sea eel. It is the only known member of the genus Eurypharynx and the family Eurypharyngidae.",
+    "revision": "1377191330"
+   }
+  },
+  {
+   "scientific_name": "Chauliodus sloani",
+   "authority": "Bloch & Schneider, 1801",
+   "english_names": [
+    "Manylight fangfish",
+    "manylight viperfish",
+    "Sloane's viperfish",
+    "Sloan's fangfish",
+    "Sloan's viperfish"
+   ],
+   "aphia_id": 127338,
+   "rank": "Species",
+   "status": "accepted",
+   "taxonomy": {
+    "kingdom": "Animalia",
+    "phylum": "Chordata",
+    "class": "Teleostei",
+    "order": "Stomiiformes",
+    "family": "Stomiidae",
+    "genus": "Chauliodus"
+   },
+   "worms_url": "https://www.marinespecies.org/aphia.php?p=taxdetails&id=127338",
+   "worms_lsid": "urn:lsid:marinespecies.org:taxname:127338",
+   "worms_citation": "Froese, R. and D. Pauly. Editors. (2026). FishBase. Chauliodus sloani Bloch & Schneider, 1801. Accessed through: World Register of Marine Species at: https://www.marinespecies.org/aphia.php?p=taxdetails&id=127338 on 2026-10-18",
+   "worms_modified": "2008-01-15T17:27:08.177Z",
+   "body_size": [
+    {
+     "value": "35",
+     "unit": "cm",
+     "dimension": null,
+     "reference": "Masuda, H.; Amaoka, K.; Araga, C.; Uyeno, T.; Yoshino, T. (1984). The fishes of the Japanese Archipelago. Vol. 1. Tokai University Press, Tokyo, Japan. 437 p. (text)."
+    }
+   ],
+   "wikipedia": {
+    "title": "Sloane's viperfish",
+    "url": "https://en.wikipedia.org/wiki/Sloane's_viperfish",
+    "extract": "Sloane's viperfish, is a predatory mesopelagic dragonfish found in waters across the world. The species was first described by German scientists Marcus Elieser Bloch and Johann Gottlob Schneider in their 1801 book Systema ichthyologiae: iconibus CX illustratum, volume 1.",
+    "revision": "1378267843"
+   }
+  },
+  {
+   "scientific_name": "Melanocetus johnsonii",
+   "authority": "Günther, 1864",
+   "english_names": [
+    "Humpback anglerfish"
+   ],
+   "aphia_id": 126556,
+   "rank": "Species",
+   "status": "accepted",
+   "taxonomy": {
+    "kingdom": "Animalia",
+    "phylum": "Chordata",
+    "class": "Teleostei",
+    "order": "Lophiiformes",
+    "family": "Melanocetidae",
+    "genus": "Melanocetus"
+   },
+   "worms_url": "https://www.marinespecies.org/aphia.php?p=taxdetails&id=126556",
+   "worms_lsid": "urn:lsid:marinespecies.org:taxname:126556",
+   "worms_citation": "Froese, R. and D. Pauly. Editors. (2026). FishBase. Melanocetus johnsonii Günther, 1864. Accessed through: World Register of Marine Species at: https://www.marinespecies.org/aphia.php?p=taxdetails&id=126556 on 2026-10-18",
+   "worms_modified": "2008-01-15T17:27:08.177Z",
+   "body_size": [
+    {
+     "value": "2.9",
+     "unit": "cm",
+     "dimension": null,
+     "reference": "Bertelsen, E. (1990). Melanocetidae. p. 492-493. In J.C. Quero, J.C. Hureau, C. Karrer, A. Post and L. Saldanha (eds.) Check-list of the fishes of the eastern tropical Atlantic (CLOFETA). JNICT, Lisbon; SEI, Paris; and UNESCO, Paris. Vol. 1."
+    },
+    {
+     "value": "18",
+     "unit": "cm",
+     "dimension": null,
+     "reference": "Bertelsen, E. (1990). Melanocetidae. p. 492-493. In J.C. Quero, J.C. Hureau, C. Karrer, A. Post and L. Saldanha (eds.) Check-list of the fishes of the eastern tropical Atlantic (CLOFETA). JNICT, Lisbon; SEI, Paris; and UNESCO, Paris. Vol. 1."
+    }
+   ],
+   "wikipedia": {
+    "title": "Humpback anglerfish",
+    "url": "https://en.wikipedia.org/wiki/Humpback_anglerfish",
+    "extract": "The humpback anglerfish is a species of black seadevil in the family of Melanocetidae, which means \"black sea monster\". The species is named after James Yate Johnson, an English naturalist who discovered the first specimen in Madeira in 1863.",
+    "revision": "1366196551"
+   }
+  },
+  {
+   "scientific_name": "Anoplogaster cornuta",
+   "authority": "(Valenciennes, 1833)",
+   "english_names": [
+    "Common fangtooth",
+    "fangtooth",
+    "orgrefish"
+   ],
+   "aphia_id": 126393,
+   "rank": "Species",
+   "status": "accepted",
+   "taxonomy": {
+    "kingdom": "Animalia",
+    "phylum": "Chordata",
+    "class": "Teleostei",
+    "order": "Trachichthyiformes",
+    "family": "Anoplogastridae",
+    "genus": "Anoplogaster"
+   },
+   "worms_url": "https://www.marinespecies.org/aphia.php?p=taxdetails&id=126393",
+   "worms_lsid": "urn:lsid:marinespecies.org:taxname:126393",
+   "worms_citation": "Froese, R. and D. Pauly. Editors. (2026). FishBase. Anoplogaster cornuta (Valenciennes, 1833). Accessed through: World Register of Marine Species at: https://www.marinespecies.org/aphia.php?p=taxdetails&id=126393 on 2026-10-18",
+   "worms_modified": "2008-01-15T17:27:08.177Z",
+   "body_size": [
+    {
+     "value": "18",
+     "unit": "cm",
+     "dimension": null,
+     "reference": "Scott, W.B.; Scott, M.G. (1988). Atlantic fishes of Canada. Can. Bull. Fish. Aquat. Sci. 219:731 p."
+    }
+   ],
+   "wikipedia": {
+    "title": "Anoplogaster cornuta",
+    "url": "https://en.wikipedia.org/wiki/Anoplogaster_cornuta",
+    "extract": "Anoplogaster cornuta, the common fangtooth, is a species of deep sea fish found in temperate and tropical oceans worldwide. It is found at depths of from 2 to 5,000 metres with the adults usually found from 500 to 5,000 metres and the young usually found near the surface.",
+    "revision": "1233782505"
+   }
+  },
+  {
+   "scientific_name": "Stomias boa",
+   "authority": "(Risso, 1810)",
+   "english_names": [
+    "boa dragonfish"
+   ],
+   "aphia_id": 127374,
+   "rank": "Species",
+   "status": "accepted",
+   "taxonomy": {
+    "kingdom": "Animalia",
+    "phylum": "Chordata",
+    "class": "Teleostei",
+    "order": "Stomiiformes",
+    "family": "Stomiidae",
+    "genus": "Stomias"
+   },
+   "worms_url": "https://www.marinespecies.org/aphia.php?p=taxdetails&id=127374",
+   "worms_lsid": "urn:lsid:marinespecies.org:taxname:127374",
+   "worms_citation": "Froese, R. and D. Pauly. Editors. (2026). FishBase. Stomias boa (Risso, 1810). Accessed through: World Register of Marine Species at: https://www.marinespecies.org/aphia.php?p=taxdetails&id=127374 on 2026-10-18",
+   "worms_modified": "2020-09-24T06:35:24.693Z",
+   "body_size": [
+    {
+     "value": "32.2",
+     "unit": "cm",
+     "dimension": null,
+     "reference": "Gibbs, R.H. Jr. (1990). Stomiidae. p. 296-299. In J.C. Quero, J.C. Hureau, C. Karrer, A. Post and L. Saldanha (eds.) Check-list of the fishes of the eastern tropical Atlantic (CLOFETA). JNICT, Lisbon; SEI, Paris; and UNECO, Paris. Vol. 1."
+    }
+   ],
+   "wikipedia": {
+    "title": "Stomias boa",
+    "url": "https://en.wikipedia.org/wiki/Stomias_boa",
+    "extract": "Stomias boa, also known as the boa dragonfish, scaly dragonfish, dragon-boa or boa scaly dragonfish, is a species of deep-sea fish in the family Stomiidae. It is found at great depths worldwide in tropical to temperate oceans but is absent from the northern Pacific and northwest Atlantic Oceans.",
+    "revision": "1344758562"
+   }
+  },
+  {
+   "scientific_name": "Opisthoproctus soleatus",
+   "authority": "Vaillant, 1888",
+   "english_names": [],
+   "aphia_id": 126733,
+   "rank": "Species",
+   "status": "accepted",
+   "taxonomy": {
+    "kingdom": "Animalia",
+    "phylum": "Chordata",
+    "class": "Teleostei",
+    "order": "Argentiniformes",
+    "family": "Opisthoproctidae",
+    "genus": "Opisthoproctus"
+   },
+   "worms_url": "https://www.marinespecies.org/aphia.php?p=taxdetails&id=126733",
+   "worms_lsid": "urn:lsid:marinespecies.org:taxname:126733",
+   "worms_citation": "Froese, R. and D. Pauly. Editors. (2026). FishBase. Opisthoproctus soleatus Vaillant, 1888. Accessed through: World Register of Marine Species at: https://www.marinespecies.org/aphia.php?p=taxdetails&id=126733 on 2026-10-18",
+   "worms_modified": "2008-01-15T17:27:08.177Z",
+   "body_size": [
+    {
+     "value": "10.5",
+     "unit": "cm",
+     "dimension": null,
+     "reference": "Quéro, J.-C. (1990). Opisthroproctidae. p. 241-243. In J.C. Quero, J.C. Hureau, C. Karrer, A. Post and L. Saldanha (eds.) Check-list of the fishes of the eastern tropical Atlantic (CLOFETA). JNICT, Lisbon; SEI, Paris; and UNESCO, Paris. Vol. 1."
+    }
+   ],
+   "wikipedia": {
+    "title": "Opisthoproctus",
+    "url": "https://en.wikipedia.org/wiki/Opisthoproctus",
+    "extract": "Opisthoproctus soleatus is an argentiniform species of fish referred to as the barreleye, being the type genus and species of the family Opisthoproctidae. The species lives in most tropical seas, but is more common in the eastern Atlantic, from western Ireland to Mauritania and from Sierra Leone to Angola, and also in the South China Sea.",
+    "revision": "1367727022"
+   }
+  },
+  {
+   "scientific_name": "Macropinna microstoma",
+   "authority": "Chapman, 1939",
+   "english_names": [
+    "barreleye"
+   ],
+   "aphia_id": 281482,
+   "rank": "Species",
+   "status": "accepted",
+   "taxonomy": {
+    "kingdom": "Animalia",
+    "phylum": "Chordata",
+    "class": "Teleostei",
+    "order": "Argentiniformes",
+    "family": "Opisthoproctidae",
+    "genus": "Macropinna"
+   },
+   "worms_url": "https://www.marinespecies.org/aphia.php?p=taxdetails&id=281482",
+   "worms_lsid": "urn:lsid:marinespecies.org:taxname:281482",
+   "worms_citation": "Froese, R. and D. Pauly. Editors. (2026). FishBase. Macropinna microstoma Chapman, 1939. Accessed through: World Register of Marine Species at: https://www.marinespecies.org/aphia.php?p=taxdetails&id=281482 on 2026-10-18",
+   "worms_modified": "2008-01-15T17:27:08.177Z",
+   "body_size": [
+    {
+     "value": "15",
+     "unit": "cm",
+     "dimension": null,
+     "reference": "New Scientist (2009). Bizarre animals that are new to science. http://www.newscientist.com/gallery/new-species/9"
+    }
+   ],
+   "wikipedia": {
+    "title": "Macropinna",
+    "url": "https://en.wikipedia.org/wiki/Macropinna",
+    "extract": "The Pacific barreleye fish (Macropinna) is a genus of ray-finned fish belonging to Opisthoproctidae, the barreleye family. It contains one species, M. microstoma.",
+    "revision": "1372333575"
+   }
+  },
+  {
+   "scientific_name": "Grimpoteuthis bathynectes",
+   "authority": "G. L. Voss & Pearcy, 1990",
+   "english_names": [],
+   "aphia_id": 342082,
+   "rank": "Species",
+   "status": "accepted",
+   "taxonomy": {
+    "kingdom": "Animalia",
+    "phylum": "Mollusca",
+    "class": "Cephalopoda",
+    "order": "Octopoda",
+    "family": "Grimpoteuthidae",
+    "genus": "Grimpoteuthis"
+   },
+   "worms_url": "https://www.marinespecies.org/aphia.php?p=taxdetails&id=342082",
+   "worms_lsid": "urn:lsid:marinespecies.org:taxname:342082",
+   "worms_citation": "MolluscaBase eds. (2026). MolluscaBase. Grimpoteuthis bathynectes G. L. Voss & Pearcy, 1990. Accessed through: World Register of Marine Species at: https://www.marinespecies.org/aphia.php?p=taxdetails&id=342082 on 2026-10-18",
+   "worms_modified": "2023-06-15T22:17:57.420Z",
+   "body_size": [],
+   "wikipedia": {
+    "title": "Grimpoteuthis bathynectes",
+    "url": "https://en.wikipedia.org/wiki/Grimpoteuthis_bathynectes",
+    "extract": "Grimpoteuthis bathynectes is a deepwater species of Grimpoteuthis (Dumbo) octopus first described in 1990. It is known from 13 specimens.",
+    "revision": "1376790113"
+   }
+  },
+  {
+   "scientific_name": "Bathynomus giganteus",
+   "authority": "A. Milne-Edwards, 1879",
+   "english_names": [
+    "giant isopod"
+   ],
+   "aphia_id": 259252,
+   "rank": "Species",
+   "status": "accepted",
+   "taxonomy": {
+    "kingdom": "Animalia",
+    "phylum": "Arthropoda",
+    "class": "Malacostraca",
+    "order": "Isopoda",
+    "family": "Cirolanidae",
+    "genus": "Bathynomus"
+   },
+   "worms_url": "https://www.marinespecies.org/aphia.php?p=taxdetails&id=259252",
+   "worms_lsid": "urn:lsid:marinespecies.org:taxname:259252",
+   "worms_citation": "Boyko, C.B.; Bruce, N.L.; Campos-Filho, I.S.; Hadfield, K.A.; Hughes, T.; Merrin, K.L.; Ota, Y.; Poore, G.C.B. (Eds) (2026). World Marine, Freshwater and Terrestrial Isopod Crustaceans database. Bathynomus giganteus A. Milne-Edwards, 1879. Accessed through: World Register of Marine Species at: https://www.marinespecies.org/aphia.php?p=taxdetails&id=259252 on 2026-10-18",
+   "worms_modified": "2017-02-10T14:12:30.727Z",
+   "body_size": [],
+   "wikipedia": {
+    "title": "Bathynomus giganteus",
+    "url": "https://en.wikipedia.org/wiki/Bathynomus_giganteus",
+    "extract": "Bathynomus giganteus is a species of aquatic crustacean, of the order Isopoda. It is a member of the giant isopods (Bathynomus), and as such it is related—albeit distantly—to shrimps and crabs.",
+    "revision": "1332943666"
+   }
+  },
+  {
+   "scientific_name": "Stygiomedusa gigantea",
+   "authority": "(Browne, 1910)",
+   "english_names": [],
+   "aphia_id": 135311,
+   "rank": "Species",
+   "status": "accepted",
+   "taxonomy": {
+    "kingdom": "Animalia",
+    "phylum": "Cnidaria",
+    "class": "Scyphozoa",
+    "order": "Semaeostomeae",
+    "family": "Ulmaridae",
+    "genus": "Stygiomedusa"
+   },
+   "worms_url": "https://www.marinespecies.org/aphia.php?p=taxdetails&id=135311",
+   "worms_lsid": "urn:lsid:marinespecies.org:taxname:135311",
+   "worms_citation": "Collins, A.G.; Morandini, A.C. (2026). World List of Scyphozoa. Stygiomedusa gigantea (Browne, 1910). Accessed through: World Register of Marine Species at: https://www.marinespecies.org/aphia.php?p=taxdetails&id=135311 on 2026-10-18",
+   "worms_modified": "2020-01-04T19:04:21.197Z",
+   "body_size": [],
+   "wikipedia": {
+    "title": "Stygiomedusa",
+    "url": "https://en.wikipedia.org/wiki/Stygiomedusa",
+    "extract": "Stygiomedusa gigantea, commonly known as the giant phantom jelly, is the only known species in the monotypic genus of deep sea jellyfish, Stygiomedusa. It is in the Ulmaridae family.",
+    "revision": "1368175037"
+   }
+  },
+  {
+   "scientific_name": "Atolla wyvillei",
+   "authority": "Haeckel, 1880",
+   "english_names": [
+    "Wyville's crownjelly",
+    "Wyville's сrownjelly"
+   ],
+   "aphia_id": 135282,
+   "rank": "Species",
+   "status": "accepted",
+   "taxonomy": {
+    "kingdom": "Animalia",
+    "phylum": "Cnidaria",
+    "class": "Scyphozoa",
+    "order": "Coronatae",
+    "family": "Atollidae",
+    "genus": "Atolla"
+   },
+   "worms_url": "https://www.marinespecies.org/aphia.php?p=taxdetails&id=135282",
+   "worms_lsid": "urn:lsid:marinespecies.org:taxname:135282",
+   "worms_citation": "Collins, A.G.; Morandini, A.C. (2026). World List of Scyphozoa. Atolla wyvillei Haeckel, 1880. Accessed through: World Register of Marine Species at: https://www.marinespecies.org/aphia.php?p=taxdetails&id=135282 on 2026-10-18",
+   "worms_modified": "2019-12-04T14:54:52.880Z",
+   "body_size": [
+    {
+     "value": "8",
+     "unit": "mm",
+     "dimension": null,
+     "reference": "Lucas, C. H.; Reed, A. J. (2009). Gonad morphology and gametogenesis in the deep-sea jellyfish Atolla wyvillei and Periphylla periphylla (Scyphozoa: Coronatae) collected from Cape Hatteras and the Gulf of Mexico. Journal of the Marine Biological Association of the United Kingdom. 90(6): 1095-1104."
+    },
+    {
+     "value": "12",
+     "unit": "mm",
+     "dimension": null,
+     "reference": "Lucas, C. H.; Reed, A. J. (2009). Gonad morphology and gametogenesis in the deep-sea jellyfish Atolla wyvillei and Periphylla periphylla (Scyphozoa: Coronatae) collected from Cape Hatteras and the Gulf of Mexico. Journal of the Marine Biological Association of the United Kingdom. 90(6): 1095-1104."
+    },
+    {
+     "value": "16",
+     "unit": "mm",
+     "dimension": null,
+     "reference": "Lucas, C. H.; Reed, A. J. (2009). Gonad morphology and gametogenesis in the deep-sea jellyfish Atolla wyvillei and Periphylla periphylla (Scyphozoa: Coronatae) collected from Cape Hatteras and the Gulf of Mexico. Journal of the Marine Biological Association of the United Kingdom. 90(6): 1095-1104."
+    },
+    {
+     "value": "17",
+     "unit": "mm",
+     "dimension": null,
+     "reference": "Lucas, C. H.; Reed, A. J. (2009). Gonad morphology and gametogenesis in the deep-sea jellyfish Atolla wyvillei and Periphylla periphylla (Scyphozoa: Coronatae) collected from Cape Hatteras and the Gulf of Mexico. Journal of the Marine Biological Association of the United Kingdom. 90(6): 1095-1104."
+    },
+    {
+     "value": "22",
+     "unit": "mm",
+     "dimension": null,
+     "reference": "Lucas, C. H.; Reed, A. J. (2009). Gonad morphology and gametogenesis in the deep-sea jellyfish Atolla wyvillei and Periphylla periphylla (Scyphozoa: Coronatae) collected from Cape Hatteras and the Gulf of Mexico. Journal of the Marine Biological Association of the United Kingdom. 90(6): 1095-1104."
+    },
+    {
+     "value": "25",
+     "unit": "mm",
+     "dimension": null,
+     "reference": "Lucas, C. H.; Reed, A. J. (2009). Gonad morphology and gametogenesis in the deep-sea jellyfish Atolla wyvillei and Periphylla periphylla (Scyphozoa: Coronatae) collected from Cape Hatteras and the Gulf of Mexico. Journal of the Marine Biological Association of the United Kingdom. 90(6): 1095-1104."
+    },
+    {
+     "value": "27",
+     "unit": "mm",
+     "dimension": null,
+     "reference": "Lucas, C. H.; Reed, A. J. (2009). Gonad morphology and gametogenesis in the deep-sea jellyfish Atolla wyvillei and Periphylla periphylla (Scyphozoa: Coronatae) collected from Cape Hatteras and the Gulf of Mexico. Journal of the Marine Biological Association of the United Kingdom. 90(6): 1095-1104."
+    },
+    {
+     "value": "28",
+     "unit": "mm",
+     "dimension": null,
+     "reference": "Lucas, C. H.; Reed, A. J. (2009). Gonad morphology and gametogenesis in the deep-sea jellyfish Atolla wyvillei and Periphylla periphylla (Scyphozoa: Coronatae) collected from Cape Hatteras and the Gulf of Mexico. Journal of the Marine Biological Association of the United Kingdom. 90(6): 1095-1104."
+    },
+    {
+     "value": "30",
+     "unit": "mm",
+     "dimension": null,
+     "reference": "Lucas, C. H.; Reed, A. J. (2009). Gonad morphology and gametogenesis in the deep-sea jellyfish Atolla wyvillei and Periphylla periphylla (Scyphozoa: Coronatae) collected from Cape Hatteras and the Gulf of Mexico. Journal of the Marine Biological Association of the United Kingdom. 90(6): 1095-1104."
+    },
+    {
+     "value": "32",
+     "unit": "mm",
+     "dimension": null,
+     "reference": "Lucas, C. H.; Reed, A. J. (2009). Gonad morphology and gametogenesis in the deep-sea jellyfish Atolla wyvillei and Periphylla periphylla (Scyphozoa: Coronatae) collected from Cape Hatteras and the Gulf of Mexico. Journal of the Marine Biological Association of the United Kingdom. 90(6): 1095-1104."
+    },
+    {
+     "value": "40",
+     "unit": "mm",
+     "dimension": null,
+     "reference": "Lucas, C. H.; Reed, A. J. (2009). Gonad morphology and gametogenesis in the deep-sea jellyfish Atolla wyvillei and Periphylla periphylla (Scyphozoa: Coronatae) collected from Cape Hatteras and the Gulf of Mexico. Journal of the Marine Biological Association of the United Kingdom. 90(6): 1095-1104."
+    },
+    {
+     "value": "40",
+     "unit": "mm",
+     "dimension": null,
+     "reference": "Lucas, C. H.; Reed, A. J. (2009). Gonad morphology and gametogenesis in the deep-sea jellyfish Atolla wyvillei and Periphylla periphylla (Scyphozoa: Coronatae) collected from Cape Hatteras and the Gulf of Mexico. Journal of the Marine Biological Association of the United Kingdom. 90(6): 1095-1104."
+    },
+    {
+     "value": "60",
+     "unit": "mm",
+     "dimension": null,
+     "reference": "Lucas, C. H.; Reed, A. J. (2009). Gonad morphology and gametogenesis in the deep-sea jellyfish Atolla wyvillei and Periphylla periphylla (Scyphozoa: Coronatae) collected from Cape Hatteras and the Gulf of Mexico. Journal of the Marine Biological Association of the United Kingdom. 90(6): 1095-1104."
+    },
+    {
+     "value": "80",
+     "unit": "mm",
+     "dimension": null,
+     "reference": "Lucas, C. H.; Reed, A. J. (2009). Gonad morphology and gametogenesis in the deep-sea jellyfish Atolla wyvillei and Periphylla periphylla (Scyphozoa: Coronatae) collected from Cape Hatteras and the Gulf of Mexico. Journal of the Marine Biological Association of the United Kingdom. 90(6): 1095-1104."
+    },
+    {
+     "value": "145",
+     "unit": "mm",
+     "dimension": null,
+     "reference": "Lucas, C. H.; Reed, A. J. (2009). Gonad morphology and gametogenesis in the deep-sea jellyfish Atolla wyvillei and Periphylla periphylla (Scyphozoa: Coronatae) collected from Cape Hatteras and the Gulf of Mexico. Journal of the Marine Biological Association of the United Kingdom. 90(6): 1095-1104."
+    }
+   ],
+   "wikipedia": {
+    "title": "Atolla jellyfish",
+    "url": "https://en.wikipedia.org/wiki/Atolla_jellyfish",
+    "extract": "Atolla wyvillei, also known as the Atolla jellyfish, Coronate medusa, and deep-sea jellyfish, is a species of deep-sea crown jellyfish. It lives in oceans around the world.",
+    "revision": "1368822148"
+   }
+  },
+  {
+   "scientific_name": "Chimaera monstrosa",
+   "authority": "Linnaeus, 1758",
+   "english_names": [
+    "rabbit fish",
+    "rabbit-fish",
+    "rat fish"
+   ],
+   "aphia_id": 105824,
+   "rank": "Species",
+   "status": "accepted",
+   "taxonomy": {
+    "kingdom": "Animalia",
+    "phylum": "Chordata",
+    "class": "Holocephali",
+    "order": "Chimaeriformes",
+    "family": "Chimaeridae",
+    "genus": "Chimaera"
+   },
+   "worms_url": "https://www.marinespecies.org/aphia.php?p=taxdetails&id=105824",
+   "worms_lsid": "urn:lsid:marinespecies.org:taxname:105824",
+   "worms_citation": "Froese, R. and D. Pauly. Editors. (2026). FishBase. Chimaera monstrosa Linnaeus, 1758. Accessed through: World Register of Marine Species at: https://www.marinespecies.org/aphia.php?p=taxdetails&id=105824 on 2026-10-18",
+   "worms_modified": "2008-01-15T17:27:08.177Z",
+   "body_size": [
+    {
+     "value": "150",
+     "unit": "cm",
+     "dimension": null,
+     "reference": "Muus, B.J.; Nielsen, J.G. (1999). Sea fish. Scandinavian Fishing Year Book, Hedehusene, Denmark. 340 p."
+    }
+   ],
+   "wikipedia": {
+    "title": "Rabbit fish",
+    "url": "https://en.wikipedia.org/wiki/Rabbit_fish",
+    "extract": "Chimaera monstrosa, commonly known as the rabbit fish or rat fish, is a northeast Atlantic and Mediterranean species of cartilaginous fish in the family Chimaeridae. The rabbit fish is known for its characteristically large head and small, tapering body.",
+    "revision": "1360838263"
+   }
+  },
+  {
+   "scientific_name": "Chlamydoselachus anguineus",
+   "authority": "Garman, 1884",
+   "english_names": [
+    "frill shark",
+    "frilled shark"
+   ],
+   "aphia_id": 105831,
+   "rank": "Species",
+   "status": "accepted",
+   "taxonomy": {
+    "kingdom": "Animalia",
+    "phylum": "Chordata",
+    "class": "Elasmobranchii",
+    "order": "Hexanchiformes",
+    "family": "Chlamydoselachidae",
+    "genus": "Chlamydoselachus"
+   },
+   "worms_url": "https://www.marinespecies.org/aphia.php?p=taxdetails&id=105831",
+   "worms_lsid": "urn:lsid:marinespecies.org:taxname:105831",
+   "worms_citation": "Froese, R. and D. Pauly. Editors. (2026). FishBase. Chlamydoselachus anguineus Garman, 1884. Accessed through: World Register of Marine Species at: https://www.marinespecies.org/aphia.php?p=taxdetails&id=105831 on 2026-10-18",
+   "worms_modified": "2008-01-15T17:27:08.177Z",
+   "body_size": [
+    {
+     "value": "200",
+     "unit": "cm",
+     "dimension": null,
+     "reference": "Cox, G.; Francis, M. (1997). Sharks and rays of New Zealand. Canterbury Univ. Press, Univ. of Canterbury. 68 p."
+    }
+   ],
+   "wikipedia": {
+    "title": "Frilled shark",
+    "url": "https://en.wikipedia.org/wiki/Frilled_shark",
+    "extract": "The frilled shark, also known as the lizard shark, is one of the two extant species of shark in the family Chlamydoselachidae. The frilled shark is considered a living fossil, because of its primitive, anguilliform (eel-like) physical traits, such as a dark-brown color, amphistyly, and a 2.0 m (6.6 ft)–long body, which has dorsal, pelvic, and anal fins located towards the tail.",
+    "revision": "1370336899"
+   }
+  },
+  {
+   "scientific_name": "Mitsukurina owstoni",
+   "authority": "Jordan, 1898",
+   "english_names": [
+    "elphin (or elfin) shark",
+    "goblin shark",
+    "Japanese goblin shark",
+    "mitsukuri’s shark",
+    "tengu (goblin) shark"
+   ],
+   "aphia_id": 105842,
+   "rank": "Species",
+   "status": "accepted",
+   "taxonomy": {
+    "kingdom": "Animalia",
+    "phylum": "Chordata",
+    "class": "Elasmobranchii",
+    "order": "Lamniformes",
+    "family": "Mitsukurinidae",
+    "genus": "Mitsukurina"
+   },
+   "worms_url": "https://www.marinespecies.org/aphia.php?p=taxdetails&id=105842",
+   "worms_lsid": "urn:lsid:marinespecies.org:taxname:105842",
+   "worms_citation": "Froese, R. and D. Pauly. Editors. (2026). FishBase. Mitsukurina owstoni Jordan, 1898. Accessed through: World Register of Marine Species at: https://www.marinespecies.org/aphia.php?p=taxdetails&id=105842 on 2026-10-18",
+   "worms_modified": "2008-01-15T17:27:08.177Z",
+   "body_size": [
+    {
+     "value": "617",
+     "unit": "cm",
+     "dimension": null,
+     "reference": "Parsons, GR; Ingram, GW; Havard, R. (2002). First Record Of The Goblin Shark Mitsukurina owstoni Jordan (Family Mitsukurinidae) In The Gulf Of Mexico. Southeast. Nat. 1(2):189-192."
+    },
+    {
+     "value": "200",
+     "unit": "cm",
+     "dimension": null,
+     "reference": "Cervigón, F.; Cipriani, R.; Fischer, W.; Garibaldi, L.; Hendrickx, M.; Lemus, A.J.; Márquez, R.; Poutiers, J.M.; Robaina, G.; Rodriguez, B. (1992). Fichas FAO de identificación de especies para los fines de la pesca. Guía de campo de las especies comerciales marinas y de aquas salobres de la costa septentrional de Sur América. FAO, Rome. 513 p. Preparado con el financiamento de la Comisión de Comunidades Europeas y de NORAD."
+    }
+   ],
+   "wikipedia": {
+    "title": "Goblin shark",
+    "url": "https://en.wikipedia.org/wiki/Goblin_shark",
+    "extract": "The goblin shark is a rare species of deep-sea shark. Sometimes called a \"living fossil\", it is the only extant representative of the family Mitsukurinidae, a lineage some 125 million years old.",
+    "revision": "1370392342"
+   }
+  },
+  {
+   "scientific_name": "Latimeria chalumnae",
+   "authority": "Smith, 1939",
+   "english_names": [
+    "coelacanth"
+   ],
+   "aphia_id": 217438,
+   "rank": "Species",
+   "status": "accepted",
+   "taxonomy": {
+    "kingdom": "Animalia",
+    "phylum": "Chordata",
+    "class": null,
+    "order": "Coelacanthiformes",
+    "family": "Latimeriidae",
+    "genus": "Latimeria"
+   },
+   "worms_url": "https://www.marinespecies.org/aphia.php?p=taxdetails&id=217438",
+   "worms_lsid": "urn:lsid:marinespecies.org:taxname:217438",
+   "worms_citation": "Froese, R. and D. Pauly. Editors. (2026). FishBase. Latimeria chalumnae Smith, 1939. Accessed through: World Register of Marine Species at: https://www.marinespecies.org/aphia.php?p=taxdetails&id=217438 on 2026-10-18",
+   "worms_modified": "2008-01-15T17:27:08.177Z",
+   "body_size": [
+    {
+     "value": "168",
+     "unit": "cm",
+     "dimension": null,
+     "reference": "Froese, R.; Palomares, M.L.D. (2000). Growth, natural mortality, length-weight relationship, maximum length and length-at-first-maturity of the coelacanth Latimeria chalumnae. Environ. Biol. Fish. 58(1):45-52."
+    },
+    {
+     "value": "200",
+     "unit": "cm",
+     "dimension": null,
+     "reference": "Froese, R.; Palomares, M.L.D. (2000). Growth, natural mortality, length-weight relationship, maximum length and length-at-first-maturity of the coelacanth Latimeria chalumnae. Environ. Biol. Fish. 58(1):45-52."
+    }
+   ],
+   "wikipedia": {
+    "title": "West Indian Ocean coelacanth",
+    "url": "https://en.wikipedia.org/wiki/West_Indian_Ocean_coelacanth",
+    "extract": "The West Indian Ocean coelacanth, sometimes known as the gombessa, African coelacanth, and simply coelacanth, is a crossopterygian, one of two extant species of coelacanth, a rare order of vertebrates more closely related to lungfish and tetrapods than to the common ray-finned fishes. The other extant species is the Indonesian coelacanth.",
+    "revision": "1375975644"
+   }
+  },
+  {
+   "scientific_name": "Himantolophus groenlandicus",
+   "authority": "Reinhardt, 1837",
+   "english_names": [
+    "Atlantic footballfish",
+    "Atlantic football-fish"
+   ],
+   "aphia_id": 126545,
+   "rank": "Species",
+   "status": "accepted",
+   "taxonomy": {
+    "kingdom": "Animalia",
+    "phylum": "Chordata",
+    "class": "Teleostei",
+    "order": "Lophiiformes",
+    "family": "Himantolophidae",
+    "genus": "Himantolophus"
+   },
+   "worms_url": "https://www.marinespecies.org/aphia.php?p=taxdetails&id=126545",
+   "worms_lsid": "urn:lsid:marinespecies.org:taxname:126545",
+   "worms_citation": "Froese, R. and D. Pauly. Editors. (2026). FishBase. Himantolophus groenlandicus Reinhardt, 1837. Accessed through: World Register of Marine Species at: https://www.marinespecies.org/aphia.php?p=taxdetails&id=126545 on 2026-10-18",
+   "worms_modified": "2008-01-15T17:27:08.177Z",
+   "body_size": [
+    {
+     "value": "4",
+     "unit": "cm",
+     "dimension": null,
+     "reference": "Pietsch, T.W. (1986). Himantolophidae. p. 376. In M.M. Smith and P.C. Heemstra (eds.) Smiths' sea fishes. Springer-Verlag, Berlin."
+    },
+    {
+     "value": "60",
+     "unit": "cm",
+     "dimension": null,
+     "reference": "Pietsch, T.W. (1986). Himantolophidae. p. 376. In M.M. Smith and P.C. Heemstra (eds.) Smiths' sea fishes. Springer-Verlag, Berlin."
+    }
+   ],
+   "wikipedia": {
+    "title": "Himantolophus groenlandicus",
+    "url": "https://en.wikipedia.org/wiki/Himantolophus_groenlandicus",
+    "extract": "Himantolophus groenlandicus, the Atlantic footballfish or Atlantic football-fish, is a species of marine ray-finned fish belonging to the family Himantolophidae, the footballfishes. This fish is found primarily in mesopelagic depths of the ocean.",
+    "revision": "1354744763"
+   }
+  },
+  {
+   "scientific_name": "Pyrosoma atlanticum",
+   "authority": "Péron, 1804",
+   "english_names": [
+    "Atlantic pyrosomes"
+   ],
+   "aphia_id": 137250,
+   "rank": "Species",
+   "status": "accepted",
+   "taxonomy": {
+    "kingdom": "Animalia",
+    "phylum": "Chordata",
+    "class": "Thaliacea",
+    "order": "Pyrosomatida",
+    "family": "Pyrosomatidae",
+    "genus": "Pyrosoma"
+   },
+   "worms_url": "https://www.marinespecies.org/aphia.php?p=taxdetails&id=137250",
+   "worms_lsid": "urn:lsid:marinespecies.org:taxname:137250",
+   "worms_citation": "Garic, R.; van Soest, R.W.M. (2026). World List of Thaliacea. Pyrosoma atlanticum Péron, 1804. Accessed through: World Register of Marine Species at: https://www.marinespecies.org/aphia.php?p=taxdetails&id=137250 on 2026-10-18",
+   "worms_modified": "2013-04-07T17:53:19.133Z",
+   "body_size": [],
+   "wikipedia": {
+    "title": "Pyrosoma atlanticum",
+    "url": "https://en.wikipedia.org/wiki/Pyrosoma_atlanticum",
+    "extract": "Pyrosoma atlanticum is a pelagic species of marine colonial tunicate in the class Thaliacea found in temperate waters worldwide. The name of the genus comes from the Greek words pyros meaning 'fire' and soma meaning 'body', referring to the bright bioluminescence sometimes emitted.",
+    "revision": "1351836039"
+   }
+  },
+  {
+   "scientific_name": "Riftia pachyptila",
+   "authority": "Jones, 1981",
+   "english_names": [
+    "giant tube worm",
+    "giant tubeworm"
+   ],
+   "aphia_id": 266010,
+   "rank": "Species",
+   "status": "accepted",
+   "taxonomy": {
+    "kingdom": "Animalia",
+    "phylum": "Annelida",
+    "class": "Polychaeta",
+    "order": "Sabellida",
+    "family": "Siboglinidae",
+    "genus": "Riftia"
+   },
+   "worms_url": "https://www.marinespecies.org/aphia.php?p=taxdetails&id=266010",
+   "worms_lsid": "urn:lsid:marinespecies.org:taxname:266010",
+   "worms_citation": "Read, G.; Fauchald, K. (Ed.) (2026). World Polychaeta Database. Riftia pachyptila Jones, 1981. Accessed through: World Register of Marine Species at: https://www.marinespecies.org/aphia.php?p=taxdetails&id=266010 on 2026-10-18",
+   "worms_modified": "2008-03-26T11:36:43.420Z",
+   "body_size": [],
+   "wikipedia": {
+    "title": "Riftia",
+    "url": "https://en.wikipedia.org/wiki/Riftia",
+    "extract": "Riftia is a monotypic genus of polychaete annelid worms in the Siboglinidae family, which contains the sole species Riftia pachyptila, commonly known as the giant tubeworm or giant beardworm.",
+    "revision": "1378642219"
+   }
+  },
+  {
+   "scientific_name": "Kiwa hirsuta",
+   "authority": "Macpherson, Jones & Segonzac, 2005",
+   "english_names": [
+    "Yeti crab"
+   ],
+   "aphia_id": 249751,
+   "rank": "Species",
+   "status": "accepted",
+   "taxonomy": {
+    "kingdom": "Animalia",
+    "phylum": "Arthropoda",
+    "class": "Malacostraca",
+    "order": "Decapoda",
+    "family": "Kiwaidae",
+    "genus": "Kiwa"
+   },
+   "worms_url": "https://www.marinespecies.org/aphia.php?p=taxdetails&id=249751",
+   "worms_lsid": "urn:lsid:marinespecies.org:taxname:249751",
+   "worms_citation": "DecaNet eds. (2026). DecaNet. Kiwa hirsuta Macpherson, Jones & Segonzac, 2005. Accessed through: World Register of Marine Species at: https://www.marinespecies.org/aphia.php?p=taxdetails&id=249751 on 2026-10-18",
+   "worms_modified": "2022-08-03T08:05:10.740Z",
+   "body_size": [],
+   "wikipedia": {
+    "title": "Kiwa hirsuta",
+    "url": "https://en.wikipedia.org/wiki/Kiwa_hirsuta",
+    "extract": "Kiwa hirsuta is a crustacean discovered in 2005 in the South Pacific Ocean. This decapod, which is approximately 15 cm (5.9 in) long, is notable for the quantity of silky blond setae covering its pereiopods.",
+    "revision": "1357920485"
+   }
+  },
+  {
+   "scientific_name": "Pseudoliparis swirei",
+   "authority": "Gerringer & Linley, 2017",
+   "english_names": [
+    "Mariana snailfish"
+   ],
+   "aphia_id": 1047485,
+   "rank": "Species",
+   "status": "accepted",
+   "taxonomy": {
+    "kingdom": "Animalia",
+    "phylum": "Chordata",
+    "class": "Teleostei",
+    "order": "Perciformes",
+    "family": "Liparidae",
+    "genus": "Pseudoliparis"
+   },
+   "worms_url": "https://www.marinespecies.org/aphia.php?p=taxdetails&id=1047485",
+   "worms_lsid": "urn:lsid:marinespecies.org:taxname:1047485",
+   "worms_citation": "Froese, R. and D. Pauly. Editors. (2026). FishBase. Pseudoliparis swirei Gerringer & Linley, 2017. Accessed through: World Register of Marine Species at: https://www.marinespecies.org/aphia.php?p=taxdetails&id=1047485 on 2026-10-18",
+   "worms_modified": "2017-12-02T19:02:45.730Z",
+   "body_size": [],
+   "wikipedia": {
+    "title": "Pseudoliparis swirei",
+    "url": "https://en.wikipedia.org/wiki/Pseudoliparis_swirei",
+    "extract": "Pseudoliparis swirei, the Mariana snailfish or Mariana hadal snailfish, is a species of snailfish found at hadal depths in the Mariana Trench in the western Pacific Ocean. It is known from a depth range of 6,198–8,076 m (20,335–26,496 ft), including a capture at 7,966 m (26,135 ft), which is possibly the record for a fish caught on the seafloor.",
+    "revision": "1371076483"
+   }
+  },
+  {
+   "scientific_name": "Bathypterois grallator",
+   "authority": "(Goode & Bean, 1886)",
+   "english_names": [
+    "tripodfish"
+   ],
+   "aphia_id": 126343,
+   "rank": "Species",
+   "status": "accepted",
+   "taxonomy": {
+    "kingdom": "Animalia",
+    "phylum": "Chordata",
+    "class": "Teleostei",
+    "order": "Aulopiformes",
+    "family": "Ipnopidae",
+    "genus": "Bathypterois"
+   },
+   "worms_url": "https://www.marinespecies.org/aphia.php?p=taxdetails&id=126343",
+   "worms_lsid": "urn:lsid:marinespecies.org:taxname:126343",
+   "worms_citation": "Froese, R. and D. Pauly. Editors. (2026). FishBase. Bathypterois grallator (Goode & Bean, 1886). Accessed through: World Register of Marine Species at: https://www.marinespecies.org/aphia.php?p=taxdetails&id=126343 on 2026-10-18",
+   "worms_modified": "2008-01-15T17:27:08.177Z",
+   "body_size": [
+    {
+     "value": "36.8",
+     "unit": "cm",
+     "dimension": null,
+     "reference": "Merrett, N.R. (1990). Chlorophthalmidae. p. 351-360. In J.C. Quero, J.C. Hureau, C. Karrer, A. Post and L. Saldanha (eds.) Check-list of the fishes of the eastern tropical Atlantic (CLOFETA). JNICT, Lisbon; SEI, Paris; and UNESCO, Paris. Vol. 1."
+    },
+    {
+     "value": "30",
+     "unit": "cm",
+     "dimension": null,
+     "reference": "Merrett, N.R. (1990). Chlorophthalmidae. p. 351-360. In J.C. Quero, J.C. Hureau, C. Karrer, A. Post and L. Saldanha (eds.) Check-list of the fishes of the eastern tropical Atlantic (CLOFETA). JNICT, Lisbon; SEI, Paris; and UNESCO, Paris. Vol. 1."
+    }
+   ],
+   "wikipedia": {
+    "title": "Bathypterois grallator",
+    "url": "https://en.wikipedia.org/wiki/Bathypterois_grallator",
+    "extract": "The tripod fish, Bathypterois grallator, is a grinner in the family Ipnopidae found at lower latitudes. Because of its unique way of \"standing\" on the seafloor, B. grallator is one of the best-known benthic fish, and it is one of the few members of its genus to be directly observed and photographed by submersibles.",
+    "revision": "1380445642"
+   }
+  }
+ ]
+}
