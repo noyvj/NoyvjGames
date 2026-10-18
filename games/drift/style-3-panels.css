@@ -1,0 +1,248 @@
+/* Drift styles, part 3 of 4: building pop and strain heartbeat, pending pipeline, sparklines, trend graph controls, region skins, achievement glyphs, budget templates, news line. Loaded in order by index.html: style-1 ... style-3, then style.css. */
+/* ---- Round-4 batch (2026-10-11): animation speed, density, building pop, strain heartbeat ----
+   settings.js sets --drift-anim-scale on <html> (2 slow, 1 normal, 0.5 fast) and data-anim-speed
+   (slow, normal, fast, off); data-density is comfortable or compact. */
+.settings-control-group button.active {
+  border-color: rgba(76, 156, 110, 0.6);
+  background: rgba(76, 156, 110, 0.14);
+  color: #7fd6a3;
+}
+html[data-theme="light"] .settings-control-group button.active { color: #1d6b3d; }
+.settings-control-group { flex-wrap: wrap; }
+
+/* GI-14: a building rises, settles and lets out a tiny dust puff. The individual `translate` property
+   composes with the inline scaleY the game sets, so the building's height is never touched. */
+.region-visual-building { position: relative; }
+.region-visual-building.building-pop-a { animation: building-pop-a calc(1.1s * var(--drift-anim-scale, 1)) ease-out 1; }
+.region-visual-building.building-pop-b { animation: building-pop-b calc(1.1s * var(--drift-anim-scale, 1)) ease-out 1; }
+#game:has(#strain-bar.strain--critical) .region-visual-building.building-pop-a {
+  animation: region-visual-flicker 3.6s ease-in-out infinite, building-pop-a calc(1.1s * var(--drift-anim-scale, 1)) ease-out 1;
+}
+#game:has(#strain-bar.strain--critical) .region-visual-building.building-pop-b {
+  animation: region-visual-flicker 3.6s ease-in-out infinite, building-pop-b calc(1.1s * var(--drift-anim-scale, 1)) ease-out 1;
+}
+.region-visual-building.building-pop-a::after,
+.region-visual-building.building-pop-b::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  width: 150%;
+  height: 7px;
+  margin-left: -75%;
+  border-radius: 50%;
+  background: radial-gradient(ellipse at center, rgba(255, 238, 214, 0.75), rgba(255, 238, 214, 0) 70%);
+  opacity: 0;
+  pointer-events: none;
+}
+.region-visual-building.building-pop-a::after { animation: building-dust-a calc(1.1s * var(--drift-anim-scale, 1)) ease-out 1; }
+.region-visual-building.building-pop-b::after { animation: building-dust-b calc(1.1s * var(--drift-anim-scale, 1)) ease-out 1; }
+@keyframes building-pop-a { 0% { translate: 0 0; } 28% { translate: 0 -9px; } 55% { translate: 0 1px; } 75% { translate: 0 -2px; } 100% { translate: 0 0; } }
+@keyframes building-pop-b { 0% { translate: 0 0; } 28% { translate: 0 -9px; } 55% { translate: 0 1px; } 75% { translate: 0 -2px; } 100% { translate: 0 0; } }
+@keyframes building-dust-a { 0%, 45% { opacity: 0; transform: scaleX(0.4); } 60% { opacity: 1; transform: scaleX(1); } 100% { opacity: 0; transform: scaleX(1.5); } }
+@keyframes building-dust-b { 0%, 45% { opacity: 0; transform: scaleX(0.4); } 60% { opacity: 1; transform: scaleX(1); } 100% { opacity: 0; transform: scaleX(1.5); } }
+
+/* GI-19: strain heartbeat. Two soft beats then a rest; the duration comes from game.py (6s stable,
+   2.6s strained, 1.2s critical, times the animation-speed scale). Brightness and a glow only: the
+   text never loses contrast, and nothing flashes more than twice a second. */
+.strain-heartbeat { animation: strain-heartbeat-bar 6s ease-in-out infinite; }
+.strain-heartbeat-text { animation: strain-heartbeat-text 6s ease-in-out infinite; }
+@keyframes strain-heartbeat-bar { 0%, 50%, 100% { filter: brightness(1); } 12% { filter: brightness(1.35); } 36% { filter: brightness(1.2); } }
+@keyframes strain-heartbeat-text { 0%, 50%, 100% { text-shadow: 0 0 0 transparent; } 12% { text-shadow: 0 0 9px currentColor; } 36% { text-shadow: 0 0 5px currentColor; } }
+
+/* I-21: Off stops the three decorative animations without touching Reduce Motion. */
+html[data-anim-speed="off"] .arrival-dot,
+html[data-anim-speed="off"] .region-visual-building,
+html[data-anim-speed="off"] .region-visual-building::after,
+html[data-anim-speed="off"] .strain-heartbeat,
+html[data-anim-speed="off"] .strain-heartbeat-text { animation: none !important; }
+@media (prefers-reduced-motion: reduce) {
+  .strain-heartbeat, .strain-heartbeat-text { animation: none; }
+}
+
+/* I-19: Compact density tightens spacing and line height; Comfortable is the normal layout. */
+html[data-density="compact"] .section { padding: 0.6rem 0.75rem; margin-bottom: 0.55rem; }
+html[data-density="compact"] .status-line { margin-bottom: 0.2rem; font-size: 0.9rem; }
+html[data-density="compact"] .comparison-message { margin-top: 0.3rem; line-height: 1.3; }
+html[data-density="compact"] .meter-label { margin: 0.2rem 0 0.15rem; }
+html[data-density="compact"] .invest-row { padding: 0.25rem 0; }
+html[data-density="compact"] .context-blurb { margin-bottom: 0.6rem; padding: 0.4rem 0.6rem; }
+html[data-density="compact"] .settings-row { gap: 0.4rem; }
+html[data-density="compact"] button.secondary,
+html[data-density="compact"] button.primary { padding-top: 0.4rem; padding-bottom: 0.4rem; }
+
+/* I-23: pending people by how long they have waited. Three lightness steps of one hue plus a stripe
+   on the longest wait, so the bands read without colour; the numbers are always in the line below. */
+.pending-pipeline {
+  display: flex;
+  height: 10px;
+  margin: 0.2rem 0 0.3rem;
+  border-radius: 5px;
+  overflow: hidden;
+  background: rgba(5, 6, 13, 0.55);
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.4);
+}
+.pending-band { display: block; height: 100%; min-width: 0; transition: width 0.2s ease; }
+.pending-band--new { background: #9fd8e8; }
+.pending-band--recent { background: #4a8fa5; border-left: 1px solid rgba(0, 0, 0, 0.35); }
+.pending-band--old {
+  background: repeating-linear-gradient(135deg, #2b5566 0 4px, #1c3a47 4px 8px);
+  border-left: 1px solid rgba(0, 0, 0, 0.35);
+}
+
+/* I-26: the last 20 rounds of a sub-score, a tiny line beside its trend arrow. */
+.gauge-spark { display: inline-block; vertical-align: middle; margin-left: 0.35rem; line-height: 0; }
+.gauge-spark:empty { display: none; }
+.sparkline-svg { display: block; overflow: visible; }
+.sparkline-line { fill: none; stroke: currentColor; stroke-width: 1.4; stroke-linejoin: round; stroke-linecap: round; opacity: 0.85; }
+html[data-theme="light"] .pending-band--new { background: #6bb6cc; }
+
+/* I-12 / I-16: trend graph range chips, layer toggles, event markers, crosshair and tooltip. */
+.trend-controls { display: flex; flex-wrap: wrap; align-items: center; gap: 0.3rem; margin-top: 0.6rem; }
+.trend-controls-label { font-size: 0.72rem; opacity: 0.7; margin-right: 0.1rem; }
+.trend-controls .chip { padding: 0.25rem 0.55rem; font-size: 0.74rem; border-radius: 999px; }
+.trend-controls .chip.active {
+  border-color: rgba(76, 156, 110, 0.6);
+  background: rgba(76, 156, 110, 0.14);
+  color: #7fd6a3;
+}
+html[data-theme="light"] .trend-controls .chip.active { color: #1d6b3d; }
+.trend-graph-wrap { position: relative; }
+.trend-graph { outline-offset: 3px; touch-action: pan-y; }
+.trend-graph:focus-visible { outline: 3px solid #f0e442; border-radius: 4px; }
+.trend-hit { fill: transparent; pointer-events: all; }
+.trend-crosshair { stroke: currentColor; stroke-width: 1; stroke-dasharray: 2 2; opacity: 0.7; display: none; pointer-events: none; }
+.trend-tooltip {
+  position: absolute;
+  top: -0.2rem;
+  left: 0;
+  z-index: 3;
+  margin: 0;
+  max-width: 100%;
+  padding: 0.3rem 0.5rem;
+  border-radius: 6px;
+  font-size: 0.74rem;
+  line-height: 1.3;
+  background: rgba(10, 12, 24, 0.94);
+  color: #f0f1f8;
+  border: 1px solid rgba(140, 160, 255, 0.4);
+  pointer-events: none;
+  transform: translateY(-100%);
+}
+html[data-theme="light"] .trend-tooltip { background: #1b2140; }
+.trend-line--roi { stroke: #d9b24c; stroke-width: 1.5; stroke-dasharray: 8 2 2 2; }
+.trend-event path { stroke: currentColor; stroke-width: 1.2; fill: #e0b24c; }
+.trend-event--realloc path { fill: none; }
+.trend-event--band path { fill: #8a7be0; }
+.trend-event--strain_peak path { fill: #e0674c; }
+.trend-event--second_wave path { fill: #4a8fa5; }
+.trend-event title { pointer-events: none; }
+html.high-contrast .trend-controls .chip.active { background: #ffff00; color: #000000; }
+html.high-contrast .trend-tooltip { background: #000000; border: 2px solid #ffffff; }
+
+/* GI-25: region skins (cosmetic skyline palettes, game.py sets data-skin on #region-visual). Colours and a few
+   code-drawn shapes only; the strain dimming and the rising buildings work on top of every skin. */
+.region-visual::before { content: ""; position: absolute; inset: auto 0 0 0; height: 0; pointer-events: none; }
+.region-visual[data-skin="seaside"] {
+  background: linear-gradient(180deg, #1d4f6e 0%, #4f9bb5 46%, #f3d9a4 78%, #2f6f86 100%);
+}
+.region-visual[data-skin="seaside"] .region-visual-building {
+  background-color: #e9f1f3;
+  background-image: radial-gradient(circle, rgba(31, 94, 124, 0.9) 1px, transparent 1.6px);
+}
+.region-visual[data-skin="seaside"] .region-visual-horizon {
+  background: repeating-linear-gradient(90deg, rgba(120, 200, 230, 0.8) 0 14px, rgba(60, 140, 180, 0.8) 14px 28px);
+}
+.region-visual[data-skin="alpine"] {
+  background: linear-gradient(180deg, #2b3a67 0%, #8fa8d6 48%, #e8eef8 80%, #5d7bb0 100%);
+}
+.region-visual[data-skin="alpine"]::before {
+  height: 62%;
+  background: linear-gradient(180deg, #f4f7fc, #a9b8d8);
+  opacity: 0.6;
+  clip-path: polygon(0 100%, 0 55%, 12% 30%, 24% 62%, 38% 12%, 55% 66%, 70% 24%, 86% 62%, 100% 34%, 100% 100%);
+}
+.region-visual[data-skin="alpine"] .region-visual-building {
+  background-color: #34402f;
+  background-image: radial-gradient(circle, rgba(255, 226, 160, 0.95) 1px, transparent 1.6px);
+}
+.region-visual[data-skin="alpine"] .region-visual-horizon {
+  background: linear-gradient(90deg, rgba(240, 246, 255, 0.7), rgba(180, 200, 235, 0.8), rgba(240, 246, 255, 0.7));
+}
+.region-visual[data-skin="desert"] {
+  background: linear-gradient(180deg, #4a1f2a 0%, #c4572f 40%, #f0b45c 76%, #7a3f22 100%);
+}
+.region-visual[data-skin="desert"]::before {
+  height: 38%;
+  background: linear-gradient(180deg, #d9944e, #a8602c);
+  opacity: 0.7;
+  clip-path: polygon(0 100%, 0 70%, 20% 35%, 42% 68%, 64% 28%, 84% 62%, 100% 40%, 100% 100%);
+}
+.region-visual[data-skin="desert"] .region-visual-building {
+  background-color: #b8613c;
+  background-image: radial-gradient(circle, rgba(255, 232, 170, 0.95) 1px, transparent 1.6px);
+}
+.region-visual[data-skin="desert"] .region-visual-horizon {
+  background: linear-gradient(90deg, rgba(255, 190, 110, 0.6), rgba(255, 140, 80, 0.8), rgba(255, 190, 110, 0.6));
+}
+.region-visual[data-skin="neon"] {
+  background: linear-gradient(180deg, #0a0220 0%, #3a0f6b 55%, #ff2a9d 100%);
+}
+.region-visual[data-skin="neon"] .region-visual-building {
+  background-color: #0d0420;
+  background-image: radial-gradient(circle, rgba(54, 240, 255, 0.95) 1px, transparent 1.6px);
+  box-shadow: inset 0 0 0 1px rgba(255, 42, 157, 0.55), 0 0 8px rgba(255, 42, 157, 0.35);
+}
+.region-visual[data-skin="neon"] .region-visual-horizon {
+  background: linear-gradient(90deg, #36f0ff, #ff2a9d, #36f0ff);
+}
+.region-visual-skyline { z-index: 1; }
+
+/* I-31: achievement card glyphs (code-drawn, see ACHIEVEMENT_GLYPHS in game.py). */
+.achievement-card { position: relative; padding-right: 3.9rem; }
+.achievement-glyph-slot { position: absolute; top: 0.7rem; right: 0.8rem; line-height: 0; }
+.achievement-glyph { display: block; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+.achievement-glyph--locked { color: rgba(160, 170, 200, 0.55); }
+.achievement-glyph--locked * { stroke-dasharray: 2.2 2.2; }
+.achievement-glyph--earned { color: #7fd6a3; filter: drop-shadow(0 0 4px rgba(127, 214, 163, 0.35)); }
+.achievement-glyph .g-dash { stroke-dasharray: 2.5 2.5; opacity: 0.7; }
+.achievement-glyph--earned .g-dash { stroke-dasharray: 2.5 2.5; }
+.achievement-glyph--earned .g-ground { opacity: 0.55; }
+html[data-theme="light"] .achievement-glyph--earned { color: #1d6b3d; filter: none; }
+html[data-theme="light"] .achievement-glyph--locked { color: rgba(90, 100, 130, 0.6); }
+.achievement-glyph--fresh * {
+  stroke-dasharray: 90;
+  stroke-dashoffset: 90;
+  animation: achievement-glyph-draw calc(1.1s * var(--drift-anim-scale, 1)) ease-out forwards;
+}
+.achievement-glyph--fresh .g-dash { stroke-dasharray: 90; }
+@keyframes achievement-glyph-draw { to { stroke-dashoffset: 0; } }
+@media (prefers-reduced-motion: reduce) {
+  .achievement-glyph--fresh * { animation: none; stroke-dashoffset: 0; }
+}
+html[data-anim-speed="off"] .achievement-glyph--fresh * { animation: none; stroke-dashoffset: 0; }
+html.reduce-motion .achievement-glyph--fresh * { stroke-dashoffset: 0; }
+html.high-contrast .achievement-glyph--locked { color: #bdbdbd; }
+html.high-contrast .achievement-glyph--earned { color: #ffff00; filter: none; }
+
+/* I-14: budget templates */
+.template-row { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; gap: 0.35rem; align-items: center; margin-top: 0.5rem; }
+.template-name { min-width: 0; padding: 0.3rem 0.5rem; border-radius: 6px; border: 1px solid rgba(154, 130, 220, 0.4); background: rgba(20, 16, 40, 0.6); color: inherit; font: inherit; font-size: 0.85rem; }
+.template-summary { grid-column: 1 / -1; margin: 0; }
+@media (max-width: 420px) { .template-row { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); } .template-name { grid-column: 1 / -1; } }
+html[data-theme="light"] .template-name { background: #ffffff; }
+
+/* I-30: partly-readable save note */
+.load-note-box { display: grid; gap: 0.4rem; margin: 0.4rem 0; }
+.load-note-box .turning-point-message { margin: 0; }
+.load-note-box button { justify-self: start; }
+
+/* GI-20: optional town-news line (settings.js toggles html.news-ticker-on). */
+.news-ticker { display: none; margin: 0 0 0.6rem; padding: 0.4rem 0.6rem; border-left: 2px solid #c9a13c; border-radius: 0 6px 6px 0; background: rgba(20, 22, 31, 0.45); font-size: 0.82rem; font-style: italic; line-height: 1.35; }
+html.news-ticker-on .news-ticker { display: block; }
+.news-ticker::before { content: "📰 "; font-style: normal; }
+html[data-theme="light"] .news-ticker { background: rgba(255, 255, 255, 0.6); }
+html.high-contrast .news-ticker { border-left-color: #ffffff; background: #000000; color: #ffffff; }
+html.high-contrast[data-theme="light"] .news-ticker { background: #ffffff; color: #000000; border-left-color: #000000; }
+.settings-control-group button.active, #news-ticker-toggle-button.active { border-color: rgba(76, 156, 110, 0.6); background: rgba(76, 156, 110, 0.14); color: #7fd6a3; }
+html[data-theme="light"] #news-ticker-toggle-button.active { color: #1d6b3d; }

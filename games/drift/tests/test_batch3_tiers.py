@@ -4,6 +4,7 @@ import json
 import sys
 
 from .fakes import FakeStorage
+from .pagefiles import game_source
 
 
 def _storage(initial=None):
@@ -90,10 +91,9 @@ def test_accelerated_baseline_still_captured_once_through_a_tier(game_env):
     assert region.severity_toggle_dot_baseline == first
 
 
-def test_tier_does_not_gate_achievements(game_env):
+def test_tier_does_not_gate_achievements():
     """Z27: tiers are labels for options that already existed; an achievement check never reads them."""
-    m = game_env.module
-    source = open(m.__file__ if hasattr(m, "__file__") else "game.py").read()
+    source = game_source()
     start = source.index("ACHIEVEMENT_CHECKS")
     checks = source[start:start + 6000]
     assert "current_tier_id" not in checks and "assisted_run" not in checks

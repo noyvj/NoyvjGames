@@ -1,0 +1,643 @@
+/* Drift styles, part 2 of 4: console nameplates, screens and switches, trend graph, achievements, What's New, toast, settings panel, round-2 and round-3 additions, high contrast, round-4 animations and density. Loaded in order by index.html: style-1 ... style-3, then style.css. */
+/* ============================================================
+   Design pass 2 — embed controls & readouts into the console
+   (2026-09-06). The full visual pass above gave this game an
+   illustrated skyline hero and HUD-card sections, but the labels,
+   numbers, and buttons inside those cards still read as flat web
+   UI dropped on top of the illustration, not part of the console
+   itself. Same three ideas as SOL's reference pass
+   (games/sol/style.css, "Design pass 2 — embed controls &
+   readouts into the console"), redrawn in Drift's own teal/dusk
+   palette rather than copying SOL's colors: nameplates for
+   labels, a recessed digital-screen look for the one standalone
+   numeric readout this game has, and physical beveled switches
+   with a genuinely wired status LED for buttons. Pure CSS on
+   existing selectors plus a couple of pseudo-elements — no new
+   elements/ids, no game.py change.
+   ============================================================ */
+
+/* --- Nameplates: section headers (the label at the top of each
+   HUD card, "Displacement pressure"/"Integration"/etc.) and each
+   investment row's name label read as an engraved plate mounted
+   on the console rather than plain floating text. Drift has no
+   standalone big-number resource label the way SOL does, so this
+   is the closest structural match to SOL's .resource-label. */
+.meter-label,
+.invest-name {
+  display: inline-block;
+  padding: 0.3rem 0.65rem;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(0, 0, 0, 0.22));
+  border: 1px solid rgba(74, 143, 165, 0.3);
+  border-radius: 6px;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05), inset 0 -1px 2px rgba(0, 0, 0, 0.3), 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+/* --- Recessed digital-screen readout: Drift's numbers mostly live
+   inside full sentences ("Funds: 300"), so there's no isolated
+   big-number element the way SOL has -- the one true standalone
+   number is each capacity investment's count. It gets a
+   dark glass-panel background with a faint scanline texture and
+   an inset shadow, so it reads as a counter built into the
+   console face rather than a floating pill label. */
+.invest-count {
+  opacity: 1;
+  color: #bfe8f0;
+  font-variant-numeric: tabular-nums;
+  padding: 0.2rem 0.6rem;
+  background:
+    repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.02) 0, rgba(255, 255, 255, 0.02) 1px, transparent 1px, transparent 3px),
+    radial-gradient(ellipse at 50% 20%, rgba(120, 200, 220, 0.14), transparent 70%),
+    rgba(3, 6, 10, 0.6);
+  border: 1px solid rgba(74, 143, 165, 0.35);
+  border-radius: 8px;
+  box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.55), inset 0 0 14px rgba(74, 143, 165, 0.15);
+}
+
+/* --- Physical console switches: buttons get a stronger bevel
+   (outer drop shadow, inset highlight, inset dark edge, plus a
+   subtle outer ring) and a small status LED (a 6px dot) genuinely
+   wired to the button's own :disabled state -- lit teal-green
+   while the action is available, dim grey when not. A real
+   functional indicator, not decoration: the invest buttons
+   disable via render()'s own `button.disabled = region.funds <
+   INVEST_COST[...]` funds check, and feedback-submit-button
+   disables via its own inline script until an answer is picked --
+   both surface identically as :disabled, which is all this CSS
+   reads. */
+button.secondary,
+button.primary {
+  position: relative;
+  box-shadow:
+    0 4px 14px rgba(0, 0, 0, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.14),
+    inset 0 -3px 6px rgba(0, 0, 0, 0.28),
+    0 0 0 3px rgba(0, 0, 0, 0.22);
+}
+
+button.secondary::after,
+button.primary::after {
+  content: "";
+  position: absolute;
+  top: 0.5rem;
+  right: 0.6rem;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #5cd68a;
+  box-shadow: 0 0 6px 1px rgba(92, 214, 138, 0.85);
+}
+
+button.primary::after {
+  top: 0.65rem;
+  right: 0.85rem;
+}
+
+button.secondary:disabled::after,
+button.primary:disabled::after {
+  background: #3f4658;
+  box-shadow: none;
+}
+
+/* I1 -- a small two-line strain/wellbeing trend graph, same rendering
+   approach and visual language as Grid's own trend graph. */
+.trend-graph {
+  margin-top: 0.6rem;
+}
+
+.trend-graph-svg {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.trend-line {
+  fill: none;
+  stroke-width: 2;
+}
+
+.trend-line--strain {
+  stroke: #e0674c;
+}
+
+/* Colorblind-safety audit: this red/green pair is exactly the
+   deuteranopia/protanopia confusion risk, and unlike the strain meter's
+   own stable/strained/critical colors (which already have a text status
+   label), the two co-plotted lines here had no non-color cue of their
+   own -- each point's <title> tooltip only reaches a viewer who hovers
+   one point at a time, not someone reading the overall line shapes at a
+   glance. A dash pattern on the wellbeing line (solid strain vs. dashed
+   wellbeing) makes the two lines distinguishable without relying on hue
+   at all, without touching either line's actual color. */
+.trend-line--wellbeing {
+  stroke: #4c9c6e;
+  stroke-dasharray: 6 3;
+}
+
+.trend-point {
+  fill-opacity: 0.55;
+  stroke: none;
+  cursor: pointer;
+  transition: r 0.1s ease, fill-opacity 0.1s ease;
+}
+
+.trend-point:hover {
+  r: 5;
+  fill-opacity: 1;
+}
+
+.trend-point--strain {
+  fill: #e0674c;
+}
+
+.trend-point--wellbeing {
+  fill: #4c9c6e;
+}
+
+.trend-graph-message {
+  font-size: 0.8rem;
+  opacity: 0.7;
+  margin-top: 0.3rem;
+}
+
+.trend-graph-message::before {
+  content: "📈 ";
+}
+
+/* ============================================================
+   Achievements (ACHIEVEMENTS-SYSTEM-DESIGN.md) — same card language as
+   the hub's other achievements rollouts (SOL's reference implementation,
+   Grid/Canopy's per-game builds), on Drift's own violet-tinted glass
+   palette. Internals are free per-game once you're inside the game, but
+   there's no reason to invent a new visual language here when the
+   existing one already fits. */
+.achievements-panel {
+  text-align: left;
+  display: grid;
+  gap: 0.65rem;
+}
+
+/* Same gotcha SOL's/Trade Empire's/Continuum's own achievements CSS
+   documents: `display: grid` above otherwise wins the cascade over the
+   browser's default `[hidden] { display: none }` UA rule (author-origin
+   styles beat user-agent-origin styles regardless of specificity), so
+   without this override the panel stays visible as an empty box before
+   its first open, and stays visible with its last-rendered content
+   forever after being toggled closed. */
+.achievements-panel[hidden] {
+  display: none;
+}
+
+.achievement-card {
+  padding: 0.85rem 1rem;
+  border: 1px solid rgba(140, 160, 255, 0.14);
+  border-radius: 12px;
+  background: rgba(10, 12, 22, 0.4);
+}
+
+.achievement-card--earned {
+  border-color: rgba(76, 156, 110, 0.4);
+  background: rgba(76, 156, 110, 0.08);
+  box-shadow: 0 0 18px rgba(76, 156, 110, 0.12);
+}
+
+.achievement-card-label {
+  margin: 0 0 0.25rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.achievement-card--earned .achievement-card-label {
+  color: #7fd6a3;
+  text-shadow: 0 0 12px rgba(127, 214, 163, 0.35);
+}
+
+.achievement-card-description {
+  margin: 0;
+  font-size: 0.78rem;
+  opacity: 0.7;
+  line-height: 1.4;
+}
+
+.achievement-card-progress {
+  margin: 0.4rem 0 0;
+  font-size: 0.72rem;
+  opacity: 0.55;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Z27b: cross-player "Earned by N% of players" line, filled in by
+   shared/achievement-stats.js once the aggregate-stats endpoint responds
+   -- same muted small-text treatment as .achievement-card-progress, kept
+   distinct via italics so the two never look identical if both appear on
+   the same card. */
+.achievement-earn-rate {
+  margin: 0.3rem 0 0;
+  font-size: 0.72rem;
+  opacity: 0.5;
+  font-style: italic;
+}
+
+.achievements-hub-link {
+  display: inline-block;
+  margin-top: 0.2rem;
+  font-size: 0.8rem;
+  color: #a9c3ff;
+}
+
+/* "What's New" changelog panel (site-wide goal, planning/TODO.md, origin
+   K16) — same glass-panel/card language as .achievements-panel above,
+   since it's the same hidden-until-opened idiom. Explicit [hidden]
+   override included defensively (see SOL's own documented cascade bug:
+   a `display` override on the same element as a `hidden` toggle can win
+   the cascade over the browser's default `[hidden] { display: none }`
+   rule). */
+.changelog-panel {
+  text-align: left;
+  display: grid;
+  gap: 0.65rem;
+}
+
+.changelog-panel[hidden] {
+  display: none;
+}
+
+.changelog-entry {
+  padding: 0.7rem 1rem;
+  border: 1px solid rgba(140, 160, 255, 0.14);
+  border-radius: 12px;
+  background: rgba(10, 12, 22, 0.4);
+}
+
+.changelog-date {
+  margin: 0 0 0.2rem;
+  font-size: 0.72rem;
+  opacity: 0.6;
+  font-variant-numeric: tabular-nums;
+}
+
+.changelog-text {
+  margin: 0;
+  font-size: 0.85rem;
+  line-height: 1.4;
+}
+
+/* Unlock toast: fixed to the top of the viewport so it's visible
+   regardless of scroll position, unlike the panel it summarizes.
+   `.visible` is toggled from game.py; `hidden` (native attribute) keeps
+   it out of the layout entirely between toasts. */
+.achievement-toast {
+  position: fixed;
+  top: 0.75rem;
+  left: 1rem;
+  right: 1rem;
+  max-width: 480px;
+  margin: 0 auto;
+  z-index: 500;
+  padding: 0.7rem 1rem;
+  background: linear-gradient(165deg, rgba(76, 156, 110, 0.92), rgba(38, 64, 42, 0.95));
+  border: 1px solid rgba(127, 214, 163, 0.5);
+  border-radius: 10px;
+  box-shadow: 0 8px 26px rgba(0, 0, 0, 0.45);
+  opacity: 0;
+  transform: translateY(-12px);
+  transition: opacity 200ms ease, transform 200ms ease;
+  pointer-events: none;
+}
+
+.achievement-toast.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.achievement-toast p {
+  margin: 0;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #f2fff6;
+  text-align: center;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .achievement-toast {
+    transition: opacity 120ms ease;
+    transform: none;
+  }
+}
+
+/* ============================================================
+   Settings panel (site-wide goal, TODO.md origin A9): text scale +
+   reduce motion, consolidated in one place per game. Same card/section
+   language as .achievements-panel above rather than a new visual
+   idiom -- this hub's "free internals, shared shell" rule is about the
+   hub shell, not about every per-game feature needing its own look. */
+.settings-panel {
+  text-align: left;
+  display: grid;
+  gap: 0.85rem;
+}
+
+/* Same [hidden]-vs-`display: grid` gotcha as .achievements-panel above. */
+.settings-panel[hidden] {
+  display: none;
+}
+
+.settings-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.settings-row-label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  opacity: 0.85;
+}
+
+.settings-control-group {
+  display: inline-flex;
+  gap: 0.25rem;
+}
+
+.settings-control-group button {
+  min-width: 2.1rem;
+  padding: 0.5rem 0.4rem;
+  font-weight: 600;
+}
+
+#reduce-motion-toggle-button.active {
+  border-color: rgba(76, 156, 110, 0.6);
+  background: rgba(76, 156, 110, 0.14);
+  color: #7fd6a3;
+}
+
+.settings-note {
+  margin: 0;
+  font-size: 0.72rem;
+  opacity: 0.6;
+  line-height: 1.4;
+}
+
+
+/* --- Round-2 additions (I2/I5/I15/I19/I23/I24) --- */
+.trend-line--control {
+  stroke: #9aa3b5;
+  stroke-width: 1.5;
+  stroke-dasharray: 1.5 3;
+}
+
+.trend-legend {
+  font-size: 0.7rem;
+  opacity: 0.6;
+  margin: 0.2rem 0 0;
+}
+
+.gauge-trend {
+  font-size: 0.75rem;
+  min-height: 1em;
+  opacity: 0.85;
+}
+
+.region-name-row {
+  display: block;
+  font-size: 0.75rem;
+  opacity: 0.85;
+  margin-top: 0.4rem;
+}
+
+.region-name-input,
+.realloc-row select {
+  display: block;
+  margin-top: 0.2rem;
+  padding: 0.3rem 0.5rem;
+  border-radius: 6px;
+  border: 1px solid rgba(154, 130, 220, 0.4);
+  background: rgba(20, 16, 40, 0.6);
+  color: inherit;
+  font: inherit;
+  max-width: 100%;
+}
+
+.realloc-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-top: 0.4rem;
+}
+
+.coda-legacy-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+
+/* --- Round-3 batch (2026-10-07): Round Ledger, round tools, Region Collection, display options --- */
+.round-tools-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.round-tools-buttons button {
+  flex: 1 1 8rem;
+}
+
+.ledger-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 0.75rem;
+  align-items: flex-end;
+  margin-top: 0.5rem;
+  font-size: 0.8rem;
+}
+
+.ledger-controls label {
+  display: grid;
+  gap: 0.2rem;
+}
+
+.ledger-controls select {
+  padding: 0.3rem 0.5rem;
+  border-radius: 6px;
+  border: 1px solid rgba(154, 130, 220, 0.4);
+  background: rgba(20, 16, 40, 0.6);
+  color: inherit;
+  font: inherit;
+  max-width: 100%;
+}
+
+.ledger-copy-area {
+  width: 100%;
+  min-height: 6rem;
+  margin-top: 0.4rem;
+  font: 0.75rem ui-monospace, SFMono-Regular, Menlo, monospace;
+  color: inherit;
+  background: rgba(20, 16, 40, 0.6);
+  border: 1px solid rgba(154, 130, 220, 0.4);
+  border-radius: 6px;
+}
+
+.ledger-scroll {
+  overflow-x: auto;
+  margin-top: 0.6rem;
+  max-height: 22rem;
+  overflow-y: auto;
+}
+
+.ledger-table {
+  border-collapse: collapse;
+  width: 100%;
+  font-size: 0.75rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.ledger-table th,
+.ledger-table td {
+  padding: 0.25rem 0.4rem;
+  text-align: left;
+  white-space: nowrap;
+  border-bottom: 1px solid rgba(140, 160, 255, 0.18);
+}
+
+.ledger-table th {
+  position: sticky;
+  top: 0;
+  background: rgba(24, 27, 43, 0.95);
+  font-weight: 600;
+}
+
+html[data-theme="light"] .ledger-table th { background: #eef2fc; }
+
+.collection-list {
+  list-style: none;
+  margin: 0.3rem 0 0.8rem;
+  padding: 0;
+  display: grid;
+  gap: 0.4rem;
+  font-size: 0.85rem;
+}
+
+.collection-list li {
+  padding: 0.4rem 0.6rem;
+  border-left: 3px solid rgba(154, 130, 220, 0.5);
+  border-radius: 0 6px 6px 0;
+  background: rgba(20, 22, 31, 0.35);
+}
+
+.collection-list .collection-locked { opacity: 0.7; border-left-style: dashed; }
+.collection-list .collection-found { border-left-color: #e0b24c; }
+
+.collection-note {
+  margin: 0.2rem 0 0.6rem;
+  padding: 0.4rem 0.6rem;
+  border-radius: 6px;
+  border: 1px solid #e0b24c;
+  font-size: 0.85rem;
+}
+
+/* I-20: High Contrast (settings.js adds .high-contrast to <html>). Colour and border changes only. */
+html.high-contrast body { color: #ffffff; }
+html.high-contrast #game,
+html.high-contrast .section,
+html.high-contrast .context-blurb {
+  background: #000000;
+  border: 2px solid #ffffff;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  box-shadow: none;
+}
+html.high-contrast .tagline,
+html.high-contrast .context-blurb,
+html.high-contrast .comparison-message,
+html.high-contrast .meter-label,
+html.high-contrast .gauge-reference-note,
+html.high-contrast .invest-effect,
+html.high-contrast .settings-note,
+html.high-contrast .trend-legend,
+html.high-contrast .gauge-trend,
+html.high-contrast .collection-list .collection-locked { opacity: 1; color: #ffffff; }
+html.high-contrast button,
+html.high-contrast select,
+html.high-contrast input,
+html.high-contrast textarea {
+  background: #000000;
+  color: #ffffff;
+  border: 2px solid #ffffff;
+  box-shadow: none;
+  text-shadow: none;
+}
+html.high-contrast button:disabled { color: #bdbdbd; border-color: #bdbdbd; }
+html.high-contrast button.active { background: #ffff00; color: #000000; }
+html.high-contrast .meter { background: #000000; border: 2px solid #ffffff; box-shadow: none; }
+html.high-contrast .meter-fill { box-shadow: none; filter: none; }
+html.high-contrast .ledger-table th { background: #000000; }
+html.high-contrast .ledger-table th,
+html.high-contrast .ledger-table td { border-bottom-color: #ffffff; }
+html.high-contrast *:focus-visible { outline: 3px solid #ffff00; outline-offset: 2px; }
+html.high-contrast h1 { background: none; color: #ffffff; -webkit-text-fill-color: #ffffff; text-shadow: none; }
+html.high-contrast[data-theme="light"] body { color: #000000; }
+html.high-contrast[data-theme="light"] #game,
+html.high-contrast[data-theme="light"] .section,
+html.high-contrast[data-theme="light"] .context-blurb { background: #ffffff; border-color: #000000; }
+html.high-contrast[data-theme="light"] .tagline,
+html.high-contrast[data-theme="light"] .context-blurb,
+html.high-contrast[data-theme="light"] .comparison-message,
+html.high-contrast[data-theme="light"] .meter-label,
+html.high-contrast[data-theme="light"] .gauge-reference-note,
+html.high-contrast[data-theme="light"] .invest-effect,
+html.high-contrast[data-theme="light"] .settings-note { color: #000000; }
+html.high-contrast[data-theme="light"] button,
+html.high-contrast[data-theme="light"] select,
+html.high-contrast[data-theme="light"] input,
+html.high-contrast[data-theme="light"] textarea { background: #ffffff; color: #000000; border-color: #000000; }
+html.high-contrast[data-theme="light"] button.active { background: #ffe600; color: #000000; }
+html.high-contrast[data-theme="light"] .meter { background: #ffffff; border-color: #000000; }
+html.high-contrast[data-theme="light"] h1 { color: #000000; -webkit-text-fill-color: #000000; }
+html.high-contrast[data-theme="light"] .ledger-table th { background: #ffffff; }
+html.high-contrast[data-theme="light"] .ledger-table th,
+html.high-contrast[data-theme="light"] .ledger-table td { border-bottom-color: #000000; }
+html.high-contrast[data-theme="light"] *:focus-visible { outline-color: #0000ff; }
+
+/* I-20: Easy-Read Font: a wide, open system sans stack (no download, works offline), looser spacing. */
+html.easy-read-font body,
+html.easy-read-font button,
+html.easy-read-font select,
+html.easy-read-font input,
+html.easy-read-font textarea {
+  font-family: "Atkinson Hyperlegible", "Lexend", "Verdana", "Trebuchet MS", "Segoe UI", sans-serif;
+  letter-spacing: 0.03em;
+  word-spacing: 0.12em;
+}
+html.easy-read-font body { line-height: 1.65; }
+html.easy-read-font .comparison-message { font-style: normal; }
+
+/* ---- Round-3 batch 2: council and calendar ---- */
+.autopilot-rules { display: grid; gap: 0.4rem; margin: 0.4rem 0; }
+.autopilot-rules label { display: flex; flex-wrap: wrap; align-items: center; gap: 0.4rem; }
+.autopilot-log { margin: 0.4rem 0 0; padding-left: 1.1rem; font-size: 0.85em; max-height: 12em; overflow-y: auto; }
+.council-tree, .council-tree ul { margin: 0.2rem 0; padding-left: 1.1rem; }
+#calendar-brace-button { margin-top: 0.4rem; }
+
+/* B-7: visually hidden but read by screen readers (the game's own live region, used when the shared announcer is absent). */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* B-7: Drift has no tile map; its controls are the invest / policy buttons in each row, all native buttons
+   reached with Tab. A thick, high-contrast ring shows which one the keyboard is on. */
+.invest-row button:focus-visible,
+.invest-row select:focus-visible,
+#advance-round-button:focus-visible {
+  outline: 3px solid #f0e442;
+  outline-offset: 2px;
+}

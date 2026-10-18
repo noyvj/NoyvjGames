@@ -8,12 +8,14 @@ import html as htmllib
 import re
 from pathlib import Path
 
+from .pagefiles import game_css, game_source
+
 GAME_DIR = Path(__file__).resolve().parent.parent
 HTML = (GAME_DIR / "index.html").read_text()
 PC_HTML = (GAME_DIR / "pc.html").read_text()
-CSS = (GAME_DIR / "style.css").read_text()
+CSS = game_css()
 UI = (GAME_DIR / "ui.js").read_text()
-GAME_PY = (GAME_DIR / "game.py").read_text()
+GAME_PY = game_source()
 
 
 def term_js():
