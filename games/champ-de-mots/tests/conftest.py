@@ -9,6 +9,13 @@ from .fakes import FakeDocument, FakeElement, create_proxy
 
 GAME_DIR = Path(__file__).resolve().parent.parent
 GAME_PY = GAME_DIR / "game.py"
+
+# browser_helpers.py (the browser-test setup) sits in this folder, so a test can write
+# `from browser_helpers import open_game`; the `base` fixture is registered below for every test.
+TESTS_DIR = Path(__file__).resolve().parent
+if str(TESTS_DIR) not in sys.path:
+    sys.path.insert(0, str(TESTS_DIR))
+from browser_helpers import base  # noqa: E402,F401  (pytest fixture: the local server for browser tests)
 CATALOG_PATH = GAME_DIR / "fren_combined_catalog.json"
 
 # Z11: game.py imports the shared narrative-log widget (shared/

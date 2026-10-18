@@ -1,0 +1,810 @@
+# Notes for trade-empire: the long history
+
+This is the long history moved out of CLAUDE.md on 2026-10-18 (every section below is verbatim, in its original order). The local AI should read only the section it is told to, never the whole file.
+
+## Visual pass: space theme (site-wide overhaul)
+Brought this game onto the site's shared space-themed visual language (already shipped on the hub and SOL) — a decorative-only pass, no gameplay/logic changes:
+- Added `../../shared/space-bg.css` + the `<div class="space-bg">…</div>` starfield/nebula markup right after `<body>` in `index.html`, matching SOL's exact pattern.
+- Every `.section` (Research, Trade Routes/map, Market Prices, Colonies, each of the 4 ship panels, Fleet Priority, Ledger, and the hidden Endgame panel) now gets the glass-panel treatment — translucent gradient fill, `backdrop-filter: blur(14px)`, violet-tinted border, soft drop shadow — instead of a flat solid `#14161f` box, so the starfield reads through around/behind each panel rather than one giant card swallowing it.
+- `<h1>` got the same gradient-glow text treatment as the hub/SOL (`background-clip: text` gradient + soft `text-shadow`); sub-headings (`.panel-label`, `.colony-name`, `.ship-label`, etc.) were deliberately left as plain text for hierarchy, per the design brief.
+- All `button.secondary` variants (base blue-gray, research teal, depart green, automate purple) went from flat solid backgrounds to two-stop gradients of the same hue with a glossy inset top highlight, plus a `hover { filter: brightness(1.1) }` state; existing `:disabled` and `:active` (this game's press-feedback state — there's no `.pressed` class here, just `:active:not(:disabled)`) rules were re-skinned with darker gradients, not removed.
+- `.meter`/`.meter-fill` kept their exact fill colors (including the crashed-market red and the green need-bars) but gained an inset track shadow and a matching-hue glow (`box-shadow`) on the fill — width/fill logic in `game.py` untouched.
+- Flat gray borders (`.map-canvas`, `.section`) switched to the shared `rgba(140, 160, 255, 0.12–0.18)` violet tint.
+- **Deliberately left alone:** the canvas-drawn map colors (`NODE_COLOR`, `EDGE_COLOR`, `LABEL_COLOR`, `AUTOMATED_SHIP_COLOR`/`MANUAL_SHIP_COLOR` in `game.py`) and `.market-price--crashed`'s red — these encode real game state (which ship is automated, which market crashed) rather than being decorative chrome, so only their surrounding panel/canvas backdrop changed, never the hues themselves. `#endgame-panel`'s green border was kept the same hue, just softened to a translucent tint to match the glass style. No CSS class/id was renamed — `game.py`'s DOM lookups are all still exact matches.
+- No selector renamed, no test changed. Full suite (181 tests) verified green before and after. Live-verified via a local static server: starfield/nebula render, all panels show the glass treatment, gradient title renders, and the core loop (Load Cargo → Depart → in-transit countdown) was exercised end-to-end with zero console errors.
+
+## Post-Milestone-14 audit fixes
+- **Map label collision bug (found and fixed):** `render_map()` labeled every node with `name.split()[0]`, which is unique for the home system (Aurum/Verdant/Ferrum/Cryo/Helion) but not for the Kepler Cluster — "Kepler Alpha", "Kepler Beta", and "Kepler Gamma" all share the literal first word "Kepler", so all three map nodes rendered the identical label once Galaxy Expansion was unlocked, despite sitting at three distinct positions. Fixed with a small `MAP_LABEL_OVERRIDE` dict + `colony_map_label()` helper that gives the three Kepler nodes explicit short labels ("Kep. Alpha"/"Kep. Beta"/"Kep. Gamma") while leaving the home system's existing labels untouched. Caught by a new regression test (`test_kepler_map_labels_are_distinct_once_unlocked` in `tests/test_galaxy_scaling.py`) written first to confirm the collision, then fixed.
+- **Hub-link path bug (found and fixed):** `index.html`'s favicon (`/icons/icon-192.png`) and back-link (`href="/"`) used absolute root-relative paths, which 404 under GitHub Pages' `/NoyvjGames/` subpath — every other game on the site uses `../../icons/icon-192.png` and `../../index.html` instead. This game isn't hub-linked yet so no ordinary player traffic was hitting it, but fixed for correctness/consistency ahead of the eventual hub link.
+
+## Mobile needs-strip (implemented)
+Follow-up audit (per Canopy's `shared/mobile-dock.js` fix) checking whether this — the largest, most panel-heavy game on the hub — had the same "select something, scroll away to act on it" mobile problem. Measured at a 375px viewport: `#colonies-panel` (the panel showing which colony needs what, the exact fact needed to pick the right `Depart to ...` button) sits 1000-1900px above the four ship panels, more than two screens of scrolling apart with no way to see both at once.
+
+Docking the full `#colonies-panel` wasn't practical — it's over 1000px tall itself (flavor text + dev-level readout per colony) and would swallow most of a phone screen. Instead added a new, much smaller `#mobile-needs-strip` section (in `index.html`, between `#colonies-panel` and `#ship-1-panel`): one horizontally-scrollable chip per colony, e.g. "Aurum: needs Grain 46%", populated by a small new `render_needs_strip()` in `game.py` (called from `render()`, reuses the existing `colony_map_label()` short-name helper from the map-label fix above). `shared/mobile-dock.js` (used as-is, not modified) reparents this strip to a fixed bar pinned `bottom: 50px` below the 640px breakpoint — matching Canopy's convention, sitting above where this game's ad-bar will land once it's hub-linked. Above the breakpoint it behaves like any other `.section`, in normal document flow, no different from before this change. `tests/conftest.py`'s `ELEMENT_IDS` gained one id per colony (`mobile-needs-strip-<id>`) so the fake-DOM harness can resolve the new lookups — a data-only addition, no new test functions, suite held at 181/181.
+
+Live-verified at 375×812: loaded Ship 1 with Ore at Aurum, confirmed the strip (staying pinned through a full scroll down past Ship 3) read "Ferrum: needs Ore" without leaving the ship panel, clicked "Depart to Ferrum Forge," watched the ship correctly enter transit — the pick-a-destination loop now fits on one screen. Confirmed un-docking at a genuine 1280px width (not just a cleared/narrow emulated viewport): `position` back to `static`, panel back between `#colonies-panel` and `#ship-1-panel` in normal flow.
+
+## Achievements (implemented)
+
+19 achievements added per the hub-wide framework (`planning/ACHIEVEMENTS-SYSTEM-DESIGN.md`), following SOL's reference integration: `achievements.json` catalog, `game.py`'s checkers/`achievement_ids_earned()`/panel-render logic, an in-game toggle + panel, an unlock toast, and `achievements_earned` riding `get_state()` (never read back on load). Spans first sale/automation, fleet management (Fleet Priority on, a repositioning event), research unlocks, colony development (home system + Kepler Cluster), profit milestones, market recovery, and the full-scale endgame. Also finished off `index.html`/`style.css` wiring (toggle button, panel, toast markup/styles, the `achievements.json` fetch into `window.ACHIEVEMENTS_JSON`) and `tests/conftest.py`/`tests/fakes.py` gaps (missing element ids, a `FakeProxy` with no `.destroy()`) left over from a prior session's partial pass, plus 34 new tests in `tests/test_achievements.py` driving every achievement through real game systems. Full suite: 225/225 (191 existing + 34 new) at the time it landed.
+
+## Milestone 14 implementation notes
+- Scope interpretation, the biggest judgment call of this milestone: "hundreds of worlds, many ships" was read as a narrative/numeric payoff, not a literal request to simulate hundreds of individually-stateful, individually-rendered colonies. That would mean hundreds of DOM rows nobody could meaningfully interact with and a genuinely heavy render loop, for no real gameplay depth over the existing handful of well-simulated colonies — a worse experience, not a bigger one. Instead, reaching the endgame narrates the player's own automated pattern as having spread to an abstracted "background galaxy": a single growing world-count number and a matching trickle of passive revenue, explicitly flagged in-game as the "galaxy at scale" and documented here as a deliberate scope cut, the same way Milestone 8's ship-types cut and Milestone 9's automation/map cut were.
+- `endgame_criteria_met()` requires the fleet's automation to be maxed out (`automated_ship_count() >= max_automated_ships()`), Fleet Priority switched on, and Galaxy Expansion unlocked. Deliberately *not* "all 4 ships automated" literally — the automation slot cap (2, or 3 with its own research node) sits below the 4-ship roster, so that literal reading would make the milestone unreachable under the systems Milestones 6–8 already built. "Fully automated" means fully using what you've unlocked.
+- `endgame_reached` is a one-way sticky flag, not a live re-check of the criteria every tick — set once in `tick()` and never cleared, so a player who reaches it and then toggles Fleet Priority back off (the one reversible piece of the three criteria) doesn't lose the milestone. Confirmed by a dedicated test.
+- Once reached, `ticks_since_endgame` counts up and `background_world_count()` grows at a fixed rate up to a cap (500), converting linearly to a small per-tick revenue trickle added to `total_profit` inside `tick()` — a real, if modest, mechanical reward for reaching the state, not just a cosmetic banner.
+- UI follows the same hidden-until-relevant panel idiom used for the Kepler Cluster and stakeholder-style panels elsewhere on the site: a single `endgame-panel`, hidden by default, revealed by `render_endgame()`.
+- Live verification surfaced a genuine gap between wall-clock wait time and the pace of automation-cost/research-cost accrual (150 credits per automated ship, 80 research points for Galaxy Expansion) — reaching the full endgame state live in a single verification pass wasn't practical within a reasonable number of tool round-trips. Verified instead via the full 180-test suite (which directly exercises `endgame_criteria_met()`, the sticky flag, background world growth and its cap, and the revenue trickle) plus a live check that the core tick/render loop remains healthy after this milestone's changes (research points climbing, ship transit countdown advancing, endgame panel correctly hidden by default) — consistent with how this same real-time-vs-tool-latency gap was handled in earlier milestones' live checks.
+
+## Milestone 13 implementation notes
+- Scope interpretation: "expansion to more systems/regions" became a second, self-contained three-good need-triangle (the Kepler Cluster) reachable only once the new "Galaxy Expansion" research node (cost 80, the priciest yet) is unlocked. It uses three brand-new goods (Rare Metals, Biomass, Isotopes) rather than reusing the home system's five — that's what keeps `colony_needing()`/`colony_producing()` single-valued across the whole galaxy without any special-casing, since good-namespaces between the two systems never overlap.
+- Colony *metadata* (`EXPANSION_COLONIES`, merged into `ALL_COLONIES`) exists unconditionally from module load, same as the home system's `COLONIES` — but colony *state* (`ColonyState` instances in `colony_states`) is deliberately **not** created until the research actually unlocks it, inside `unlock_research()`. This was a real design correction, not just an implementation detail: eagerly creating Kepler's `ColonyState` from tick one would let it decay untouched forever and permanently win Milestone 12's `most_urgent_colony()` (which reads `colony_states` directly), sending Fleet Priority ships chasing a destination they can't reach. Deferring creation makes that structurally impossible rather than something to guard against with a special case — confirmed by a dedicated regression test (`test_fleet_priority_ignores_kepler_before_it_is_unlocked`) that ticks 50 times pre-unlock and asserts `most_urgent_colony()` never leaves the home system.
+- New `active_colony_ids()` is the single source of truth for "what's reachable right now" (home system always, Kepler once unlocked) and is now what everything reachability-sensitive is scoped to: `route_edges()`, `render_map()`'s node/edge drawing, `Ship.other_colonies()`, and the validity checks inside `Ship.depart()`/`Ship.reposition()`. `colony_needing()`/`colony_producing()` deliberately stay scoped to the *static* `ALL_COLONIES` instead — a ship can only ever be carrying a Kepler good after it has already reached the Kepler Cluster, which itself requires the system to be unlocked, so those two lookups don't need to gate on reachability to stay correct.
+- A developed Kepler colony's secondary need (Milestone 9's mechanic) reaches back into the *home* system rather than elsewhere within Kepler itself — Kepler only has one triangle, so there's no second sub-cycle to reach into internally. This is a deliberate, thematically-motivated choice: it's the mechanic that actually links the two systems together once a Kepler colony grows, giving multi-system logistics a real payoff rather than the two systems staying permanently isolated from each other.
+- The map canvas widened from 300×300 to 460×300 (`CANVAS_WIDTH`/`CANVAS_HEIGHT` replacing the old single `CANVAS_SIZE`) to give the Kepler triangle its own visual space on the right, without moving any of the home system's five existing `NODE_POSITIONS` — avoids retroactively invalidating Milestone 11's ship-interpolation coordinates for any prior save state.
+- UI additions follow the existing hidden-until-relevant idiom used elsewhere on the site (e.g. the climate games' stakeholder/coda panels) rather than dynamic DOM creation: a static `expansion-colonies-panel` and `expansion-market-panel` in `index.html`, toggled by `render()` based on `galaxy_expansion_unlocked()`. Depart buttons for the three Kepler colonies were added to all four ships' panels up front (12 new buttons total) and gated the same way the existing depart buttons already were, just with `colony_id in active_colony_ids()` added to the applicability check.
+- Live verification hit a real caching gotcha worth noting: after editing `index.html`, `navigate` with `force: true` and even `window.location.reload()` both kept serving a stale cached copy (old title, missing new elements) against a fresh `game.py`, producing `'NoneType' object has no attribute 'innerText'` errors for ids that existed in the new HTML but not the stale cached one. A cache-busting query string (`?v=13`) on the URL resolved it immediately; opening a brand-new tab afterward confirmed zero console errors on a clean load.
+- Live-verified: page loads error-free with the wider canvas, the map correctly shows only the original 5-node pentagon (no Kepler nodes/edges) while locked, and the general research-unlock code path (shared with the new node) still works correctly post-refactor by unlocking Fast Ships I live. Didn't wait out the full ~160 ticks (~160s) needed to accrue Galaxy Expansion's 80-point cost for a full live unlock click — that specific path is covered exhaustively by dedicated unit tests instead (unlock creates colony state, panel visibility flips, depart buttons appear, route edges update, cross-system secondary need resolves correctly).
+
+## Milestone 12 implementation notes
+- Scope interpretation: with the current fixed 5-colony/5-good world, every good is needed by exactly one colony (`colony_needing()` is single-valued), so a single automated ship on its own route has no destination choice to prioritize — "prioritization across routes" only becomes meaningful at the *fleet* level. Read it as: letting an idle automated ship abandon its home shuttle and reposition empty toward whichever producer feeds the fleet's most under-served colony, rather than blindly reloading its local produce every tick.
+- `fleet_priority_enabled` is a module-level toggle, off by default, flipped by a new "Fleet Priority: OFF/ON" button. Off means Milestone 6's original automation behavior runs byte-for-byte unchanged — zero regression risk for every prior automation test.
+- New `most_urgent_colony()` (`min` by `need_satisfaction`) and `colony_producing()` (reverse of the existing `colony_needing()`) are the only new lookups needed; `run_automation()` just checks, when an automated ship is docked and empty, whether fleet priority is on and the most urgent colony's producer differs from the ship's own location — if so it repositions there instead of loading locally.
+- `Ship.depart()` was refactored to share a `_begin_transit()` helper with a new `Ship.reposition()` — reposition travels empty (no cargo required) but is only ever called from `run_automation()`'s fleet-priority branch, never from a player-facing button, so manual play still can't depart without cargo.
+- `advance_transit()` needed a real fix here, not just new code: it assumed every arrival had cargo to sell/deliver, which crashed (`KeyError` on `cargo_good=None`) the moment an empty reposition trip completed. Fixed to skip the sale/delivery branch entirely when `cargo_good` is `None`, returning no sale result — caught by a test before it ever reached the browser.
+- Verified live: enabled Fleet Priority, automated a ship sitting at a fully-fed colony, and watched it reposition empty to Aurum (the producer of Ferrum's ore, Ferrum having decayed to the fleet's most urgent need) then complete a full load → deliver → dock cycle on its own, confirmed via Ferrum's `cumulative_delivered` ticking up and the sale log.
+
+## Milestone 11 implementation notes
+- Every ship (not just automated ones — manual play stays useful on the map too) renders as a dot each render pass, interpolated between `NODE_POSITIONS[ship.origin]` and `NODE_POSITIONS[ship.destination]` using `ship.transit_total_ticks` — a value fixed at departure time, so Fast Ships research researched mid-flight can't retroactively distort a ship that already departed under the old travel time.
+- `render_map()` moved from a one-time `setup()` call into `render()` itself, so the map redraws every tick along with everything else — ship dots actually move.
+- Automated and manual ships get distinct dot colors (gold vs. white).
+- Extended the M7 test harness pattern rather than replacing it: `ctx.calls` already logged every draw call, so ship-dot assertions just filter by radius (`SHIP_DOT_RADIUS` vs `NODE_RADIUS`) to tell colony circles and ship dots apart in the same log.
+
+## Milestone 10 implementation notes
+- `SPECIALIZATION` is a fixed, per-colony dict (output bonus + decay-rate multiplier) reflecting each colony's own flavor text — environmental, not a player choice. Activates automatically once `is_developed()` (Milestone 9's level-2 flag), reusing that gate rather than inventing a separate unlock/currency for it.
+- Numbers deliberately vary per colony (Aurum's harsh mining outpost gets the strongest bonus and steepest decay penalty; Verdant's easy, fertile terraces get the mildest of each) rather than one bonus copy-pasted five times.
+- `output_multiplier()` and `decay()` both stay byte-for-byte unchanged for undeveloped colonies — specialization layers on top of Milestone 9's averaged-needs formula rather than replacing it.
+
+## Milestone 9 implementation notes
+- Sustained delivery of a colony's primary need (`cumulative_delivered` crossing `DEVELOPMENT_THRESHOLD`, 100 units) develops it to level 2. `need_satisfaction` and its formula are completely untouched for undeveloped (level 1) colonies, so every Milestone 3/4/5 test keeps passing unchanged — development is purely additive.
+- Once developed, a colony also wants `SECONDARY_NEED[colony_id]` — deliberately a good from the *other* need-cycle (a triangle colony's secondary reaches into the Cryo/Helion pair and vice versa), so growth creates new cross-cluster dependencies rather than just deepening the cycle a colony already belongs to.
+- `output_multiplier()` averages both needs' satisfaction once developed — juggling two needs is genuinely harder than one, not a free unlock.
+- Scope cut, documented rather than silently missing: `colony_needing()` (Milestone 6's automation) and `route_edges()` (Milestone 7's map) still only know about primary needs — an automated ship or the map won't route/show secondary-need deliveries. Manual play is the only way to develop a colony or feed its secondary need in this version.
+
+## Milestone 8 implementation notes
+- `research_points` is a separate currency from `total_profit`, accruing passively at `RESEARCH_PER_TICK` (0.5/tick) — research and trade are two distinct things to manage, not one pool spent two ways.
+- Flat tree, no prerequisites — `RESEARCH_NODES` is a dict of 3 independent nodes: automation-slot expansion (`max_automated_ships()` now reads a bonus), fast ships (`travel_ticks()` replaces the raw `TRAVEL_TICKS` constant in `Ship.depart()`), and a hauler-class refit (`fleet_cargo_multiplier()` scales `Ship.load()`'s cargo qty). "New ship types" is interpreted as a fleet-wide cargo boost rather than spawning a literal new ship object, since there's no ship-purchasing system yet — a deliberate scope cut, not a gap.
+- Reused Aftermath's established skill-tree UI pattern (status text + hide-on-unlock button + cost) for the research rows, rather than inventing a new one.
+
+## Milestone 7 implementation notes
+- Drawn entirely from Python via Pyodide's `js` module — `document.getElementById("map-canvas").getContext("2d")` returns a real JS canvas context, and its methods (arc, moveTo, lineTo, stroke, fillText, ...) are just ordinary method calls from Python. No separate JS glue file needed, despite the CLAUDE.md's original anticipation that canvas would require one.
+- `route_edges()` reuses `colony_needing()` from Milestone 6's automation to produce one directed edge per colony — the visual is literally "what colony_needing() already knows," not new routing data.
+- Static layout (`NODE_POSITIONS`, a hand-placed pentagon) and static edges — nothing moves yet; that's Milestone 11. Drawn once in `setup()`, not per-tick.
+- Test harness gained a `FakeCanvasContext` (records draw calls instead of rendering) and `FakeElement.getContext()`, extending the existing fake-DOM pattern rather than adding a separate canvas-testing approach.
+
+## Milestone 6 implementation notes
+- Up to `MAX_AUTOMATED_SHIPS` (2 of 4) can be automated for a flat one-time `AUTOMATION_COST` (150), deducted from `total_profit` — the only wallet in this game.
+- `colony_needing(good)` returns the one colony whose need matches a good — every good in this world's fixed cycles is needed by exactly one colony, so autopilot always has an unambiguous destination once loaded.
+- `run_automation()` runs once per tick, after transit resolution: any automated, docked ship loads if empty or departs if loaded. Because it runs after that tick's `advance_transit()` calls, a ship that arrives this tick can reload the same tick — automation is snappier than the manual click-by-click loop.
+- Manual Load/Depart controls hide once a ship is automated; there's no de-automate toggle in v1 (a deliberate scope cut — the unlock is a one-time purchase, not a pausable mode).
+- Added an "Automate" button per ship and an "Automation slots: N/2 used" line in the ledger.
+
+## Milestone 5 implementation notes
+- No new mechanic — added a second colony pair (Cryo Vault produces Water/needs Energy, Helion Array produces Energy/needs Water — each needing exactly the other) and two more ships (3 at Ferrum, 4 at Cryo), purely for scale.
+- Every existing system (need satisfaction, market prices, `other_colonies()`) already generalized to the larger roster with zero logic changes — only data (COLONIES, COLONY_FLAVOR, SELL_PRICE, market_multiplier, ships) grew.
+- Any ship can reach any of the 5 colonies, not just its "own" pair — 4 ships x 5 colonies is a genuinely bigger manual-management surface than Milestone 2's 2x3, which is the entire point: this is what makes Milestone 6's automation worth having.
+
+## Milestone 4 implementation notes
+- Each good has a `market_multiplier` (starts 1.0) that drops 0.01 per unit sold and recovers 0.01/tick toward baseline, floored at 0.3. Sale profit reads `current_sell_price(good) = SELL_PRICE[good] * market_multiplier[good]`, replacing the flat price used since Milestone 1.
+- Recovery runs continuously (once per real-time tick, ~1s), so prices bounce back reasonably fast if left alone — repeated back-to-back sales of the same good are what actually crashes it, not a single sale.
+- Added a Market Prices panel (price/unit, % of baseline, meter bar per good) above the Colonies panel; prices below 70% of baseline get a red "crashed" style.
+
+## Milestone 3 implementation notes
+- Each colony now has a `ColonyState` (need_satisfaction 0..1, starts at 0.5) tracked separately from the static `COLONIES` metadata dict. Decays 0.01/tick; delivering N units of a colony's needed good raises it by N*0.05, capped at 1.0.
+- Output scales with it: `cargo_capacity() = round(CARGO_CAPACITY * (0.5 + need_satisfaction))`, ranging 0.5x-1.5x. The starting 0.5 satisfaction maps to exactly 1.0x, so Milestone 1/2 balance is unchanged at the neutral point.
+- `Ship.load()` reads cargo qty from the docked colony's current output; `Ship.advance_transit()` delivers to the destination's need only if the cargo good matches what that colony needs (wrong-good deliveries don't help).
+- Added a Colonies panel (name, flavor text, need%, output multiplier, meter bar) above the ship panels.
+- "Needs" still doesn't affect sell price (that's Milestone 4's market economics) — this milestone is purely about the need/output feedback loop.
+
+## Milestone 2 implementation notes
+- Added a third colony, Ferrum Forge (produces Machinery, needs Ore), turning the fixed Aurum<->Verdant pair into a genuine triangle: Ore feeds Ferrum, Machinery feeds Verdant, Grain feeds Aurum.
+- Added a second ship. `Ship.depart()` now takes an explicit destination argument instead of auto-toggling to "the other colony" — the player picks from whichever colonies a ship isn't currently docked at, via one Depart-to-X button per option.
+- Both ships tick, load, and depart fully independently; `total_profit`/`sale_log` stay shared/fleet-wide.
+- "Needs" is still flavor only — Milestone 3 is what makes it mechanically matter (output scaling with needs met).
+
+## Milestone 1 implementation notes
+- Two fixed colonies: Aurum Station (produces Ore, needs Grain) and Verdant Reach (produces Grain, needs Ore). Ship starts docked at Aurum Station, empty.
+- Loop: Load Cargo (fills to a fixed capacity with whatever the docked colony produces) → Depart (starts a 5-tick transit to the other colony) → on arrival, cargo auto-sells at a flat per-good price and the total profit ticks up.
+- Fully manual — no automation, no persistent need-tracking, no market fluctuation. Those are explicitly later milestones (3, 4, 6), not missing pieces of this one.
+- No hub link or ad-bar/PWA wiring yet — per the other games' pattern, hub integration is a late milestone (visual pass), not part of the core-loop milestone.
+- 13 tests (`tests/test_core_loop.py`), fake-DOM/Pyodide harness copied from Canopy's pattern (`tests/fakes.py`, `tests/conftest.py`).
+
+## Colorblind-safety audit (implemented as J18, confirmed here)
+
+Audited as part of the site-wide colorblind-safety audit (`planning/TODO.md`, Okabe-Ito-palette method per Continuum's Phase 5, redundant-cue method per Canopy's B9, audit-only method per Tide/Aftermath/Herd/Thaw/Loop's own precedent). Per the task's own starting point, checked `render_map()`'s automated-vs-manual ship-dot differentiation (J18) first.
+
+- **J18, automated (`AUTOMATED_SHIP_COLOR` gold `#e0c34c`) vs. manual (`MANUAL_SHIP_COLOR` near-white `#e8e9f0`) ship dots — already fixed, prior to this dispatch, in the J6-J20 gap-closing pass.** Confirmed the fix in `render_map()`: an automated ship draws as a diamond (`moveTo`/`lineTo` forming a rhombus) while a manual ship draws as a circle (`arc`) — the code comment marks this explicitly: "J18 — colorblind-safe differentiation: a diamond, not just a different hue, so automated-vs-manual doesn't rely on color perception at all." Gold vs. near-white also isn't a deuteranopia/protanopia confusion pair to begin with (it's a hue/lightness jump, not a red-green pair), so this was doubly safe even before the shape fix. `planning/TODO.md`'s per-game J18 line was already checked off; this dispatch checked off the separate site-wide colorblind-audit line for Trade Empire that folds J18 in.
+- **`.market-price--crashed` (red)** — not a violation: a single-state modifier on the default price-line color, not paired against a contrasting "healthy" color, and the line's own text already states the exact percentage ("X% of baseline") regardless of the color.
+- **`.ship-status--idle-warning` (amber `#e0b34c`)** — not a violation: same single-state-callout shape as the market-crashed case, and `ship_status_text()`'s own text already describes the idle state in words.
+- **`FLEET_PRIORITY_TARGET_COLOR` (pink) ring, `NODE_COLOR`/`EDGE_COLOR`/`LABEL_COLOR`** — single-purpose decorative/informational colors, no paired good/bad or automated/manual-style state riding on any of them.
+- The generic `.meter-fill` (colony need bars, market price bars) has no per-state color modifier at all — one fill color for every bar, so there's no pair to confuse.
+
+No CSS or `game.py` change made by this dispatch (J18's fix predates it). Full pytest suite (unchanged) stays green since nothing was touched.
+
+## Settings panel (implemented)
+
+Site-wide goal (`planning/TODO.md`, origin A9): one panel per game consolidating text-scale and animation/motion controls. **No sound toggle** — this hub has no audio implemented anywhere yet (`planning/LATER.md`'s "Standing question: what can you actually do with audio?"), so a toggle for it would control nothing real.
+
+A new `⚙️ Settings` toggle button in the toolbar (after Summary) opens `#settings-panel`, containing:
+- **Text size** — decrease/reset/increase buttons (A−/A/A+), scaling `--text-scale` on the root element (0.85–1.5, step 0.1), same range/step Continuum's Phase 5 `accessibility.js` established first.
+- **Reduce Motion** — a toggle button adding/removing `.reduce-motion` on `<html>`, which forces every animation/transition already in `style.css` (the meter shimmer, dome pulse, ship-glow keyframes) to be effectively instantaneous — a global override, layered on top of the existing per-animation `@media (prefers-reduced-motion: reduce)` rules that only respect the OS-level setting, not an in-game player choice.
+
+**`settings.js` is a new standalone file, deliberately independent of Pyodide/`game.py`** — same documented exception this hub already established for Continuum's `accessibility.js`: a browser-level UI preference, not game/save state, so it's persisted to `localStorage` (`trade-empire-text-scale`, `trade-empire-reduced-motion`) rather than riding `get_state()`/`load_state()`. It works even before Pyodide finishes booting.
+
+Verified live: toggling both controls updates the page immediately with zero console errors, and both settings survive a full page reload via `localStorage`. Full pytest suite (225 tests) unaffected — this feature touches no Python.
+
+## Reset-to-default settings button (Z-extra/A26, site-wide goal)
+
+A "Reset to Default" button (`#settings-reset-button`) sits at the bottom of the settings panel, below the existing text-size and reduce-motion controls -- SOL's own A26 answer flagged this as a site-wide pattern rather than a SOL-only feature, folded into `planning/TODO.md`'s Z-extra checklist. Implemented entirely in `settings.js` (no Python touched): one click calls `applyScale(DEFAULT_SCALE)` and `applyMotion(false)`, updates `--text-scale`/`data-text-scale` and the `.reduce-motion` class on `<html>` immediately, refreshes the Reduce Motion button's own label/active state via `updateMotionLabel()`, and writes both defaults back to `localStorage` so the reset survives a reload. No confirmation dialog -- this is a low-stakes, instantly-reversible display preference, not a destructive action, so `shared/confirm-dialog.js` is deliberately not wired up here.
+
+## Shared confirmation-dialog integration (J19, site-wide goal)
+
+`planning/TODO.md`'s J19 line explicitly asked to check real click
+frequency before wiring anything in — skip or soften if spending
+research points/automation credits turns out to be a common, low-stakes
+action rather than a rare one. **Investigated first, gated after
+confirming it's genuinely rare:**
+
+- **Automating a ship** (`automate_ship()`, 150 credits): capped at
+  `max_automated_ships()` — base `MAX_AUTOMATED_SHIPS` (2), +1 from the
+  `automation_slot` research node, +1 more from `automation_slot_2`, for
+  a hard ceiling of 4 — exactly the size of the fixed ship roster. It's
+  also a one-time, irreversible purchase per ship (Milestone 6's own
+  notes: "there's no de-automate toggle in v1... the unlock is a
+  one-time purchase, not a pausable mode"). So this button can be
+  clicked **at most 4 times, ever, across an entire playthrough.**
+- **Unlocking research** (`unlock_research()`): `RESEARCH_NODES` has
+  exactly **6 entries total**, each unlockable exactly once ever — the
+  unlock button hides itself once its node unlocks (Milestone 8's
+  documented UI pattern), with no re-lock or refund path. So this button
+  can be clicked **at most 6 times, ever.**
+
+Combined, that's at most ~10 clicks in an entire playthrough — nowhere
+near the repeated Load Cargo/Depart core loop this task's own caveat was
+worried about. Both are also genuinely high-stakes: irreversible spends
+of currencies that take real session time to accrue (research points at
+0.5/tick; the priciest node, Outer Reaches, costs 200 — a very long
+accrual). **Conclusion: gate both, not skip or soften** — this is
+exactly the rare/high-stakes shape the shared pattern exists for, not
+the common/low-stakes shape the caveat warned against.
+
+Both `_make_automate_handler()` and `_make_research_handler()` in
+`game.py` now route through `shared/confirm-dialog.js`'s
+`ConfirmDialog.ask()` (pre-action confirm only, per the shared pattern's
+own shape) before calling `automate_ship()`/`unlock_research()`. Each
+ship and each research node gets its own confirm id
+(`trade-empire-automate-ship-<id>` / `trade-empire-research-<node_id>`),
+so a player's "don't ask again" choice is per-target, not global.
+Covered by 5 new tests in `tests/test_confirm_dialog.py` (fake
+`js.window.ConfirmDialog`, same technique as Grid's C14/Herd's F16 —
+the real fake-DOM harness's `js` module never provides `window` by
+default).
+
+Live-verified in a real browser: unlocked Fast Ships I -> dialog showed
+"Unlock Fast Ships I for 15 research points? -1 tick travel time,
+fleet-wide." with an "Unlock it" confirm label; Cancel left it
+unresearched; a second attempt with "don't ask me again" checked ->
+Unlock it -> research landed and the skip flag persisted. Separately,
+automating Ship 1 -> dialog showed "Automate this ship for 150 credits?
+This is permanent -- there's no way to de-automate it afterward." with
+an "Automate it" label -> confirmed -> `ships["1"].automated` became
+`True` and `total_profit` dropped from 1000 to 850 as expected. Zero new
+console errors. Full 230/230 pytest suite (225 existing + 5 new)
+unaffected.
+
+## "What's New" changelog panel (implemented)
+
+Site-wide goal (`planning/TODO.md`, origin K16): a small `changelog.json`
+(flat list of `{"date", "entry"}`, same loading contract as
+`achievements.json` — fetched into the Pyodide boot sequence and handed to
+`game.py` as a window global, filesystem fallback for the pytest harness)
+rendered in a hidden-until-opened panel behind a new "📋 What's New"
+toolbar button, same idiom as the achievements/settings panels
+(`on_toggle_changelog()`/`update_changelog_display()`, matching this
+file's own `on_toggle_achievements()`/`update_achievements_display()`
+almost exactly, including their defensive `if toggle is None or panel is
+None: return` guard). Entries render newest-first.
+
+Populated with 9 real, dated highlights spanning all 14 milestones
+(collapsed into one entry, since they all landed the same day) plus the
+notable post-milestone work above (space-theme pass, mobile needs-strip,
+achievements, colorblind audit, settings panel, J19 confirm-dialogs) —
+dates cross-checked against `git log` where this file didn't already carry
+one.
+
+10 new tests in `tests/test_changelog.py` (catalog/JSON sanity, toggle
+open/close, label text, newest-first ordering, rendered content) —
+240/240 tests green. Verified live: panel opens, shows the real entries
+newest-first, zero console errors.
+
+## Onboarding-tooltip coverage check (site-wide goal, planning/TODO.md, origin A14)
+
+Audited whether a returning player who's skipped or forgotten the
+tutorial (`TRADE_EMPIRE_TUTORIAL_STEPS`'s spotlight walkthrough) can
+still make sense of the permanent UI's non-obvious parts, on top of the
+persistent, reachable-any-time `#howto-toggle-button`/`#howto-panel`.
+This game had zero `title=`/`aria-label` attributes in `game.py` going
+in (the 4 in `index.html` are all Settings-panel boilerplate shared with
+every other game), so investigated properly rather than assuming the
+existing four section-level `.info-toggle` icons (Research, Market
+Prices, Colonies, Fleet Priority) plus the Ledger's Automation info-toggle
+were the whole picture.
+
+Most of the permanent UI already covers itself well, at multiple layers:
+- The four section-level `.info-toggle` icons (Research, Market Prices,
+  Colonies, Fleet Priority) plus the Ledger's Automation info-toggle
+  permanently explain the research-points-are-a-second-currency split,
+  the price-crash/recovery mechanic, the need-satisfaction output-scaling
+  formula, Fleet Priority's idle-reposition behavior, and the automation-
+  slot cap — matching the site's established section-level pattern.
+- `ship_status_text()` dynamically states exactly what's going on with
+  every ship every render (in-transit ETA, automated-and-running, loaded-
+  and-awaiting-destination, idle-too-long warning) — a stronger, always-
+  current form of explanation than a static tooltip.
+- Every action button already states its cost/effect inline in its own
+  label (`Automate (150)`, `Research (30)`, `Purchase Ship (400)`), and
+  research nodes needing a prerequisite already said so in their label
+  text (`"...+1 more automation slot (requires Automation Expansion)"`)
+  — but only in the static `index.html` placeholder shown before Pyodide
+  finishes loading.
+- The Rift Colonies (Milestone 13's third system, gated behind the
+  "Outer Reaches" research node) reuse the exact same need/produce/
+  develop mechanic as the home system and the Kepler Cluster, both
+  already explained elsewhere — unlike SOL's Sky Cities gap (a genuinely
+  new dual-cost mechanic), this isn't a new mechanic needing its own
+  explanation, just more colonies using one already covered.
+
+**Real gap found and fixed:** `render_research()` overwrote that
+placeholder text every render with `RESEARCH_NODES[node_id]["description"]`
+alone, which never mentions a node's `"requires"` prerequisite at all. So
+the moment Pyodide finished loading, the "(requires Automation
+Expansion)" / "(requires Galaxy Expansion)" hint vanished from the live
+DOM for `automation_slot_2` and `outer_reaches` — confirmed live via a
+local server (`research_points = 200; render()` left both nodes' status
+text identical whether or not their prerequisite was unlocked, with the
+unlock button simply disabled and no reason given anywhere permanent). A
+returning player sitting on plenty of research points with a locked,
+unexplained button is exactly the scenario this audit exists to catch —
+the same shape as Aftermath's own `missing_prereqs()` fix, just never
+applied here since this tree only grew its first prerequisite edge at
+Milestone 13 (J7's note: "the tree gets its first real prerequisite
+edge"), after the tutorial copy was already written.
+
+**Fixed:** `render_research()` (`game.py`) now appends
+`" (requires {prereq_label})"` to a gated node's status text whenever its
+`requires` node isn't yet unlocked, reading the prerequisite's own label
+from `RESEARCH_NODES` so the two strings can't drift out of sync, and
+drops the note the moment the prerequisite is satisfied. No new DOM
+elements, no `index.html` change — the static placeholder text was
+already correct, this just makes the same information survive every
+subsequent render instead of only the pre-Pyodide flash.
+
+Verified: 2 new tests in `tests/test_research_tree.py`
+(`test_render_states_missing_prereq_on_gated_node`,
+`test_render_drops_missing_prereq_note_once_satisfied`) — full suite
+240 → 242, all green. Live-verified via `hub-dev-server`: with
+`research_points = 200` and no prior unlocks, both
+`research-automation_slot_2-status` and `research-outer_reaches-status`
+read the corrected "(requires ...)" text on the live DOM and the unlock
+buttons stayed correctly disabled; zero console errors attributable to
+this change (one pre-existing `ERR_FAILED` network error is the
+placeholder AdSense client ID failing to load, unrelated to and
+unaffected by this fix, same as every other game's ad-bar).
+
+## UI decluttering pass (2026-09-20)
+
+Audited as the closing item of `planning/TODO.md`'s "Big standalone features" section (the user's own note: "everything looks very crowded... making sections either collapsible or other 'screens' within a game could help"). This game is explicitly named in that task's own brief as the likely-crowded case — "just fun," not a teaching game, but with "a lot of panels (fleet, market, colonies, research)" — so it got a real look rather than a quick pass, including a live check at `hub-dev-server` at real desktop width (1280px; this game's mobile-needs-strip fix above already covers the narrow-viewport case).
+
+Most of the panel count is legitimate, not clutter: the Kepler/Rift expansion sub-panels stay `hidden` until their research unlocks them, the endgame panel stays `hidden` until reached, and the toolbar's secondary panels (How to Play, Achievements, What's New, Settings, Summary) are already hidden-until-opened. The six ship panels are each genuinely checked every turn (load/depart is the core loop) so collapsing any of them would hide exactly the "player checks every turn" content the task's own guidance says to leave alone — same reasoning for Market Prices (a per-sale decision) and Colonies (a per-depart decision).
+
+**Real crowding found and fixed, scoped to one panel:** the Research panel always rendered all 6 node rows (`.research-row`, each with its own status line and unlock button) directly under the `Research points: N` line, regardless of whether any node was affordable or relevant yet. This game's own J19 audit (above) already established, independently of this pass, that these unlock buttons are clicked **at most ~6 times in an entire playthrough** — "nowhere near the repeated Load Cargo/Depart core loop" — making this list exactly the "rarely-touched breakdown" shape the site-wide `<details>` pattern targets, not information a player needs on every render. Wrapped the 6 rows in a new `<details class="research-nodes-toggle">` with `<summary>Research nodes (6)</summary>`, **collapsed by default** (unlike Drift's same-day open-by-default fix — this is an occasional action list, not core framing a first-time player needs to see unprompted). `Research points: N` itself stays outside the toggle, unaffected, so the one number players do glance at every round still renders every render. Same `<details>`/`<summary>` idiom as Tide's `.ticker-history-toggle`; new `.research-nodes-toggle` CSS added to `style.css` matching the existing `.info-toggle` palette. No id renamed, `#research-panel > .panel-label::before`'s direct-child selector confirmed unaffected (only `.research-row` elements moved, not `.panel-label`), and no `game.py` change — `render_research()` still targets the same element ids via `getElementById`. Live-verified at 1280px: collapsed by default shows just the points line + summary, expands to all 6 rows with unlock buttons rendering their real prices/disabled-state correctly, collapses back cleanly, zero new console errors. Full pytest suite (242 tests) unaffected — pure HTML/CSS change.
+
+## Round-2 backlog pass, wave 1 (2026-09-20)
+Built (planning/TODO.md J-items): J2 (trend arrow on route profitability, from `good_profit_recent`), J4 (labeled "now" marker + tooltip on the price sparkline), J6 (map-canvas hover text explaining the Fleet Priority ring), J12 (Reset name button per ship), J13 (Galaxy overview section in Summary), J14 (veteran hauler badge after 5 round trips on one route; `route_key`/`route_legs` per ship), J18 (automate-button permanence tooltip), J20 (crash recovery ETA tooltip), J24 (avg needs-met % beside colony sparkline), J25 (Fleet efficiency section in Summary; `total_earned` per ship), J26 (locked research tooltip), J30 (map legend). J8 already existed (idle warning text states the exact tick count). New save fields (`route_key`, `route_legs`, `total_earned`, `good_profit_recent`) default safely for old saves. 255 tests.
+Left for later: J1, J3, J5, J7, J9, J10, J11, J15, J16, J17, J19, J21, J22, J23, J27, J29 (larger mechanics/visuals).
+
+## Sale-spark burst (J22, implemented)
+
+`planning/TODO.md`'s J22: "A small particle/spark effect on a successful
+high-value sale." Purely decorative -- `tick()` only reacts to a sale
+*after* `total_profit` is already updated and `sale_log` already
+appended, so the effect can never change or delay the actual sale
+numbers.
+
+**Threshold: `SALE_SPARK_THRESHOLD = 200` credits.** Reasoning worked
+backward from this game's own economy numbers rather than picking a
+round number blind: a home-system sale (Ore/Grain/Machinery/Water/
+Energy, base `SELL_PRICE` 5-10 credits/unit) tops out around 180 credits
+even at full colony development *and* full Milestone-10 specialization
+(the best case, Forge World's Machinery: 18 units x 10 credits/unit) --
+*without* the Hauler Refit research (`fleet_cargo_multiplier()`, +50%
+cargo). Clearing 200 credits therefore takes real, earned progress: the
+Hauler Refit unlock, a well-developed/specialized colony, or selling one
+of the pricier Kepler/Rift-tier goods (Isotopes 18, Crystal 20,
+Antimatter 26 credits/unit) outright. That keeps the very first, very
+ordinary sales a new player makes from ever triggering it, while still
+making it a recurring mid-game treat rather than a once-a-playthrough
+rarity gated behind the endgame.
+
+**Visual treatment:** six small glowing dots (`.sale-spark-0` through
+`-5`, fixed clock-face directions via `--spark-x`/`--spark-y` custom
+properties rather than randomized inline styles, so the burst is
+deterministic and testable) burst outward from the profit readout and
+fade over a single 700ms `te-sale-spark` CSS keyframe animation --
+matching this game's existing `te-`-prefixed keyframe naming
+(`te-meter-shimmer`, `te-dome-pulse`, `te-ship-glow`) and its established
+`ease-out`/`forwards` idiom. Respects motion preferences the same way
+those three do: an explicit `@media (prefers-reduced-motion: reduce)`
+override turns the animation off at the OS level, and the Settings
+panel's `.reduce-motion` class (site-wide manual override, see the
+"Settings panel" section above) already catches it for free via that
+class's existing `animation-duration: 0.001ms !important` rule -- no
+per-animation reduced-motion code needed for the in-game toggle.
+
+**Implementation shape, and a real bug live verification caught:**
+`_spark_burst_high_value_sale()` (`game.py`) creates the six spans and
+removes them again after `SALE_SPARK_DURATION_MS` (700) via
+`setTimeout(create_proxy(...), ...)` -- the same one-shot create/time/
+remove-after-timeout pattern as Canopy's `_flash_personal_best_badge()`
+and this file's own achievement/notice toasts, just creating transient
+elements instead of toggling a class on a persistent one. The first
+implementation appended those spans directly into `#profit-display`
+(the element `render()` already wrote `Total profit: N credits` into via
+`.innerText`) -- unit tests against the fake-DOM harness passed, because
+that harness's `innerText` was a plain attribute that didn't clear
+`.children` on assignment. A live check in a real browser (Pyodide,
+`hub-dev-server`) caught what the fake DOM couldn't: on a real
+`Element`, assigning `.innerText` replaces all child nodes, so
+`render()`'s very next per-tick update wiped the just-created sparks out
+before they ever got a frame to paint -- the effect fired but was never
+actually visible.
+
+Fixed by splitting `#profit-display` into two children: `#profit-
+display-text` (the span `render()` now targets) and a sibling `#sale-
+spark-container` (a zero-size, centered overlay the spark burst appends
+into instead) -- `index.html`'s only markup change. Also hardened
+`tests/fakes.py`'s `FakeElement.innerText` into a real property whose
+setter clears `.children`, matching real-DOM `.innerText`/`.innerHTML`
+semantics (the latter already worked this way), so this exact bug shape
+would be caught by the unit suite in the future, not just live
+verification. `tests/test_sale_spark.py` (8 tests) covers: the burst
+creates 6 elements with the right classes, it doesn't disturb
+`#profit-display-text`'s own content, elements are removed once the fake
+timer fires, an ordinary sale (80 credits) doesn't trigger it, a sale one
+credit under/exactly at the threshold (192/200 credits) don't/do
+trigger, and a clearly high-value sale (320 credits) both triggers and
+still cleans up. Full suite 255 -> 263.
+
+Live-verified end to end via `hub-dev-server` and Pyodide directly
+(`window.pyodide.runPython(...)`, calling the real gameplay path --
+loading a ship, forcing a 40-unit Ore cargo, departing, then ticking it
+to arrival): confirmed `#sale-spark-container` gains exactly 6 children
+immediately on a 320-credit sale, `#profit-display-text` updates to the
+correct total in the same tick without disturbing them, the children are
+gone again ~1 second later, and zero console errors throughout. (Pixel
+screenshots of this were inconclusive purely because the Browser pane
+was hidden on the host side for this session -- `document.hidden` was
+`true` in the tab throughout -- not because of anything in the feature
+itself; the DOM/console-level checks above are the real verification.)
+
+## Save-portability audit fix (Z25, 2026-09-21)
+
+Site-wide `planning/TODO.md` Z25 audit (confirm every game's save-code
+payload is still a reasonable size). Built a driver script against this
+game's own `tests/conftest.py` `GameEnv` (purchase + automate every ship,
+unlock all research, then run 5000 real `tick()` calls -- ~83 simulated
+minutes at this game's `TICK_INTERVAL_MS=1000`, a realistic "left it
+running automated for a long session" case since this game explicitly has
+no idle/wait-timer gate but *does* auto-tick via `setInterval` regardless
+of player presence) and measured `len(json.dumps(get_state()))`.
+
+**Found a real issue:** `sale_log` (comment: "most recent sale message,
+for the status line") is appended to on every single sale inside `tick()`
+with no cap at all, unlike every sibling rolling-history field in this
+file (`good_profit_recent` capped at `2 * ROUTE_TREND_WINDOW`,
+`price_history`/`need_history` capped at `TREND_HISTORY_MAX_POINTS`) --
+and confirmed by grep that only `sale_log[-1]` is ever read anywhere
+(`render()`'s status line, and its own regression test in
+`tests/test_core_loop.py`). At 5000 ticks this alone was ~100KB of a
+~110KB total payload -- squarely the "hundreds of KB, worth flagging"
+range this audit's own threshold calls out, and it scales without bound
+the longer an automated session runs.
+
+**Fixed:** added `SALE_LOG_MAX_ENTRIES = 20` and a
+`del sale_log[:-SALE_LOG_MAX_ENTRIES]` right after the existing append in
+`tick()`, matching the `del recent[:-2 * ROUTE_TREND_WINDOW]` idiom
+already used two lines above it for `good_profit_recent`. 20 is generous
+above the "only the last one is read" actual need, in case a future
+feature wants a short recent-sales view, same margin this file's other
+rolling-history caps already give themselves. `load_state()` was left
+restoring `sale_log` without its own truncation (matching
+`good_profit_recent`/`price_history`/`need_history`'s existing
+load-time behavior, none of which truncate on load either) -- an
+oversized loaded save self-heals on the very next `tick()`, so no
+correctness gap exists between load and the first tick.
+
+Re-measured after the fix: the identical 5000-tick session's payload
+dropped from ~110,566 bytes to 11,000 bytes (`sale_log` itself:
+100,576 -> 1,010 bytes). Every other field was already within reason
+(ships/colony_states/market_multiplier/research are all bounded by fixed
+counts, not per-tick growth).
+
+Verified: full 265/265 pytest suite green (no test asserted `sale_log`'s
+length or read anything but its last entry), `flake8 games/trade-empire
+--extend-ignore=E501` clean on `game.py` itself (two pre-existing E741
+findings in `tests/test_backlog_wave.py` predate and are unrelated to
+this change).
+
+## Screen-reader accessibility audit (Z15, site-wide goal, planning/TODO.md)
+
+Static-analysis audit (grepping/reading `index.html`/`game.py`, no live screen
+reader in this environment — same audit-only method the colorblind-safety
+passes already established for this hub) of the achievements and settings
+panels: toggle-button accessible names, panel role/heading semantics, focus
+order on open/close, keyboard reachability of interactive elements, and
+checkbox/label association.
+
+**No real gap found — no change made.** This game's settings panel is a
+short two-row control block (text-size buttons + a "Reduce Motion: On/Off"
+toggle button, each row already carrying its own visible `<span
+class="settings-row-label">`) rather than the longer checkbox-based panel
+some other games in this hub have — there's no separate panel-title heading
+element, but nothing in it needs one: each control already names itself via
+its own visible label text and the button's own state-reflecting text
+("Reduce Motion: Off"/"Reduce Motion: On"), and the `#settings-toggle-button`
+above it already states the panel's purpose. Same "plain semantic markup
+already covers it" call this hub's colorblind-safety audits make for
+comparable cases — not adding a heading purely for the sake of having one.
+Checked against the same candidate list as every other game in this pass:
+- Both toggle buttons (`#achievements-toggle-button`, `#settings-toggle-button`)
+  already carry descriptive visible text, a sufficient accessible name on its
+  own — no `aria-label` needed.
+- The achievements panel itself has no heading of its own, but is adequately
+  labeled by the toggle button's own visible text immediately above it.
+- No focus-trap exists anywhere in this hub, and none was warranted here:
+  clicking the toggle button never moves focus itself, so it naturally stays
+  on that same button when the panel opens or closes.
+- Every interactive element inside both panels is a real `<button>`
+  (confirmed via a site-wide grep for `.onclick =` assignments and
+  `createElement("div")` calls with a wired click handler — none found; this
+  game's settings panel has no checkbox at all, so the label/`for` question
+  doesn't apply here).
+
+No code changed; ran as the baseline check this pass calls for regardless
+of verdict.
+
+## J16: galaxy-dot hover tooltip (2026-09-21)
+
+Hovering the endgame galaxy canvas now names the nearest drawn dot ("Background world #N of M ... decorative dot; the galaxy is abstracted") within a 5px radius, and shows a default explanation elsewhere. Dot placement moved into `endgame_galaxy_dot_position(i)` (same golden-angle spiral, so drawing is unchanged); `endgame_galaxy_hover_text()` is a pure function; the `mousemove` listener is wired once via `_wire_endgame_galaxy_hover`. The tooltip is deliberately honest that dots are decorative rather than inventing per-world data. Suite 270 passing (new `tests/test_galaxy_hover.py`); checked live under Pyodide with no console errors (the render and hover text were exercised through `pyodide.runPython`; a real mouse hover wasn't simulated).
+
+## J27: trade almanac (2026-09-21)
+
+A collapsed "Trade almanac" `<details>` at the top of the Market prices panel lists, per good, its baseline sell price, the range the market can push it through (base x `MIN_PRICE_MULTIPLIER` to base x `MAX_PRICE_MULTIPLIER`), the colony that makes it and the colony that needs it. Rows come from `almanac_rows()` (goods from reachable systems only, so locked Kepler/Rift goods aren't spoiled) and are rendered by `render_almanac()`, called from `render_market()`. The page reuses the `.info-toggle` class for its disclosure behaviour, but the shared circular "i" summary styling is overridden for this label (`.info-toggle.almanac`). Suite 274 passing (new `tests/test_almanac.py`); checked live at desktop and 375px, no horizontal overflow, no console errors.
+
+## J29: opt-in seasonal demand (2026-09-21)
+
+A "Seasonal demand" toggle (default off) in the Market prices panel. While on, `season_ticks` advances each `tick()`; every `SEASON_LENGTH_TICKS` (30) the pair of goods "in demand" rotates through the goods from reachable systems (`seasonal_reachable_goods()`, two per season, wrapping), and a good in demand sells for `SEASONAL_DEMAND_BONUS` (+25%) more. The bonus is applied in `current_sell_price()` (the one place prices are computed, so ship profits and the market display agree), and nothing is ever marked down, matching the game's no-punishment stance. The status line always names the current pair, the ticks left, and the next pair, so it's fully predictable; in-demand goods are also flagged in the market rows. It is opt-in so the base economy and every existing test/balance stay unchanged. New saved field `seasonal_demand: {enabled, ticks}`, validated on load (bad or missing values fall back to off/0). Suite 282 passing (`tests/test_seasonal_demand.py`, 8 tests, plus the expected-keys test); checked live (toggle, status text, in-demand price).
+
+## J23: diplomatic relations (2026-09-21)
+
+Units delivered on trips that cross star systems (home / Kepler / Rift, judged with `_system_label_for_colony()` in `Ship.advance_transit()`) accumulate in `cross_system_units`. `DIPLOMACY_THRESHOLDS = (25, 75, 150)` give relations levels 1-3, and each level is `DIPLOMACY_BONUS_PER_LEVEL` (+5%) on the proceeds of every sale (`profit = round(qty * price * diplomacy_multiplier())`). The bonus is applied to proceeds rather than the per-unit price so it isn't lost to integer rounding of cheap goods, and it leaves the displayed market price untouched. A status line in the Market panel (`#diplomacy-status`, hidden until Galaxy Expansion makes a second system reachable) shows the level, the bonus and the units to the next level. New saved field `cross_system_units`, validated on load (bad/missing values become 0). Suite 288 passing (`tests/test_diplomacy.py`, 6 tests, plus the expected-keys test); checked live (status line appears and counts down).
+
+## J11: opt-in route hazards and insurance (2026-09-21)
+
+Two toggles (both default off) in the Market prices panel. With **Route hazards** on, each loaded arrival has `ROUTE_HAZARD_CHANCE` (8%, rolled from `hazard_rng`, a module-level `random.Random` tests replace with a fixed value) of being disrupted: the cargo is lost and nothing is sold or delivered. `Ship.advance_transit()` returns `(good, 0, payout)` for a disruption (`qty == 0` marks it), and `tick()` credits only the payout, skips the market impact and shows a toast. **Route insurance** (enabled only while hazards are on) charges `INSURANCE_PREMIUM_PER_TICK` (1 credit) for each ship in transit each tick, never taking credits below zero, and refunds `INSURANCE_COVERAGE` (75%) of what the lost trip would have earned. With a 5-tick trip and a typical load this is roughly break-even in expectation, so insurance is a variance-versus-cost choice rather than a free win. Counters (`disruptions_suffered`, `insurance_payouts`, `premiums_paid`) show in the status line. Saved as `route_hazards: {hazards, insurance, disruptions, payouts, premiums}`, validated on load (bad or missing values become off/0). Both are opt-in, so the base economy is unchanged. Suite 297 passing (`tests/test_route_hazards.py`, 9 tests); checked live (toggles, status text, no console errors).
+
+## J5: ship archetypes (2026-09-21)
+
+Ships 5 and 6 are bought with a type chosen from a picker next to their purchase button (`#ship-5/6-archetype-select`); the original four ships are always Balanced. `SHIP_ARCHETYPES` defines the three types: Balanced (no change), Cargo-heavy (x1.5 cargo, +1 travel tick) and Fast (x0.75 cargo, -1 travel tick), each a genuine trade-off so none is strictly better. `Ship.load()` multiplies cargo by the archetype (never below 1 unit), `_begin_transit()` adds the tick delta (never below 1 tick), and non-Balanced ships show their type in their label. `purchase_ship(ship_id, archetype)` falls back to Balanced for an unknown value. Saved per ship as `archetype`, validated on load (bad or missing values become Balanced), so old saves load unchanged. Suite 305 passing (`tests/test_ship_archetypes.py`, 8 tests, plus the ship-keys save test); checked live (picker shows, purchase applies the choice, label updates, no console errors).
+
+## J15: research specialization fork (2026-09-21)
+
+Four new research nodes form a fork gated behind Automation Expansion II. **Automation path:** `auto_efficiency` (120 points: automated ships earn +10% on every sale) then `auto_efficiency_2` (260: +1 automation slot). **Market path:** `market_insight` (120: `recover_market()` recovers 50% faster) then `market_insight_2` (260: `apply_market_sale()` drops the price 30% less per unit). Each node lists `excludes` (the other path's nodes), and `research_node_blocked_by()` makes `can_unlock_research()` refuse a node once the opposite path's first tier is taken, so the choice is permanent; the research panel says "closed: you chose X" and the locked button's tooltip explains it. The "Fully Studied" achievement can't require every node any more (the paths are mutually exclusive), so `_all_research_unlocked()` now means every shared node plus one completed path, and the achievement text says so.
+
+**Real bug found and fixed while verifying this live:** reading `element.innerText` back from an element inside a collapsed `<details>` returns an empty string in a real browser, so the existing `status_el.innerText += " (requires X)"` pattern (from the A14 tooltip audit) silently wiped a research node's label and description whenever the panel was collapsed; the fake-DOM tests can't see this. `render_research()` now builds the text in a local variable and assigns it once, and the same fragile pattern in `render_market()`'s in-demand suffix was removed too. Suite 313 passing (`tests/test_research_specialization.py`, 8 tests, plus the updated all-research achievement test); the closed-branch and requires text were checked live via `textContent`.
+
+## J7: colony investment (2026-09-21)
+
+Every colony panel has an "Invest (60)" button (`#colony-<id>-invest-button`, hidden once the colony is developed) that spends `COLONY_INVEST_COST` (60 credits) to add `COLONY_INVEST_UNITS` (10) units of development progress, the same `cumulative_delivered` progress that deliveries build toward `DEVELOPMENT_THRESHOLD` (100), so investing accelerates Level 2 development and its specialization bonus. The progress logic moved into `ColonyState.add_development()` (which `deliver()` now uses, behaviour unchanged). Investing costs more per unit than a delivery earns and does not raise need satisfaction, so it speeds a colony up without replacing supplying it; it stops once the colony is developed and is refused for colonies in locked systems. No new saved state (the progress already lives in each colony's saved `cumulative_delivered`). One cosmetic caveat: the development line still reads "N/100 <good> delivered" even when some of N was invested. Suite 320 passing (`tests/test_colony_investment.py`, 7 tests); checked live (60 credits spent, 10/100 shown, no console errors).
+
+## J9: market speculation / stockpiles (2026-09-21)
+
+Each good's market row has a small warehouse: `Buy 5` (`STOCKPILE_LOT`) buys at the current sell price into a stockpile capped at `STOCKPILE_CAPACITY` (15), and `Sell all` sells the stockpile at the current price less a `STOCKPILE_SELL_FEE` (10%). Buying nudges the price up and selling nudges it down by the same per-unit impact a ship's sale has (`apply_market_sale()`), so the player's own trades move the market. The limits are what keep it from being a money loop: small capacity, a fee, and price impact; a test confirms a crash-then-recovery cycle profits while buying and selling back at a flat price loses money. Only goods from reachable systems can be stockpiled, and stockpile sales deliberately do not count as trade sales (no `total_sales_count`, `goods_sold_ever` or route stats), so they can't be farmed for achievements. Saved as `stockpile: {good: units}` (only non-zero entries), validated per good on load (bad or missing values become 0). Suite 329 passing (`tests/test_stockpile.py`, 9 tests); checked live (buy 5 for 40, sell for 36 after fee and price impact, no console errors).
+
+## J17: player-run trade posts (2026-09-21)
+
+Once automation is maxed (`automation_is_maxed()`: no free automation slot), a "Establish trade post" button appears in the Market panel. A post costs `TRADE_POST_COST` (400 credits), goes in the next reachable star system that lacks one (`TRADE_POST_SYSTEMS` order: Home, Kepler Cluster, Rift Colonies, gated by Galaxy Expansion and Outer Reaches), and pays `TRADE_POST_INCOME_PER_TICK` (2) credits every `tick()` with no ship assigned; the income is a flat credit, not a sale, so it never touches sale stats or achievements. One post per system means it scales with how far the empire has expanded. Saved as `trade_posts: [system labels]`, validated on load (unknown, duplicate or non-string entries dropped; bad shapes become none). Suite 336 passing (`tests/test_trade_posts.py`, 7 tests); checked live (hidden until automation is maxed, then buildable, status line updates, no console errors).
+
+## J10: docking/undocking pulses on the map (2026-09-21)
+
+`Ship._begin_transit()` adds an "undock" pulse at the colony a ship leaves and `advance_transit()` adds a "dock" pulse at the colony it reaches (`dock_pulses`, entries `[colony_id, kind, age]`). `tick()` ages them and drops each after `DOCK_PULSE_TICKS` (3) ticks; `render_map()` draws one ring per live pulse via `draw_dock_pulses()`: undock rings grow outward and dock rings close in on the colony, with the dock ring drawn heavier, so the meaning is carried by direction and line weight rather than colour. Pulses for colonies in still-locked systems are skipped, and nothing is drawn when `_reduced_motion_on()` (the `.reduce-motion` class the settings panel sets on `<html>`) is true. It is purely a view effect (nothing saved) and is coarse by design, since the map only redraws once per tick. Suite 343 passing (`tests/test_dock_pulses.py`, 7 tests); checked live (a departure creates the pulse and the map redraws with no console errors; the pulse itself, being three ticks long, was verified through state and canvas pixels, not by eye).
+
+## J19: colony loyalty demands (2026-09-21)
+
+`ColonyState.update_loyalty()` (called from `tick()` next to `decay()`) counts consecutive ticks with need satisfaction below `NEGLECT_THRESHOLD` (0.25); after `NEGLECT_DEMAND_TICKS` (40) the colony makes a one-time concession demand that stays open for `DEMAND_WINDOW_TICKS` (30). Granting it (`grant_concession()`, `CONCESSION_COST` 80 credits) restores `CONCESSION_SATISFACTION_BOOST` (30%) of need satisfaction and starts a `DEMAND_COOLDOWN_TICKS` (60) cooldown; ignoring it costs nothing, it lapses, resets the neglect count and starts the same cooldown, so a demand can never re-arm during a cooldown. It is deliberately an offer that rewards attention rather than a punishment (no output penalty, no forced payment), which also keeps the base economy's balance and every existing tick-driven test unchanged. Each colony panel shows the demand line and a "Grant concession" button only while a demand is open. Saved per colony as `neglect_ticks`, `demand_ticks_left` and `demand_cooldown`, each validated as a bounded non-bool int on load (bad or missing values become 0). Suite 352 passing (`tests/test_colony_loyalty.py`, 9 tests); checked live (demand appears, the concession costs 80 credits, the demand clears, no console errors).
+
+## 320px mobile-viewport audit (Z18, site-wide goal, planning/TODO.md)
+
+Checked at a genuine 320px viewport (narrower than the original 375px
+mobile pass) via the Claude Browser tool's `resize_window`.
+
+**Real bug found and fixed:** the J27 Trade Almanac (`#almanac-body`, a
+`<table class="almanac-table">` with 5 columns — Good/Base/Typical
+range/Made by/Needed by) is tucked behind a `<details class="info-toggle
+almanac">` disclosure. Closed, it contributes nothing to layout; opened at
+320px, its cells' own longest unbreakable words (a full colony name plus
+"(Home system)" in the last two columns) still summed past the card's
+252px width even with normal text wrapping, pushing real page-level
+horizontal overflow (`document.documentElement.scrollWidth` hit 344 against
+a 320 viewport) — the "Needed by" column was clipped clean off the right
+edge of the *screen*, not just the card, with no way to reach it. Fixed by
+giving `#almanac-body` `overflow-x: auto` and `.almanac-table` a
+`min-width: 480px`, the same "let it scroll instead of clip" idiom this
+game's own `#mobile-needs-strip-track` already uses for a different wide
+element, rather than redesigning the table into cards. Confirmed live
+afterward: the table now scrolls horizontally within its own card (a
+visible scroll thumb appears under the header row) and
+`document.documentElement.scrollWidth` stays at 320 with the almanac open.
+
+No other real overflow found — the mobile-docked `#mobile-needs-strip`
+(J-series colony-needs strip) sat correctly at 288px wide, and its own
+inner `.mobile-needs-strip-track` horizontal scroll is itself a deliberate,
+pre-existing pattern, not a bug. `flake8`/tests unaffected (pure CSS) —
+suite stayed at 352/352.
+
+## Difficulty-aware achievements audit (Z27, site-wide goal)
+
+Trade Empire has two opt-in toggles: J29's seasonal demand (a pure income
+bonus — `SEASONAL_DEMAND_BONUS` only ever raises a hot good's sell price,
+never lowers anything) and J11's route hazards + insurance
+(`route_hazards_enabled`/`route_insurance_enabled`, both freely
+switchable at any time, no lock-in).
+
+J29 is strictly a buff, so it can only ever make an income/profit
+achievement (`profit_10k`, `profit_100k`) easier, never harder or
+impossible — checked and confirmed there's no achievement with an upper
+bound or a "without any bonus" condition that a buff could trivialize
+either. J11's hazards add an 8% per-arrival chance of a disrupted trip
+(cargo lost) — probabilistic, not deterministic, refundable via insurance,
+and freely reversible before attempting anything achievement-sensitive.
+No achievement (`diversified_trader`, `market_recovery`, the profit
+thresholds) has a component that this variance could push out of reach
+altogether — worst case it's slower, the same "harder, not impossible"
+shape every other toggle in this hub lands on once it's freely reversible.
+
+**No change needed.** No code touched; `flake8`/tests unaffected.
+
+## Achievement-progress bar in toolbar (Z-extra/A10, site-wide goal)
+
+Already satisfied — see the existing toggle-button label. `#achievements-
+toggle-button`'s `innerText` already reads `"🏆 Achievements (N/M)"` via
+`update_achievements_display()`, called from the main render loop, so the
+live earned/total count is visible in the toolbar before the panel is
+ever opened. No code change needed here.
+
+## "What's new since you played" banner (Z24, site-wide goal)
+
+A new shared `shared/whats-new-banner.js` -- deliberately distinct from
+this game's own in-game "What's New" changelog PANEL above (opt-in,
+player-triggered, always shows the full history from scratch). The
+banner instead appears automatically on page load, but ONLY for a
+RETURNING player who has missed real entries since their last visit: it
+diffs this game's `changelog.json` against
+`localStorage["whats-new-seen:trade-empire"]` (the date string of the
+newest entry already shown) and lists just the new ones, not the whole
+log. A first-ever visit silently marks the current changelog as seen
+rather than dumping the full history on a brand-new player. Reuses the
+same `window.CHANGELOG_JSON` global this game's own changelog panel
+already fetches -- no second network request. One `<script
+src="../../shared/whats-new-banner.js" data-game-id="trade-empire">`
+include, added right after `shared/last-played.js`'s own include. See
+root `CLAUDE.md`'s Working notes for the full write-up -- shared
+infrastructure, documented once there rather than duplicated across all
+12 games' own files.
+
+## Keyboard-shortcut convention: ?/Esc (Z4, site-wide goal)
+
+Wired via the new shared `shared/keyboard-shortcuts.js` -- one script
+include plus one `KeyboardShortcuts.init({panels: [...]})` call at the
+end of `index.html`, listing this game's real toggle-button + hidden-
+panel pairs: How to Play, Achievements, What's New, and Summary. `?`
+opens a small floating shortcuts-help overlay; `Esc` closes it and clicks
+the toggle button of whichever listed panel is currently open, reusing
+each panel's own open/close logic. The endgame panel, the research-nodes
+`<details>` disclosure, the Route Hazards/Insurance/Seasonal Demand flag
+toggles, and every always-visible galaxy-content section (Research,
+Market, Colonies, the ship panels) aren't in the list -- none has a
+single player-clicked toggle button a generic Esc handler could safely
+reuse to close it.
+
+## Callout-to-achievement audit (Z-extra / J28, 2026-09-26)
+
+J28's "first automated ship" one-off notice toast duplicated the `first_automation` achievement exactly, so it was removed together with its persisted `seen_first_automation_callout` flag (old saves that still carry the key simply ignore it). The achievement toast is now the only announcement. 352 -> 353 tests green.
+
+## J21: trade empire legacy (2026-09-26)
+
+Closing the replay gap the Z7 audit found (a full endgame with no reason to start again). Once `endgame_reached`, the endgame panel offers "Found a new corporation": behind the shared confirm dialog, everything resets to a fresh start (via `load_state()` of a `get_state()` snapshot of a brand-new game captured just before `setup()` runs, `_fresh_state`), and a permanent **legacy level** goes up by one, to a cap of 5 (`LEGACY_MAX_LEVEL`). Each level gives `LEGACY_STARTING_CREDITS` (+150) starting credits and `LEGACY_SALE_BONUS` (+2%, so up to +10%) on every sale (a factor on the sale profit line beside the diplomacy multiplier). Earned achievements carry over (`legacy_achievements`, unioned into `achievement_ids_earned()`, since this game's achievements are otherwise derived from live state and would vanish on reset), and the new **A New Beginning** achievement is earned on the first founding. The legacy is part of the save (a `legacy` key, only written once level > 0, validated on load: level clamped and bool-rejected, achievement ids filtered to the real catalog), so it travels with an account's save; it is never localStorage. Toast baseline is reset before the level rises so only the new achievement toasts, not every carried one.
+
+Three supporting changes: (1) `load_state()` now prunes Kepler/Rift colonies when the loaded save hasn't unlocked that expansion (it only ever *added* them before, which would have left a late-game world's colonies in a fresh start, and equally affected loading an earlier save into a later session); (2) `shared/confirm-dialog.js` gained an optional `allowSkip` (default true) that hides "don't ask me again" and ignores any stored skip, used here because a world reset must always be confirmed, and `_confirm_dialog_ask()` only sends the argument when it is false so existing call sites and their test fakes are untouched; (3) the Summary panel shows a Legacy line. `changelog.json` was at its 25 cap so the two oldest entries were merged. 353 -> 367 tests (`tests/test_legacy.py`); verified live through the real confirm dialog (skip box hidden, legacy 1, credits 150, ship de-automated, expansion colonies gone, `first_automation` carried, one toast).
+
+## J3: the Trade Guild (2026-09-26)
+
+An NPC faction that now and then offers a bulk contract: deliver N units (10-30) of a good to a reachable colony that naturally needs it, within 150 ticks of accepting, for a bonus of units x current price x 1.6 credits on top of the ordinary sale (deliveries still sell as normal, so a contract is a pure extra). Entirely optional and penalty-free: an unanswered offer lapses after 90 ticks, a missed deadline just ends the contract with no bonus, and after any outcome there is a 60-tick quiet cooldown. Nothing is offered until the player has made `GUILD_MIN_SALES` (3) sales, and the first offer waits 40 ticks. The guild lives in module state (`guild_state` none/offered/active plus `guild_contract`, `guild_completed`, `guild_failed`, a seedable `guild_rng`), driven by `guild_tick()` from `tick()` and `guild_record_delivery()` from the sale path (only undisrupted sales count, matching the colony's need and good). A "Trade Guild" panel shows the offer/progress with Accept and Decline. Saved as a `guild` key only once the guild has done anything, validated on load in `_load_guild()` (state name, colony reachability, good matches the colony's need, bounded ints, bools rejected; any inconsistency falls back to no contract, and a contract for an expansion colony is dropped when loaded without that expansion). Two achievements: Guild Partner (1 completed) and Guild Favorite (5). Founding a new corporation (J21) resets the guild along with the rest of the world. `changelog.json` was at its 25 cap so the two oldest entries were merged. 367 -> 381 tests (`tests/test_trade_guild.py`); verified live (offer, accept, delivery completing it, +218 credits, toast, achievement).
+
+## J1: a fourth cluster, the Umbral Deep (2026-09-26)
+
+A fourth self-contained system after the home system, the Kepler Cluster and the Rift Colonies, built on exactly the same pattern (no new mechanic, the same deliberate "more of what already exists" scope call as Milestone 5/13/J13).
+
+- **Data.** `DEEP_COLONIES` (`deep_a` Nadir Foundry, `deep_b` Hush Cryostat, `deep_c` Tenebra Loom) form a closed triangle of three brand-new goods, Neutronium (34), Superfluid (24), Aerogel (16): a fresh, non-overlapping namespace keeps `colony_needing()`/`colony_producing()` single-valued fleet-wide, and Neutronium is the priciest good in the game. Each colony has flavour text, a specialization (the highest output bonus and decay multiplier in the game: the furthest colonies pay the most and are hardest to keep fed) and a secondary need that reaches back one tier into the Rift goods (Antimatter/Crystal/Polymer), the same "links what was separate" move each earlier cluster made. Unlike "Kepler ..."/"Rift Colony ...", the names don't share a first word, so `colony_map_label()`'s default is already unique and `MAP_LABEL_OVERRIDE` needed no entries (a test asserts label uniqueness across every colony).
+- **Research: the deepest investment in the tree.** Two nodes, `deep_survey` (240, requires `outer_reaches`; no effect of its own, and its description says so honestly) then `umbral_reach` (360, requires `deep_survey`; the priciest node in the game, well above Outer Reaches' 200). Reaching the cluster costs 880 research points in total from a standing start (80 + 200 + 240 + 360), and the research row for each shows its "(requires ...)" hint through the existing `render_research()` logic. `umbral_reach_unlocked()` joins `galaxy_expansion_unlocked()`/`outer_reaches_unlocked()`; `active_colony_ids()` and `unlock_research()` extend the same way, and colony state is created only on unlock (same Fleet Priority reasoning as Milestone 13).
+- **Fully studied moves the bar.** The "Fully Studied" achievement is defined as every shared research node plus one completed specialization path, so it now also needs Deep Survey and Umbral Reach (J13 did the same when it added Outer Reaches). No achievement was added for the new cluster: the Rift Colonies (the most recent precedent) added none, and only Kepler's original pair (Galaxy Expansion unlocked, a Kepler colony developed) did. Two existing tests that spell out the full research list were updated; `achievements.json` is unchanged.
+- **Map and UI.** The canvas is displayed at a fixed 300px max width, so widening it a third time would have shrunk every existing node; it grew taller instead (`CANVAS_HEIGHT` 300 to 450, canvas attribute updated) and the Umbral Deep sits in its own band along the bottom. No existing `NODE_POSITIONS` moved. New `expansion3-colonies-panel`/`expansion3-market-panel` (hidden until unlocked, toggled in `render()`), three needs-strip chips, three depart buttons per ship (18), two research rows, and a cold violet/ice-blue/grey icon and colony-visual palette (the diamond silhouette) to read as "far from any sun". While adding the market panel I fixed a latent nesting bug: the Rift market panel was nested inside the Kepler one because the Kepler panel's `</div>` was missing; it only worked because Rift requires Kepler. The research disclosure said "(6)" for a list that already had 10; it now says 12. The How to Play / tutorial Kepler step mentions the deeper research.
+- **Other touchpoints.** `TRADE_POST_SYSTEMS` gains "Umbral Deep" (reachable once `umbral_reach` is unlocked; `_system_is_reachable()` used to treat "anything not home/Kepler" as Rift, now each system is explicit), `_system_label_for_colony()` returns "Umbral Deep" so Rift-to-Deep trips count as cross-system diplomacy, and the almanac lists the Deep's goods only once reachable. Sales, stockpile, price/need history and the market multiplier are already keyed off `SELL_PRICE`/`ALL_COLONIES`, so they picked the new goods up automatically.
+- **Save/load.** No new save key: the cluster rides `unlocked_research` and `colony_states`, so a save that never reached it is byte-for-byte unchanged (a test asserts no `deep_*` entries, no new research ids, nothing in the stockpile). `load_state()` now also prunes Deep colonies when `umbral_reach` isn't in the loaded research (same block as Kepler/Rift) and recreates them when it is. Hardening done because the new colonies flow through it: `unlocked_research` is filtered to known string ids (a non-list, or a list holding unhashable/non-string/unknown entries, used to crash `set()` or invent research); colony state fields are validated with a new `_saved_float()` (numbers only, never bool, finite, in range 0..1 / 0..10,000,000; `development_level` an int 1..2) and fall back to the colony's default; non-dict colony/ship entries and a non-dict `ships` are ignored; and any ship saved docked at, or flying to/from, a colony this save hasn't unlocked is sent home to Aurum empty (previously a docked ship at a pruned colony would raise `KeyError` on Load Cargo). Trade posts are deliberately still not pruned by reachability (an existing test relies on that).
+- **Tests.** New `tests/test_umbral_deep.py` (70 tests: gating chain and costs, closed-triangle/namespace and price tier, map bounds/no-overlap/label uniqueness, drawn nodes/edges only once unlocked, panels/buttons/research hints, almanac, trade post/diplomacy/system labels, live trips and secondary need delivery, save round trip, prune on load, ship-at-locked-colony recovery, and parametrized tampered research/colony-field saves). `tests/conftest.py` gained the new element ids. Suite 381 -> 451 passing; flake8 clean. Verified live on localhost (Pyodide): the chain unlocks in order and spends 880 points, all three nodes and the a-to-c edge are drawn on the taller canvas, colony/market/needs-strip/depart/almanac DOM renders, a Deep trip pays out, get_state/load_state round-trips and prunes correctly, zero console errors. (A pixel screenshot could not be captured because the shared browser pane was being repainted by other sessions; canvas pixels were sampled instead.)
+
+## W1: story mode (2026-09-26)
+
+An optional narrative thread via the shared `shared/story-chapters.js` (the same component Grid's W1 uses; never edited here). `story.json` holds an opening chapter `begin`, exactly one chapter per achievement id in `achievements.json` (25 chapters in total, in story order rather than catalog order), and two extra beats with no achievement of their own: `rift_colonies` (once `outer_reaches` is researched) and `umbral_deep` (once `umbral_reach` is), so the Rift Colonies and the Umbral Deep both get a chapter. Prose is grounded in the game's own places and rules (Aurum/Verdant/Ferrum/Cryo/Helion, the Kepler Cluster, the Trade Guild, the legacy, the background galaxy's passive revenue) and invents no numbers.
+
+Hook: `_earned_snapshot()` (the single function behind the toast diff in `_sync_earned_and_toast()`, the `load_state()` baseline and `setup()`'s baseline) now also calls `_story_reach_all(earned_ids)`, which calls `window.NoyvjStory.reach(...)` for `begin`, every earned achievement, and the two cluster beats. It is idempotent, silent when the story script is missing (`from js import window` failing or no `NoyvjStory`), and adds no save key, so a loaded save simply brings its chapters back and the save format is unchanged. Progress lives in the shared component's own `localStorage` key, not the save. `index.html` adds `#story-chapters` to the existing `story-toggle.js` `data-story-selectors` (beside `.colony-flavor`) and includes `story-chapters.js` right after it. `changelog.json` was at its 25 cap, so the two oldest entries were merged. 451 -> 458 tests (`tests/test_story_chapters.py`).
+
+## Y11b light-theme polish (2026-09-27)
+
+Method: a computed-style WCAG scan run in a real browser with the light theme on (walks every visible element with text, composites the ancestors' backgrounds including gradients, compares against the computed text colour, flags below 4.5:1 for normal text and below 3:1 for large text; also flags meter/track/tile fills that sit within 1.5:1 of their parent and dark surfaces left under the light theme). Disabled buttons are excluded (WCAG exempts inactive controls) and counted separately. It was run on the fresh game and again after playing, with every panel opened one at a time, and finally with every `[hidden]` element force-shown to catch panels a normal session does not reach. Screenshots in this environment were unreliable, so the scan output is the evidence, not eyeballing.
+
+**Found (before):** 10 meter fills (the pale-mint `.meter-fill` at 1.29:1 against the light meter track, so market and colony-need bars nearly vanished) and about 30 text groups: the mobile needs-strip chips (light text kept, 1.07:1), the info "i" bubble (1.23:1), dimmed captions and labels at opacity .5-.6 (`.map-caption`, `.panel-label`, `.ship-label`, `.colony-flavor`, `.colony-development`, `.settings-note`, changelog dates, achievement progress: 3.2-4.3:1), pale accent text (research points, crashed price, endgame worlds, profit, idle-ship warning, earned achievement label, the active Reduce Motion button: 1.5-2.5:1). The star map and endgame galaxy are canvases that draw light-on-dark art over a translucent dark fill, which went mid-grey on the pale panel.
+
+**Fixed:** a `Y11b` block at the end of `style.css`, all under `html[data-theme="light"]`: meter fill and the two sparkline strokes to deeper green/amber, chips, captions, accent text, ship-name input and its placeholder, and an opaque dark backing for `.map-canvas` and `.endgame-galaxy-canvas` so their art keeps the contrast it was drawn for. Colony domes and ship hulls (bright gradients on transparent) were checked and left alone. Hues are kept, only lightness deepened.
+
+**After:** 0 flagged text and 0 flagged fills on the fresh game, after ships were loaded and sent and research/stockpile/invest were clicked, and with every hidden element shown. Exceptions: disabled buttons (exempt), the gradient-clipped `h1`, the achievement/notice toast (dark in both themes) and the confirm dialog (a shared dark modal, skipped by the scan; its own confirm button measured 4.46:1, just under 4.5, and is owned by `shared/confirm-dialog.js`). `tests/test_light_theme.py` pins the block. Needs a human eye: the canvases were verified by colour arithmetic and the scan, not by a trustworthy screenshot.
+
+## O-1..O-4: Renew the Charter (2026-09-27)
+
+Replayability follow-up (`planning/IMPROVEMENT-IDEAS-ROUND-3.md` section O, items 1-4; the user's answer to item 1 was "maybe instead of picking one do a research tree"). At the endgame, the endgame panel's button is now **Renew the Charter** (still confirm-dialog gated with `allowSkip: false`, since a world reset must always be confirmed). It resets exactly as J21's "found a new corporation" did, and everything below rides on top of it.
+
+**How this relates to J21 (reused, not duplicated).** J21's legacy is unchanged and is still the flat baseline: `legacy_level` (+150 starting credits and +2% on every sale per level, capped at `LEGACY_MAX_LEVEL` 5), `legacy_achievements`, the `legacy` save key, the `new_corporation` achievement, and `found_new_corporation()` itself (it is the renewal function; `on_found_new_corporation` is the button handler). What changed: renewal is no longer capped, only the legacy *bonus* is (a maxed legacy reads "(maxed)" and further renewals keep earning charter points), because the tree and ledger give later renewals a purpose. `test_legacy_stacks_to_the_cap_then_stops` became `..._the_bonus_stops_but_renewal_continues`. A save from before this feature that already has legacy level N is **migrated on load** (no `charter` key): N completed charters and N x 2 charter points, so nobody who already renewed loses progress.
+
+**O-1: the charter perk tree.** Renewing earns `CHARTER_POINTS_PER_RENEWAL` (2) charter points. The Charter panel (toolbar "📜 Charter", static markup in `index.html`, filled by `update_charter_display()`, in the `?`/Esc shortcut list) holds a permanent tree of 12 perks in four branches of three, cost 1/2/3 by tier (24 points in all, so completing it takes about a dozen renewals). Each perk is bought once with a confirm dialog (skip allowed), deeper perks need the one before them, and `standing_convoy` needs both `waystation_network` and `standing_orders`, so it is a tree and not four chains. Every perk is a small tweak of something that already exists, applied through a helper that returns the plain constant when the perk is absent (`automation_cost()`, `colony_invest_cost()`, `trade_post_cost()`, `trade_post_income_each()`, `development_threshold()`, `guild_first_offer_ticks()`, `guild_cooldown_ticks()`, `guild_reward_multiplier()`, `charter_decay_multiplier()`), so a player without perks sees byte-for-byte the old numbers. There is deliberately no sale-price perk (that is the legacy's job) and nothing stacks freely.
+- Routes: Surveyed Lanes (+1 cargo per load), Waystation Network (trade posts 25% cheaper, +1 credit/tick), Standing Convoy (ship 1 starts each charter automated, free).
+- Automation: Standing Orders (automation 20% cheaper), Lab Automation (research 20% faster), Auto-balancers (price recovery 20% faster).
+- Colonies: Frontier Grants (invest costs 45), Settler Guilds (need decay -10%), Charter Colonies (Level 2 at 85 delivered).
+- Reputation: Guild Standing (first offer at 15 ticks, 45-tick pause), Colonial Goodwill (home colonies begin +10% satisfaction), Trusted Name (guild bonus +15%).
+The two "founding" perks (Standing Convoy, Colonial Goodwill) act on the world once, at each renewal and also the moment they are bought; the rest are live modifiers.
+
+**O-2: founding conditions.** From the second charter on, `apply_founding_conditions()` (called by the renewal) rolls `founding_seed` from `charter_rng` (tests replace it) and `founding_from_seed()` derives everything from it deterministically: which two of the five home colonies start thriving (need 0.8) and "connected" (ships 1 and 2 begin docked at them; in this game every ship can already reach every colony, so "connected" means the opening lane, honestly described in the panel), and a focus for each (Bulk exporter: +15% output; Steady settlement: need decays 30% slower). The other home colonies start stretched (0.35), so the first bottleneck moves around; all ten pairs occur. Only the seed is saved (`charter.seed`); the pair and foci are recomputed, so a tampered save cannot invent a state. The first charter has no seed and the standard opening.
+
+**O-3: lifetime ledger.** `ledger_record_sale()` (called from `tick()` for every undisrupted delivery; disrupted trips and stockpile sales do not count) accumulates goods moved and routes established (an unordered colony pair counts once per charter, tracked in `ledger_routes_seen`, so a new charter can establish the same route again). Totals survive a renewal (carried explicitly across the `load_state()` of the fresh snapshot); with `charters_completed` and harder charters completed they show in the Charter panel's Lifetime ledger. It is this save's ledger (it travels with the account save), never localStorage.
+
+**O-4: harder charter.** Unlocked only from the first endgame (`hard_charter_unlocked()`); the toggle sits beside Renew in the endgame panel and is a one-off choice for the next charter (not sticky). A hard charter multiplies market saturation per unit sold by 1.5 and colony need decay by 1.35 (SOL's New Game+ Challenge shape: tougher, not an easier bonus run). Finishing one at the next renewal earns one extra charter point and counts in the ledger. The toolbar label reads "(harder)" while one is running.
+
+**Save contract.** Two new keys, each written only when non-default: `ledger` (`units`, `routes`, `hard_completed`, `routes_seen`) and `charter` (`completed`, `points`, `perks`, `seed`, `hard`, `hard_next`). `_load_charter()` validates everything: ints via `_saved_int()` (never bool, bounded), perk ids type-checked as strings before any membership test (no unhashable crash) and known-only, perks whose prerequisites are missing are dropped, a save that owns more perks than it earned drops all of them, the seed is bounded, `hard` needs a real `True` and a completed charter, routes-seen pairs must be two distinct known colony ids. A save without the keys resets the state. It runs before `_load_guild()` because Guild Standing shortens the guild's first wait. `found_new_corporation()` re-applies perks, points and the ledger after the reset and baselines achievement toasts before counting the renewal, so only the achievements this renewal earns toast.
+
+**Achievements and story.** Three more (25 of the 25 cap): Charter Perk (first perk bought), Charter Veteran (three renewals, with progress), Against the Grain (renewed after finishing a harder charter). All derive from state that survives a renewal, so nothing needs carrying. `story.json` gained a chapter for each (28 chapters), `achievements.json` grew to 25, "A New Beginning"'s description now says "renew the charter", and the tests that pinned counts still hold (`<= 25`). The tutorial's endgame step and `changelog.json` (two oldest entries merged, at the 25 cap) mention the feature. The light theme covers the new panel (`.charter-branch`/`-title`/`-ledger` rules at the end of `style.css`, inside the existing light region that `test_light_theme.py` requires to be light-scoped).
+
+**Tests.** `tests/test_charter.py` (70 tests): tree shape and costs, prerequisites, buying rules, each perk's effect, founding determinism and effects, ledger counting and carry-over, harder-charter gating/effects/points, achievements and toasts, save round trip, migration, tampered values (parametrized), and the UI (toggle, buy buttons, aria attributes, confirm dialogs, index markup, light theme). `tests/fakes.py` gained `setAttribute`; `tests/conftest.py` gained the new element ids. Suite 461 -> 531; flake8 clean.
+
+**Verified live** (Pyodide on localhost, own tab): real trips filled the ledger; the endgame panel showed Renew and the Harder charter toggle (`aria-pressed`); the real confirm dialog showed the renewal text with the skip row hidden; renewing gave legacy 1, 150 credits, 2 points, a seed with two thriving colonies and ships docked there; the perk buy button opened the real dialog and bought the perk while keyboard focus stayed on the button across the once-a-second re-render; a second renewal from a harder charter paid 3 points, set the ledger count and earned Against the Grain; get_state/load_state round-tripped and a tampered charter fell back; no console errors, no horizontal overflow at 375px, no light-theme contrast failures in the panel (computed check; screenshots were blank in this environment).
+
+**Not done / notes.** A harder charter cannot be started before the first endgame (by design). "Connected" is a framing of the opening lane, not a new route mechanic. Perk balance (2 points per renewal against 24 total) is a first pass and untested by long play.
+
+## Desktop boot (PC version, 2026-10-07)
+
+`games/trade-empire/pc.html` is the Desktop boot: the same game over the same `game.py` and saves (same `game_id`), laid out for a wide window with a mouse. **Never edit it by hand**: it is generated from `index.html` plus `pc-config.json` by `scripts/generate-pc-pages.py` (run it after changing either; `--check` and the shared tests fail if it is stale). No rule, state or save change, and `game.py` is untouched. Per-game files: `pc-config.json` (what moves where), `pc.css` (layout, all under the pc layout), `pc.js` (`window.TRADE_EMPIRE_PC_TUTORIAL_STEPS`, plus two small helpers described below). Classic (`index.html`) only gained the `shared/layout-pref.js` tag and the `window.TRADE_EMPIRE_PC_TUTORIAL_STEPS ||` fallback on the tutorial init. `tests/test_changelog.py`'s entry cap went from 25 to 40 (one line) to make room for the Desktop changelog entry. 531 tests unchanged otherwise.
+
+- **Layout.** No page scroll. Top bar: back link, title, four icon buttons (Achievements, Summary, Charter, Settings) and the Menu (Esc). Under it chips mirroring the original lines (Total profit, Automation slots, Research points), which keep updating by id (profit and automation moved to a hidden holder, research points stays inside its window). Stage: a strip of two slim cards (Fleet Priority, Trade Guild) above the map, then the colony network map (the 620x450 canvas keeps its shape and grows to fill the height, no change to `game.py`), then the "Needs at a glance" chips (the panel the mobile dock pins on phones, here just a normal row), the last-sale line, and the hotkey hint bar. Side column: one compact panel per ship (rename row beside the name plate, Load / Automate pair, two-column Depart buttons) and, once reached, the Galaxy at scale / Renew the Charter panel; it scrolls on its own when the roster is longer than the window.
+- **Windows from the Menu.** Colonies (all clusters, two columns), Market, stockpiles and trade posts (the whole market panel: route hazards, seasonal demand, almanac, every good, trade post and diplomacy lines), Research (its node list starts open here; `pc.js` sets that), About Trade Empire (tagline, blurb and the Story list, which `pc.js` files there), plus How to Play, What's New, Summary, Charter, Settings and Achievements as before. The Menu also holds the tutorial.
+- **Desktop tutorial.** `pc.js` sets 10 steps pointing at the map, needs strip, fleet column, `#ship-1-automate-button`, the chips, Fleet Priority, the Trade Guild and the Menu; every selector exists on `pc.html`.
+- **Notifications.** `notify` is null: Trade Empire has no log list (its sale line is one paragraph and its toasts are the existing achievement and notice toasts).
+- **Hotkeys.** Only `?` (shared shortcut list) and Esc are real in Trade Empire, so those are the only hints. `pc.js` also stops an Escape that closes the `?` list from opening the Menu.
+- **Layout notes.** `pc.css` clears the ad-bar body padding, hides the mobile HUD, moves the floating theme pill to the top-right corner, and at 1280px wide or less narrows the fleet column and stacks the rename row; at 1180px or less the chip labels and the strip cards' plates drop to icon/screen-reader-only; at 780px tall or less the needs chips scroll sideways in one row.
+- **Known limits.** The Fleet Priority and Trade Guild cards sit above the map, so they take a little map height in short windows. The map is drawn from `game.py` at a fixed 620x450 and only scaled by CSS, so at 1920 it is crisp only up to its native size. Colonies, Market and Research are modal windows: the fleet is behind the backdrop while one is open. Scripted play only (loaded and dispatched ships, checked each completes and sells across ticks), no full human playthrough of the Kepler / Rift / Umbral Deep clusters or the endgame panel in the Desktop layout.
+
+## TODO batch: J-4, J-6, J-7/J-8, J-14, J-25/J-26, J-31 (2026-10-07)
+
+Six features from `planning/TODO.md` section J, all additive (a save or play that never touches them is unchanged; every pre-existing test passed untouched except two pinned key sets and the achievement-count cap, raised 25 -> 30).
+
+- **J-6 Throughput per ship.** Each ship now counts `units_moved`, `ticks_owned` (ticks as part of the fleet) and `units_by_good`. `ship_throughput()` is units per `THROUGHPUT_WINDOW` (100) ticks; `route_throughput(good)` is units of that good per ship per 100 ticks over the ships that have hauled it (every good has exactly one route). Shown as a line in the Ledger (`#throughput-display`, fleet average), on each route line in the Summary, and as a per-ship list in the Summary. Disrupted trips and stockpile sales do not count. Saved on each ship, validated (never bool, bounded by `LEDGER_MAX`, unknown goods dropped).
+- **J-4 Price memory.** `price_memory[good]` is the market multiplier just before the player's last stockpile buy or sell (ship sales do not set it). Each price sparkline draws it as a dashed horizontal ghost line (`.sparkline-ghost`, `stroke-dasharray`), with a text twin under the sparkline ("dashed line: 55% of baseline before your last stockpile trade (now 99%)") so it is never colour only. Saved as `price_memory` (only when non-empty), validated 0..1 per known good.
+- **J-7/J-8 Fleet Captains.** A ship that has ever been a veteran hauler this charter (`captain_earned`, noted every tick) holds a captain's seat. The Captains panel (toolbar button, `#captains-panel`, in the ? / Esc list and the Desktop Menu under Empire) lists four named captains; the player chooses who to post. Each captain: Frugal (+8% on the ship's sales, holds 10% less), Lucky Trader (every 4th delivery +40%, the others -3%, deterministic), Night Owl (trips of 3+ ticks one tick sooner, -5% on sales) and Perfectionist (+12% delivering to a colony under 60% satisfied, -5% over 90%). One captain per ship, one ship per captain, each captain may be moved once per charter (`CAPTAIN_SWAPS_PER_CHARTER`; releasing then reposting also counts; the move asks the shared confirm dialog). All effects go through helpers that return the plain value without a captain (multiplying by 1.0), so existing balance is exact. A captain's name, perk, trade-off and a humorous quote show in the panel; the ship panel carries a one-line captain note with the quote in `.captain-quote`, which the Story toggle hides (it is in `data-story-selectors`). `captains_met` (every captain ever posted) survives renewals; postings and seats reset with the fleet. Saved as a `captains` key (earned seats, posting counts, met) plus per-ship `captain`/`captain_deliveries`; `_load_captains()` runs after the ships and drops a captain on an unpurchased ship, on a ship with no earned seat, or a duplicate. Two new achievements (Captain's Table, Full Roster) and their two story chapters (`achievements.json` now 27, `story.json` 30 chapters).
+- **J-14 Crest and career log.** The title carries a crest chip (`#charter-crest` inside the h1): a shape plus a word by completed charters (0 Founder circle, 1 Renewed triangle, 3 Veteran square, 5 Master diamond, 10 Sovereign star), "(harder)" appended while one runs. The Charter panel's Career log lists every finished charter newest first (units moved, routes, peak profit, perks owned, crest). The log is written by `found_new_corporation()` before the reset and carried across it; saved inside the `charter` key as `career` (capped at 40, whole entries only, never more than the completed charters) and per-charter units as `ledger.charter_units`. Saves from before this have an empty log (the explanation line says so).
+- **J-25/J-26 Colony moods.** `ColonyState.temperament()` is derived purely from history (`demands_made`, `concessions_granted`, `cumulative_delivered`): Demanding when two or more demands went unanswered, Grateful at 50+ delivered or after any granted concession, else Opportunistic (every new colony). Grateful: +4% on sales delivered there. Demanding: a granted concession restores 45% (not 30%). Opportunistic: Invest costs 25% less while its need is under 50%. Nothing is ever marked down. A circle, triangle or square (drawn as filled polygons so the map keeps one arc per node and one stroke per route) sits by each colony node, a legend line names them, and each colony panel explains its mood and history. Counters saved per colony, validated.
+- **J-31 Ledger ribbon and Effects.** `#ledger-ribbon` (under the toolbar, in the Desktop stage) shows the count and up to 8 of the latest earned badges as a shape plus the achievement's name. A new unlock adds `.ledger-ribbon--flourish` for 1.2 s. Settings gained an **Effects** toggle (`settings.js`, `.effects-off` on `<html>`, key `trade-empire-effects-off`, also reset by Reset to Default); `_effects_on()` gates the ribbon flourish, sale sparks and dock rings, and Reduce Motion also turns them off.
+
+**Desktop.** New window "Fleet Captains" (`pc-config.json` windows + Menu > Empire), `#ledger-ribbon` in the stage zone, a `capt` grid row in each ship panel (`pc.css`), the throughput line in the Ledger row. `pc.html` regenerated; `tests/test_markup_matches_fake_dom.py` checks every fake-DOM id exists in both pages.
+
+**Tests.** 531 -> 666 (new files `test_captains.py`, `test_colony_moods.py`, `test_price_memory.py`, `test_throughput.py`, `test_crest_career.py`, `test_ribbon_effects.py`, `test_markup_matches_fake_dom.py`).
+
+**Verified live** (Pyodide on localhost, own tab): Classic and Desktop at 1440x900 (no page scroll in Desktop), Classic at 360x740 (no horizontal overflow), posting a captain with a real click (toast, ribbon, ship line), the Captains window from the Desktop Menu, mood glyphs on the map, the price-memory note, the Effects toggle and its stored key, a renewal filling the career log, a get_state/load_state round trip, and a computed light-theme contrast check of the new text (all above 4.5:1). No console errors. Not done: the ghost line itself was checked through the DOM text, not at pixel level; no long human playthrough of captains across many renewals.
+
+**Skipped from section J (for the main session):** J-3 Cartel Board (a large new endgame system; J-4's ghost line is built for stockpile trades only and can show Cartel squeezes later), J-5 Chain Builder (needs W-1), J-9/J-10 Trade Crises (needs W-1 scenario list), J-11/J-12 Meridian espionage (large new NPC system), J-13 Charter archetypes (questions about how it combines with the perk tree), J-17/J-18 Market Weather (a new random-event system; not started), J-19/J-20 Blueprint Lab, J-21/J-22 Hub and Spoke (changes Fleet Priority routing), J-23/J-24 Expeditions, J-27/J-28 Second Economy exchange, J-29/J-30 Blackout mode (the badge on the opening screen is shared code), plus Z-18 sandbox and Z-28 pause (shared components).
+
+## Pause, fast-forward and pause-when-hidden (W-2, Z-28, 2026-10-08)
+- `#time-controls` (Pause / 1x / 2x / 4x, `shared/time-controls.js`) under the toolbar (Desktop: first item in the stage bar). Space pauses or resumes (only with no button/link focused), `[` slower, `]` faster.
+- `setup()` ends with `_start_tick_loop()` which hands `tick` to `NoyvjTime.start("trade-empire", tick, TICK_INTERVAL_MS)` (1000, 500, 250 ms). Ship transits, market drift, research, loyalty and season clocks all advance only inside `tick()`, so they stop with a pause and speed up together at 2x/4x; nothing is skipped and nothing is caught up. Selling, buying, route and ship choices are player actions and still work while paused. Fallback: plain `setInterval`.
+- Setting "Pause when this tab is hidden" (`#pause-hidden-checkbox`, `trade-empire-pause-hidden`, default on) via `shared/pause-hidden.js`; the checkbox row uses a small `.settings-checkbox-label` rule added to `style.css` (above the light-theme block, which a test requires to be the tail).
+
+- **Oct 8 wiring (Z-20, Z-27, Y-7, Y-8, Y-29):** `share_result()` in `game.py` returns the Copy result figures as JSON (total profit, colonies developed, ships, endgame); the shared `NoyvjCopyResult` button lives in `#summary-copy-result` inside the Summary panel. `update_summary_display()` rebuilds the panel every tick, so it keeps that container (and focus) alive through `_detach_copy_result_holder` / `_reattach_copy_result_holder` instead of wiping it. `shared/achievement-share.js` adds Share to earned achievement cards. The Open Graph block and JSON-LD sit in `<head>` before the shared includes; a `#credits-link` anchor sits above the ad bar (in the Desktop Help menu via `pc-config.json`). Tests: `tests/test_wiring_oct8.py`.
+
+## Practice sandbox (Z-18, 2026-10-11)
+
+An opt-in practice mode on the shared `shared/sandbox-mode.js` and `shared/sandbox-mode.css` (button, "Sandbox: nothing here is saved" banner, dashed window frame, announcements; no game logic). The entry is a toolbar button `#sandbox-toggle-button` ("🧪 Practice sandbox", Desktop: Menu > Empire). The shared script calls `sandbox_enter()`, `sandbox_leave()` and `sandbox_is_active()` in `game.py`.
+
+- **Rules.** The sandbox is a brand-new corporation (`_sandbox_state()`: a copy of `_fresh_state`) with every research node known (so Kepler, the Rift Colonies and the Umbral Deep are open, with the automation-slot nodes), all six ships bought, route hazards off (the toggle is refused) and a balance of `SANDBOX_CREDITS` (1,000,000) that `_sandbox_top_up()` restores on every render, so it never runs out (shown as "Credits: unlimited (sandbox)"). Renewing the charter is refused (`can_found_new_corporation()` is false). The Trade Guild still offers contracts but, as always, a missed one costs nothing.
+- **The real game is set aside, then loaded back.** `sandbox_enter()` takes `get_state()` as a snapshot, resets the running tables that `load_state()` only updates key by key (`_reset_running_tables()`: price history, need history, recent profits and the like), and loads the sandbox state through the same `_apply_state()` a save uses. `sandbox_leave()` loads the snapshot back the same way, so `get_state()` is byte-identical (tested after a long played game with research, a bought ship, automation, a stockpile, a trade post and 150 ticks). The real corporation does not tick while the sandbox is on.
+- **Save fix found on the way.** `_apply_state()` validated a colony's `neglect_ticks` against `NEGLECT_DEMAND_TICKS` (40), but the counter keeps counting through a demand cooldown and so passes it; a normal save/load therefore reset it to 0. It is now bounded by `TEMPERAMENT_COUNT_MAX` (tampered values above that still fall back to 0).
+- **Saves.** While the sandbox is on, `get_state()` returns a copy of the real snapshot. The public `load_state()` leaves the sandbox first, then loads, then calls `NoyvjSandbox.sync()`; the old body is `_apply_state()`.
+- **No side effects.** `achievement_ids_earned()` returns the real list as it was (no new achievements, toasts or story chapters; `_story_reach_all()` does nothing in the sandbox). The game writes no browser storage and posts nothing, so there is nothing else to block. Nothing is stored: reloading the page leaves the sandbox.
+- Tests: `tests/test_sandbox.py` (19) and `shared/tests/test_sandbox_mode_browser.py`.
+
+## TODO batch 2 (2026-10-11): J-29/J-30 Blackout, and the shape of this batch
+
+New feature blocks are inserted in `game.py` above the `# @@NEW-FEATURES-END@@` marker (just before the save-widget contract section), each with its own constants, pure helpers, handlers and a `render_*` function called from `render()`; saves gain a key only when non-default and every loader is defensive. `records` is a small validated dict of lifetime counters (`dark_runs`, later more) saved under `records` and carried across a renewal by `found_new_corporation()`.
+
+- **J-29 Blackout** (opt-in, Market panel, `#blackout-toggle-button`, confirm dialog with a plain warning and no skip box). While on: the map canvas shows "the star chart is dark" and draws no colonies or ships, the price and need sparklines are empty, prices read "about low-high credits/unit" (`blackout_price_range`, +-15%) with a bar rounded to quarters. Two pieces of intel bring it back: the price feed (Market Insight research or 250 credits) and the star chart (Galaxy Expansion research or 200 credits), `blackout_has(kind)`. Nothing in the economy changes. `set_blackout` is refused in the sandbox; a renewal switches Blackout off again (new charter, choose again).
+- **J-30 Dark run.** Blackout on before the first sale of a charter (`blackout_clean`) and never switched off after a sale makes the endgame a dark run (`blackout_note_endgame()`): `records["dark_runs"]` +1, the Dark Run achievement (with a story chapter), a "Dark run stamp" line in the Charter ledger (`#ledger-dark-display`), a half-moon mark beside the title crest and a "Dark run" tag on that charter's career-log entry (`dark: true`, validated). The opening-screen badge asked for in J-30/FY-42 is shared code (`shared/opening-screen.js`) and was not touched here.
+- Save: `blackout` {enabled, clean, done, bought} written only when used; `records` only when non-zero. Tests `tests/test_blackout.py` (47).
+
+### J-17/J-18: Market Weather (2026-10-11)
+Opt-in (`#weather-toggle-button` in the Market panel, off by default, reset by a renewal like Seasonal demand). One event at a time, rolled by `_weather_make()` from a hash of `founding_seed` and the event number (`weather_n`), so it is deterministic and testable and needs no RNG state: a 20-40 tick wait, then 20-40 active ticks, then the next event. A boom is +30% on one reachable good's price, a slump -25%, and the good made at the colony that needs it follows at half strength (`weather_cascade_good`); `weather_multiplier()` is a factor in `current_sell_price()` (so stockpile values and ship sales agree). Leading indicators for close readers: dock gossip names the colony 12 ticks ahead and says boom or slump 5 ticks ahead (`weather_rumour`, explained in the Almanac). The map's `#news-ticker` is a static one-line chip (no scrolling; only rewritten when its text changes, so screen readers hear changes once), Desktop shows it through a `pc.css` rule because that layout hides map captions. Finished events count in `records["weather_events"]` (survives renewals) for the Storm Watcher achievement (5, with progress). Save key `weather` {enabled, n, event} only once used, event validated field by field (a bad one is dropped and re-rolled). Tests `tests/test_market_weather.py` (47).
+
+### J-23/J-24: Expeditions and the Fleet Lab window (2026-10-11)
+New window **Fleet Lab** (`#lab-toggle-button`, `#lab-panel`; in the `?`/Esc list; Desktop: Menu > Empire and a window in `pc-config.json`), built as one panel that each Fleet Lab feature adds a section to (`render_lab()`). Expeditions: `send_expedition(ship_id)` sends one docked, empty, hand-flown ship away for `EXPEDITION_TICKS` (12); `Ship.docked` is now false while a ship is away (`Ship.on_expedition`), which keeps every existing rule (load, depart, reposition, automation, idle counter) off the absent ship, and the map does not draw it. The cost is the ship's income. `expedition_tick()` resolves the trip: odds 35% windfall (150 credits, +50% per cluster beyond home), 25% research (12 points), 20% a curio, 20% nothing but the view, rolled by `_mix(trip number)` (deterministic). Guarantees written next to the button, in its tooltip and in the confirm dialog (J-24): after two empty trips the next always finds something, and every fifth trip without a curio always finds one while any are missing (so the 12 invented curios are all collectable, never luck-gated). `records` gained `expeditions`, `expedition_nothing_streak`, `expedition_since_curio` and `curios` (all survive renewals; the cabinet shows found curios by name and the rest as "Not found yet"). The "new good" outcome in the TODO text became curios (a collection, no new economy rule). Save keys: `expedition` {ship, left} while one is away (validated: real purchased docked empty ship, 1..12 ticks), records as above. Two achievements (First Expedition, Curio Cabinet with progress) and story chapters. Tests `tests/test_expeditions.py` (50).
+
+### J-27/J-28: the Commodities Exchange and the Market Desk window (2026-10-11)
+New window **Market Desk** (`#desk-toggle-button`, `#desk-panel`; `?`/Esc list; Desktop Menu > Empire; sections added by later features: rival firm and cartel). First section: the exchange (second economy), open once `umbral_reach_unlocked()`. Standing orders (`exchange_orders`, a slot for each trade post plus one, max five, one order per side and good, thresholds 40-100% of baseline) are run each tick by `exchange_tick()` (after `recover_market()`): a buy order calls the ordinary `buy_stockpile()` when the price is at or below its threshold and `can_stockpile_buy()` allows it, a sell order calls `sell_stockpile()` when at or above it, at most one fill per order per tick, so capacity, credits, the 10% fee and price impact are exactly the by-hand rules (tests show a buy/sell pair cannot print money). J-28: `exchange_fills` is the order book, last five fills newest first as a text table; `records["exchange_fills"]` counts every fill and feeds First Fill and Market Maker (25, with progress). Save key `exchange` {orders, fills} only when used; `_load_exchange` drops everything unless the Deep is reachable and validates kind, good, percent step, slot count and fill numbers. The sandbox has orders of its own and restores the real ones. Tests `tests/test_exchange.py` (38).
+
+### J-19/J-20: the Blueprint Lab (2026-10-11)
+A section of the Fleet Lab window, open once Fast Ships I and the Hauler-Class Refit are researched (no new research node: a new node would have changed the "Fully Studied" achievement for existing saves). Design points: `BLUEPRINT_POINTS` 9 over hold, speed and efficiency (1-6 each); the average hull is 3/3/3, which equals the Balanced type. Effects (`hull_effects`): hold +-6% cargo per point from 3, speed 1-2 one tick slower and 5-6 one tick faster, efficiency +-2% on the ship's sales per point (`archetype_for(ship)` now returns `proceeds` too, 1.0 for the old types; a test checks no design in budget beats the average in all three). Up to four named designs per charter (`blueprints`, saved as `blueprints`, each re-validated: name 1-24 characters, stats in range, total at most 9). The ship-5 and ship-6 type pickers gain four option slots (`ship-N-bpI-option`) shown for saved designs; buying copies the hull onto the ship (`archetype: "custom"` plus a `hull` dict, saved only on such ships and re-validated, any mismatch falls back to Balanced), so deleting a design never changes a ship. J-20: `blueprint_chart_html` draws a labelled bar per stat with a dashed average marker and the words "(+2 vs average)", with an aria-label. Achievements Hull Designer and Custom Fleet (both reset-safe through the carried legacy list). Tests `tests/test_blueprints.py` (52).
+
+### J-21/J-22: Hub & Spoke (2026-10-11)
+A Fleet Lab section, open once the Automation Expansion is researched. One Distribution Hub (`hub_colony`, set for `HUB_COST` 120 credits, moving it costs the same, clearing is free). `hub_trip_ticks(origin, destination, ticks)` halves (rounded up, at least 1) a trip between the hub and another colony of the same system; it is applied in `Ship._begin_transit()` after archetype, captain and research adjustments, so the saved `transit_total_ticks` is still the real trip length. Trade-off: `stockpile_capacity(good)` is 8 instead of 15 for the good made at the hub (stock already above the cap is kept, only buying is blocked). Fleet Priority: `fleet_priority_target(ship)` replaces `most_urgent_colony()` in `run_automation()`; with no hub it returns exactly `most_urgent_colony()`, with a hub it picks, among colonies within `URGENCY_TIE` (0.05) of the lowest need, the one whose producer the ship reaches soonest (the pink target ring still shows the plain most urgent colony). J-22: the hub is drawn with a thick ring (`HUB_RING_WIDTH`) and the word HUB under it, and the map canvas tooltip appends the bonus text. Save key `hub` (a reachable colony id, otherwise dropped); `records["hubs_set"]` feeds the Spoke and Wheel achievement. Tests `tests/test_hub.py` (32).
+
+### J-11/J-12/J-3: Meridian Freight and the Cartel Board (2026-10-11)
+Both in the Market Desk window. **Meridian Freight** (opt-in toggle, off by default, reset by a renewal): a non-violent rival firm, deterministic from `founding_seed` and the cycle number (`_meridian_pick`). Every `MERIDIAN_CYCLE` (50) ticks it contests one good for 25 ticks and `meridian_multiplier()` (a factor in `current_sell_price()`) lowers that good's price 12%; the market row shows only the price (it is "seen only through a price move you did not cause"). Answers: Undercut (60 credits, ends the contest, shields the good 40 ticks), an active exclusive Trade Guild contract for that good (`meridian_exclusive_good`, Meridian is dormant on it), a Cartel dump of that good, or ignore it. J-12: the rival ledger line is "Rumour: Meridian moved about N units this cycle (unverified...)" with a stable invented number until Market Intel, then "Intel: Meridian moved N units this cycle", the good, ticks left and the real dip. Market Intel is the Market Insight research or a one-time 200-credit intel desk (so the automation path can also read it). Real units come from the rival's own clock (14 per tick while contesting, 4 otherwise). **Cartel Board** (open with the exchange or after the endgame): Squeeze costs 8 units' worth and gives +30% for 20 ticks; Dump sells the whole stockpile (and shields a contested good). The backlash rule is shown in each row ("backlash window: N tick(s), a move now backfires") and asked in a confirm dialog without a skip box: moving the same good twice within 80 ticks turns a squeeze into a -25% slump for 30 ticks (the credits are still spent) and a dump into no shield plus a further 10-point price drop. Moves set the J-4 ghost line. Save keys `meridian` {enabled, ticks, units, contest, shield, intel} and `cartel` {effects, last}, all validated (known reachable goods, bounded ticks per kind). `records` gained `meridian_contests`, `meridian_answers`, `cartel_moves` (achievements Outpriced and Board Member, with progress). Tests `tests/test_meridian_cartel.py` (64). `pc.css` keeps these rows' small buttons their natural size.
+
+### J-9/J-10: Trade Crises (2026-10-11)
+A Fleet Lab section: three handcrafted boards (`CRISES`: Grain Famine at Aurum, Isotope Glut in Kepler, Broken Automation Network), each a start state built from `_fresh_state` (`_crisis_state`: credits, known research, colony needs, a crashed price, bought and automated ships) with a goal (every listed colony's need at or above a value, or a profit total from named goods) and par ticks for gold, silver and bronze (a bot-calibrated greedy player solves each in 18, 29 and 36 ticks; the pars are about 2x that for gold). A crisis runs INSIDE the sandbox machinery: `crisis_enter()` sets the real game aside exactly as `sandbox_enter()` does (same `_sandbox_real` snapshot, `sandbox_active` true, so the shared banner and Leave button, `get_state()` answering with the real game, no achievements, no renewal and no record counting all apply), with two differences: the credits are the crisis's own purse (no `_sandbox_top_up`), and `crisis_tick()` counts ticks and checks the goal. There is no fail state and no timer: do nothing and nothing happens. Medals live in `records["crisis_best"]` ({crisis: {medal, ticks}}, validated, survives renewals); solving writes the better of the old and new best straight into the set-aside real game's records so it is kept on leaving, and a toast says so (the Crisis Averted achievement appears once you leave, since achievements are frozen while a sandbox runs). Starting the practice sandbox from a crisis leaves the crisis first, and starting a crisis from the sandbox goes back through the real game. J-10: each card shows "Best: {shape} {word} in N tick(s)"; restart with the Restart button or the R key (an inline keydown handler in `index.html`, so it is on both pages, ignored while typing in a field, and listed in the ? help). Achievements Crisis Averted and Gold Standard (3 golds, with progress). Tests `tests/test_trade_crises.py` (38), including a greedy bot that solves all three.
+
+### J-5: Chain Builder (2026-10-11)
+A separate puzzle mode in its own window (**Chain Builder**: `#chain-toggle-button`, `#chain-panel`; in the `?`/Esc list; Desktop: Menu > Empire and a window in `pc-config.json`). The main economy and every existing save are unchanged: the chain goods and recipes below exist only inside the mode, a puzzle runs inside the practice-sandbox machinery, and results are saved only when non-default.
+
+- **Model** (one block in `game.py`, above the `@@NEW-FEATURES-END@@` marker, whole-number arithmetic only, no clock, no randomness, nothing timed). A product (what a port wants) is made along a recipe path from a raw good (`CHAIN_RECIPES`, single-input recipes with `take`/`make` ratios: Smelting 2 Ore to 1 Alloy, Forging 2 Alloy to 1 Machinery, Rolling, Milling, Packing, Filtering, Cell assembly 3 to 2, Melting, Grinding; `CHAIN_RAW_GOODS` ore, grain, ice, silica). You pick one site per step (a source for the raw good, a refinery for each recipe) and put ships on every leg including the last into the port. A ship on a leg A to B carries the puzzle's `cargo` per trip and fits `CHAIN_CYCLE // (2 x distance)` whole round trips in a cycle of 24 ticks (distance = grid steps between the sites, at least 1), so short legs are worth far more. A source supplies up to its `cap` per cycle; a refinery takes in up to its `cap` units of input per cycle (shared by every order that uses it, **the first order listed is served first**) and makes whole runs only. An order is MET when the port receives at least `need` a cycle; the port takes up to `want`. **Score = units delivered (up to `want`, over all orders) / ships used.** Gold is par, silver is at least `CHAIN_SILVER_PERCENT` (85) of par, bronze is any chain that meets the orders within the fleet.
+- **Puzzles.** 24, four chapters of six, all in `CHAIN_PUZZLES` (built from `_cb_source`, `_cb_refinery`, `_cb_port`, `_cb_product`): Single hop (raw good straight to the port), Two hops (one refinery on the way), Shared refiners (two orders through shared sources and refineries), Bottlenecks (small holds, tight fleets, small refineries; some with two orders). Each puzzle stores its `par` as (numerator, denominator) and the par chain as `best` {sites, ships}.
+- **Solver.** `chain_solve(puzzle)` tries every site choice for every order and every split of the fleet over the legs (`chain_options`, `_chain_compositions`, `_chain_flow`), ties to the fewest ships then the first found, and returns the par, its chain, how many chains meet the orders and how many it tried (the largest puzzle is about 59,000 chains, under a second). `tests/test_chain_builder.py` runs it over ALL 24 puzzles: solvable, the stored par equals the proven best, the stored `best` equals what the search finds, and a second independent search through the public `chain_evaluate` agrees that nothing beats par. Changing a puzzle means re-running the solver and updating `par`/`best` (the test says which is stale).
+- **Screen.** Static markup (so controls keep keyboard focus through the once-a-second render), filled by `render_chain()`, which skips every DOM write while a signature of what it shows is unchanged. Per order and step: a labelled `<select>` of the sites that fit that step and a text line for the leg (steps, round trips, units per ship, what it actually moves) with fewer/more ship buttons (never below 1, never past the fleet). The map is an SVG string (circle = source, square = refinery, diamond = port, solid arrows for order 1 and dashed for order 2, ships as "x2"); clicking a site fills the first step of the chosen order it fits (clicking again takes it out), which is a mouse convenience, the selects do the same job by keyboard. A "Sites and distances" disclosure lists every site and every usable leg in words. **Three goals** sit above the board (`#chain-goal-0..2`: meet every order, silver, gold) each as a tick or circle plus the word Done or Not yet and the numbers. Lock in works only for a chain that meets the orders; the best is kept (a worse chain never replaces it, a tie with fewer ships does).
+- **Hint ladder.** `#chain-hint-button` starts as "Would you like a suggestion?"; each press opens one more rung (how the recipes and trips work; which sites the par chain uses; ships per leg) and the press after the third places the par chain on the board. Every rung stays hidden until pressed, nothing is penalised, and the ladder starts over with each puzzle.
+- **The real game is set aside.** `chain_enter()` uses the same `_sandbox_set_real_aside()` snapshot the practice sandbox and the crises use (it was factored out of both), loads a blank corporation that does not tick (`tick()` returns early while `chain_active`) and `chain_leave()` loads the snapshot back through the same `_apply_state()`, so `get_state()` is byte-identical (tested after a long played game). `get_state()` while a puzzle is open is the real snapshot; a locked-in best is written straight into the snapshot's records so leaving keeps it; achievements are frozen until you leave; starting a crisis or the sandbox from a puzzle, or a puzzle from either, goes back through the real game; `load_state()` leaves the puzzle. The shared sandbox banner shows while a puzzle is open (its wording, "nothing here is saved", is about the stand-in corporation, and the Leave button works).
+- **Save.** `records["chain_best"]` {puzzle id: {units, ships}} (survives renewals), written only when non-empty. `_chain_clean_best()` validates each entry on load: known puzzle id, whole numbers (never bool), ships within the fleet, units between what the orders need and what the ports take, and a score above par is impossible so such an entry is dropped. The medal is recomputed from the score, never trusted from a save. Old saves load unchanged.
+- **Picker.** The 24 puzzles are a shared level-select screen (`shared/level-select.js`, instance `chain-select`, created lazily by `_level_select_create()`; the first puzzle of each later chapter is flagged as a new mechanic; progress is pushed in from the records and the screen stores nothing itself). Without the shared script the Choose button starts the first unsolved puzzle.
+- **Achievements and story.** First Link (any solve), At Par (gold on five, with progress), Shared Foundry (all six of chapter 3, with progress), Chain Master (all 24, with progress); each has a chapter in `story.json`. `achievements.json` is now 44.
+- **Files the page fetches at load** (for the service worker's precache list): none new in this game folder; the page now includes `../../shared/level-select.js` (already in `sw.js`).
+- Tests: `tests/test_chain_builder.py` (191), plus the new ids in `tests/conftest.py`.
+
+## Modes as levels (GN-17 pilot, 2026-10-11)
+Direction from the owner (`planning/TODO.md` GN-17, linked to section LZ): a game with many game modes should introduce the main controls first and add the mode "gimmicks" slowly, on the shared level select. Trade Empire is the pilot; this section is the guideline for the other mode-heavy games.
+
+**What the pilot did.** A **Modes** screen (`#modes-open-button`, "🧭 Modes", in the Classic toolbar and first in the Desktop Menu > Empire group) built on `shared/level-select.js` (instance `modes-select`, created on first open by `_level_select_create()`). `MODES` in `game.py` is the ladder, gentlest first: **The core game** (a plain level: load, depart, sell, research, automate), then **Expeditions**, **Chain Builder**, **Trade Crises**, **Blackout** (kind "mode") and the **Practice sandbox** last (free play). Each rung has a one-line "Adds: ..." description of what it brings. The rules:
+- **Nothing is gated.** No `requires`, `requires_count` or `unlock_text` anywhere, so no card is ever locked and every mode can be started from a brand-new game (a test pins this). The order is only a suggested path.
+- **A "Next suggested mode" marker.** The first rung not yet tried gets "Next suggested mode." in front of its description (words, not colour), the toolbar button's tooltip names it, and the level select opens focused on it (its own "next up" rule). `modes_next_suggested()` returns the last rung (the sandbox, which is never marked tried) once everything else is.
+- **Tried is read from what the game already records,** so nothing new is saved: the core game once a ship has been automated (the `first_automation` achievement), Expeditions from `records["expeditions"]`, Chain Builder from `records["chain_best"]`, Trade Crises from `records["crisis_best"]`, Blackout from being on, bought intel or a dark run. Inside a puzzle, a crisis or the sandbox the answer is read from the set-aside real game (`_modes_real_view()`), so it never changes when you step into a mode.
+- **Starting a rung only takes you there.** The core rung shows a pointer to the main controls, Expeditions and Crises open the Fleet Lab window, Chain Builder opens its window, Blackout shows where its own (confirming) button is and never switches itself on, the sandbox starts the practice sandbox (which can be left at any time). `modes_start(mode_id)` is the one function to extend. The screen opens `MODES_OPEN_DELAY_MS` (80) after the click (`_call_after_menu_closes()`): the Desktop Menu closes itself and hands focus back to its button right after one of its entries is clicked, which would otherwise pull focus out of the dialog; closing the screen returns focus to the Menu button (Desktop) or the Modes button (Classic).
+- Tests: `tests/test_modes.py` (27): ladder shape and order, descriptions, no gating, tried and next-suggested for every rung, the same answer inside each set-aside mode, nothing added to the save, each rung's start, the screen built once with fresh progress, the tooltip, both pages and the Desktop Menu.
+
+**How another game applies it.** (1) List the modes in a plain ordered table in the game (a tuple of `{id, title, kind, blurb}`): the base game first as a `level`, then each mode as a `mode` (or `mechanic` when it is a rule the base game lacks), gentlest to hardest, the free-play space last; every fifth rung should be a mode or mechanic, which `NoyvjLevels.logic.audit()` can check. (2) Give each a one-line "Adds: ..." blurb. (3) Create the screen with `NoyvjLevels.create({domId, title, levels, state, onStart, onChange})` (no `data-game-id` on the script tag, so there is no `levels.json` fetch and no localStorage), with an `onChange` that does nothing because the game owns the progress. (4) Derive `done` from what the game already records; avoid new save keys, and never mark a free-play rung done. (5) Never add `requires`: the owner dislikes strict unlocking, so the suggestion is a marker, not a lock. (6) Put the next-suggested marker in the blurb and the opener's tooltip, and have `onStart` take the player to the mode's own entry point rather than switching a mode on for them. (7) Add the opener button to both pages (Classic toolbar, Desktop Menu via `pc-config.json`), its id to the fake DOM's `ELEMENT_IDS` (the markup test then checks both pages) and regenerate `pc.html`. A game whose modes are real levels in a campaign (Canopy) keeps a plain levels list instead; this pattern is for games whose modes are separate features.
+
+## Seeded runs (Z-1b, 2026-10-12)
+Route hazards, Trade Guild offers and the renewed charter's founding conditions now draw from one run seed (`shared/seed.py`, imported as `seed_lib`; the page fetches it into Pyodide before `game.py`). Seed format `TRADEEMPIRE-K7F2Q`. Each draw is a STATELESS stream `run_stream(label, n)` = `Rng(f"{seed}#{label}#{n}")` where n is a saved counter (`hazard_rolls`, `guild_offers`) or `charters_completed` for the founding roll, so the same seed and choices give the same run and a save resumes exactly. `hazard_rng`, `guild_rng` and `charter_rng` are now `None` by default and act as test overrides (any object with `.random()` / `.choice` + `.randint` / `.randint`). **Save:** `run_seed` (top level) is written only once it was typed or a draw used it; `route_hazards.rolls` and `guild.offers` only when non-zero; a brand-new save is unchanged, a missing or tampered `run_seed` is ignored (a fresh one is made on load). A typed seed (`set_run_seed`) is accepted only before any draw, never in the sandbox; a renewal keeps the seed and its stream positions; the sandbox, crises and chain puzzles set the real seed aside and bring it back. UI: `<details class="run-seed-details">` under the route-hazards row (`#run-seed-display`, `#run-seed-copy-button`, `#run-seed-input`, `#run-seed-apply-button`, `#run-seed-note`); `window.NOYVJ_SEED` is set so the info footer shows it. The test fixture pins `run_seed = "TRADEEMPIRE-23456"`. Tests: `tests/test_seeded_runs.py` (13). Files fetched at load, new for the precache: `shared/seed.py` (already in `sw.js`).
+
+## Shared ghost (Z-3e5, 2026-10-12)
+Trade Empire opts in to `shared/ghost.py` (written to the Pyodide filesystem as `ghost.py` in `index.html`; `pc.html` regenerated). **Measure:** the highest credit balance reached so far this charter (`max_profit_ever`, which never dips when something is bought), one number per tick, recorded by `ghost.Recorder` from the first tick of a charter until the endgame is reached (`_ghost_record_tick`, called at the end of `tick()`; the recording stops the moment `endgame_reached`). **Best path:** `_ghost_bank()` runs in `found_new_corporation()` before the reset and keeps the path in `ghost_best[mode]` ("standard" or "hard", by `hard_charter_active`) when the charter reached the endgame in FEWER ticks than the stored best (a tie keeps the older; shorter than `GHOST_MIN_TICKS` = 30 is never kept). `keep["ghost_best"]` carries it across the renewal. **Never kept:** a charter that was tainted: joined part-way (the first recorded tick finds `total_sales_count > 0`, i.e. a save from before the ghost) or run with Blackout on at any tick; nothing is recorded while the practice sandbox or Chain Builder has the corporation set aside (their snapshots are `get_state()`, so the real path comes back exactly). **Save:** a new top-level key `ghost`, written only once there is something to write: `{"best": {mode: {"ticks", "trace"}}, "live": {"turns", "stride", "values"[, "endgame"]} | {"tainted": true}}`. The live path rides in the save so a reload mid-charter does not lose it; `_load_ghost` cleans every trace with `ghost.load`, requires `ticks` to equal the trace's own length (and at least 30), accepts a live path only when the recorder could have made it (stride a power of two, `len(values) == ceil(turns / stride)`, fewer than 120 numbers, finite numbers, `endgame == turns` when present) and drops anything else (a bad half never costs the good half). Old saves have no key and load with no ghost. At most about 2 KB. **Display:** words only (there is no chart): `#ghost-note` (`role="status"`, in the ledger section, so the Desktop stage shows it) is `ghost_note_text()`: the shared `ghost.summary` sentence while racing ("turn" written as "tick", unit " credits"), a plain comparison of the two times once the endgame is reached, a line saying what the ghost is before there is one, or why this charter is not compared. `ghost_result()` has the same keys as `ghost.compare` but is built from `ghost.value_at` because the recorder thins the live path (a test pins agreement with `ghost.compare` on a full list). It refreshes every `GHOST_NOTE_EVERY` (20) ticks and when what it says changes kind, so a screen reader is not chatty. **Switch:** Settings checkbox "Show the ghost of my best charter" (`#ghost-checkbox`; `settings.js` stores `trade-empire-ghost-off` and adds `.ghost-off` to `<html>`, which `style.css` and `_ghost_on()` read; Reset to Default turns it back on); hiding never deletes the stored path. Tests: `tests/test_shared_ghost.py` (22).

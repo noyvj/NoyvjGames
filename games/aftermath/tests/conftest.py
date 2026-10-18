@@ -15,6 +15,13 @@ GAME_PY = GAME_DIR / "game.py"
 if str(GAME_DIR) not in sys.path:
     sys.path.insert(0, str(GAME_DIR))
 
+# browser_helpers.py (the browser-test setup) sits in this folder, so a test can write
+# `from browser_helpers import open_game`; the `base` fixture is registered below for every test.
+TESTS_DIR = Path(__file__).resolve().parent
+if str(TESTS_DIR) not in sys.path:
+    sys.path.insert(0, str(TESTS_DIR))
+from browser_helpers import base  # noqa: E402,F401  (pytest fixture: the local server for browser tests)
+
 # game.py imports the shared info-page widget (shared/info_page.py) the
 # same way the real Pyodide boot script does -- see any game's index.html
 # -- so the repo-root shared/ directory has to be importable before
