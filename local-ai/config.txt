@@ -16,7 +16,8 @@ think = on
 # and at the end, so other sessions can see them. main is never pushed. Safe: the website
 # (GitHub Pages) and the backend (FastAPI Cloud) only deploy from main.
 push = on
-sync_every = 50
+# 10 since 2026-10-17: each sync also brings in the TODO work Noy2 made possible (refresh_queue.py).
+sync_every = 10
 
 # pr = on also opens a DRAFT pull request per passing task (ai -Pr / ai-queue -Pr) and lets the
 # queue run GitHub issues labelled local-ai. Keep it off until test runs look good.
