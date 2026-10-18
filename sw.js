@@ -2,7 +2,7 @@
 // the precache list; ordinary content deploys don't need it, because
 // same-origin requests are network-first (see the fetch handler below) and
 // so always pick up fresh files whenever the player is online.
-const SW_VERSION = 78;
+const SW_VERSION = 79;
 const CACHE_NAME = "site-cache-v" + SW_VERSION;
 // How long a same-origin network request may take before we give up and
 // serve the cached copy instead (a slow/flaky connection shouldn't hang).
@@ -467,6 +467,42 @@ const PRECACHE_URLS = [
   "games/loop/index.html",
   "games/loop/style.css",
   "games/loop/game.py",
+  "games/loop/boot.js",
+  "games/loop/community-compare.js",
+  "games/loop/feedback.js",
+  "games/loop/loop_achievements.py",
+  "games/loop/loop_assist.py",
+  "games/loop/loop_bridge.py",
+  "games/loop/loop_career.py",
+  "games/loop/loop_changelog.py",
+  "games/loop/loop_effects.py",
+  "games/loop/loop_ghost_codes.py",
+  "games/loop/loop_handlers.py",
+  "games/loop/loop_info_panel.py",
+  "games/loop/loop_ledger.py",
+  "games/loop/loop_loading.py",
+  "games/loop/loop_messages.py",
+  "games/loop/loop_model.py",
+  "games/loop/loop_narrator.py",
+  "games/loop/loop_planner.py",
+  "games/loop/loop_readouts.py",
+  "games/loop/loop_renderer.py",
+  "games/loop/loop_rules.py",
+  "games/loop/loop_runstate.py",
+  "games/loop/loop_savegame.py",
+  "games/loop/loop_sparklines.py",
+  "games/loop/loop_summaries.py",
+  "games/loop/loop_visual_maps.py",
+  "games/loop/rich-maps.js",
+  "games/loop/settings.js",
+  "games/loop/shortcuts.js",
+  "games/loop/style-1-base.css",
+  "games/loop/style-2-visuals.css",
+  "games/loop/style-3-panels.css",
+  "games/loop/style-4-maps.css",
+  "games/loop/style-5-options.css",
+  "games/loop/style-6-features.css",
+  "games/loop/tutorial-steps.js",
   "games/drift/index.html",
   "games/drift/settings.js",
   "games/drift/style.css",

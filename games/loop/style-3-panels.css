@@ -1,0 +1,401 @@
+/* Loop styles, part 3 of 6: achievements, toast and banner, goods picker, reset, pulses, motion override, scorecard, passport. Loaded in order by index.html: style-1..6, then style.css. */
+/* ============================================================
+   Post-milestone backlog pass (planning/TODO.md "Per-game: Loop"
+   H1-H20) + achievements framework (ACHIEVEMENTS-SYSTEM-DESIGN.md).
+   Same card/toast language used across the hub's shared achievements
+   pattern (SOL's reference implementation), rebuilt on Loop's own
+   existing bluish rgba(140, 160, 255, ...) accent + established green
+   (circularity) identity rather than inventing a new palette. */
+.achievements-panel {
+  text-align: left;
+  display: grid;
+  gap: 0.65rem;
+}
+
+/* Same gotcha SOL's/Trade Empire's/Continuum's own achievements CSS
+   documents: `display: grid` above otherwise wins the cascade over the
+   browser's default `[hidden] { display: none }` UA rule (author-origin
+   styles beat user-agent-origin styles regardless of specificity), so
+   without this override the panel stays visible as an empty box before
+   its first open, and stays visible with its last-rendered content
+   forever after being toggled closed. */
+.achievements-panel[hidden] {
+  display: none;
+}
+
+.achievement-card {
+  padding: 0.85rem 1rem;
+  border: 1px solid rgba(140, 160, 255, 0.14);
+  border-radius: 12px;
+  background: rgba(10, 12, 22, 0.4);
+}
+
+.achievement-card--earned {
+  border-color: rgba(76, 156, 110, 0.4);
+  background: rgba(76, 156, 110, 0.08);
+  box-shadow: 0 0 18px rgba(76, 156, 110, 0.12);
+}
+
+.achievement-card-label {
+  margin: 0 0 0.25rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.achievement-card--earned .achievement-card-label {
+  color: #7fd6a3;
+  text-shadow: 0 0 12px rgba(127, 214, 163, 0.35);
+}
+
+.achievement-card-description {
+  margin: 0;
+  font-size: 0.78rem;
+  opacity: 0.7;
+  line-height: 1.4;
+}
+
+.achievement-card-progress {
+  margin: 0.4rem 0 0;
+  font-size: 0.72rem;
+  opacity: 0.55;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Z27b: cross-player "Earned by N% of players" line, filled in by
+   shared/achievement-stats.js once the aggregate-stats endpoint responds
+   -- same muted small-text treatment as .achievement-card-progress, kept
+   distinct via italics so the two never look identical if both appear on
+   the same card. */
+.achievement-earn-rate {
+  margin: 0.3rem 0 0;
+  font-size: 0.72rem;
+  opacity: 0.5;
+  font-style: italic;
+}
+
+.achievements-hub-link {
+  display: inline-block;
+  margin-top: 0.2rem;
+  font-size: 0.8rem;
+  color: #a9c3ff;
+}
+
+/* ============================================================
+   K16 (planning/TODO.md "What's New" changelog, site-wide goal): a
+   curated highlights list, same card language as the achievements panel
+   above -- no earned/unearned state, just a date + one-line summary per
+   entry, newest first. Matches Herd/Aftermath/Thaw's own
+   .changelog-panel/.changelog-entry rules verbatim. */
+.changelog-panel {
+  text-align: left;
+  display: grid;
+  gap: 0.5rem;
+}
+
+/* Same [hidden]-vs-`display: grid` gotcha as .achievements-panel above. */
+.changelog-panel[hidden] {
+  display: none;
+}
+
+.changelog-entry {
+  padding: 0.7rem 0.9rem;
+  border: 1px solid rgba(140, 160, 255, 0.14);
+  border-radius: 12px;
+  background: rgba(10, 12, 22, 0.4);
+}
+
+.changelog-entry-date {
+  margin: 0 0 0.25rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  opacity: 0.65;
+}
+
+.changelog-entry-text {
+  margin: 0;
+  font-size: 0.85rem;
+  line-height: 1.4;
+}
+
+/* Unlock toast: fixed to the top of the viewport so it's visible
+   regardless of scroll position. `.visible` is toggled from game.py;
+   `hidden` (native attribute) keeps it out of the layout entirely
+   between toasts. */
+.achievement-toast {
+  position: fixed;
+  top: 0.75rem;
+  left: 1rem;
+  right: 1rem;
+  max-width: 480px;
+  margin: 0 auto;
+  z-index: 500;
+  padding: 0.7rem 1rem;
+  background: linear-gradient(165deg, rgba(76, 156, 110, 0.92), rgba(38, 64, 42, 0.95));
+  border: 1px solid rgba(127, 214, 163, 0.5);
+  border-radius: 10px;
+  box-shadow: 0 8px 26px rgba(0, 0, 0, 0.45);
+  opacity: 0;
+  transform: translateY(-12px);
+  transition: opacity 200ms ease, transform 200ms ease;
+  pointer-events: none;
+}
+
+.achievement-toast.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.achievement-toast p {
+  margin: 0;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #f2fff6;
+  text-align: center;
+}
+
+/* H3: first-time-closed-loop celebratory banner — distinct from (and
+   slightly larger/longer-lived than) the achievement-unlock toast
+   above, sitting just below it so the rare case of both firing at once
+   doesn't fully overlap. */
+.loop-closed-banner {
+  position: fixed;
+  top: 3.6rem;
+  left: 1rem;
+  right: 1rem;
+  max-width: 480px;
+  margin: 0 auto;
+  z-index: 499;
+  padding: 0.75rem 1rem;
+  background: linear-gradient(165deg, rgba(76, 156, 110, 0.95), rgba(20, 40, 26, 0.97));
+  border: 1px solid rgba(127, 214, 163, 0.6);
+  border-radius: 10px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5), 0 0 24px rgba(76, 156, 110, 0.3);
+  opacity: 0;
+  transform: translateY(-12px);
+  transition: opacity 220ms ease, transform 220ms ease;
+  pointer-events: none;
+}
+
+.loop-closed-banner.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.loop-closed-banner p {
+  margin: 0;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #f2fff6;
+  text-align: center;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .achievement-toast,
+  .loop-closed-banner {
+    transition: opacity 120ms ease;
+    transform: none;
+  }
+}
+
+/* H2/H20: goods-category picker — shown only at game start (game.py
+   hides #goods-category-picker once chain.total_produced > 0). Reuses
+   the existing .section glass-panel treatment; buttons get a
+   `.selected` state matching the feedback-prompt's Yes/No pattern. */
+.goods-category-buttons {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.goods-category-button.selected {
+  border-color: rgba(76, 156, 110, 0.6);
+  background: linear-gradient(135deg, #2a4a30, #1d2e1f);
+  box-shadow: 0 0 12px rgba(76, 156, 110, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+/* H7: in-game reset control — visually a secondary action, sitting
+   below the three investment tiles it resets rather than competing
+   with the primary Advance Cycle button at the bottom of the page. */
+.reset-chain-button {
+  display: block;
+  width: 100%;
+  margin-top: 0.6rem;
+}
+
+/* H4/H15: per-measure cost-per-unit + running-contribution readout.
+   Spans the full investment-tile width (the tile's own grid is
+   `1fr auto 1fr` for name/count/button) rather than being squeezed
+   into the first column. */
+.invest-stats {
+  grid-column: 1 / -1;
+  margin: 0.35rem 0 0;
+  font-size: 0.72rem;
+  opacity: 0.6;
+  font-variant-numeric: tabular-nums;
+}
+
+/* H8: the Regional Distributor trade-partner row — same trade-blue
+   identity as the existing Trade Link row, since both are trade-network
+   partners. */
+.invest-row--regional { border-left-color: #4c8ed8; }
+
+#regional-trade-invest-button::before { content: "\1F69A "; }
+
+/* H5: loop-ring nodes light up proportional to real investment (see
+   render()'s `loop-ring-node--active`/`--charged` classing in game.py)
+   instead of sitting static regardless of how much has been invested. */
+.loop-ring-node--active {
+  border-color: rgba(76, 156, 110, 0.85);
+  box-shadow: 0 0 16px rgba(76, 156, 110, 0.6);
+}
+
+.loop-ring-node--charged {
+  border-color: #7fd6a3;
+  box-shadow: 0 0 22px rgba(127, 214, 163, 0.85), 0 0 8px rgba(127, 214, 163, 0.9) inset;
+}
+
+/* H12/H18: brief reactive pulses on the funds display (export revenue
+   earned) and the trade-network readout (its numbers changed) — added
+   and removed by game.py's `_trigger_funds_burst()`/
+   `_trigger_trade_network_pulse()` via a short-lived class + setTimeout,
+   so the number visibly changing isn't the only feedback. */
+.funds-display--burst {
+  animation: funds-burst 700ms ease-out;
+}
+
+@keyframes funds-burst {
+  0% { color: #7fd6a3; text-shadow: 0 0 14px rgba(127, 214, 163, 0.9); transform: scale(1.08); }
+  100% { color: inherit; text-shadow: none; transform: scale(1); }
+}
+
+.trade-network-display--pulse {
+  animation: trade-network-pulse 700ms ease-out;
+}
+
+@keyframes trade-network-pulse {
+  0% { color: #9fc4f2; text-shadow: 0 0 10px rgba(76, 142, 216, 0.8); }
+  100% { color: inherit; text-shadow: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .funds-display--burst,
+  .trade-network-display--pulse {
+    animation: none;
+  }
+}
+
+/* ============================================================
+   Settings panel (site-wide goal, planning/TODO.md): consolidated
+   text-scale + reduced-motion controls. Reuses .section for the panel
+   shell itself (same hidden-until-opened idiom as #howto-panel/
+   #achievements-panel), so only the internal layout needs its own rules. */
+.settings-panel-heading {
+  margin: 0 0 0.75rem;
+  font-size: 0.95rem;
+  opacity: 0.9;
+}
+
+.settings-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.settings-row:last-child {
+  margin-bottom: 0;
+}
+
+.settings-label {
+  font-size: 0.85rem;
+}
+
+.text-size-control {
+  display: inline-flex;
+  gap: 0.25rem;
+}
+
+.text-size-control button {
+  min-width: 2.2rem;
+  padding: 0.3rem 0.5rem;
+}
+
+.settings-checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+/* Reduced-motion override: a manual, persisted toggle independent of the
+   OS-level `prefers-reduced-motion` media query already gating several
+   animations in this file (including the chain-flow/return-flow/
+   import-flow particle keyframes this game's own visual-pass note
+   deliberately kept running). Rather than duplicating every individual
+   @keyframes/animation/transition rule with a second selector, this one
+   blanket rule (applied only when settings.js sets the attribute) collapses
+   every animation/transition on the page to effectively instant -- the
+   same standard "force-disable" pattern used site-wide for this kind of
+   manual override, and strictly additive to the existing media-query-gated
+   rules above (an OS-level reduced-motion user gets the same effect either
+   way; this just also covers a player whose OS setting is untouched but
+   who wants motion off in-game). Deliberately does not touch any of this
+   game's meaningful game-state colors (extraction/circularity meters,
+   flow-particle hues) -- only animation/transition timing collapses. */
+html[data-reduced-motion="true"] *,
+html[data-reduced-motion="true"] *::before,
+html[data-reduced-motion="true"] *::after {
+  animation-duration: 0.001ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.001ms !important;
+  scroll-behavior: auto !important;
+}
+
+/* ---- Round-2 additions: H6 burst, H12 pie, H15 audit, H18 top node, H25/H29 text map, H26 pulse tiers ---- */
+.circular-burst { position: relative; height: 0; pointer-events: none; }
+.circular-burst span {
+  position: absolute; top: -10px; left: 50%; width: 6px; height: 6px; border-radius: 50%;
+  background: #7fd6a3; opacity: 0;
+}
+.circular-burst--active span { animation: circular-burst-fly 900ms ease-out; }
+.circular-burst span:nth-child(1) { --dx: -70px; --dy: -18px; }
+.circular-burst span:nth-child(2) { --dx: -45px; --dy: -34px; }
+.circular-burst span:nth-child(3) { --dx: -20px; --dy: -42px; }
+.circular-burst span:nth-child(4) { --dx: 0px; --dy: -46px; }
+.circular-burst span:nth-child(5) { --dx: 20px; --dy: -42px; }
+.circular-burst span:nth-child(6) { --dx: 45px; --dy: -34px; }
+.circular-burst span:nth-child(7) { --dx: 70px; --dy: -18px; }
+.circular-burst span:nth-child(8) { --dx: 0px; --dy: -26px; }
+@keyframes circular-burst-fly {
+  0% { opacity: 1; transform: translate(0, 0) scale(1); }
+  100% { opacity: 0; transform: translate(var(--dx), var(--dy)) scale(0.4); }
+}
+.loop-ring-node--top { outline: 2px solid #ffd479; outline-offset: 3px; box-shadow: 0 0 20px rgba(255, 212, 121, 0.75); }
+.score-pie-row { display: flex; align-items: center; gap: 0.75rem; margin-top: 0.5rem; }
+.score-pie { flex: 0 0 56px; width: 56px; height: 56px; border-radius: 50%; border: 1px solid rgba(140, 160, 255, 0.3); }
+.score-pie-row .comparison-message { margin: 0; }
+#audit-body p { margin: 0.3rem 0; font-size: 0.82rem; }
+.network-map { font-size: 0.78rem; line-height: 1.35; white-space: pre-wrap; overflow-x: auto; margin: 0.4rem 0 0; }
+.trade-network-display--pulse-small { animation-duration: 350ms; }
+.trade-network-display--pulse-large { animation-duration: 1100ms; font-weight: 600; }
+#regional-hint button { margin-left: 0.4rem; padding: 0.15rem 0.6rem; }
+@media (prefers-reduced-motion: reduce) {
+  .circular-burst--active span { animation: none; }
+}
+
+/* H9: waste-stream focus buttons. */
+.focus-button { margin-top: 0.3rem; font-size: 0.75rem; }
+.focus-button--on { outline: 2px solid #4c9c6e; }
+
+/* H19: circularity scorecard. */
+.scorecard-list { display: grid; gap: 0.5rem; margin: 0.5rem 0; }
+.scorecard-text { margin: 0 0 0.2rem; font-size: 0.8rem; }
+.scorecard-bars { display: grid; gap: 2px; }
+.scorecard-bar { height: 6px; border-radius: 3px; }
+.scorecard-bar--mine { background: #4c9c6e; }
+.scorecard-bar--benchmark { background: #8a8fa6; opacity: 0.7; }
+
+/* H21: material passport. */
+.passport-list { margin: 0.4rem 0 0; padding-left: 1.1rem; font-size: 0.8rem; }

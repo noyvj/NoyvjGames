@@ -3,9 +3,10 @@
 import pathlib
 import sys
 import types
+from .pagefiles import game_css
 
 HERE = pathlib.Path(__file__).resolve().parent.parent
-CSS = (HERE / "style.css").read_text(encoding="utf-8")
+CSS = game_css()
 JS = (HERE / "settings.js").read_text(encoding="utf-8")
 
 

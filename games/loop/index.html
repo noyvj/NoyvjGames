@@ -67,6 +67,12 @@
 </script>
 <link rel="icon" type="image/svg+xml" href="../../icons/favicon-loop.svg">
 <link rel="stylesheet" href="../../shared/ambient-bg.css">
+<link rel="stylesheet" href="style-1-base.css">
+<link rel="stylesheet" href="style-2-visuals.css">
+<link rel="stylesheet" href="style-3-panels.css">
+<link rel="stylesheet" href="style-4-maps.css">
+<link rel="stylesheet" href="style-5-options.css">
+<link rel="stylesheet" href="style-6-features.css">
 <link rel="stylesheet" href="style.css">
   <link rel="stylesheet" href="../../shared/theme-light-games.css">
   <script src="../../shared/theme.js" data-floating-toggle></script>
@@ -717,114 +723,13 @@
     <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
   </div>
 
+  <script src="tutorial-steps.js"></script>
   <script>
-    const LOOP_TUTORIAL_STEPS = [
-      {
-        title: "Welcome to Loop",
-        text: "You're running a small manufacturing chain that, by default, is a straight line: extract raw material, manufacture goods, use them, then throw them away. Your job is to redesign it into something closer to a closed loop. This walkthrough covers every real system in the game — skip it any time, and reopen it later from the Tutorial button up top.",
-      },
-      {
-        selector: "#chain-flow-section",
-        title: "The Chain",
-        text: "This is your supply chain: Extract → Manufacture → Use → Discard. Right now it's a straight line, so 100% of every cycle's production needs freshly extracted raw material. As you invest in circularity below, a share of production starts looping back into Manufacture instead — watch this message and the flow arrows update to reflect it.",
-      },
-      {
-        selector: "#vignette",
-        title: "Follow One Item",
-        text: "This tracks one representative product — a phone — through the exact same chain, in plain language. It's driven by the same circular share the chain view above shows, just made concrete: is this phone thrown away for good, or does part of it eventually come back?",
-      },
-      {
-        selector: "#status",
-        title: "Your Dashboard",
-        text: "Funds pay for every investment below. New extraction costs money and, over the game's lifetime, builds up Environmental damage — the more cumulative extraction you've done, the more expensive every future unit of new extraction gets (up to 2.5x). Loop closure tracks two numbers: your circular share this cycle right now, and your lifetime average across every cycle you've run, including any earlier straight-line ones.",
-      },
-      {
-        selector: "#circularity",
-        title: "Circularity Investments",
-        text: "Repair Networks, Reuse Systems, and Recycling Loops each permanently supply a fixed number of units toward next cycle's production target — sourced from repaired/reused/recycled material instead of new extraction. Recycling Loops supply the most per unit invested; Repair Networks the least. Buy enough combined supply to push new extraction to zero and you've closed the loop.",
-      },
-      {
-        selector: "#trade-network",
-        title: "Trade Network",
-        text: "The Trade Link works two ways: investing in it imports reuse capacity from a neighboring system, counting toward your loop closure just like your own investments. Separately, whenever your own circularity investments produce more supply than the current cycle needs, that surplus is automatically sold outward for extra revenue instead of going to waste.",
-      },
-      {
-        selector: "#advance-cycle-button",
-        title: "Advance Cycle",
-        text: "This locks in your current investment mix for the cycle: it extracts whatever raw material your circularity + trade supply didn't cover, charges you for it at the current damage-adjusted cost, sells your production and any exported surplus, then moves you to the next cycle. Your funds, damage, and loop-closure numbers all update the moment you click it.",
-      },
-      {
-        title: "Redesign the Machine",
-        text: "There's no fail-state here — score rewards funds plus a direct bonus for your lifetime circular share, so closing the loop is worth pursuing for its own sake, not just to dodge rising extraction costs. Keep investing in circularity until new extraction hits zero, and watch the trend line confirm you're closing the loop over time. Good luck redesigning the chain.",
-      },
-    ];
-
-    // H5: optional cross-player comparison for lifetime circular share,
-    // against the shared aggregate-stats endpoint (planning/TODO.md Z1).
-    // Same shape as Grid's own C15 window.gridCompare -- fails soft on any
-    // error/suppression, leaving game.py's static "isn't available yet"
-    // fallback text in place.
-    (function () {
-      const API_BASE = "https://noyvjgames.fastapicloud.dev";
-      const cache = new Map();
-      function show(text) {
-        const el = document.getElementById("community-comparison-display");
-        if (el && text) el.textContent = text;
-      }
-      window.loopCompare = function (lifetimeCircularFraction) {
-        const key = Math.round(lifetimeCircularFraction * 1000);
-        const hit = cache.get(key);
-        if (hit && Date.now() - hit.at < 60000) { show(hit.text); return; }
-        if (hit) return; // in flight
-        cache.set(key, { at: Date.now(), text: null });
-        fetch(`${API_BASE}/stats/games/loop/percentile?field=lifetime_circular_fraction&value=${key / 1000}`)
-          .then((r) => (r.ok ? r.json() : null))
-          .then((d) => {
-            let text = null;
-            if (d && !d.suppressed && typeof d.percentile === "number") {
-              const rounded = Math.round(d.percentile);
-              text = `Compared with ${d.count} other saved chains: your lifetime circular share beats ${rounded}% of them.`;
-            }
-            cache.set(key, { at: Date.now(), text });
-            show(text);
-          })
-          .catch(() => { cache.set(key, { at: Date.now(), text: null }); });
-      };
-    })();
-
-    async function main() {
-      const pyodide = await loadPyodide();
-      window.pyodide = pyodide; // exposed for the save/load bridge below
-      // Shared info-page widget (see shared/info_page.py) -- written into
-      // Pyodide's virtual filesystem before game.py runs so `import
-      // info_page` resolves normally, same pattern as Continuum's
-      // ENGINE_MODULES loop.
-      const infoPageSource = await (await fetch("../../shared/info_page.py")).text();
-      pyodide.FS.writeFile("info_page.py", infoPageSource, { encoding: "utf8" });
-      // "What's New" changelog (K16, planning/TODO.md) -- same fetch
-      // convention as achievements.json above.
-      const [achievementsJson, changelogJson, code] = await Promise.all([
-        fetch("achievements.json").then((response) => response.text()),
-        fetch("changelog.json").then((response) => response.text()),
-        fetch("game.py").then((response) => response.text()),
-      ]);
-      window.ACHIEVEMENTS_JSON = achievementsJson;
-      window.CHANGELOG_JSON = changelogJson;
-      await pyodide.runPythonAsync(code);
-
-      if (window.GameTutorial) {
-        GameTutorial.init(window.LOOP_PC_TUTORIAL_STEPS || LOOP_TUTORIAL_STEPS, { gameId: "loop" });
-      }
-      if (window.MobileHud) {
-        MobileHud.init([
-          { selector: "#funds-display", label: "" },
-          { selector: "#circular-fraction-display", label: "" },
-          { selector: "#damage-display", label: "" },
-        ]);
-      }
-    }
-    main();
+    // The Desktop page (pc.js) defines window.LOOP_PC_TUTORIAL_STEPS; boot.js starts the tutorial with whichever applies.
+    function loopTutorialSteps() { return window.LOOP_PC_TUTORIAL_STEPS || LOOP_TUTORIAL_STEPS; }
   </script>
+  <script src="community-compare.js"></script>
+  <script src="boot.js"></script>
   <!--
     SAVE-BUTTON-INTEGRATION.md: shared save widget, same pattern as SOL
     (the reference integration). game.py exposes get_state()/load_state();
@@ -842,49 +747,7 @@
   <!-- Z4 (site-wide goal): "?" shows a keyboard-shortcuts help overlay,
        Esc closes whichever panel is open. See shared/keyboard-shortcuts.js. -->
   <script src="../../shared/keyboard-shortcuts.js"></script>
-  <script>
-    window.KeyboardShortcuts.init({
-      panels: [
-        { toggle: "howto-toggle-button", panel: "howto-panel" },
-        { toggle: "achievements-toggle-button", panel: "achievements-panel" },
-        { toggle: "changelog-toggle-button", panel: "changelog-panel" },
-        { toggle: "settings-toggle-button", panel: "settings-panel" },
-        { toggle: "info-page-toggle-button", panel: "info-page-panel" },
-      ],
-      extra: [
-        "Space — advance the cycle",
-        "1 / 2 / 3 — buy Repair Networks / Reuse Systems / Recycling Loops",
-        "T — buy a Trade Link",
-      ],
-    });
-
-    // H-13: game shortcuts. They only click the buttons the page already has (so the same rules,
-    // costs and disabled states apply), and stay quiet while a dialog, the opening screen, a
-    // Desktop window or a text field has the keyboard, or while a button/link has focus (Space
-    // already activates it).
-    (function () {
-      const KEYS = {
-        " ": "advance-cycle-button",
-        "1": "repair-invest-button",
-        "2": "reuse-invest-button",
-        "3": "recycle-invest-button",
-        t: "trade-link-invest-button",
-      };
-      const BLOCKERS = "#opening-screen, #tutorial-overlay:not([hidden]), #confirm-dialog-overlay:not([hidden]), " +
-        ".confirm-dialog-overlay, #kb-shortcuts-panel:not([hidden]), #pc-backdrop:not([hidden]), #pc-menu-panel:not([hidden])";
-      document.addEventListener("keydown", function (event) {
-        const id = KEYS[event.key.length === 1 ? event.key.toLowerCase() : event.key];
-        if (!id || event.ctrlKey || event.metaKey || event.altKey || event.repeat) return;
-        const tag = event.target && event.target.tagName;
-        if (/^(INPUT|TEXTAREA|SELECT|BUTTON|A|SUMMARY)$/.test(tag || "") || (event.target && event.target.isContentEditable)) return;
-        if (Array.prototype.some.call(document.querySelectorAll(BLOCKERS), function (n) { return n.getBoundingClientRect().width > 0; })) return;
-        const button = document.getElementById(id);
-        if (!button || button.disabled) return;
-        event.preventDefault();
-        button.click();
-      });
-    })();
-  </script>
+  <script src="shortcuts.js"></script>
   <script>
     if ("serviceWorker" in navigator) {
       navigator.serviceWorker.register("../../sw.js");
@@ -897,50 +760,6 @@
     needed). Reuses the schema Canopy already extended with a `response`
     field; no backend changes needed here.
   -->
-  <script>
-    (function () {
-      const RATINGS_API_BASE = "https://noyvjgames.fastapicloud.dev";
-      const yesButton = document.getElementById("feedback-yes-button");
-      const noButton = document.getElementById("feedback-no-button");
-      const submitButton = document.getElementById("feedback-submit-button");
-      const commentBox = document.getElementById("feedback-comment");
-      const statusEl = document.getElementById("feedback-status");
-      let answer = null;
-
-      function selectAnswer(value) {
-        answer = value;
-        yesButton.classList.toggle("selected", value === "yes");
-        noButton.classList.toggle("selected", value === "no");
-        submitButton.disabled = false;
-        submitButton.textContent = "Submit feedback";
-      }
-
-      yesButton.addEventListener("click", () => selectAnswer("yes"));
-      noButton.addEventListener("click", () => selectAnswer("no"));
-
-      submitButton.addEventListener("click", async () => {
-        if (!answer) return;
-        const comment = commentBox.value.trim();
-        const response = comment ? `${answer} — ${comment}` : answer;
-
-        submitButton.disabled = true;
-        submitButton.textContent = "Submitting...";
-        try {
-          const res = await fetch(`${RATINGS_API_BASE}/ratings`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ game_slug: "loop", response }),
-          });
-          if (!res.ok) throw new Error(`status ${res.status}`);
-          statusEl.textContent = "Thanks for the feedback!";
-          submitButton.textContent = "Submitted — thanks!";
-        } catch (err) {
-          statusEl.textContent = "Feedback submission failed — try again.";
-          submitButton.disabled = false;
-          submitButton.textContent = "Submit feedback";
-        }
-      });
-    })();
-  </script>
+  <script src="feedback.js"></script>
 </body>
 </html>

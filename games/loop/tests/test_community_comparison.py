@@ -6,7 +6,8 @@ architecture as Grid's own C15 (games/grid/game.py's _request_comparison()
 Mirrors games/grid/tests/test_round2_items.py::test_c15_summary_has_fallback_and_calls_hook."""
 
 import sys
-from pathlib import Path
+
+from .pagefiles import page_text
 
 
 def test_render_calls_loop_compare_hook_with_lifetime_circular_fraction(game_env):
@@ -74,7 +75,7 @@ def test_community_comparison_display_element_ships_with_a_graceful_fallback():
     what a player sees until/unless that fetch succeeds. Same division of
     labor as Grid's own COMPARE_FALLBACK, just baked into static markup
     here instead of Python-generated panel HTML."""
-    html = (Path(__file__).resolve().parent.parent / "index.html").read_text()
+    html = page_text()  # the page plus its split-out scripts: loopCompare lives in community-compare.js
     assert 'id="community-comparison-display"' in html
     assert "isn't available yet" in html
     assert "window.loopCompare" in html

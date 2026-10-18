@@ -21,7 +21,7 @@ INDEX_CAPS = {
     "tide": 16_000 * 4, "trade-empire": 27_500 * 4,
 }
 # Games not split yet: listed so the list shrinks. Remove an entry when its split lands (SP-0a Loop, SP-1b Drift).
-NOT_SPLIT_YET = {"loop": 5, "drift": 5}   # (game -> how many files may still be over the limit)
+NOT_SPLIT_YET = {"drift": 5}   # (game -> how many files may still be over the limit)
 # Other files over the limit on purpose: path (relative to the repo root) -> why.
 EXEMPT = {
     "games/champ-de-mots/study-table.html": "generated page of every word (scripts/generate-champ-study-table.py)",

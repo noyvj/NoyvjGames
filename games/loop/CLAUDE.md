@@ -23,6 +23,43 @@ This game exists to let the player ideate and build a *system*, not just respond
 - Extraction has an environmental cost meter (emissions/land damage) that rises with new-material use — same underlying "extraction is costly" logic as Canopy, but expressed through a supply-chain lens instead of a forest-plot lens.
 - No hard fail-state. Scoring rewards how much of the production target is met via circular flow vs. new extraction by session end — a fully "closed loop" late-game state is the clearest win condition in the whole hub.
 
+## File map (read this first; split 2026-10-18, SP-0a)
+
+Every file is small enough to read whole (about 7,000 tokens at most, `index.html` about 13,000). Ask for the file that holds the thing you are changing. `game.py` is only the entry point: it imports the `loop_*.py` modules, re-exports every name (so `game.chain`, `game.render` and so on still work, and the page reads `get_state`, `load_state`, `share_result` from it), and holds `setup()` (button wiring). A module only imports from modules listed ABOVE it here.
+
+| File | What lives there | Ask for it when |
+|------|------------------|-----------------|
+| `loop_rules.py` | Fixed numbers, costs, content tables (goods, plates, passport text, benchmarks), market-shock and rival schedules. No browser calls, no state | changing a cost, a threshold, a table or text of content |
+| `loop_model.py` | `ChainState`: one chain's money, circularity, extraction, scoring, rewind | changing a game rule or a formula |
+| `loop_runstate.py` | The module variables that get REPLACED while playing (`chain`, `buy_multiple`, `ghost`, panel open flags...) and `LIVE_NAMES` | adding a variable a function reassigns |
+| `loop_bridge.py` | Optional browser bridges: `window`, LoopSettings getters, haptics, clipboard, confirm dialog | anything that talks to settings.js or the browser |
+| `loop_career.py` | Career kept across chains: founder rank, name plates, secret goods, speed flags, ring theme unlocks | rank, plates, career records |
+| `loop_ledger.py` | Cycle ledger table/CSV, Past Chains archive and graph | ledger or past chains |
+| `loop_messages.py` | Status sentences: trend, real-world comparison, scorecard, vignette, chain-flow message | wording of the chain/vignette lines |
+| `loop_info_panel.py` | "The Real Story" info page and its toggle | info page |
+| `loop_achievements.py` | Achievement catalog, checks, progress, panel, toast, story chapters | achievements |
+| `loop_effects.py` | Bursts, banners, pulses, purchase juice, strain-crack tier | visual effects |
+| `loop_changelog.py` | "What's New" panel | changelog panel |
+| `loop_readouts.py` | Status-block text: score pie, audit, supply text map, near miss, cost equation, combo, pool, buy labels, mode status | a line in the status block |
+| `loop_visual_maps.py` | Opt-in rich SVG trade network / supply chain maps and their toggles | the SVG maps |
+| `loop_sparklines.py`, `loop_summaries.py`, `loop_assist.py`, `loop_planner.py`, `loop_ghost_codes.py`, `loop_narrator.py` | Sparklines; rival/shock/rewind texts, copy summary, Career and passport panels; Assist; multi-cycle planner; run codes and ghost; narrator ticker | that feature |
+| `loop_savegame.py`, `loop_loading.py` | `get_state()` and the safe-read helpers / `load_state()` | the save format (keep old saves loading) |
+| `loop_renderer.py` | `render()`: redraws the page from the live chain | something shown on the page every time |
+| `loop_handlers.py` | Every click handler (`on_*`, `_run_action`, handler factories) | a button's behaviour |
+| `game.py` | Entry point, re-export, `setup()` wiring | adding a button listener |
+| `index.html` | Markup only, plus two tiny inline scripts and the JSON-LD | adding an element |
+| `boot.js` | Loads Pyodide, writes the Python modules (`LOOP_PY_MODULES`) and starts `game.py` | adding a Python module |
+| `tutorial-steps.js`, `community-compare.js`, `shortcuts.js`, `feedback.js` | Tutorial steps; community-comparison fetch; keyboard shortcuts; yes/no feedback prompt | those features |
+| `style-1-base.css` ... `style-6-features.css`, `style.css` | Stylesheet in cascade order: 1 base/meters/chain flow/trade/vignette, 2 console visual pass/ring/art, 3 achievements/toast/banner/pickers/passport, 4 rich SVG maps, 5 settings options/buy chips/ledger/cracks/juice/chevrons/themes, 6 narrator/planner/ghost/achievement cards; `style.css` is the last, tiny file | changing a look: take the part named for the area |
+| `settings.js`, `rich-maps.js`, `pc.js`, `pc.css`, `pc-config.json` | Settings panel; map tooltips; Desktop page code, styles and layout config | unchanged by the split |
+| `pc.html` | GENERATED, never edit | never |
+
+Rules for the split files:
+- A variable a function reassigns lives in `loop_runstate.py` and is used everywhere as `runstate.x` (each module has `import loop_runstate as runstate`). Never `from loop_runstate import chain`.
+- A new Python module: add it to `LOOP_PY_MODULES` in `boot.js`, to `_PART_NAMES` in `game.py` (dependency order), and to the precache in `sw.js` and `offline-manifest.json`.
+- Tests that read the page or the stylesheet use `tests/pagefiles.py` (`page_text()`, `game_css()`), which join the split files.
+- Monkeypatching in tests works through `game` (`monkeypatch.setattr(module, "_setting_number", ...)`): a write to `game.<name>` is copied to every module that holds that name.
+
 ## Milestones
 
 | # | Milestone | Content | Status |

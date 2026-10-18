@@ -1,9 +1,10 @@
 """H-31: earned achievements in a closed-loop ring, a one-time unlock flourish, and a more visible entry point."""
 
 from pathlib import Path
+from .pagefiles import game_css
 
 HERE = Path(__file__).resolve().parent.parent
-CSS = (HERE / "style.css").read_text(encoding="utf-8")
+CSS = game_css()
 PC_JS = (HERE / "pc.js").read_text(encoding="utf-8")
 INDEX = (HERE / "index.html").read_text(encoding="utf-8")
 

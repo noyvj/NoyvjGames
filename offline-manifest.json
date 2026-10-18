@@ -3736,18 +3736,148 @@
      "precached": false
     },
     {
+     "path": "games/loop/boot.js",
+     "bytes": 2494,
+     "precached": true
+    },
+    {
      "path": "games/loop/changelog.json",
      "bytes": 15562,
      "precached": false
     },
     {
+     "path": "games/loop/community-compare.js",
+     "bytes": 1591,
+     "precached": true
+    },
+    {
+     "path": "games/loop/feedback.js",
+     "bytes": 1834,
+     "precached": true
+    },
+    {
      "path": "games/loop/game.py",
-     "bytes": 256802,
+     "bytes": 11372,
      "precached": true
     },
     {
      "path": "games/loop/index.html",
-     "bytes": 62223,
+     "bytes": 52115,
+     "precached": true
+    },
+    {
+     "path": "games/loop/loop_achievements.py",
+     "bytes": 18385,
+     "precached": true
+    },
+    {
+     "path": "games/loop/loop_assist.py",
+     "bytes": 5235,
+     "precached": true
+    },
+    {
+     "path": "games/loop/loop_bridge.py",
+     "bytes": 3460,
+     "precached": true
+    },
+    {
+     "path": "games/loop/loop_career.py",
+     "bytes": 10277,
+     "precached": true
+    },
+    {
+     "path": "games/loop/loop_changelog.py",
+     "bytes": 3246,
+     "precached": true
+    },
+    {
+     "path": "games/loop/loop_effects.py",
+     "bytes": 5575,
+     "precached": true
+    },
+    {
+     "path": "games/loop/loop_ghost_codes.py",
+     "bytes": 10046,
+     "precached": true
+    },
+    {
+     "path": "games/loop/loop_handlers.py",
+     "bytes": 15789,
+     "precached": true
+    },
+    {
+     "path": "games/loop/loop_info_panel.py",
+     "bytes": 2909,
+     "precached": true
+    },
+    {
+     "path": "games/loop/loop_ledger.py",
+     "bytes": 13146,
+     "precached": true
+    },
+    {
+     "path": "games/loop/loop_loading.py",
+     "bytes": 8476,
+     "precached": true
+    },
+    {
+     "path": "games/loop/loop_messages.py",
+     "bytes": 11015,
+     "precached": true
+    },
+    {
+     "path": "games/loop/loop_model.py",
+     "bytes": 28004,
+     "precached": true
+    },
+    {
+     "path": "games/loop/loop_narrator.py",
+     "bytes": 6188,
+     "precached": true
+    },
+    {
+     "path": "games/loop/loop_planner.py",
+     "bytes": 7177,
+     "precached": true
+    },
+    {
+     "path": "games/loop/loop_readouts.py",
+     "bytes": 18922,
+     "precached": true
+    },
+    {
+     "path": "games/loop/loop_renderer.py",
+     "bytes": 21954,
+     "precached": true
+    },
+    {
+     "path": "games/loop/loop_rules.py",
+     "bytes": 26671,
+     "precached": true
+    },
+    {
+     "path": "games/loop/loop_runstate.py",
+     "bytes": 3330,
+     "precached": true
+    },
+    {
+     "path": "games/loop/loop_savegame.py",
+     "bytes": 10749,
+     "precached": true
+    },
+    {
+     "path": "games/loop/loop_sparklines.py",
+     "bytes": 2254,
+     "precached": true
+    },
+    {
+     "path": "games/loop/loop_summaries.py",
+     "bytes": 12334,
+     "precached": true
+    },
+    {
+     "path": "games/loop/loop_visual_maps.py",
+     "bytes": 21495,
      "precached": true
     },
     {
@@ -3762,7 +3892,7 @@
     },
     {
      "path": "games/loop/pc.html",
-     "bytes": 65382,
+     "bytes": 55274,
      "precached": true
     },
     {
@@ -3773,12 +3903,17 @@
     {
      "path": "games/loop/rich-maps.js",
      "bytes": 3973,
-     "precached": false
+     "precached": true
     },
     {
      "path": "games/loop/settings.js",
      "bytes": 15499,
-     "precached": false
+     "precached": true
+    },
+    {
+     "path": "games/loop/shortcuts.js",
+     "bytes": 2111,
+     "precached": true
     },
     {
      "path": "games/loop/sources.json",
@@ -3791,8 +3926,43 @@
      "precached": false
     },
     {
+     "path": "games/loop/style-1-base.css",
+     "bytes": 14287,
+     "precached": true
+    },
+    {
+     "path": "games/loop/style-2-visuals.css",
+     "bytes": 18117,
+     "precached": true
+    },
+    {
+     "path": "games/loop/style-3-panels.css",
+     "bytes": 13391,
+     "precached": true
+    },
+    {
+     "path": "games/loop/style-4-maps.css",
+     "bytes": 6744,
+     "precached": true
+    },
+    {
+     "path": "games/loop/style-5-options.css",
+     "bytes": 19973,
+     "precached": true
+    },
+    {
+     "path": "games/loop/style-6-features.css",
+     "bytes": 7751,
+     "precached": true
+    },
+    {
      "path": "games/loop/style.css",
-     "bytes": 79593,
+     "bytes": 877,
+     "precached": true
+    },
+    {
+     "path": "games/loop/tutorial-steps.js",
+     "bytes": 3690,
      "precached": true
     }
    ],
@@ -3870,11 +4040,6 @@
     {
      "path": "shared/info-page.css",
      "bytes": 1092,
-     "precached": true
-    },
-    {
-     "path": "shared/info_page.py",
-     "bytes": 3410,
      "precached": true
     },
     {
@@ -4020,7 +4185,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14721115,
+   "bytes": 14731963,
    "bytes_complete": true
   },
   "drift": {
