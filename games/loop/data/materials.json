@@ -1,0 +1,254 @@
+{
+ "topic": "materials",
+ "read": "2026-10-19",
+ "source": {
+  "name": "Wikipedia REST page summary",
+  "publisher": "Wikimedia Foundation",
+  "url": "https://en.wikipedia.org/api/rest_v1/",
+  "licence": "CC BY-SA 4.0 (article text); credit Wikipedia, link the article, say the licence"
+ },
+ "live": true,
+ "live_note": "CORS open. Live: fetch the material's `api` URL and take `extract` (first two sentences); fall back to this file's `fact`.",
+ "materials": [
+  {
+   "category": "electronics",
+   "material": "Copper",
+   "article_title": "Copper",
+   "fact": "Copper is a chemical element; it has symbol Cu and atomic number 29. It is a soft, malleable, and ductile metal with very high thermal and electrical conductivity.",
+   "url": "https://en.wikipedia.org/wiki/Copper",
+   "api": "https://en.wikipedia.org/api/rest_v1/page/summary/Copper",
+   "revision": "1374343138",
+   "page_timestamp": "2026-09-11T12:22:36Z"
+  },
+  {
+   "category": "electronics",
+   "material": "Gold",
+   "article_title": "Gold",
+   "fact": "Gold is a chemical element; its chemical symbol is Au and atomic number 79. In its pure form, it is a bright-metallic-yellow, dense, soft, malleable, and ductile metal.",
+   "url": "https://en.wikipedia.org/wiki/Gold",
+   "api": "https://en.wikipedia.org/api/rest_v1/page/summary/Gold",
+   "revision": "1378929640",
+   "page_timestamp": "2026-10-06T23:56:11Z"
+  },
+  {
+   "category": "electronics",
+   "material": "Lithium",
+   "article_title": "Lithium",
+   "fact": "Lithium is a chemical element; it has symbol Li and atomic number 3. It is a soft, silvery-white alkali metal.",
+   "url": "https://en.wikipedia.org/wiki/Lithium",
+   "api": "https://en.wikipedia.org/api/rest_v1/page/summary/Lithium",
+   "revision": "1380814206",
+   "page_timestamp": "2026-10-18T02:10:27Z"
+  },
+  {
+   "category": "electronics",
+   "material": "Cobalt",
+   "article_title": "Cobalt",
+   "fact": "Cobalt is a chemical element; it has symbol Co and atomic number 27. As with nickel, cobalt is found in the Earth's crust only in a chemically combined form, save for small deposits found in alloys of natural meteoric iron.",
+   "url": "https://en.wikipedia.org/wiki/Cobalt",
+   "api": "https://en.wikipedia.org/api/rest_v1/page/summary/Cobalt",
+   "revision": "1380479580",
+   "page_timestamp": "2026-10-15T23:45:57Z"
+  },
+  {
+   "category": "electronics",
+   "material": "Silicon",
+   "article_title": "Silicon",
+   "fact": "Silicon is a chemical element; it has symbol Si and atomic number 14. It is a hard, brittle crystalline solid with a blue-grey metallic lustre, and is a tetravalent non-metal and semiconductor.",
+   "url": "https://en.wikipedia.org/wiki/Silicon",
+   "api": "https://en.wikipedia.org/api/rest_v1/page/summary/Silicon",
+   "revision": "1379054551",
+   "page_timestamp": "2026-10-07T17:16:18Z"
+  },
+  {
+   "category": "electronics",
+   "material": "Aluminium",
+   "article_title": "Aluminium",
+   "fact": "Aluminium or aluminum is a chemical element; it has symbol Al and atomic number 13. It has a density lower than other common metals, about one-third that of steel.",
+   "url": "https://en.wikipedia.org/wiki/Aluminium",
+   "api": "https://en.wikipedia.org/api/rest_v1/page/summary/Aluminium",
+   "revision": "1379040707",
+   "page_timestamp": "2026-10-07T15:22:59Z"
+  },
+  {
+   "category": "clothing",
+   "material": "Cotton",
+   "article_title": "Cotton",
+   "fact": "Cotton is a soft, fluffy staple fiber that grows in a boll, or protective case, around the seeds of the cotton plants of the genus Gossypium in the mallow family Malvaceae. The fiber is almost pure cellulose and may contain minor percentages of waxes, fats, pectins, and water.",
+   "url": "https://en.wikipedia.org/wiki/Cotton",
+   "api": "https://en.wikipedia.org/api/rest_v1/page/summary/Cotton",
+   "revision": "1380660722",
+   "page_timestamp": "2026-10-17T03:18:40Z"
+  },
+  {
+   "category": "clothing",
+   "material": "Wool",
+   "article_title": "Wool",
+   "fact": "Wool is the textile fiber obtained from sheep and other mammals, especially goats, rabbits, and camelids. The term may also refer to inorganic materials, such as mineral wool and glass wool, that have some properties similar to animal wool.",
+   "url": "https://en.wikipedia.org/wiki/Wool",
+   "api": "https://en.wikipedia.org/api/rest_v1/page/summary/Wool",
+   "revision": "1380093870",
+   "page_timestamp": "2026-10-13T19:13:48Z"
+  },
+  {
+   "category": "clothing",
+   "material": "Polyester",
+   "article_title": "Polyester",
+   "fact": "Polyester is a category of polymers that contain one or two ester linkages in every repeat unit of their main chain. As a specific material, it most commonly refers to a type called polyethylene terephthalate (PET).",
+   "url": "https://en.wikipedia.org/wiki/Polyester",
+   "api": "https://en.wikipedia.org/api/rest_v1/page/summary/Polyester",
+   "revision": "1380601197",
+   "page_timestamp": "2026-10-16T19:18:20Z"
+  },
+  {
+   "category": "clothing",
+   "material": "Nylon",
+   "article_title": "Nylon",
+   "fact": "Nylon is a family of synthetic polymers characterized by amide linkages, typically connecting aliphatic or semi-aromatic groups.",
+   "url": "https://en.wikipedia.org/wiki/Nylon",
+   "api": "https://en.wikipedia.org/api/rest_v1/page/summary/Nylon",
+   "revision": "1378421151",
+   "page_timestamp": "2026-10-04T11:17:15Z"
+  },
+  {
+   "category": "clothing",
+   "material": "Linen",
+   "article_title": "Linen",
+   "fact": "Linen is a textile made from the bast fibers of the flax plant. Linen cloth has been produced since ancient times primarily for use in clothing and household items.",
+   "url": "https://en.wikipedia.org/wiki/Linen",
+   "api": "https://en.wikipedia.org/api/rest_v1/page/summary/Linen",
+   "revision": "1370236994",
+   "page_timestamp": "2026-08-19T23:23:20Z"
+  },
+  {
+   "category": "clothing",
+   "material": "Silk",
+   "article_title": "Silk",
+   "fact": "Silk is a natural protein fiber, some forms of which can be woven or knitted into textiles. The protein fiber of silk is composed mainly of fibroin (75-80%) and a smaller coating of sericin (20-25%).",
+   "url": "https://en.wikipedia.org/wiki/Silk",
+   "api": "https://en.wikipedia.org/api/rest_v1/page/summary/Silk",
+   "revision": "1372169666",
+   "page_timestamp": "2026-08-30T18:24:04Z"
+  },
+  {
+   "category": "furniture",
+   "material": "Oak",
+   "article_title": "Oak",
+   "fact": "An oak is a hardwood tree or shrub in the genus Quercus of the beech family. They have spirally arranged leaves, often with lobed edges, and a nut called an acorn, borne within a cup.",
+   "url": "https://en.wikipedia.org/wiki/Oak",
+   "api": "https://en.wikipedia.org/api/rest_v1/page/summary/Oak",
+   "revision": "1380748189",
+   "page_timestamp": "2026-10-17T16:37:15Z"
+  },
+  {
+   "category": "furniture",
+   "material": "Pine",
+   "article_title": "Pine",
+   "fact": "Pines are a genus of conifers in the family Pinaceae. Pinus is the sole genus in the subfamily Pinoideae.",
+   "url": "https://en.wikipedia.org/wiki/Pine",
+   "api": "https://en.wikipedia.org/api/rest_v1/page/summary/Pine",
+   "revision": "1380460516",
+   "page_timestamp": "2026-10-15T20:57:24Z"
+  },
+  {
+   "category": "furniture",
+   "material": "Bamboo",
+   "article_title": "Bamboo",
+   "fact": "Bamboos are a diverse group of mostly evergreen perennial flowering plants making up the subfamily Bambusoideae of the grass family Poaceae. Giant bamboos are the largest members of the grass family, in the case of Dendrocalamus sinicus having individual stalks (culms) reaching a length of 46 meters (151 ft), up to 36 centimeters (14 in) in diameter and a weight of up to 450 kilograms (1,000 lb).",
+   "url": "https://en.wikipedia.org/wiki/Bamboo",
+   "api": "https://en.wikipedia.org/api/rest_v1/page/summary/Bamboo",
+   "revision": "1378036197",
+   "page_timestamp": "2026-10-02T15:50:20Z"
+  },
+  {
+   "category": "furniture",
+   "material": "Rattan",
+   "article_title": "Rattan",
+   "fact": "Rattan, also spelled ratan, is the name for roughly 600 species of Old World climbing palms belonging to subfamily Calamoideae. The greatest diversity of rattan palm species and genera are in the closed-canopy old-growth tropical forests of Southeast Asia, though they can also be found in other parts of tropical Asia and Africa.",
+   "url": "https://en.wikipedia.org/wiki/Rattan",
+   "api": "https://en.wikipedia.org/api/rest_v1/page/summary/Rattan",
+   "revision": "1373776746",
+   "page_timestamp": "2026-09-07T21:51:07Z"
+  },
+  {
+   "category": "furniture",
+   "material": "Glass",
+   "article_title": "Glass",
+   "fact": "Glass is an amorphous (non-crystalline) solid. Because it is often transparent and chemically inert, glass has found widespread practical, technological, and decorative use in window panes, tableware, and optics.",
+   "url": "https://en.wikipedia.org/wiki/Glass",
+   "api": "https://en.wikipedia.org/api/rest_v1/page/summary/Glass",
+   "revision": "1379048506",
+   "page_timestamp": "2026-10-07T16:26:18Z"
+  },
+  {
+   "category": "furniture",
+   "material": "Polyurethane",
+   "article_title": "Polyurethane",
+   "fact": "Polyurethane is a class of polymers composed of organic units joined by carbamate (urethane) links. In contrast to other common polymers such as polyethylene and polystyrene, polyurethane refers to a group of polymers.",
+   "url": "https://en.wikipedia.org/wiki/Polyurethane",
+   "api": "https://en.wikipedia.org/api/rest_v1/page/summary/Polyurethane",
+   "revision": "1380060521",
+   "page_timestamp": "2026-10-13T14:58:39Z"
+  },
+  {
+   "category": "shipyard",
+   "material": "Iron",
+   "article_title": "Iron",
+   "fact": "Iron is a chemical element; it has symbol Fe and atomic number 26. It is a metal that belongs to the first transition series and group 8 of the periodic table.",
+   "url": "https://en.wikipedia.org/wiki/Iron",
+   "api": "https://en.wikipedia.org/api/rest_v1/page/summary/Iron",
+   "revision": "1380587310",
+   "page_timestamp": "2026-10-16T17:36:10Z"
+  },
+  {
+   "category": "shipyard",
+   "material": "Steel",
+   "article_title": "Steel",
+   "fact": "Steel is an alloy of iron and carbon that demonstrates improved mechanical properties compared to the pure form of iron. Due to its high elastic modulus, yield strength, fracture strength and low raw material cost, steel is one of the most commonly manufactured materials in the world.",
+   "url": "https://en.wikipedia.org/wiki/Steel",
+   "api": "https://en.wikipedia.org/api/rest_v1/page/summary/Steel",
+   "revision": "1379868351",
+   "page_timestamp": "2026-10-12T10:02:55Z"
+  },
+  {
+   "category": "shipyard",
+   "material": "Nickel",
+   "article_title": "Nickel",
+   "fact": "Nickel is a chemical element; it has symbol Ni and atomic number 28. It is a silvery-white lustrous metal with a slight golden tinge.",
+   "url": "https://en.wikipedia.org/wiki/Nickel",
+   "api": "https://en.wikipedia.org/api/rest_v1/page/summary/Nickel",
+   "revision": "1380101141",
+   "page_timestamp": "2026-10-13T20:05:36Z"
+  },
+  {
+   "category": "shipyard",
+   "material": "Chromium",
+   "article_title": "Chromium",
+   "fact": "Chromium is a chemical element; it has symbol Cr and atomic number 24. It is the first element in group 6.",
+   "url": "https://en.wikipedia.org/wiki/Chromium",
+   "api": "https://en.wikipedia.org/api/rest_v1/page/summary/Chromium",
+   "revision": "1379779242",
+   "page_timestamp": "2026-10-11T22:18:43Z"
+  },
+  {
+   "category": "shipyard",
+   "material": "Manganese",
+   "article_title": "Manganese",
+   "fact": "Manganese is a chemical element; it has the symbol Mn and atomic number 25. It is a hard, brittle, silvery metal, often found in minerals in combination with iron.",
+   "url": "https://en.wikipedia.org/wiki/Manganese",
+   "api": "https://en.wikipedia.org/api/rest_v1/page/summary/Manganese",
+   "revision": "1378595974",
+   "page_timestamp": "2026-10-05T03:48:11Z"
+  },
+  {
+   "category": "shipyard",
+   "material": "Zinc",
+   "article_title": "Zinc",
+   "fact": "Zinc is a chemical element; it has the symbol Zn and atomic number 30. It is a slightly brittle metal at room temperature and has a shiny blue whitish appearance when surface oxidation is removed.",
+   "url": "https://en.wikipedia.org/wiki/Zinc",
+   "api": "https://en.wikipedia.org/api/rest_v1/page/summary/Zinc",
+   "revision": "1380214256",
+   "page_timestamp": "2026-10-14T13:05:23Z"
+  }
+ ]
+}

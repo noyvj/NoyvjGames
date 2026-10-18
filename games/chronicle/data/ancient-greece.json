@@ -1,0 +1,444 @@
+{
+ "topic": "ancient-greece",
+ "title": "Ancient Greece",
+ "item": "CH-12",
+ "read": "2026-10-19",
+ "format": "claims and sources as in sets/presidents-sample/claims.json and sources.json; events are proposals (id, title, date) without seq, place or people",
+ "events": [
+  {
+   "id": "e-athenian-democracy",
+   "kind": "event",
+   "title": "Cleisthenes reforms Athens",
+   "date": "-0508",
+   "claim": "c-e-athenian-democracy"
+  },
+  {
+   "id": "e-marathon",
+   "kind": "event",
+   "title": "The Athenians win at Marathon",
+   "date": "-0490",
+   "claim": "c-e-marathon"
+  },
+  {
+   "id": "e-thermopylae",
+   "kind": "event",
+   "title": "The Greeks hold the pass at Thermopylae",
+   "date": "-0480",
+   "claim": "c-e-thermopylae"
+  },
+  {
+   "id": "e-salamis",
+   "kind": "event",
+   "title": "The Greek fleet wins at Salamis",
+   "date": "-0480-09",
+   "claim": "c-e-salamis"
+  },
+  {
+   "id": "e-parthenon",
+   "kind": "event",
+   "title": "Work begins on the Parthenon",
+   "date": "-0447",
+   "claim": "c-e-parthenon"
+  },
+  {
+   "id": "e-socrates-trial",
+   "kind": "event",
+   "title": "Socrates is tried and put to death",
+   "date": "-0399",
+   "claim": "c-e-socrates-trial"
+  },
+  {
+   "id": "e-alexander-dies",
+   "kind": "event",
+   "title": "Alexander the Great dies in Babylon",
+   "date": "-0323-06",
+   "claim": "c-e-alexander-dies"
+  }
+ ],
+ "sources": {
+  "hh-marathon": {
+   "title": "Marathon: From the battlefield to the sanctuary of the Egyptian gods",
+   "institution": "Hellenic Heritage",
+   "url": "https://www.hh.gr/en/?p=2011",
+   "read": "2026-10-19",
+   "kind": "heritage site",
+   "http_status": 200,
+   "text_checked_for": [
+    "in 490 BC, the Athenians and their allies defeated the vast Persian army"
+   ]
+  },
+  "iep-socrates": {
+   "title": "Socrates",
+   "institution": "Internet Encyclopedia of Philosophy (University of Tennessee at Martin)",
+   "url": "https://iep.utm.edu/socrates/",
+   "read": "2026-10-19",
+   "kind": "encyclopedia",
+   "http_status": 200,
+   "text_checked_for": [
+    "Socrates (469—399 B.C.E.)"
+   ]
+  },
+  "livius-alexander": {
+   "title": "Alexander the Great",
+   "institution": "Jona Lendering, Livius.org",
+   "url": "https://www.livius.org/articles/person/alexander-the-great/",
+   "read": "2026-10-19",
+   "kind": "encyclopedia",
+   "http_status": 200,
+   "text_checked_for": [
+    "on 11 June, he died"
+   ]
+  },
+  "livius-cleisthenes": {
+   "title": "Cleisthenes",
+   "institution": "Jona Lendering, Livius.org",
+   "url": "https://www.livius.org/articles/person/cleisthenes/",
+   "read": "2026-10-19",
+   "kind": "encyclopedia",
+   "http_status": 200,
+   "text_checked_for": [
+    "508/507",
+    "Isagoras"
+   ]
+  },
+  "livius-marathon": {
+   "title": "Marathon (490 BCE)",
+   "institution": "Jona Lendering, Livius.org",
+   "url": "https://www.livius.org/articles/battle/marathon-490-bce/",
+   "read": "2026-10-19",
+   "kind": "encyclopedia",
+   "http_status": 200,
+   "text_checked_for": [
+    "Marathon (490 BCE)",
+    "Persian invasion force"
+   ]
+  },
+  "livius-salamis": {
+   "title": "Salamis (480 BCE)",
+   "institution": "Jona Lendering, Livius.org",
+   "url": "https://www.livius.org/articles/battle/salamis-480-bce/",
+   "read": "2026-10-19",
+   "kind": "encyclopedia",
+   "http_status": 200,
+   "text_checked_for": [
+    "Naval Battle of Salamis (29 September 480)"
+   ]
+  },
+  "livius-thermopylae": {
+   "title": "Thermopylae (480 BCE)",
+   "institution": "Jona Lendering, Livius.org",
+   "url": "https://www.livius.org/articles/battle/thermopylae-480-bce/",
+   "read": "2026-10-19",
+   "kind": "encyclopedia",
+   "http_status": 200,
+   "text_checked_for": [
+    "Thermopylae (480 BCE)",
+    "Xerxes"
+   ]
+  },
+  "sep-socrates": {
+   "title": "Socrates",
+   "institution": "Stanford Encyclopedia of Philosophy, Stanford University",
+   "url": "https://plato.stanford.edu/entries/socrates/",
+   "read": "2026-10-19",
+   "kind": "encyclopedia",
+   "http_status": 200,
+   "text_checked_for": [
+    "Socrates’s trial and execution",
+    "399"
+   ]
+  },
+  "whe-alexander": {
+   "title": "Alexander the Great",
+   "institution": "World History Encyclopedia (World History Publishing)",
+   "url": "https://www.worldhistory.org/Alexander_the_Great/",
+   "read": "2026-10-19",
+   "kind": "encyclopedia",
+   "http_status": 200,
+   "text_checked_for": [
+    "10 or 11 June 323 BCE"
+   ]
+  },
+  "whe-athenian-democracy": {
+   "title": "Athenian Democracy",
+   "institution": "World History Encyclopedia (World History Publishing)",
+   "url": "https://www.worldhistory.org/Athenian_Democracy/",
+   "read": "2026-10-19",
+   "kind": "encyclopedia",
+   "http_status": 200,
+   "text_checked_for": [
+    "c. 508 BCE Reforms by Cleisthenes establishes democracy in Athens"
+   ]
+  },
+  "whe-cleisthenes": {
+   "title": "Cleisthenes",
+   "institution": "World History Encyclopedia (World History Publishing)",
+   "url": "https://www.worldhistory.org/Cleisthenes/",
+   "read": "2026-10-19",
+   "kind": "encyclopedia",
+   "http_status": 200,
+   "text_checked_for": [
+    "reforms c. 508 BCE"
+   ]
+  },
+  "whe-diadochi": {
+   "title": "Wars of the Diadochi",
+   "institution": "World History Encyclopedia (World History Publishing)",
+   "url": "https://www.worldhistory.org/Wars_of_the_Diadochi/",
+   "read": "2026-10-19",
+   "kind": "encyclopedia",
+   "http_status": 200,
+   "text_checked_for": [
+    "On June 10, 323 BCE Alexander the Great died in Babylon"
+   ]
+  },
+  "whe-marathon": {
+   "title": "Battle of Marathon",
+   "institution": "World History Encyclopedia (World History Publishing)",
+   "url": "https://www.worldhistory.org/Battle_of_Marathon/",
+   "read": "2026-10-19",
+   "kind": "encyclopedia",
+   "http_status": 200,
+   "text_checked_for": [
+    "September 490 BCE",
+    "Darius I"
+   ]
+  },
+  "whe-parthenon": {
+   "title": "Parthenon: Temple of Athena Parthenos",
+   "institution": "World History Encyclopedia (World History Publishing)",
+   "url": "https://www.worldhistory.org/Parthenon/",
+   "read": "2026-10-19",
+   "kind": "encyclopedia",
+   "http_status": 200,
+   "text_checked_for": [
+    "built between 447 and 432 BCE"
+   ]
+  },
+  "whe-pericles": {
+   "title": "Pericles",
+   "institution": "World History Encyclopedia (World History Publishing)",
+   "url": "https://www.worldhistory.org/Pericles/",
+   "read": "2026-10-19",
+   "kind": "encyclopedia",
+   "http_status": 200,
+   "text_checked_for": [
+    "the Parthenon , begun in 447 BCE"
+   ]
+  },
+  "whe-salamis": {
+   "title": "Battle of Salamis",
+   "institution": "World History Encyclopedia (World History Publishing)",
+   "url": "https://www.worldhistory.org/Battle_of_Salamis/",
+   "read": "2026-10-19",
+   "kind": "encyclopedia",
+   "http_status": 200,
+   "text_checked_for": [
+    "September 480 BCE",
+    "Saronic Gulf"
+   ]
+  },
+  "whe-socrates": {
+   "title": "Socrates",
+   "institution": "World History Encyclopedia (World History Publishing)",
+   "url": "https://www.worldhistory.org/Socrates/",
+   "read": "2026-10-19",
+   "kind": "encyclopedia",
+   "http_status": 200,
+   "text_checked_for": [
+    "In 399 BCE Socrates was charged with impiety"
+   ]
+  },
+  "whe-themistocles": {
+   "title": "Themistocles",
+   "institution": "World History Encyclopedia (World History Publishing)",
+   "url": "https://www.worldhistory.org/Themistocles/",
+   "read": "2026-10-19",
+   "kind": "encyclopedia",
+   "http_status": 200,
+   "text_checked_for": [
+    "In August 480 BCE the Persian army was met at the mountain pass of Thermopylae",
+    "Salamis"
+   ]
+  },
+  "whe-thermopylae": {
+   "title": "Battle of Thermopylae",
+   "institution": "World History Encyclopedia (World History Publishing)",
+   "url": "https://www.worldhistory.org/Battle_of_Thermopylae/",
+   "read": "2026-10-19",
+   "kind": "encyclopedia",
+   "http_status": 200,
+   "text_checked_for": [
+    "August 480 BCE",
+    "Leonidas"
+   ]
+  },
+  "ysma-parthenon": {
+   "title": "Parthenon",
+   "institution": "Acropolis Restoration Service (YSMA), Greek Ministry of Culture",
+   "url": "https://ysma.gr/en/monuments/parthenon/",
+   "read": "2026-10-19",
+   "kind": "heritage agency",
+   "http_status": 200,
+   "text_checked_for": [
+    "lasted from 447 to 438 B.C."
+   ]
+  }
+ },
+ "claims": [
+  {
+   "id": "c-e-athenian-democracy",
+   "subject": "e-athenian-democracy",
+   "field": "date",
+   "value": "-0508",
+   "text": "Around 508 BCE the Athenian politician Cleisthenes introduced reforms that set up democracy in Athens.",
+   "confidence": "documented",
+   "sources": [
+    {
+     "source": "whe-cleisthenes",
+     "note": "Dates his reorganisation of the citizen body to about 508 BCE."
+    },
+    {
+     "source": "livius-cleisthenes",
+     "note": "Places the election of his rival Isagoras in 508/507 and his reforms as the answer to it; the year is given as a pair."
+    },
+    {
+     "source": "whe-athenian-democracy",
+     "note": "Lists the reforms of Cleisthenes about 508 BCE as the establishment of democracy in Athens."
+    }
+   ]
+  },
+  {
+   "id": "c-e-marathon",
+   "subject": "e-marathon",
+   "field": "date",
+   "value": "-0490",
+   "text": "In 490 BCE the Athenians and their allies defeated a Persian force at Marathon.",
+   "confidence": "documented",
+   "sources": [
+    {
+     "source": "whe-marathon",
+     "note": "Places the battle on the plain of Marathon in September 490 BCE, against the army of Darius I."
+    },
+    {
+     "source": "livius-marathon",
+     "note": "Dates the clash between a Persian invasion force and an Athenian army to 490 BCE."
+    },
+    {
+     "source": "hh-marathon",
+     "note": "Says the Athenians and their allies defeated the Persian army at Marathon in 490 BC."
+    }
+   ]
+  },
+  {
+   "id": "c-e-thermopylae",
+   "subject": "e-thermopylae",
+   "field": "date",
+   "value": "-0480",
+   "text": "A Greek force led by the Spartan king Leonidas fought the invading Persian army at the pass of Thermopylae in 480 BCE.",
+   "confidence": "documented",
+   "sources": [
+    {
+     "source": "whe-thermopylae",
+     "note": "Places the best-known battle at Thermopylae in August 480 BCE."
+    },
+    {
+     "source": "livius-thermopylae",
+     "note": "Dates the famous Spartan defeat by the Persians at Thermopylae to 480."
+    },
+    {
+     "source": "whe-themistocles",
+     "note": "Says the Persian army met a small Greek band under Leonidas at Thermopylae in August 480 BCE."
+    }
+   ]
+  },
+  {
+   "id": "c-e-salamis",
+   "subject": "e-salamis",
+   "field": "date",
+   "value": "-0480-09",
+   "text": "The Greek fleet defeated the Persian navy in the strait of Salamis in September 480 BCE.",
+   "confidence": "documented",
+   "sources": [
+    {
+     "source": "whe-salamis",
+     "note": "Places the naval battle in the Saronic Gulf in September 480 BCE."
+    },
+    {
+     "source": "livius-salamis",
+     "note": "Gives 29 September 480 for the naval battle, a Greek victory over the Persian navy."
+    },
+    {
+     "source": "whe-themistocles",
+     "note": "Says the combined Greek fleet gathered at Salamis in September 480 BCE."
+    }
+   ]
+  },
+  {
+   "id": "c-e-parthenon",
+   "subject": "e-parthenon",
+   "field": "date",
+   "value": "-0447",
+   "text": "Construction of the Parthenon on the Acropolis of Athens began in 447 BCE.",
+   "confidence": "documented",
+   "sources": [
+    {
+     "source": "whe-parthenon",
+     "note": "Says the temple was built between 447 and 432 BCE."
+    },
+    {
+     "source": "ysma-parthenon",
+     "note": "Says the construction of the temple lasted from 447 to 438 BC; the carved pediments were finished in 432."
+    },
+    {
+     "source": "whe-pericles",
+     "note": "Says the building of the Parthenon, led under Pericles, began in 447 BCE."
+    }
+   ]
+  },
+  {
+   "id": "c-e-socrates-trial",
+   "subject": "e-socrates-trial",
+   "field": "date",
+   "value": "-0399",
+   "text": "Socrates was tried and put to death in Athens in 399 BCE.",
+   "confidence": "documented",
+   "sources": [
+    {
+     "source": "whe-socrates",
+     "note": "Says that in 399 BCE Socrates was charged with impiety and that his accusers sought the death penalty."
+    },
+    {
+     "source": "sep-socrates",
+     "note": "Places the trial and execution of Socrates in the spring and summer of 399."
+    },
+    {
+     "source": "iep-socrates",
+     "note": "Gives his life dates as 469 to 399 BCE; its article covers the trial and the death."
+    }
+   ]
+  },
+  {
+   "id": "c-e-alexander-dies",
+   "subject": "e-alexander-dies",
+   "field": "date",
+   "value": "-0323-06",
+   "text": "Alexander the Great died in Babylon in June 323 BCE.",
+   "confidence": "documented",
+   "sources": [
+    {
+     "source": "whe-alexander",
+     "note": "Gives 10 or 11 June 323 BCE for his death."
+    },
+    {
+     "source": "livius-alexander",
+     "note": "Says he fell ill at the end of May and died on 11 June."
+    },
+    {
+     "source": "whe-diadochi",
+     "note": "Gives 10 June 323 BCE for his death in Babylon."
+    }
+   ]
+  }
+ ]
+}

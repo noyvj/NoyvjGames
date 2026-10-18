@@ -1,0 +1,206 @@
+{
+ "topic": "history-of-food",
+ "title": "A history of food",
+ "item": "CH-12",
+ "read": "2026-10-19",
+ "format": "claims and sources as in sets/presidents-sample/claims.json and sources.json; events are proposals (id, title, date) without seq, place or people",
+ "events": [
+  {
+   "id": "e-pure-food-act",
+   "kind": "event",
+   "title": "The Pure Food and Drugs Act becomes law",
+   "date": "1906-06-30",
+   "claim": "c-e-pure-food-act"
+  },
+  {
+   "id": "e-haber-prize",
+   "kind": "event",
+   "title": "Haber is honoured for making ammonia from its elements",
+   "date": "1918",
+   "claim": "c-e-haber-prize"
+  },
+  {
+   "id": "e-borlaug-prize",
+   "kind": "event",
+   "title": "Norman Borlaug wins the Nobel Peace Prize",
+   "date": "1970",
+   "claim": "c-e-borlaug-prize"
+  }
+ ],
+ "sources": {
+  "fda-100": {
+   "title": "Promoting Safe and Effective Drugs for 100 Years",
+   "institution": "U.S. Food and Drug Administration",
+   "url": "https://www.fda.gov/about-fda/histories-product-regulation/promoting-safe-effective-drugs-100-years",
+   "read": "2026-10-19",
+   "kind": "agency",
+   "http_status": 200,
+   "text_checked_for": [
+    "Pure Food and Drugs Act was passed by Congress in 1906",
+    "Theodore Roosevelt"
+   ]
+  },
+  "fda-milestones": {
+   "title": "Milestones in U.S. Food and Drug Law",
+   "institution": "U.S. Food and Drug Administration",
+   "url": "https://www.fda.gov/about-fda/fda-history/milestones-us-food-and-drug-law",
+   "read": "2026-10-19",
+   "kind": "agency",
+   "http_status": 200,
+   "text_checked_for": [
+    "Pure Food and Drugs Act",
+    "1906"
+   ]
+  },
+  "house-pure-food": {
+   "title": "The Pure Food and Drugs Act",
+   "institution": "U.S. House of Representatives, History, Art and Archives",
+   "url": "https://history.house.gov/Historical-Highlights/1901-1950/Pure-Food-and-Drug-Act/",
+   "read": "2026-10-19",
+   "kind": "archive",
+   "http_status": 200,
+   "text_checked_for": [
+    "June 29th",
+    "signed the Pure Food and Drugs Act into law the next day"
+   ]
+  },
+  "nobel-borlaug-facts": {
+   "title": "Norman Borlaug: Facts (Nobel Peace Prize 1970)",
+   "institution": "Nobel Prize Outreach",
+   "url": "https://www.nobelprize.org/prizes/peace/1970/borlaug/facts/",
+   "read": "2026-10-19",
+   "kind": "archive",
+   "http_status": 200,
+   "text_checked_for": [
+    "Nobel Peace Prize 1970",
+    "Norman Borlaug"
+   ]
+  },
+  "nobel-haber": {
+   "title": "Fritz Haber: Facts (Nobel Prize in Chemistry 1918)",
+   "institution": "Nobel Prize Outreach",
+   "url": "https://www.nobelprize.org/prizes/chemistry/1918/haber/facts/",
+   "read": "2026-10-19",
+   "kind": "archive",
+   "http_status": 200,
+   "text_checked_for": [
+    "for the synthesis of ammonia from its elements",
+    "received his Nobel Prize one year later, in 1919"
+   ]
+  },
+  "nobel-haber-lecture": {
+   "title": "Fritz Haber: Nobel Lecture, The Synthesis of Ammonia from Its Elements",
+   "institution": "Nobel Prize Outreach",
+   "url": "https://www.nobelprize.org/prizes/chemistry/1918/haber/lecture/",
+   "read": "2026-10-19",
+   "kind": "archive",
+   "http_status": 200,
+   "text_checked_for": [
+    "The Synthesis of Ammonia from Its Elements"
+   ]
+  },
+  "nobel-peace-1970": {
+   "title": "The Nobel Peace Prize 1970",
+   "institution": "Nobel Prize Outreach",
+   "url": "https://www.nobelprize.org/prizes/peace/1970/summary/",
+   "read": "2026-10-19",
+   "kind": "archive",
+   "http_status": 200,
+   "text_checked_for": [
+    "The Nobel Peace Prize 1970 was awarded to Norman"
+   ]
+  },
+  "shi-haber": {
+   "title": "Fritz Haber (Scientific Biographies)",
+   "institution": "Science History Institute",
+   "url": "https://www.sciencehistory.org/education/scientific-biographies/fritz-haber/",
+   "read": "2026-10-19",
+   "kind": "museum",
+   "http_status": 200,
+   "text_checked_for": [
+    "1918 Nobel Prize in Chemistry",
+    "mass production of agricultural fertilizers"
+   ]
+  },
+  "tamu-borlaug": {
+   "title": "Norman Borlaug Institute for International Agriculture and Development",
+   "institution": "Texas A&M University",
+   "url": "https://borlaug.tamu.edu/",
+   "read": "2026-10-19",
+   "kind": "university",
+   "http_status": 200,
+   "text_checked_for": [
+    "1970 Nobel Prize winner",
+    "Green Revolution"
+   ]
+  }
+ },
+ "claims": [
+  {
+   "id": "c-e-pure-food-act",
+   "subject": "e-pure-food-act",
+   "field": "date",
+   "value": "1906-06-30",
+   "text": "President Theodore Roosevelt signed the Pure Food and Drugs Act into law on 30 June 1906.",
+   "confidence": "documented",
+   "sources": [
+    {
+     "source": "house-pure-food",
+     "note": "Says the House approved the conference report on 29 June and that the President signed the law the next day."
+    },
+    {
+     "source": "fda-100",
+     "note": "Says Congress passed the original Pure Food and Drugs Act in 1906 and that President Roosevelt signed it; no day."
+    },
+    {
+     "source": "fda-milestones",
+     "note": "Lists the Pure Food and Drugs Act among the 1906 milestones of US food and drug law; no day."
+    }
+   ]
+  },
+  {
+   "id": "c-e-haber-prize",
+   "subject": "e-haber-prize",
+   "field": "date",
+   "value": "1918",
+   "text": "The Nobel Prize in Chemistry for 1918, presented to Fritz Haber in 1919, honoured his synthesis of ammonia from its elements, the basis of mass-produced agricultural fertiliser.",
+   "confidence": "documented",
+   "sources": [
+    {
+     "source": "nobel-haber",
+     "note": "Gives the prize motivation as the synthesis of ammonia from its elements and says Haber received the prize a year later, in 1919."
+    },
+    {
+     "source": "shi-haber",
+     "note": "Says the synthesis earned Haber the 1918 prize and enabled mass production of agricultural fertilisers."
+    },
+    {
+     "source": "nobel-haber-lecture",
+     "note": "Hosts the Nobel lecture titled The Synthesis of Ammonia from Its Elements."
+    }
+   ]
+  },
+  {
+   "id": "c-e-borlaug-prize",
+   "subject": "e-borlaug-prize",
+   "field": "date",
+   "value": "1970",
+   "text": "Norman Borlaug, whose wheat breeding is tied to the Green Revolution, was awarded the Nobel Peace Prize in 1970.",
+   "confidence": "documented",
+   "sources": [
+    {
+     "source": "nobel-borlaug-facts",
+     "note": "Lists Norman Borlaug as the laureate of the Nobel Peace Prize 1970."
+    },
+    {
+     "source": "nobel-peace-1970",
+     "note": "States that the Nobel Peace Prize 1970 was awarded to Norman Borlaug."
+    },
+    {
+     "source": "tamu-borlaug",
+     "note": "Calls Borlaug the 1970 Nobel Prize winner and father of the Green Revolution; it does not describe the wheat work."
+    }
+   ]
+  }
+ ]
+}

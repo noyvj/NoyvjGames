@@ -1,0 +1,102 @@
+{
+ "topic": "transfer_data",
+ "read": "2026-10-19",
+ "sources": [
+  {
+   "name": "Astrodynamic Parameters",
+   "url": "https://ssd.jpl.nasa.gov/astro_par.html"
+  },
+  {
+   "name": "Approximate Positions of the Planets (Table 1)",
+   "url": "https://ssd.jpl.nasa.gov/planets/approx_pos.html"
+  },
+  {
+   "name": "Planetary Physical Parameters",
+   "url": "https://ssd.jpl.nasa.gov/planets/phys_par.html"
+  },
+  {
+   "name": "Small-Body Database API (Ceres, Pluto), full precision",
+   "url": "https://ssd-api.jpl.nasa.gov/doc/sbdb.html"
+  },
+  {
+   "name": "Planetary Satellite Mean Elements",
+   "url": "https://ssd.jpl.nasa.gov/sats/elem/"
+  }
+ ],
+ "publisher": "NASA Jet Propulsion Laboratory, Solar System Dynamics group",
+ "licence": "NASA content is generally not copyrighted (NASA media usage guidelines); credit NASA/JPL-Caltech",
+ "live": false,
+ "live_note": "No CORS header on any of the five: a browser cannot read them, the snapshot is the data.",
+ "gm_sun_km3_s2": 132712440041.27942,
+ "astronomical_unit_km": 149597870.7,
+ "bodies": [
+  {
+   "world": "Venus",
+   "body": "Venus",
+   "orbits": "Sun",
+   "semi_major_axis_au": 0.72333566,
+   "orbital_period_years": 0.61519726,
+   "source": "approx_pos + phys_par"
+  },
+  {
+   "world": "Earth",
+   "body": "Earth",
+   "orbits": "Sun",
+   "semi_major_axis_au": 1.00000261,
+   "orbital_period_years": 1.0000174,
+   "source": "approx_pos + phys_par"
+  },
+  {
+   "world": "Mars",
+   "body": "Mars",
+   "orbits": "Sun",
+   "semi_major_axis_au": 1.52371034,
+   "orbital_period_years": 1.8808476,
+   "source": "approx_pos + phys_par"
+  },
+  {
+   "world": "JupiterMoons",
+   "body": "Jupiter",
+   "orbits": "Sun",
+   "semi_major_axis_au": 5.202887,
+   "orbital_period_years": 11.862615,
+   "source": "approx_pos + phys_par"
+  },
+  {
+   "world": "SaturnMoons",
+   "body": "Saturn",
+   "orbits": "Sun",
+   "semi_major_axis_au": 9.53667594,
+   "orbital_period_years": 29.447498,
+   "source": "approx_pos + phys_par"
+  },
+  {
+   "world": "AsteroidBelt",
+   "body": "1 Ceres (A801 AA)",
+   "orbits": "Sun",
+   "semi_major_axis_au": 2.765552595034094,
+   "eccentricity": 0.07969229514816586,
+   "orbital_period_days": 1679.853119758983,
+   "source": "sbdb",
+   "orbit_epoch_jd": "2461200.5"
+  },
+  {
+   "world": "Pluto",
+   "body": "134340 Pluto (1930 BM)",
+   "orbits": "Sun",
+   "semi_major_axis_au": 39.58862938517124,
+   "eccentricity": 0.2518378778576892,
+   "orbital_period_days": 90981.71647718345,
+   "source": "sbdb",
+   "orbit_epoch_jd": "2457588.5"
+  },
+  {
+   "world": "Moon",
+   "body": "Moon",
+   "orbits": "Earth",
+   "semi_major_axis_km": 384400.0,
+   "orbital_period_days": 27.322,
+   "source": "sats_elem"
+  }
+ ]
+}

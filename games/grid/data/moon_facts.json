@@ -1,0 +1,99 @@
+{
+ "topic": "moon_facts",
+ "read": "2026-10-19",
+ "page_last_updated": "11 January 2024, DRW",
+ "source": {
+  "name": "Moon Fact Sheet",
+  "publisher": "NASA Space Science Data Coordinated Archive (NSSDCA), Goddard Space Flight Center",
+  "url": "https://nssdc.gsfc.nasa.gov/planetary/factsheet/moonfact.html",
+  "licence": "NASA content is generally not copyrighted (NASA media usage guidelines); credit NASA"
+ },
+ "live": false,
+ "live_note": "No CORS header on the page: a browser cannot read it, the snapshot is the data.",
+ "facts": [
+  {
+   "key": "surface_gravity",
+   "label": "Surface gravity (m/s2)",
+   "value": 1.62,
+   "printed": "1.62",
+   "unit": "m/s^2"
+  },
+  {
+   "key": "escape_velocity",
+   "label": "Escape velocity (km/s)",
+   "value": 2.38,
+   "printed": "2.38",
+   "unit": "km/s"
+  },
+  {
+   "key": "volumetric_mean_radius",
+   "label": "Volumetric mean radius (km)",
+   "value": 1737.4,
+   "printed": "1737.4",
+   "unit": "km"
+  },
+  {
+   "key": "mean_density",
+   "label": "Mean density (kg/m3)",
+   "value": 3344.0,
+   "printed": "3344",
+   "unit": "kg/m^3"
+  },
+  {
+   "key": "solar_irradiance",
+   "label": "Solar irradiance (W/m2)",
+   "value": 1361.0,
+   "printed": "1361.0",
+   "unit": "W/m^2"
+  },
+  {
+   "key": "black_body_temperature",
+   "label": "Black-body temperature (K)",
+   "value": 270.4,
+   "printed": "270.4",
+   "unit": "K"
+  },
+  {
+   "key": "revolution_period",
+   "label": "Revolution period (days)",
+   "value": 27.3217,
+   "printed": "27.3217",
+   "unit": "days"
+  },
+  {
+   "key": "synodic_period",
+   "label": "Synodic period (days)",
+   "value": 29.53,
+   "printed": "29.53",
+   "unit": "days"
+  },
+  {
+   "key": "sidereal_rotation_period",
+   "label": "Sidereal rotation period (hrs)",
+   "value": 655.72,
+   "printed": "655.720",
+   "unit": "hours"
+  },
+  {
+   "key": "obliquity_to_orbit",
+   "label": "Obliquity to orbit (deg)",
+   "value": 6.68,
+   "printed": "6.68",
+   "unit": "degrees"
+  },
+  {
+   "key": "diurnal_temperature_min",
+   "label": "Diurnal temperature range (equator), coldest",
+   "value": 95.0,
+   "printed": "95",
+   "unit": "K"
+  },
+  {
+   "key": "diurnal_temperature_max",
+   "label": "Diurnal temperature range (equator), hottest",
+   "value": 390.0,
+   "printed": "390",
+   "unit": "K"
+  }
+ ]
+}
