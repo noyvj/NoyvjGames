@@ -5,9 +5,10 @@ import sys
 import types
 
 import pytest
+from .pagefiles import game_css
 
 HERE = pathlib.Path(__file__).resolve().parent.parent
-CSS = (HERE / "style.css").read_text(encoding="utf-8")
+CSS = game_css()
 JS = (HERE / "settings.js").read_text(encoding="utf-8")
 HTML = (HERE / "index.html").read_text(encoding="utf-8")
 

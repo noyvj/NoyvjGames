@@ -1,10 +1,11 @@
 """H-26: per-node spending sparklines (hover a ring node)."""
 
 from pathlib import Path
+from .pagefiles import game_css, page_text
 
 HERE = Path(__file__).resolve().parent.parent
-INDEX = (HERE / "index.html").read_text(encoding="utf-8")
-CSS = (HERE / "style.css").read_text(encoding="utf-8")
+INDEX = page_text()
+CSS = game_css()
 
 
 def test_purchases_are_filed_per_cycle(game_env):

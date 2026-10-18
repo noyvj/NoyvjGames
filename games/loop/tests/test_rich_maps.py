@@ -9,6 +9,8 @@ import types
 import xml.etree.ElementTree as ET
 from pathlib import Path
 
+from .pagefiles import game_css
+
 GAME_DIR = Path(__file__).resolve().parent.parent
 
 
@@ -311,7 +313,7 @@ def test_index_html_ships_the_toggles_notes_and_script():
 
 
 def test_stylesheet_has_breakpoint_reduced_motion_and_light_theme():
-    css = (GAME_DIR / "style.css").read_text()
+    css = game_css()
     assert "@media (min-width: 900px)" in css and "@media (max-width: 899px)" in css
     assert 'html[data-reduced-motion="true"] .rich-flow .rf-dash' in css
     assert re.search(r"prefers-reduced-motion: reduce\) \{\s*\.rich-flow \.rf-dash", css)

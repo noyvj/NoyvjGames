@@ -6,11 +6,12 @@ import pathlib
 import re
 import sys
 import types
+from .pagefiles import game_css, page_text
 
 HERE = pathlib.Path(__file__).resolve().parent.parent
-INDEX = (HERE / "index.html").read_text(encoding="utf-8")
+INDEX = page_text()
 SETTINGS = (HERE / "settings.js").read_text(encoding="utf-8")
-CSS = (HERE / "style.css").read_text(encoding="utf-8")
+CSS = game_css()
 
 
 def close_loop(env):

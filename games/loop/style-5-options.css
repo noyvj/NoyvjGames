@@ -1,0 +1,275 @@
+/* Loop styles, part 5 of 6: the small touch-target fix, settings-driven options (flow speed, font, contrast), buy chips, shocks, rival, ledger, cracks, juice, chevrons, ring themes. Loaded in order by index.html: style-1..6, then style.css. */
+/* Audit 2026-10-06 (S11): the "Got it" dismiss was a 52x21px tap target. */
+#regional-hint-dismiss-button { min-height: 32px; padding: 0.3rem 0.9rem; }
+
+/* ------------------------------------------------------------------------
+   Round 3 additions (GH-12/14/15/24/25, H-4/9/15/16/17/18/23).
+   ------------------------------------------------------------------------ */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+.near-miss {
+  margin: 0.3rem 0;
+  padding: 0.4rem 0.6rem;
+  border-left: 3px solid #e0c24c;
+  border-radius: 0.3rem;
+  background: rgba(224, 194, 76, 0.12);
+  font-size: 0.85rem;
+}
+.near-miss[hidden] { display: none; }
+.plates-list { list-style: none; padding-left: 0; }
+.plate-row { margin: 0.15rem 0; }
+.plate-row--earned { font-weight: 600; }
+.summary-text { white-space: pre-wrap; word-break: break-word; margin: 0.3rem 0; }
+#goods-category-shipyard-button[hidden], #secret-category-hint[hidden] { display: none; }
+
+/* H-18: flow animation speed (settings.js sets html[data-flow-speed]); separate from
+   the reduce-motion switch, and only retimes the chain/trade flow particles. */
+.settings-row .text-size-control { flex-wrap: wrap; justify-content: flex-end; }
+.text-size-control button[aria-pressed="true"] { outline: 2px solid #a9c3ff; outline-offset: 1px; }
+html[data-flow-speed="slow"] .flow-particle { animation-duration: 3.2s; }
+html[data-flow-speed="slow"] .return-flow-particle,
+html[data-flow-speed="slow"] .import-flow-particle { animation-duration: 2.4s; }
+html[data-flow-speed="slow"] .rich-flow .rf-dash { animation-duration: 2.2s; }
+html[data-flow-speed="fast"] .flow-particle { animation-duration: 0.8s; }
+html[data-flow-speed="fast"] .return-flow-particle,
+html[data-flow-speed="fast"] .import-flow-particle { animation-duration: 0.6s; }
+html[data-flow-speed="fast"] .rich-flow .rf-dash { animation-duration: 0.55s; }
+html[data-flow-speed="off"] .flow-particle,
+html[data-flow-speed="off"] .return-flow-particle,
+html[data-flow-speed="off"] .import-flow-particle,
+html[data-flow-speed="off"] .rich-flow .rf-dash { animation: none; }
+
+/* H-17: an easier-to-read system font stack with wider spacing. */
+html[data-dyslexia-font="true"] body,
+html[data-dyslexia-font="true"] button,
+html[data-dyslexia-font="true"] input,
+html[data-dyslexia-font="true"] summary,
+html[data-dyslexia-font="true"] pre {
+  font-family: "OpenDyslexic", "Atkinson Hyperlegible", "Lexend", "Verdana", "Trebuchet MS", sans-serif;
+  letter-spacing: 0.04em;
+  word-spacing: 0.12em;
+  line-height: 1.55;
+}
+
+/* H-16: high contrast. Dark pages go white-on-black; the light theme goes black-on-white. The
+   starfield behind the panels is removed and every panel, button and ring node gets a solid
+   border. Meaning is never carried by colour alone here, so only text and edges change. */
+html[data-high-contrast="true"] {
+  --hc-bg: #000;
+  --hc-fg: #fff;
+  --hc-accent: #ffd84d;
+  --pc-window-bg: #000;
+}
+html[data-high-contrast="true"][data-theme="light"] {
+  --hc-bg: #fff;
+  --hc-fg: #000;
+  --hc-accent: #0b3d91;
+  --pc-window-bg: #fff;
+}
+html[data-high-contrast="true"] body { background: var(--hc-bg); color: var(--hc-fg); }
+html[data-high-contrast="true"] .ambient-bg { display: none; }
+html[data-high-contrast="true"] #game,
+html[data-high-contrast="true"] .section,
+html[data-high-contrast="true"] .vignette,
+html[data-high-contrast="true"] .context-blurb,
+html[data-high-contrast="true"] .invest-row,
+html[data-high-contrast="true"] .chain-stage,
+html[data-high-contrast="true"] .stats-detail-toggle,
+html[data-high-contrast="true"] .rich-map-panel,
+html[data-high-contrast="true"] .achievement-card,
+html[data-high-contrast="true"] .changelog-entry {
+  background: var(--hc-bg);
+  color: var(--hc-fg);
+  border: 2px solid var(--hc-fg);
+  box-shadow: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+html[data-high-contrast="true"] button,
+html[data-high-contrast="true"] button.secondary,
+html[data-high-contrast="true"] button.primary {
+  background: var(--hc-bg) !important;
+  color: var(--hc-fg) !important;
+  border: 2px solid var(--hc-fg);
+  box-shadow: none;
+  text-shadow: none;
+}
+html[data-high-contrast="true"] button:disabled { opacity: 0.55; border-style: dashed; }
+html[data-high-contrast="true"] button:focus-visible,
+html[data-high-contrast="true"] summary:focus-visible { outline: 3px solid var(--hc-accent); outline-offset: 2px; }
+html[data-high-contrast="true"] .comparison-message,
+html[data-high-contrast="true"] .invest-stats,
+html[data-high-contrast="true"] .meter-label,
+html[data-high-contrast="true"] .status-line,
+html[data-high-contrast="true"] .tagline,
+html[data-high-contrast="true"] .near-miss { color: var(--hc-fg); opacity: 1; }
+html[data-high-contrast="true"] .near-miss { background: var(--hc-bg); border: 2px solid var(--hc-accent); }
+html[data-high-contrast="true"] .meter { background: var(--hc-bg); border: 2px solid var(--hc-fg); }
+html[data-high-contrast="true"] .loop-ring-node { border: 2px solid var(--hc-fg); background: var(--hc-bg); }
+html[data-high-contrast="true"] a { color: var(--hc-accent); text-decoration: underline; }
+.career-heading { margin: 0.7rem 0 0.2rem; font-size: 0.85rem; font-weight: 600; }
+.settings-row--stack { flex-direction: column; align-items: flex-start; }
+.settings-row--stack .text-size-control { justify-content: flex-start; }
+
+/* H-14: the x1 / x5 / x10 buy chips above the investments. */
+.buy-multiple-row { display: flex; flex-wrap: wrap; align-items: center; gap: 0.4rem; margin: 0.4rem 0 0.6rem; }
+.buy-multiple-label { font-size: 0.85rem; opacity: 0.85; }
+.buy-chip { min-width: 2.75rem; padding: 0.3rem 0.6rem; font-size: 0.85rem; }
+.buy-chip.selected { outline: 2px solid #a9c3ff; outline-offset: 1px; font-weight: 700; }
+.buy-multiple-hint { flex: 1 1 100%; font-size: 0.75rem; opacity: 0.7; }
+#confirm-threshold-select { max-width: 100%; font: inherit; padding: 0.3rem 0.4rem; }
+
+/* GH-3: market-shock notice and switch. */
+.shock-banner { margin: 0.4rem 0; padding: 0.5rem 0.7rem; border-radius: 8px; border: 1px dashed rgba(224, 194, 76, 0.7); background: rgba(224, 194, 76, 0.08); font-size: 0.9rem; }
+.shock-banner[hidden] { display: none; }
+#market-shocks-button[aria-pressed="true"] { outline: 2px solid #e0c24c; outline-offset: 1px; }
+
+/* GH-5: Rival Corporation race (bars carry a stripe and a text label, never colour alone). */
+.rival-race .meter { margin: 0.15rem 0 0.5rem; }
+.rival-bar-label { margin: 0.2rem 0 0; font-size: 0.8rem; opacity: 0.85; }
+.meter-fill--striped { background-image: repeating-linear-gradient(135deg, rgba(255, 255, 255, 0.28) 0 6px, transparent 6px 12px), linear-gradient(90deg, #c8563c, #e0674c); }
+
+/* H-28: the cycle note box. */
+.cycle-note-row { display: flex; flex-direction: column; gap: 0.2rem; margin: 0.4rem 0 0.8rem; }
+.cycle-note-label { font-size: 0.8rem; opacity: 0.85; }
+.cycle-note-input { font: inherit; padding: 0.4rem 0.5rem; border-radius: 8px; border: 1px solid rgba(140, 160, 255, 0.35); background: rgba(10, 12, 28, 0.55); color: inherit; width: 100%; box-sizing: border-box; }
+
+/* H-10: the cycle ledger table. */
+.ledger-controls { display: flex; flex-wrap: wrap; align-items: center; gap: 0.4rem; margin: 0.4rem 0; }
+.ledger-label { font-size: 0.85rem; }
+.ledger-scroll { overflow-x: auto; max-width: 100%; }
+.ledger-table { border-collapse: collapse; font-size: 0.75rem; width: 100%; min-width: 34rem; font-variant-numeric: tabular-nums; }
+.ledger-table th, .ledger-table td { padding: 0.2rem 0.35rem; text-align: right; border-bottom: 1px solid rgba(140, 160, 255, 0.18); white-space: nowrap; }
+.ledger-table th:last-child, .ledger-table td:last-child { text-align: left; white-space: normal; min-width: 8rem; }
+
+/* H-1: the Past chains overlay chart (dash patterns and end labels, never colour alone). */
+.past-chains-chart svg { width: 100%; height: auto; max-width: 28rem; }
+.past-chains-chart[hidden] { display: none; }
+.past-grid { stroke: rgba(140, 160, 255, 0.25); stroke-width: 1; }
+.past-axis { fill: currentColor; font-size: 8px; opacity: 0.75; }
+.past-label { fill: currentColor; font-size: 9px; font-weight: 700; }
+.past-line { stroke: #a9c3ff; }
+.past-line--now { stroke: #4c9c6e; }
+
+/* H-12: the Founder rank badge (a label only). */
+.rank-badge { display: inline-block; margin: 0 0 0.4rem; padding: 0.15rem 0.7rem; border-radius: 999px; font-size: 0.85rem; font-weight: 700; border: 1px solid rgba(224, 194, 76, 0.65); background: rgba(224, 194, 76, 0.1); }
+
+/* GH-16: damage cracks. data-damage-tier (0-4) on #game comes from damage x (1 - circular share), so the cracks ease
+   back as the loop closes. Decorative, no numbers; Settings can switch them off. */
+:root {
+  --crack-a: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='84' height='84' viewBox='0 0 84 84'%3E%3Cpath d='M84 0 L64 17 L70 26 L50 40 L55 50 L38 66' fill='none' stroke='white' stroke-width='1.3' stroke-linejoin='bevel' stroke-linecap='round'/%3E%3Cpath d='M64 17 L56 9' fill='none' stroke='white' stroke-width='1.3' stroke-linejoin='bevel' stroke-linecap='round'/%3E%3Cpath d='M50 40 L40 38' fill='none' stroke='white' stroke-width='1.3' stroke-linejoin='bevel' stroke-linecap='round'/%3E%3C/svg%3E");
+  --crack-b: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='84' height='84' viewBox='0 0 84 84'%3E%3Cpath d='M0 84 L18 66 L12 58 L30 46 L26 36 L42 24' fill='none' stroke='white' stroke-width='1.3' stroke-linejoin='bevel' stroke-linecap='round'/%3E%3Cpath d='M18 66 L26 72' fill='none' stroke='white' stroke-width='1.3' stroke-linejoin='bevel' stroke-linecap='round'/%3E%3Cpath d='M30 46 L40 50' fill='none' stroke='white' stroke-width='1.3' stroke-linejoin='bevel' stroke-linecap='round'/%3E%3C/svg%3E");
+  --crack-c: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='84' height='84' viewBox='0 0 84 84'%3E%3Cpath d='M0 0 L14 12 L10 20 L22 28' fill='none' stroke='white' stroke-width='1.3' stroke-linejoin='bevel' stroke-linecap='round'/%3E%3Cpath d='M14 12 L22 8' fill='none' stroke='white' stroke-width='1.3' stroke-linejoin='bevel' stroke-linecap='round'/%3E%3C/svg%3E");
+  --crack-d: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='84' height='84' viewBox='0 0 84 84'%3E%3Cpath d='M84 84 L70 70 L74 62 L62 54' fill='none' stroke='white' stroke-width='1.3' stroke-linejoin='bevel' stroke-linecap='round'/%3E%3Cpath d='M70 70 L62 76' fill='none' stroke='white' stroke-width='1.3' stroke-linejoin='bevel' stroke-linecap='round'/%3E%3C/svg%3E");
+}
+html[data-theme="light"] {
+  --crack-a: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='84' height='84' viewBox='0 0 84 84'%3E%3Cpath d='M84 0 L64 17 L70 26 L50 40 L55 50 L38 66' fill='none' stroke='rgb(40,36,50)' stroke-width='1.3' stroke-linejoin='bevel' stroke-linecap='round'/%3E%3Cpath d='M64 17 L56 9' fill='none' stroke='rgb(40,36,50)' stroke-width='1.3' stroke-linejoin='bevel' stroke-linecap='round'/%3E%3Cpath d='M50 40 L40 38' fill='none' stroke='rgb(40,36,50)' stroke-width='1.3' stroke-linejoin='bevel' stroke-linecap='round'/%3E%3C/svg%3E");
+  --crack-b: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='84' height='84' viewBox='0 0 84 84'%3E%3Cpath d='M0 84 L18 66 L12 58 L30 46 L26 36 L42 24' fill='none' stroke='rgb(40,36,50)' stroke-width='1.3' stroke-linejoin='bevel' stroke-linecap='round'/%3E%3Cpath d='M18 66 L26 72' fill='none' stroke='rgb(40,36,50)' stroke-width='1.3' stroke-linejoin='bevel' stroke-linecap='round'/%3E%3Cpath d='M30 46 L40 50' fill='none' stroke='rgb(40,36,50)' stroke-width='1.3' stroke-linejoin='bevel' stroke-linecap='round'/%3E%3C/svg%3E");
+  --crack-c: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='84' height='84' viewBox='0 0 84 84'%3E%3Cpath d='M0 0 L14 12 L10 20 L22 28' fill='none' stroke='rgb(40,36,50)' stroke-width='1.3' stroke-linejoin='bevel' stroke-linecap='round'/%3E%3Cpath d='M14 12 L22 8' fill='none' stroke='rgb(40,36,50)' stroke-width='1.3' stroke-linejoin='bevel' stroke-linecap='round'/%3E%3C/svg%3E");
+  --crack-d: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='84' height='84' viewBox='0 0 84 84'%3E%3Cpath d='M84 84 L70 70 L74 62 L62 54' fill='none' stroke='rgb(40,36,50)' stroke-width='1.3' stroke-linejoin='bevel' stroke-linecap='round'/%3E%3Cpath d='M70 70 L62 76' fill='none' stroke='rgb(40,36,50)' stroke-width='1.3' stroke-linejoin='bevel' stroke-linecap='round'/%3E%3C/svg%3E");
+}
+#chain-flow-section, #status, #circularity, #trade-network, #pool-section { position: relative; }
+#game[data-damage-tier="1"] :is(#chain-flow-section, #status, #circularity, #trade-network, #pool-section)::after,
+#game[data-damage-tier="2"] :is(#chain-flow-section, #status, #circularity, #trade-network, #pool-section)::after,
+#game[data-damage-tier="3"] :is(#chain-flow-section, #status, #circularity, #trade-network, #pool-section)::after,
+#game[data-damage-tier="4"] :is(#chain-flow-section, #status, #circularity, #trade-network, #pool-section)::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background-repeat: no-repeat;
+  background-position: top right, bottom left, top left, bottom right;
+  transition: opacity 1.2s ease;
+}
+#game[data-damage-tier="1"] :is(#chain-flow-section, #status, #circularity, #trade-network, #pool-section)::after { background-image: var(--crack-a); opacity: 0.5; }
+#game[data-damage-tier="2"] :is(#chain-flow-section, #status, #circularity, #trade-network, #pool-section)::after { background-image: var(--crack-a), var(--crack-b); opacity: 0.6; }
+#game[data-damage-tier="3"] :is(#chain-flow-section, #status, #circularity, #trade-network, #pool-section)::after { background-image: var(--crack-a), var(--crack-b), var(--crack-c); opacity: 0.7; }
+#game[data-damage-tier="4"] :is(#chain-flow-section, #status, #circularity, #trade-network, #pool-section)::after { background-image: var(--crack-a), var(--crack-b), var(--crack-c), var(--crack-d); opacity: 0.85; }
+html[data-cracks="off"] #game :is(#chain-flow-section, #status, #circularity, #trade-network, #pool-section)::after { display: none; }
+/* the starfield dims a little as strain grows */
+.ambient-bg { transition: filter 1.5s ease; }
+body:has(#game[data-damage-tier="3"]) .ambient-bg { filter: brightness(0.82) saturate(0.85); }
+body:has(#game[data-damage-tier="4"]) .ambient-bg { filter: brightness(0.62) saturate(0.7); }
+html[data-cracks="off"] body .ambient-bg { filter: none !important; }
+
+/* GH-13: purchase juice. The ring node snaps, a ripple spreads and "-N raw" floats up. Settings can switch it
+   off, and reduced motion silences it. */
+.loop-ring-node--snap { animation: loop-node-snap 0.55s ease-out; }
+@keyframes loop-node-snap {
+  0% { transform: translate(-50%, -50%) scale(1.55); }
+  60% { transform: translate(-50%, -50%) scale(0.9); }
+  100% { transform: translate(-50%, -50%) scale(1); }
+}
+.invest-ripple { position: absolute; inset: 6%; border-radius: 50%; border: 2px solid rgba(76, 156, 110, 0.85); opacity: 0; pointer-events: none; z-index: 1; }
+.invest-ripple--go { animation: invest-ripple 0.7s ease-out; }
+@keyframes invest-ripple { 0% { transform: scale(0.4); opacity: 0.9; } 100% { transform: scale(1.4); opacity: 0; } }
+.invest-float { position: absolute; left: 50%; top: 34%; transform: translateX(-50%); font-weight: 700; font-size: 0.85rem; pointer-events: none; opacity: 0; z-index: 3; white-space: nowrap; text-shadow: 0 1px 3px rgba(0, 0, 0, 0.7); }
+.invest-float--go { animation: invest-float 1.1s ease-out; }
+@keyframes invest-float {
+  0% { opacity: 0; transform: translate(-50%, 10px); }
+  15% { opacity: 1; }
+  100% { opacity: 0; transform: translate(-50%, -34px); }
+}
+html[data-effects="off"] .invest-ripple, html[data-effects="off"] .invest-float,
+html[data-reduced-motion="true"] .invest-ripple, html[data-reduced-motion="true"] .invest-float { display: none; }
+html[data-effects="off"] .loop-ring-node--snap, html[data-reduced-motion="true"] .loop-ring-node--snap { animation: none; }
+@media (prefers-reduced-motion: reduce) {
+  .invest-ripple, .invest-float { display: none; }
+  .loop-ring-node--snap { animation: none; }
+}
+
+/* H-19: shape-coded particles (optional). Squares for straight-line paths, rings for circular ones, so the
+   two read apart without colour. */
+html[data-particle-shapes="on"] .flow-particle { border-radius: 0; width: 5px; height: 5px; }
+html[data-particle-shapes="on"] .chain-flow--closed .flow-particle,
+html[data-particle-shapes="on"] .return-flow-particle,
+html[data-particle-shapes="on"] .import-flow-particle {
+  border-radius: 50%; width: 8px; height: 8px; background: transparent; border: 2px solid currentColor;
+}
+html[data-particle-shapes="on"] .chain-flow--closed .flow-particle,
+html[data-particle-shapes="on"] .return-flow-particle { color: #4c9c6e; }
+html[data-particle-shapes="on"] .import-flow-particle { color: #4c8ed8; }
+
+/* H-21: collapse chevrons on the main panels (Classic only; the Desktop layout has its own windows). Each
+   panel and fold-out remembers whether you left it open or shut. */
+.panel-chevron {
+  position: absolute; top: 0.3rem; right: 0.4rem; z-index: 4;
+  display: inline-flex; align-items: center; gap: 0.35rem;
+  min-width: 2rem; padding: 0.15rem 0.5rem; font-size: 0.85rem; line-height: 1.2;
+  background: rgba(24, 27, 43, 0.6); border: 1px solid rgba(140, 160, 255, 0.3); border-radius: 8px; color: inherit; cursor: pointer;
+}
+.panel-chevron-label { display: none; font-weight: 600; }
+.section.is-collapsed > .panel-chevron { position: static; display: flex; width: 100%; justify-content: flex-start; }
+.section.is-collapsed > .panel-chevron .panel-chevron-label { display: inline; }
+.section.is-collapsed > :not(.panel-chevron):not(.sr-only) { display: none !important; }
+html[data-layout="pc"] .panel-chevron { display: none; }
+
+/* GH-23: ring themes (cosmetic only; unlocked through the career, chosen in Settings). */
+html[data-ring-theme="neon"] .loop-ring-track { border: 2px solid #00f0ff; box-shadow: 0 0 12px #00f0ff, inset 0 0 12px #ff2bd6; }
+html[data-ring-theme="neon"] .loop-ring-node { background: #0a0420; border-color: #ff2bd6; box-shadow: 0 0 14px #ff2bd6, 0 0 4px #00f0ff; }
+html[data-ring-theme="neon"] .loop-ring-core-glyph { color: #00f0ff; text-shadow: 0 0 10px #00f0ff; }
+html[data-ring-theme="blueprint"] .loop-ring {
+  background-image: linear-gradient(rgba(207, 227, 255, 0.2) 1px, transparent 1px), linear-gradient(90deg, rgba(207, 227, 255, 0.2) 1px, transparent 1px);
+  background-size: 15px 15px; border-radius: 50%; background-color: #0f2a5e;
+}
+html[data-ring-theme="blueprint"] .loop-ring-track { border: 2px dashed #cfe3ff; }
+html[data-ring-theme="blueprint"] .loop-ring-node { background: #12306b; border: 2px solid #cfe3ff; box-shadow: none; }
+html[data-ring-theme="blueprint"] .loop-ring-core-glyph { color: #cfe3ff; }
+html[data-ring-theme="paper"] .loop-ring-track { border: 3px solid #d9c9a3; animation: none; }
+html[data-ring-theme="paper"] .loop-ring-node { background: #f3e8cf; color: #3b2a14; border: 2px solid #8a6d3b; box-shadow: 3px 3px 0 rgba(0, 0, 0, 0.45); }
+html[data-ring-theme="paper"] .loop-ring-core-glyph { color: #d9c9a3; }
+
+/* H-27: the "your save loaded with repairs" note. */
+.load-note { margin: 0.4rem 0 0.8rem; padding: 0.6rem 0.8rem; border-radius: 8px; border: 1px dashed rgba(169, 195, 255, 0.7); background: rgba(169, 195, 255, 0.08); font-size: 0.9rem; }
+.load-note-title { margin: 0 0 0.3rem; font-weight: 700; }
+.load-note-list { margin: 0 0 0.5rem 1.1rem; padding: 0; }

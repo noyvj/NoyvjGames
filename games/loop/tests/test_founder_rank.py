@@ -136,7 +136,8 @@ def test_one_bad_count_does_not_drop_the_good_one(game_env):
 
 def test_nothing_in_the_game_reads_the_rank():
     from pathlib import Path
-    source = (Path(__file__).resolve().parent.parent / "game.py").read_text(encoding="utf-8")
+    # ChainState (score, invest_*, advance_cycle, ...) lives in loop_model.py since the game.py split.
+    source = (Path(__file__).resolve().parent.parent / "loop_model.py").read_text(encoding="utf-8")
     for banned in ("def score", "def invest_", "def advance_cycle"):
         body = source.split(banned)[1].split("\n    def ")[0]
         assert "founder" not in body
