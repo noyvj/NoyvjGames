@@ -39,3 +39,11 @@ def test_every_committed_incoming_file_is_clean():
     for f in files:
         if f.exists():
             assert lint.lint_lines(f.read_text(encoding="utf-8-sig").splitlines(), f.name) == [], f.name
+
+
+def test_the_generated_queue_files_are_up_to_date_with_the_drafts():
+    import subprocess
+    import sys
+
+    result = subprocess.run([sys.executable, str(ROOT / "scripts" / "build_incoming_tasks.py"), "--check"])
+    assert result.returncode == 0, "run: python3 scripts/build_incoming_tasks.py"
