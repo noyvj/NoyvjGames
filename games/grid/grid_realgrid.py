@@ -2,7 +2,13 @@
 Part of the split of the old single-file game.py: see "File map" in games/grid/CLAUDE.md.
 """
 
-from js import document
+import json
+import os
+
+try:
+    from js import document
+except ImportError:
+    document = None
 
 import grid_runstate as runstate
 from grid_rules import GENERATION_TYPES, PLANT_LABEL
@@ -36,6 +42,28 @@ REAL_GRIDS = {
     },
 }
 REAL_GRID_CLEAN_TYPES = ("nuclear", "solar", "wind", "hydro")
+
+
+def read_data_text(window_name, filename):
+    try:
+        import js as _js  # noqa: PLC0415 -- Pyodide-only import, deliberately lazy
+    except ImportError:
+        _js = None
+
+    raw = getattr(_js, window_name, None) if _js is not None else None
+    if raw is not None:
+        return str(raw)
+
+    here = os.path.dirname(os.path.abspath(__file__))
+    with open(os.path.join(here, "data", filename), encoding="utf-8") as handle:
+        return handle.read()
+
+
+def read_data_json(window_name, filename):
+    try:
+        return json.loads(read_data_text(window_name, filename))
+    except (ValueError, OSError):
+        return None
 
 
 def set_real_grid(choice):
