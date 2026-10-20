@@ -186,3 +186,16 @@ def render_chart_tables():
     gauge_table = document.getElementById("gauge-table")
     gauge_table.hidden = not on
     gauge_table.innerHTML = gauge_table_html() if on else ""
+
+
+BENCH_OHMS_PER_KM = 0.05
+
+
+def line_loss(voltage_kv, current_a, distance_km):
+    """Power line bench: calculate transmission loss for a given voltage, current, and distance."""
+    if voltage_kv <= 0 or current_a <= 0:
+        return {"sent_mw": 0.0, "loss_mw": 0.0, "percent": 0.0}
+    sent_mw = voltage_kv * current_a / 1000
+    loss_mw = current_a ** 2 * BENCH_OHMS_PER_KM * max(0, distance_km) / 1e6
+    percent = loss_mw / sent_mw * 100
+    return {"sent_mw": sent_mw, "loss_mw": loss_mw, "percent": percent}
