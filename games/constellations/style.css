@@ -186,7 +186,7 @@ html[data-reduced-motion="true"] .board.found .b-star, html[data-effects="off"] 
 .info-page-framing { margin: 0.3rem 0; }
 .pledge-list { padding-left: 1.2rem; margin: 0.3rem 0 0.8rem; }
 .pledge-list li, #how-list li { margin: 0.3rem 0; }
-#how-list { padding-left: 1.2rem; }
+#how-list, #plain-rules-list { padding-left: 1.2rem; }
 #info-page-panel h3 { margin: 0.8rem 0 0.2rem; font-size: 1rem; }
 .info-page-sources { list-style: none; padding: 0; margin: 0; }
 .info-page-source { border-top: 1px solid var(--line); padding: 0.5rem 0; }

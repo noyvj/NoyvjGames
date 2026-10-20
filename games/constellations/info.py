@@ -13,7 +13,7 @@ LIVE_SOURCE = {"title": "IAU designated constellations", "publisher": "Wikipedia
                "api": "https://en.wikipedia.org/api/rest_v1/page/summary/IAU_designated_constellations"}
 
 LIVE_LINES = {"title": "Stellarium modern sky culture (IAU constellation figures)", "publisher": "Stellarium", "url": "https://stellarium.org",
-                "api": "https://raw.githubusercontent.com/Stellarium/stellarium/master/skycultures/modern/index.json"}
+              "api": "https://raw.githubusercontent.com/Stellarium/stellarium/master/skycultures/modern/index.json"}
 
 FRAMING = ("Constellations is set in an invented dim observatory on Hollin Ridge. The sky is real: every star sits where it really is "
            "(drawn flat), and every figure you finish is a traditional constellation. The short notes and the facts below name their sources.")
@@ -31,6 +31,14 @@ HOW = (
     "Lines may not cross. All the lines together must make one connected figure. A solid thick line is already drawn for you; a pair with a cross through it can never be joined. (One chart, the Southern Cross, is the exception: its two traditional lines cross, so it says so, and where they cross they count as joined.)",
     "Stuck? The suggestion button never opens by itself. It asks \"Would you like a suggestion?\" and then goes one rung at a time: a nudge (which star), a hint (which line, and why it is certain) and the whole answer, which you can draw with one press. Easy opens the nudge and the hint together; Hard stops before the answer. Nothing is guessed: every suggestion is a certain deduction.",
     "When every number holds and the figure is one piece, Done adds the constellation to your atlas. Five finished charts in a season open the next season; inside a season, any order.",
+)
+
+PLAIN_RULES = (
+    "Some stars have a number. That number tells you how many lines must touch that star.",
+    "A star with no number can have any number of lines, or none at all.",
+    "You join stars by dragging from one to another, or by tapping them in order.",
+    "Lines cannot cross each other. All the lines together must form one connected shape.",
+    "When every number matches and the shape is connected, press Done to save it to your atlas.",
 )
 
 FACTS = (
@@ -61,4 +69,5 @@ FACTS = (
 def view():
     return {"framing": FRAMING, "date_read": DATE_READ, "pledge_heading": "What this game will never do", "pledge": list(PLEDGE),
             "how_heading": "How it works", "how": list(HOW), "facts_heading": "The real sky",
-            "facts": [dict(f, source=dict(f["source"], date_read=DATE_READ)) for f in FACTS], "live": dict(LIVE_SOURCE), "live_lines": dict(LIVE_LINES)}
+            "facts": [dict(f, source=dict(f["source"], date_read=DATE_READ)) for f in FACTS], "live": dict(LIVE_SOURCE), "live_lines": dict(LIVE_LINES),
+            "plain_rules_heading": "Rules in plain words", "plain_rules": list(PLAIN_RULES)}
