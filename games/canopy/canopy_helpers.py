@@ -1,5 +1,8 @@
 """Small shared helpers: tile ids and coordinate labels, localStorage reads and writes, SVG text and sparklines, the forest log entry, the screen-reader announcer queue, timed callbacks, number formatting and display preferences."""
 
+import json
+import os
+
 from js import document, setTimeout
 from pyodide.ffi import create_proxy
 
@@ -365,3 +368,25 @@ def _index_or_none(value, size):
     if isinstance(value, int) and not isinstance(value, bool) and 0 <= value < size:
         return value
     return None
+
+
+def read_data_json(window_name, filename):
+    """Read a JSON data file from the window global (boot script) or disk (pytest)."""
+    try:
+        import js as _js  # noqa: PLC0415
+    except ImportError:
+        _js = None
+
+    raw = getattr(_js, window_name, None) if _js is not None else None
+    if raw is None:
+        data_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data", filename)
+        try:
+            with open(data_path, encoding="utf-8") as f:
+                raw = f.read()
+        except OSError:
+            return None
+
+    try:
+        return json.loads(str(raw))
+    except (ValueError, OSError):
+        return None
