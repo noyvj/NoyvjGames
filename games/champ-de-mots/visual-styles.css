@@ -842,3 +842,26 @@ html[data-theme="light"] .minigame-waters { color: #1a5c2e; }
 html[data-theme="light"] .pairs-card--selected { outline-color: #8a5a00; }
 html[data-theme="light"] .pairs-card--fr { border-left-color: #2a4ba0; }
 html[data-theme="light"] .pairs-card--en { border-left-color: #a3561c; }
+
+/* Achievement glyphs per visual style. */
+html[data-visual-style="lowpoly"] .achievement-glyph {
+  background: #f3e3c3;
+  padding: 0.1em 0.25em;
+  clip-path: polygon(50% 0, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%);
+}
+
+html[data-visual-style="cartoon"] .achievement-glyph {
+  font-size: 1.4em;
+  border: 2px solid currentColor;
+  border-radius: 50%;
+  padding: 0 0.2em;
+}
+
+html[data-visual-style="textbased"] .achievement-glyph {
+  font-size: 0;
+}
+
+html[data-visual-style="textbased"] .achievement-glyph::after {
+  content: "[" attr(data-glyph-word) "] ";
+  font-size: 0.85rem;
+}
