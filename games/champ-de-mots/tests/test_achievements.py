@@ -322,3 +322,22 @@ def test_glyph_for_returns_correct_tuple_for_known_id(game_env):
 def test_glyph_for_falls_back_to_default_for_unknown_id(game_env):
     module = game_env.module
     assert module.glyph_for("nope") == ("🏆", "trophy")
+
+
+def test_achievement_glyphs_render_in_panel(game_env):
+    module = game_env.module
+    state = game_env.state
+    for plot in state.plots[:25]:
+        _fully_automate(state, plot)
+    module.achievements_open = True
+    module.render_achievements()
+    panel = game_env.elements["achievements-panel"]
+    earned_line = next(child for child in panel.children if child.className == "achievement-earned")
+    glyph_el = earned_line.children[0]
+    assert glyph_el.className == "achievement-glyph"
+    assert glyph_el.innerText == "🌱"
+    assert glyph_el.getAttribute("data-glyph-word") == "sprout"
+    assert glyph_el.getAttribute("aria-hidden") == "true"
+    label_el = earned_line.children[1]
+    assert label_el.className == "achievement-card-label"
+    assert label_el.innerText == "25 plots automated"
