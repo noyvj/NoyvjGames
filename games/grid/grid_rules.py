@@ -565,3 +565,16 @@ def _build_incident_files():
 
 
 INCIDENT_FILES = _build_incident_files()
+
+
+def incident_ids(event, aging_event):
+    """Return a list of incident file IDs for the given event and aging breakdown."""
+    ids = []
+    if event is not None:
+        if event["type"] == "brownout":
+            ids.append("brownout_" + (event.get("cause_plant") or "lingering"))
+        elif event["type"] == "damage":
+            ids.append("damage_" + event["damaged_plant"])
+    if aging_event is not None:
+        ids.append("aging_" + aging_event["plant"])
+    return ids
