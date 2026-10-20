@@ -13,8 +13,9 @@ current TODO doable. queue.txt is not in git, so this script is how that work re
    have never been queued or run. Items that were parked earlier but are now possible (for example after a
    game's files were split) come back the same way.
 
-New TODO.md work goes at the end of the "2. CURRENT TODO.md" section of queue.txt, so it runs right after the
-tests and before Round 4 ideas; TODO-NEXT.md work goes at the end of section 3. Nothing is ever removed except
+Noy2's steps go at the START of their section (small exact steps pass far more often than whole items); other
+new TODO.md work goes at the end of the "2. CURRENT TODO.md" section, so it runs after the tests and before
+Round 4 ideas; TODO-NEXT.md work goes into section 3 the same way. Nothing is ever removed except
 what a "# replaces:" line names, and a line is never added twice.
 """
 import io
@@ -70,6 +71,16 @@ def current_labels():
     return out
 
 
+def insert_at_section_start(queue, mark, lines):
+    """Noy2's split steps go first in their section: small and exact, they pass far more often than whole items."""
+    if not lines:
+        return queue
+    start = next((i for i, x in enumerate(queue) if x.startswith(mark)), None)
+    if start is None:
+        return queue + ["# --- added by refresh_queue.py ---"] + lines
+    return queue[:start + 1] + lines + queue[start + 1:]
+
+
 def insert_at_section_end(queue, mark, lines):
     if not lines:
         return queue
@@ -96,8 +107,10 @@ def main(argv):
             seen.add(key(line))
     if replaced:
         before = len(queue) + len(parked)
-        queue = [x for x in queue if not (is_task(x) and key(x)[1] in replaced)]
-        parked = [x for x in parked if not (is_task(x) and key(x)[1] in replaced)]
+        # a step may reuse the id of the item it replaces (R4-AFMO-6 replaced by R4-AFMO-6): never remove a step itself
+        steps = {key(x) for x in read(INCOMING) if is_task(x)}
+        queue = [x for x in queue if not (is_task(x) and key(x)[1] in replaced and key(x) not in steps)]
+        parked = [x for x in parked if not (is_task(x) and key(x)[1] in replaced and key(x) not in steps)]
         report.append("removed %d whole items that steps replace" % (before - len(queue) - len(parked)))
 
     # 2. TODO items that are possible now and have never been queued or run
@@ -118,8 +131,10 @@ def main(argv):
         report.append("%d parked items are possible now" % (len(parked) - len(parked_now)))
     parked = parked_now
 
-    queue = insert_at_section_end(queue, TODO_MARK, incoming_todo + new_todo)
-    queue = insert_at_section_end(queue, NEXT_MARK, incoming_next + new_next)
+    queue = insert_at_section_start(queue, TODO_MARK, incoming_todo)
+    queue = insert_at_section_end(queue, TODO_MARK, new_todo)
+    queue = insert_at_section_start(queue, NEXT_MARK, incoming_next)
+    queue = insert_at_section_end(queue, NEXT_MARK, new_next)
     report.append("TODO.md: +%d (%d from incoming-tasks.txt)" % (len(incoming_todo) + len(new_todo), len(incoming_todo)))
     report.append("TODO-NEXT.md: +%d (%d from incoming-tasks.txt)" % (len(incoming_next) + len(new_next), len(incoming_next)))
     print("refresh_queue: " + "; ".join(report))

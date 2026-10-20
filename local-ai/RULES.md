@@ -150,6 +150,15 @@ left, and stop.
     new element, class or handler is there and wired up (weaker, but required).
 - The tests and flake8 run automatically after your edits. Fix any failure
   before saying you are done.
+- Imports in a test (mistakes from the 2026-10-20 TODO runs):
+  - Import a game module by its own name: `from drift_rules import step`, never `from games.drift.drift_rules`
+    ("games" is not a module in the tests; the game folder is already on the path).
+  - `import js` or `pyodide` works only where the game's tests/conftest.py makes a fake one (search conftest.py
+    for "js" first). Otherwise test the Python that does not touch the page, or write a browser test.
+  - Playwright has page.query_selector, page.query_selector_all, page.locator(...).count() and page.evaluate.
+    There is no page.query_all, and wait_for_function takes a JavaScript string, not a Python function.
+- Before writing a test that expects a number (assert x == 1), read the code that makes that number. A wrong
+  guess about what the game already does is the most common way a new test fails.
 - Edit an existing test file with small SEARCH/REPLACE blocks. Never paste a second copy of its imports or tests
   into it (flake8 F811 "redefinition"): add only the new test functions.
 - Finishing a milestone: set its Status to Done in the game's CLAUDE.md milestone table. Some games have a test
