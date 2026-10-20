@@ -11,7 +11,7 @@ except ImportError:
     document = None
 
 import grid_runstate as runstate
-from grid_rules import GENERATION_TYPES, PLANT_LABEL
+from grid_rules import GENERATION_TYPES, PLANT_CAPACITY, PLANT_LABEL
 
 
 # ===========================================================================
@@ -152,6 +152,55 @@ def render_real_grid():
             cell.innerText = text
             line.appendChild(cell)
         table.appendChild(line)
+
+
+CAPACITY_FACTOR_LABEL = {
+    "coal": "Coal",
+    "gas": "Natural gas: combined cycle",
+    "nuclear": "Nuclear",
+    "solar": "Solar: photovoltaic",
+    "wind": "Wind",
+    "hydro": "Hydroelectric",
+}
+
+
+def load_capacity_factors():
+    return read_data_json("CAPACITY_FACTORS_JSON", "capacity_factors.json")
+
+
+def capacity_factor_rows(data):
+    rows = []
+    for plant_type in GENERATION_TYPES:
+        label = CAPACITY_FACTOR_LABEL[plant_type]
+        found = False
+        for table in data.get("tables", []):
+            for tech in table.get("technologies", []):
+                if tech.get("label") == label:
+                    annuals = tech.get("annual", [])
+                    if annuals:
+                        r = annuals[-1]
+                        pct = r["capacity_factor_pct"]
+                        rows.append({
+                            "plant_type": plant_type,
+                            "label": PLANT_LABEL[plant_type],
+                            "nameplate": PLANT_CAPACITY[plant_type],
+                            "pct": pct,
+                            "average": round(PLANT_CAPACITY[plant_type] * pct / 100, 1),
+                            "year": r["year"],
+                        })
+                    found = True
+                    break
+            if found:
+                break
+    return rows
+
+
+def capacity_factor_note(data):
+    return (
+        "Source: U.S. Energy Information Administration, Electric Power Monthly Tables 6.07.A and 6.07.B, "
+        f"data for {data['tables'][1]['data_for']}; a dated snapshot read on {data['read']}, "
+        "because EIA pages cannot be read live from a browser."
+    )
 
 
 def render_regional_grid():
