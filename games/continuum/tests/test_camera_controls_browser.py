@@ -84,3 +84,69 @@ def test_the_wheel_zooms_the_camera_and_stops_at_the_limits(base):
 
         # No JS errors expected during interaction.
         browser.close()
+
+
+def test_a_right_drag_pans_the_camera_and_a_preset_resets_it(base):
+    with sync_playwright() as p:
+        browser, page = open_game(p, base)
+        if not scene_ready(page):
+            pytest.skip("no WebGL")
+
+        # Right-drag pan
+        page.evaluate("""
+            const el = document.querySelector('#visual3d-container');
+            el.dispatchEvent(new PointerEvent('pointerdown', {pointerType: 'mouse', button: 2, pointerId: 1, bubbles: true, clientX: 200, clientY: 200}));
+        """)
+        page.evaluate("""
+            window.dispatchEvent(new PointerEvent('pointermove', {pointerType: 'mouse', pointerId: 1, clientX: 250, clientY: 200}));
+        """)
+        page.evaluate("window.dispatchEvent(new PointerEvent('pointerup', {pointerId: 1}));")
+
+        # Check pan offset
+        checks = page.evaluate("""
+            (() => {
+                const s = window.ContinuumScene.cameraState();
+                const k = s.distance * 0.0016;
+                const expX = -Math.cos(s.yaw) * 50 * k;
+                const expZ = Math.sin(s.yaw) * 50 * k;
+                return {
+                    x: Math.abs(s.targetX - expX) < 1e-6,
+                    z: Math.abs(s.targetZ - expZ) < 1e-6
+                };
+            })()
+        """)
+        assert checks["x"]
+        assert checks["z"]
+
+        # Preset resets targetX and targetZ to 0
+        page.click("#camera-preset-overview-button")
+        s = page.evaluate("""
+            (() => {
+                const c = window.ContinuumScene.cameraState();
+                return { targetX: c.targetX, targetZ: c.targetZ };
+            })()
+        """)
+        assert s["targetX"] == 0
+        assert s["targetZ"] == 0
+
+        # Left-button drag changes yaw but leaves targetX/targetZ at 0
+        page.evaluate("""
+            const el = document.querySelector('#visual3d-container');
+            el.dispatchEvent(new PointerEvent('pointerdown', {pointerType: 'mouse', button: 0, pointerId: 2, bubbles: true, clientX: 200, clientY: 200}));
+        """)
+        page.evaluate("""
+            window.dispatchEvent(new PointerEvent('pointermove', {pointerType: 'mouse', pointerId: 2, clientX: 250, clientY: 200}));
+        """)
+        page.evaluate("window.dispatchEvent(new PointerEvent('pointerup', {pointerId: 2}));")
+
+        s = page.evaluate("""
+            (() => {
+                const c = window.ContinuumScene.cameraState();
+                return { targetX: c.targetX, targetZ: c.targetZ, yaw: c.yaw };
+            })()
+        """)
+        assert s["targetX"] == 0
+        assert s["targetZ"] == 0
+        assert s["yaw"] != 0
+
+        browser.close()
