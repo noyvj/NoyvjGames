@@ -57,3 +57,11 @@ def test_electrification_notice_values(game_env):
     _advance_n(state, 3)
     event, away = state.electrification_notice()
     assert away == 0
+
+
+def test_scenario_button_cycles_to_electrified(game_env):
+    btn = game_env.elements["scenario-toggle-button"]
+    for _ in range(4):
+        btn.dispatch("click", None)
+    assert game_env.state.scenario == "electrified"
+    assert btn.innerText == "Scenario: Electrified city"

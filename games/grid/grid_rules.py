@@ -240,7 +240,7 @@ ELECTRIFICATION_EVENTS = [
     {"round": 18, "title": "Delivery vans and freight depots go electric", "demand": 20},
     {"round": 24, "title": "Factories switch to electric heat", "demand": 25},
 ]
-SCENARIO_ORDER = ["standard", "coal_legacy", "greenfield", "emergency"]
+SCENARIO_ORDER = ["standard", "coal_legacy", "greenfield", "emergency", "electrified"]
 
 # C27 -- the player has EMERGENCY_ROUNDS rounds to bring capacity up to
 # demand and hold it there for EMERGENCY_HOLD_ROUNDS rounds in a row. There

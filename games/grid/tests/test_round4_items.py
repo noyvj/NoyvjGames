@@ -138,6 +138,8 @@ def test_scenario_button_cycles_into_emergency(game_env):
         game_env.elements["scenario-toggle-button"].dispatch("click", None)
     assert game_env.state.scenario == "emergency"
     game_env.elements["scenario-toggle-button"].dispatch("click", None)
+    assert game_env.state.scenario == "electrified"
+    game_env.elements["scenario-toggle-button"].dispatch("click", None)
     assert game_env.state.scenario == "standard"
     assert game_env.state.emergency is None
     assert game_env.state.demand == 100
