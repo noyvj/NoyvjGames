@@ -298,3 +298,27 @@ def test_crossing_multiple_thresholds_in_one_render_reports_the_count(game_env):
     assert "25 plots automated" in toast.innerText
     assert "50 plots automated" in toast.innerText
     assert "A full week, automated" in toast.innerText
+
+
+# --- achievement glyphs -----------------------------------------------------
+
+
+def test_achievements_glyphs_cover_all_catalog_entries(game_env):
+    module = game_env.module
+    assert set(module.ACHIEVEMENT_GLYPHS) == {e["id"] for e in module.ACHIEVEMENTS}
+
+
+def test_achievement_glyphs_have_unique_emoji_and_words(game_env):
+    module = game_env.module
+    assert len({g[0] for g in module.ACHIEVEMENT_GLYPHS.values()}) == 10
+    assert len({g[1] for g in module.ACHIEVEMENT_GLYPHS.values()}) == 10
+
+
+def test_glyph_for_returns_correct_tuple_for_known_id(game_env):
+    module = game_env.module
+    assert module.glyph_for("row_1") == ("🌾", "wheat")
+
+
+def test_glyph_for_falls_back_to_default_for_unknown_id(game_env):
+    module = game_env.module
+    assert module.glyph_for("nope") == ("🏆", "trophy")

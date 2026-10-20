@@ -220,6 +220,25 @@ def on_toggle_achievements(event=None):
     render()
 
 
+DEFAULT_GLYPH = ('🏆', 'trophy')
+ACHIEVEMENT_GLYPHS = {
+    'automated_25': ('🌱', 'sprout'),
+    'automated_50': ('🥕', 'carrot'),
+    'automated_100': ('🌽', 'corn'),
+    'automated_250': ('🍅', 'tomato'),
+    'automated_500': ('🍇', 'grapes'),
+    'automated_750': ('🌻', 'sunflower'),
+    'row_1': ('🌾', 'wheat'),
+    'row_5': ('🧺', 'basket'),
+    'row_11': ('🍎', 'apple'),
+    'row_23': ('🥖', 'baguette'),
+}
+
+
+def glyph_for(achievement_id):
+    return ACHIEVEMENT_GLYPHS.get(achievement_id, DEFAULT_GLYPH)
+
+
 def _render_achievement_group(container, group):
     for entry in group["earned"]:
         line = document.createElement("p")
