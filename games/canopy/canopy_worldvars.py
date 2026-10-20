@@ -291,3 +291,8 @@ rival_state = {"next_bid": RIVAL_FIRST_BID_TICKS, "bids": 0}
 
 def rival_enabled():
     return runstate.current_difficulty == DIFFICULTY_RIVAL
+
+
+SEASON_FRAMES_MAX = 20
+SEASON_FRAME_LETTER = {PRESERVED: "P", BARE: "B", REPLANTING: "R", RECOVERED: "C"}
+season_frames = []
