@@ -292,6 +292,35 @@ COW_NAMES = [
 HALL_OF_FAME_SIZE = 5
 HALL_PER_HANDOVER = 3
 
+# GF-20: Farm event cards — one-line flavour events with small stakes
+FARM_EVENTS = [
+    {
+        "id": "neighbour_buy",
+        "text": "A neighbour offers to buy 2 herd units at a premium.",
+        "choice_a": {"label": "Sell them (+60 funds)", "effect": lambda farm: setattr(farm, 'funds', farm.funds + 60)},
+        "choice_b": {"label": "Refuse", "effect": None},
+    },
+    {
+        "id": "feed_surge",
+        "text": "Feed prices drop unexpectedly this week.",
+        "choice_a": {"label": "Stock up (-15 funds)", "effect": lambda farm: setattr(farm, 'funds', farm.funds - 15)},
+        "choice_b": {"label": "Skip it", "effect": None},
+    },
+    {
+        "id": "wildlife_visit",
+        "text": "A herd of wild deer wanders through your pasture.",
+        "choice_a": {"label": "Let them graze (+2 welfare)", "effect": lambda farm: setattr(farm, '_event_welfare', getattr(farm, '_event_welfare', 0) + 2)},
+        "choice_b": {"label": "Shoo them away", "effect": None},
+    },
+    {
+        "id": "equipment_sale",
+        "text": "A local farmer is selling old equipment cheap.",
+        "choice_a": {"label": "Buy it (-30 funds)", "effect": lambda farm: setattr(farm, 'funds', farm.funds - 30)},
+        "choice_b": {"label": "Pass", "effect": None},
+    },
+]
+FARM_EVENT_CHANCE = 0.2
+
 
 # F-1 -- Ranch Rules: four balance sliders for a custom run. Standard values are the ones the rest of
 # the file is written around, so a farm on standard rules behaves exactly as it always has. Any other

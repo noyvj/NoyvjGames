@@ -39,7 +39,7 @@ from herd_summary import on_toggle_report_card
 from herd_renderer import render
 from herd_handlers_play import (
     _make_bulk_handler, _make_decoupling_handler, _make_perk_handler, _make_policy_handler,
-    _make_poultry_handler, _make_satellite_handler, on_advance_round, on_grow_herd, on_grow_poultry,
+    _make_poultry_handler, _make_satellite_handler, on_advance_round, on_event_choice, on_grow_herd, on_grow_poultry,
     on_hand_over_farm, on_herd_slider_buy, on_invest_genetics, on_invest_plant_pivot, on_invest_supply_chain,
     on_toggle_cap, on_toggle_variation, on_undo_round,
 )
@@ -262,6 +262,8 @@ def setup():
     if ghost_toggle is not None:
         ghost_toggle.addEventListener("change", create_proxy(on_toggle_ghost))
     document.getElementById("ledger-clear-button").addEventListener("click", create_proxy(on_ledger_clear))
+    document.getElementById("event-choice-a").addEventListener("click", create_proxy(lambda: on_event_choice("a")))
+    document.getElementById("event-choice-b").addEventListener("click", create_proxy(lambda: on_event_choice("b")))
     for horizon in PLAN_HORIZONS:
         document.getElementById(f"plan-horizon-{horizon}-button").addEventListener(
             "click", create_proxy(_make_plan_horizon_handler(horizon))

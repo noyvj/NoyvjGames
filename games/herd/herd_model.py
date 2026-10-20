@@ -4,10 +4,12 @@ Part of the split of the old single-file game.py: see "File map" in games/herd/C
 """
 
 import copy
+import random
 
 import herd_runstate as runstate
 from herd_rules import (
     AUDIT_EVERY, AUDIT_FINE_INCOME_ROUNDS, AUDIT_GOODWILL_BONUS, AUDIT_LOG_MAX, AUDIT_PERKS,
+    FARM_EVENTS, FARM_EVENT_CHANCE,
     AUDIT_PERK_REPEAT_FUNDS, AUDIT_TRUST_PENALTY, AUDIT_TRUST_ROUNDS, BASE_COUPLING_RATIO,
     BIOGAS_SALE_PER_UNIT, BULK_MAX_UNITS, CAPTURE_SELF_USE_UNITS, CERTIFICATION_PRICE_PREMIUM,
     CERTIFICATION_RATIO_THRESHOLD, CERTIFICATION_ROUNDS_REQUIRED, DECOUPLING_MEASURES,
@@ -195,6 +197,21 @@ class FarmState:
         # Advance Round) is never saved; undo_used is, once it is true.
         self.undo_used = False
         self.undo_snapshot = None
+
+        # GF-20: farm event card state (transient, not saved)
+        self.event_active = False
+        self.event_data = None
+        self.event_choice_made = False
+
+    def draw_event(self):
+        """Draw a random farm event for this round."""
+        if random.random() < FARM_EVENT_CHANCE:
+            self.event_active = True
+            self.event_data = random.choice(FARM_EVENTS)
+            self.event_choice_made = False
+        else:
+            self.event_active = False
+            self.event_data = None
 
     # ---- F-19 bulk buying ----
     def bulk_plan(self, key, mode):
@@ -701,6 +718,7 @@ class FarmState:
         }
 
     def advance_round(self):
+        self.draw_event()  # GF-20
         pressure = self.pressure_fraction()
         season = 1 + self.season_modifier()
         self.funds += self.income_breakdown()["total"]

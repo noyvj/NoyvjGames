@@ -31,6 +31,17 @@ from herd_renderer import render
 from herd_loading import load_state
 
 
+def on_event_choice(slot):
+    """Apply the chosen effect for the active farm event."""
+    if not runstate.farm.event_active or runstate.farm.event_choice_made:
+        return
+    choice = runstate.farm.event_data["choice_a"] if slot == "a" else runstate.farm.event_data["choice_b"]
+    if choice["effect"]:
+        choice["effect"](runstate.farm)
+    runstate.farm.event_choice_made = True
+    render()
+
+
 def _make_satellite_handler(action, button_id):
     def handler(event=None):
         def do_buy():

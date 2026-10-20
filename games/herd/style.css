@@ -4,6 +4,20 @@
    in it. Every other rule that used to follow the [hidden] rule is `display: none !important` too, so keeping the
    rule last changes nothing. Put new rules in the part file for their area, not here. */
 
+/* GF-20: Farm event card */
+.farm-event-card {
+  background: var(--card-bg, #f4f7f6);
+  border: 1px solid var(--border-color, #ccc);
+  border-radius: 8px;
+  padding: 1rem;
+  margin: 0.5rem 0;
+}
+.farm-event-card .plan-buttons {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+
 /* Site-wide: a bare `display:` rule on a class must never defeat the HTML hidden attribute
    (playtest audit 2026-10-06, S2: Continuum, Aftermath, Drift, Champ de Mots, hub). */
 [hidden] { display: none !important; }
