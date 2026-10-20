@@ -124,6 +124,7 @@
            5 accessibility.js established first, so it works even before
            Pyodide finishes booting. -->
       <button id="settings-toggle-button" class="secondary" type="button">⚙️ Settings</button>
+      <button id="non-visual-toggle-button" class="secondary" type="button">Non-Visual Mode: Off</button>
     </div>
     <div id="howto-panel" class="section" hidden></div>
     <div id="achievements-panel" class="section achievements-panel" hidden></div>
@@ -300,6 +301,7 @@
         <button id="save-nudge-dismiss" class="secondary" type="button">Dismiss</button>
       </div>
       <p id="collection-summary-display" class="status-line"></p>
+      <div id="non-visual-summary" class="sr-only" role="status" aria-live="polite"></div>
       <p id="region-title-display" class="status-line"></p>
       <p id="run-stars-display" class="status-line"></p>
       <label class="region-name-row">Region name (optional, carried into the coda)
@@ -333,6 +335,21 @@
         <!-- R4-DRMO-9: phone-only keyboard path to the bottom sheet (CSS shows it on phones). -->
         <button id="glossary-sheet-open" class="secondary glossary-sheet-open" type="button">Show as bottom sheet</button>
       </div>
+    </div>
+
+    <div id="non-visual-tables" class="non-visual-section" hidden>
+      <table aria-label="Region status">
+        <thead><tr><th>Metric</th><th>Value</th></tr></thead>
+        <tbody id="nv-status-body"></tbody>
+      </table>
+      <table aria-label="Arrival stream density">
+        <thead><tr><th>Round</th><th>Arrivals</th><th>Dots</th></tr></thead>
+        <tbody id="nv-arrival-body"></tbody>
+      </table>
+      <table aria-label="Wellbeing gauges">
+        <thead><tr><th>Dimension</th><th>Score</th><th>Trend</th></tr></thead>
+        <tbody id="nv-gauges-body"></tbody>
+      </table>
     </div>
 
     <div id="pressure" class="section">

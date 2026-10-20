@@ -334,4 +334,47 @@ def render():
     render_ledger()
     render_collection_summary()
     render_batch3()
+    # I-5: Non-visual mode tables and aria-live summary
+    if runstate.non_visual_mode:
+        nv_tables = document.getElementById("non-visual-tables")
+        nv_tables.hidden = False
+
+        status_body = document.getElementById("nv-status-body")
+        status_body.innerHTML = (
+            f"<tr><td>Round</td><td>{region.round_number}</td></tr>"
+            f"<tr><td>Funds</td><td>{region.funds:.0f}</td></tr>"
+            f"<tr><td>Total capacity</td><td>{region.total_capacity():.0f}</td></tr>"
+            f"<tr><td>Strain</td><td>{region.strain_fraction() * 100:.0f}% ({region.strain_level()})</td></tr>"
+            f"<tr><td>Integrated</td><td>{region.integrated_population:.0f}</td></tr>"
+            f"<tr><td>Pending</td><td>{region.pending_population():.0f}</td></tr>"
+        )
+
+        arrival_body = document.getElementById("nv-arrival-body")
+        current_arrivals = region.arrivals_this_round()
+        visible_dots = arrival_stream_dot_count(current_arrivals)
+        arrival_body.innerHTML = (
+            f"<tr><td>Current round</td><td>{current_arrivals:.0f}</td><td>{visible_dots} dots</td></tr>"
+        )
+        if hasattr(region, "arrivals_log") and region.arrivals_log:
+            for i, val in enumerate(reversed(region.arrivals_log[-5:])):
+                arrival_body.innerHTML += f"<tr><td>Round {region.round_number - len(region.arrivals_log) + i + 1}</td><td>{val:.0f}</td><td>{arrival_stream_dot_count(val)} dots</td></tr>"
+
+        gauges_body = document.getElementById("nv-gauges-body")
+        sq_arrow = subscore_arrow(region.subscore_log, "service")
+        eh_arrow = subscore_arrow(region.subscore_log, "economy")
+        sc_arrow = subscore_arrow(region.subscore_log, "cohesion")
+        gauges_body.innerHTML = (
+            f"<tr><td>Service quality</td><td>{region.service_quality():.0f}</td><td>{sq_arrow}</td></tr>"
+            f"<tr><td>Economic health</td><td>{region.economic_health():.0f}</td><td>{eh_arrow}</td></tr>"
+            f"<tr><td>Social cohesion</td><td>{region.social_cohesion():.0f}</td><td>{sc_arrow}</td></tr>"
+        )
+
+        document.getElementById("non-visual-summary").innerText = (
+            f"Round {region.round_number}. Funds: {region.funds:.0f}. "
+            f"Strain: {region.strain_fraction() * 100:.0f}% ({region.strain_level()}). "
+            f"Wellbeing: {region.wellbeing_score():.0f}."
+        )
+    else:
+        document.getElementById("non-visual-tables").hidden = True
+
     document.title = tab_title()

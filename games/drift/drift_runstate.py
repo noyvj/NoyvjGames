@@ -80,8 +80,7 @@ cross_region_learning = False  # drift_model_region reads the saved browser flag
 
 skin_choice = None  # drift_collection loads the saved skin choice into this when it is imported
 
-_last_seen_saved_at = None  # drift_settings reads the last save time into this when it is imported
-
+non_visual_mode = False
 
 # Names that other modules must reach as runstate.<name> (game.py forwards reads and writes to them).
 LIVE_NAMES = (
@@ -123,4 +122,5 @@ LIVE_NAMES = (
     "report_open",
     "report_note_text",
     "band_note_text",
+    "non_visual_mode",
 )

@@ -181,6 +181,13 @@ html.high-contrast[data-theme="light"] #save-nudge, html.high-contrast[data-them
   #mobile-swipe-container { scroll-behavior: smooth; }
 }
 
+/* I-5: Non-visual play mode tables */
+.non-visual-section { margin: 1rem 0; font-size: 0.9rem; }
+.non-visual-section table { width: 100%; border-collapse: collapse; margin-bottom: 0.5rem; }
+.non-visual-section th, .non-visual-section td { padding: 0.4rem; text-align: left; border-bottom: 1px solid rgba(255,255,255,0.1); }
+html[data-theme="light"] .non-visual-section th, html[data-theme="light"] .non-visual-section td { border-color: rgba(0,0,0,0.1); }
+html.high-contrast .non-visual-section th, html.high-contrast .non-visual-section td { border-color: #ffffff; }
+
 /* R4-DRMO-9: phone term sheet. A long-press on a Terms chip (ui.js termSheet) opens its definition in a card pinned
    above the Advance Round button, the floating theme and story buttons on the left and the 50px ad bar, with a way on to The Real Story. Phones only: outside the
    media block the sheet and its keyboard button are never shown. [hidden] really hides it. */
