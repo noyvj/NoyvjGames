@@ -72,7 +72,7 @@ def _headings(page):
 
 def _swipe(ctx, page, selector, dx, dy=0):
     """A one-finger drag starting on the element's heading line, as a real touch."""
-    page.locator(selector).scroll_into_view_if_needed()
+    page.locator(selector).evaluate("e => e.scrollIntoView({block: 'center'})")
     box = page.locator(selector).bounding_box()
     x, y = box["x"] + box["width"] * 0.5, box["y"] + box["height"] * 0.5
     cdp = ctx.new_cdp_session(page)
