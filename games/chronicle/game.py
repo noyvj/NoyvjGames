@@ -16,6 +16,7 @@ Requests: {"action": ..., ...}. Actions
   next                          the next unsolved round in this section
   archive {set?}                the collectible archive (events, elsewhere, people, places, readings)
   entry {set?, id}              one found entry in full, with its claims and sources
+  year {year}                   the moments found from one year, across every set
   view_claim {set?, claim}      record that a claim's sources were opened; returns the claim with its sources
   info {set?}                   the About page data: legend, counts, every found claim with its sources
   report {set?, claim, reason, note}   build a report payload (UI only: NOTHING is sent anywhere)
@@ -63,10 +64,10 @@ from actions import (_Bad, _act_account_answer, _act_account_check, _act_account
                      _act_myth_show, _act_myth_sort, _act_myth_start, _act_next, _act_place, _act_report, _act_reset,
                      _act_review_answer, _act_review_day, _act_review_next, _act_settings, _act_show_answer,
                      _act_start, _act_unplace, _act_view_claim, _act_web_link, _act_web_next, _act_web_show,
-                     _act_web_start, _archive, _set_for)
+                     _act_web_start, _act_year, _archive, _set_for)
 
 
-READ_ONLY = {"boot", "archive", "info", "report", "entry"}
+READ_ONLY = {"boot", "archive", "info", "report", "entry", "year"}
 
 
 def handle_dict(req):
@@ -87,6 +88,8 @@ def handle_dict(req):
             _act_report(req, out)
         elif action == "entry":
             _act_entry(req, out)
+        elif action == "year":
+            _act_year(req, out)
         elif action == "view_claim":
             dirty = _act_view_claim(req, out)
         elif action in _MUTATORS:

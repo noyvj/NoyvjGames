@@ -858,6 +858,14 @@ def _act_review_day(_req):
     return True
 
 
+def _act_year(req, out):
+    year = _int(req, 'year')
+    if year == 0 or abs(year) > 3000:
+        raise _Bad('Give a year from -3000 to 3000, not 0.')
+    out['year'] = {'year': year, 'label': ('%d BCE' % -year) if year < 0 else str(year), 'entries': year_moments(year)}
+    return False
+
+
 def year_moments(year):
     result = []
     for set_id in SET_ORDER:
