@@ -142,6 +142,9 @@ class GridState(GridStateRound, GridStateExtras):
         self.aging_breakdown_count = 0
         self.first_90_clean_round = None
         self.last_round_recap = None
+        self.boss_rounds_enabled = False
+        self.bosses_beaten = 0
+        self.last_boss_message = ""
         # Seeded run (see SEED_GAME): the run's seed, the chosen starting loadout (GC-2b), whether
         # Diplomatic Immunity is still unspent, the round of the last paid peek (GC-11).
         self.seed = new_run_seed()

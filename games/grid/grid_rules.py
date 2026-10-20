@@ -431,6 +431,22 @@ GRANT_FINE = 70
 GRANT_REPAIR_AGE = 3.0
 GRANT_CONTEST_ROUNDS = 2
 
+BOSS_ROUND_INTERVAL = 8
+BOSS_REWARD_FUNDS = 150
+
+BOSS_ROUNDS = [
+    {"id": "heatwave", "name": "Heatwave", "demand_pct": 20, "hydro_penalty_pct": 0, "preview": "Air conditioners everywhere push demand up 20% for one round."},
+    {"id": "polar_vortex", "name": "Polar Vortex", "demand_pct": 25, "hydro_penalty_pct": 0, "preview": "A deep freeze pushes demand up 25% for one round."},
+    {"id": "dry_summer", "name": "Dry Summer", "demand_pct": 0, "hydro_penalty_pct": 50, "preview": "Low rivers cut Hydro output by half for one round."},
+]
+
+
+def boss_for_round(round_number):
+    if round_number < BOSS_ROUND_INTERVAL or round_number % BOSS_ROUND_INTERVAL != 0:
+        return None
+    return BOSS_ROUNDS[(round_number // BOSS_ROUND_INTERVAL - 1) % len(BOSS_ROUNDS)]
+
+
 # GC-4 -- plant nicknames, drawn from the run's seed (reproducible), and a eulogy when the last
 # coal plant is retired.
 PLANT_NAME_POOL = {
