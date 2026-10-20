@@ -9,7 +9,8 @@ from grid_rules import (
     GLOBAL_AVG_FOSSIL_EMISSIONS_FACTOR, GLOBAL_AVG_FOSSIL_SHARE, MAX_REVENUE_LOSS_FRACTION, PLANT_BASE_COST,
     PLANT_CAPACITY, PLANT_TYPES, POLICY_LEVER_INTERVAL, RECORD_CLEAN_SHARE, REGIONAL_DEMAND_FRACTION,
     REGIONAL_REVENUE_PER_UNIT_SHARED, REGIONAL_SHORTFALL_COST_PER_UNIT, RENEWABLE_TYPES,
-    WEATHER_LOG_MAX_ENTRIES, WEATHER_VARIANCE_FRACTION,
+    WEATHER_LOG_MAX_ENTRIES, WEATHER_VARIANCE_FRACTION, SCENARIOS, ELECTRIFICATION_EVENTS,
+    ELECTRIFICATION_NOTICE_ROUNDS,
 )
 
 
@@ -302,6 +303,7 @@ class GridStateRound:
         # response investment -- see that method's own docstring.
         demand_growth = self.demand_growth_this_round()
         self.demand += demand_growth
+        self.demand += self.electrification_jump(self.round_number)
 
         self.last_event = event
         if event:
@@ -392,3 +394,26 @@ class GridStateRound:
             if self.maintain_plant(plant_type):
                 done.append({"plant": plant_type, "cost": cost})
         return done
+
+    def electrification_active(self):
+        """Returns True if the current scenario has electrification enabled."""
+        return bool(SCENARIOS[self.scenario].get("electrification"))
+
+    def electrification_jump(self, round_number):
+        """Returns the demand increase for an electrification event at `round_number`, or 0."""
+        if not self.electrification_active():
+            return 0
+        for event in ELECTRIFICATION_EVENTS:
+            if event["round"] == round_number:
+                return event["demand"]
+        return 0
+
+    def electrification_notice(self):
+        """Returns (event, rounds_away) for the earliest upcoming electrification event within notice range, or None."""
+        if not self.electrification_active():
+            return None
+        for event in ELECTRIFICATION_EVENTS:
+            diff = event["round"] - self.round_number
+            if 0 <= diff <= ELECTRIFICATION_NOTICE_ROUNDS:
+                return (event, diff)
+        return None

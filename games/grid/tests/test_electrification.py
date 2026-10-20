@@ -21,3 +21,39 @@ def test_apply_electrified_scenario(game_env):
     assert result is True
     assert state.scenario == "electrified"
     assert state.funds == 500
+
+
+def _advance_n(state, n):
+    for _ in range(n):
+        state.advance_round(rng=lambda: 1.0, age_rng=lambda: 1.0)
+
+
+def test_standard_scenario_after_5_rounds(game_env):
+    state = game_env.module.GridState()
+    _advance_n(state, 5)
+    assert state.round_number == 6
+    assert state.demand == 150
+    assert state.electrification_notice() is None
+
+
+def test_electrified_demand_after_5_rounds(game_env):
+    state = game_env.module.GridState()
+    state.apply_scenario("electrified")
+    _advance_n(state, 5)
+    assert state.demand == 162
+
+
+def test_electrification_notice_values(game_env):
+    state = game_env.module.GridState()
+    state.apply_scenario("electrified")
+
+    assert state.electrification_notice() is None
+
+    _advance_n(state, 2)
+    event, away = state.electrification_notice()
+    assert event["round"] == 6
+    assert away == 3
+
+    _advance_n(state, 3)
+    event, away = state.electrification_notice()
+    assert away == 0
