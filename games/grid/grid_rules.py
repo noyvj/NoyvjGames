@@ -531,3 +531,37 @@ PREF_CHOICES = {
     "rank_theme": RANK_THEMES,
     "chart_theme": CHART_THEMES,
 }
+
+
+def _build_incident_files():
+    files = {}
+    for p in ("coal", "gas"):
+        label = PLANT_LABEL[p]
+        files[f"brownout_{p}"] = {
+            "title": f"Brownout: {label} strain",
+            "cause": f"{label} was your biggest source of emissions, and accumulated emissions raise the chance and severity of a disruption.",
+            "stops": "Retire fossil plants and build clean capacity: fewer emissions lower both the chance and the severity."
+        }
+    files["brownout_lingering"] = {
+        "title": "Brownout: lingering emissions",
+        "cause": "No fossil plant was left standing, but emissions from earlier rounds still raised the disruption chance.",
+        "stops": "Keep building clean plants: emissions only fall as capacity gets cleaner."
+    }
+    for p in ("coal", "gas"):
+        label = PLANT_LABEL[p]
+        files[f"damage_{p}"] = {
+            "title": f"Damage: {label} plant lost",
+            "cause": "Disruption severity passed the 50% damage line, so your largest fossil fleet lost a unit.",
+            "stops": "Keep accumulated emissions low enough that severity stays under 50%."
+        }
+    for t in PLANT_TYPES:
+        label = PLANT_LABEL[t]
+        files[f"aging_{t}"] = {
+            "title": f"Aging breakdown: {label}",
+            "cause": "The fleet average age passed the 8-round grace period and a worn unit broke down.",
+            "stops": "Maintain the fleet (takes 6 rounds off its age) or set an auto-maintenance schedule."
+        }
+    return files
+
+
+INCIDENT_FILES = _build_incident_files()
