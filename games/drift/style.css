@@ -240,3 +240,9 @@ html.high-contrast .non-visual-section th, html.high-contrast .non-visual-sectio
   from { opacity: 0; transform: translateY(24px); }
   to { opacity: 1; transform: translateY(0); }
 }
+
+/* I-2: Scenario Builder */
+#scenario-builder-details .settings-control-group { margin-bottom: 0.5rem; }
+#scenario-builder-details input[type="range"] { width: 100%; }
+#scenario-code-display { word-break: break-all; font-family: ui-monospace, Menlo, Consolas, monospace; background: rgba(255,255,255,0.1); padding: 0.4rem; border-radius: 4px; margin-top: 0.3rem; }
+html[data-theme="light"] #scenario-code-display { background: rgba(0,0,0,0.05); }

@@ -54,6 +54,117 @@ async function main() {
   if (window.GameTutorial) {
     GameTutorial.init(window.DRIFT_PC_TUTORIAL_STEPS || DRIFT_TUTORIAL_STEPS, { gameId: "drift" });
   }
+
+  // I-2: Scenario Builder wiring
+  window.addEventListener("load", () => {
+    const housingSlider = document.getElementById("scenario-housing-slider");
+    const servicesSlider = document.getElementById("scenario-services-slider");
+    const infraSlider = document.getElementById("scenario-infra-slider");
+    const fundsSlider = document.getElementById("scenario-funds-slider");
+    const severitySlider = document.getElementById("scenario-severity-slider");
+    const horizonSelect = document.getElementById("scenario-horizon-select");
+    const housingVal = document.getElementById("scenario-housing-val");
+    const servicesVal = document.getElementById("scenario-services-val");
+    const infraVal = document.getElementById("scenario-infra-val");
+    const fundsVal = document.getElementById("scenario-funds-val");
+    const severityVal = document.getElementById("scenario-severity-val");
+    const horizonVal = document.getElementById("scenario-horizon-val");
+    const generateBtn = document.getElementById("scenario-generate-button");
+    const codeDisplay = document.getElementById("scenario-code-display");
+    const loadBtn = document.getElementById("scenario-load-button");
+
+    function updateLabels() {
+      housingVal.textContent = housingSlider.value;
+      servicesVal.textContent = servicesSlider.value;
+      infraVal.textContent = infraSlider.value;
+      fundsVal.textContent = fundsSlider.value;
+      severityVal.textContent = parseFloat(severitySlider.value).toFixed(1);
+      horizonVal.textContent = horizonSelect.value;
+    }
+
+    [housingSlider, servicesSlider, infraSlider, fundsSlider, severitySlider].forEach(el => {
+      el.addEventListener("input", updateLabels);
+    });
+    horizonSelect.addEventListener("change", updateLabels);
+
+    function getParams() {
+      return {
+        housing: parseInt(housingSlider.value),
+        services: parseInt(servicesSlider.value),
+        infrastructure: parseInt(infraSlider.value),
+        funds: parseInt(fundsSlider.value),
+        severity_rate: parseFloat(severitySlider.value),
+        horizon: parseInt(horizonSelect.value)
+      };
+    }
+
+    function generateCode() {
+      const params = getParams();
+      const json = JSON.stringify(params);
+      const encoded = btoa(unescape(encodeURIComponent(json)));
+      codeDisplay.textContent = encoded;
+      codeDisplay.hidden = false;
+      loadBtn.hidden = true;
+    }
+
+    function loadCode() {
+      const code = prompt("Paste scenario code:");
+      if (!code) return;
+      try {
+        const json = decodeURIComponent(escape(atob(code)));
+        const params = JSON.parse(json);
+        housingSlider.value = params.housing || 0;
+        servicesSlider.value = params.services || 0;
+        infraSlider.value = params.infrastructure || 0;
+        fundsSlider.value = params.funds || 300;
+        severitySlider.value = params.severity_rate || 0.5;
+        horizonSelect.value = params.horizon || 50;
+        updateLabels();
+        codeDisplay.hidden = true;
+        loadBtn.hidden = false;
+      } catch (e) {
+        alert("Invalid scenario code.");
+      }
+    }
+
+    generateBtn.addEventListener("click", generateCode);
+    loadBtn.addEventListener("click", loadCode);
+
+    // Apply loaded scenario to the game region
+    window.DRIFT_APPLY_SCENARIO = function() {
+      const params = getParams();
+      const pyodide = window.pyodide;
+      if (!pyodide) return;
+      const start_scenario = pyodide.globals.get("start_scenario");
+      if (typeof start_scenario === "function") {
+        start_scenario(
+          { housing: params.housing, services: params.services, infrastructure: params.infrastructure },
+          params.funds,
+          params.severity_rate,
+          params.horizon
+        );
+        render();
+      }
+    };
+
+    // Auto-load if URL has scenario param
+    const urlParams = new URLSearchParams(window.location.search);
+    const scenarioParam = urlParams.get("scenario");
+    if (scenarioParam) {
+      try {
+        const json = decodeURIComponent(escape(atob(scenarioParam)));
+        const params = JSON.parse(json);
+        housingSlider.value = params.housing || 0;
+        servicesSlider.value = params.services || 0;
+        infraSlider.value = params.infrastructure || 0;
+        fundsSlider.value = params.funds || 300;
+        severitySlider.value = params.severity_rate || 0.5;
+        horizonSelect.value = params.horizon || 50;
+        updateLabels();
+        window.DRIFT_APPLY_SCENARIO();
+      } catch (e) { /* ignore invalid URL param */ }
+    }
+  });
   if (window.MobileHud) {
     MobileHud.init([
       { selector: "#hud-round-display", label: "" },

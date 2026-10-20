@@ -19,9 +19,9 @@ from drift_rules import (
 
 
 class RegionState:
-    def __init__(self):
+    def __init__(self, starting_capacity=None, starting_funds=None, severity_rise_override=None, horizon_target=None):
         self.round_number = 1
-        self.funds = STARTING_FUNDS
+        self.funds = STARTING_FUNDS if starting_funds is None else starting_funds
         self.capacity = {t: 0.0 for t in CAPACITY_TYPES}
         # I3: level (0..POLICY_MAX_LEVEL) of each policy lever.
         self.policy_level = {p: 0 for p in POLICIES}
@@ -163,6 +163,9 @@ class RegionState:
         # the round the second wave began (for its event marker).
         self.roi_log = []
         self.second_wave_start_round = None
+        # I-2: Scenario Builder overrides
+        self.severity_rise_override = severity_rise_override if severity_rise_override is not None else BACKGROUND_SEVERITY_RISE_PER_ROUND
+        self.horizon_target = horizon_target or 50
 
     def total_capacity(self):
         return sum(self.capacity[t] for t in CAPACITY_TYPES)
@@ -453,7 +456,8 @@ class RegionState:
         self.total_arrivals += arrivals
         self.arrivals_log.append(arrivals)
         del self.arrivals_log[:-DRIFT_LOG_MAX_ENTRIES]
-        severity_rise = BACKGROUND_SEVERITY_RISE_PER_ROUND
+        # I-2: use override if set, otherwise default
+        severity_rise = self.severity_rise_override if hasattr(self, 'severity_rise_override') else BACKGROUND_SEVERITY_RISE_PER_ROUND
         if self.accelerated_severity_enabled:
             severity_rise *= ACCELERATED_SEVERITY_MULTIPLIER
         self.background_severity += severity_rise
@@ -669,3 +673,75 @@ def _load_cross_region_learning():
 
 runstate.cross_region_learning = _load_cross_region_learning()
 region = RegionState()
+
+
+def start_scenario(starting_capacity, starting_funds, severity_rise_override, horizon_target):
+    """I-2: reset region to a fresh state with custom scenario parameters."""
+    region.round_number = 1
+    region.funds = starting_funds
+    region.capacity = {t: starting_capacity.get(t, 0.0) for t in CAPACITY_TYPES}
+    region.severity_rise_override = severity_rise_override
+    region.horizon_target = horizon_target
+    region.background_severity = 0.0
+    region.total_arrivals = 0.0
+    region.arrivals_log = []
+    region.strain_log = []
+    region._strain_sum = 0.0
+    region._strain_count = 0
+    region._ever_critical_strain = False
+    region.wellbeing_log = []
+    region.integrated_population = 0.0
+    region.cumulative_services_investment = 0.0
+    region.cumulative_integration_contribution = 0.0
+    region.net_positive_round = None
+    region.current_stable_streak = 0
+    region.best_stable_streak = 0
+    region.thriving_round = None
+    region.coda_ever_viewed = False
+    region.accelerated_severity_enabled = False
+    region.severity_toggle_dot_baseline = None
+    region.severity_density_callout_shown = False
+    region.coda_just_became_available = False
+    region.last_milestone_round = None
+    region.last_milestone_snapshot = None
+    region.milestone_just_updated = False
+    region.subscore_log = []
+    region.region_name = ""
+    region.coda_legacy_choice = None
+    region.crisis_start_enabled = False
+    region.spillover_arrivals = 0.0
+    region.spend_by_type = {key: 0.0 for key in SPEND_KEYS}
+    region.round_spend = {key: 0.0 for key in SPEND_KEYS}
+    region.ledger = []
+    region.round_buys = 0
+    region.rewind_used_round = None
+    region.perfect_fit_streak = 0
+    region.best_perfect_fit_streak = 0
+    region.calendar_enabled = False
+    region.braced_rounds = []
+    region.calendar_log = []
+    region.council_picks = []
+    region.autopilot = dict(AUTOPILOT_DEFAULT_RULES)
+    region.stars_banked = None
+    region.roi_log = []
+    region.second_wave_start_round = None
+    region.second_wave_status = None
+    region.second_wave_rounds_left = 0
+    region.second_wave_peak_strain = 0.0
+    region.second_wave_result = None
+    runstate.coda_visible = False
+    runstate.calendar_note_text = ""
+    runstate.summary_note_text = ""
+    runstate.load_note_text = ""
+    runstate.tier_note_text = ""
+    runstate.assist_mode = "off"
+    runstate.confirm_threshold = 0
+    runstate.save_baseline_round = 1
+    runstate.nudge_snooze_round = 0
+    runstate.glossary_open = None
+    runstate.glossary_pinned = False
+    runstate.report_open = False
+    runstate.report_note_text = ""
+    runstate.band_note_text = ""
+    runstate.non_visual_mode = False
+    runstate.scenario_custom_run = True
