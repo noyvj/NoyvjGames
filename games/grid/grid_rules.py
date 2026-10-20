@@ -227,6 +227,19 @@ SCENARIOS = {
         "demand": 180,
     },
 }
+SCENARIOS["electrified"] = {
+    "label": "Electrified city",
+    "funds": STARTING_FUNDS,
+    "plants": {},
+    "electrification": True,
+}
+ELECTRIFICATION_NOTICE_ROUNDS = 3
+ELECTRIFICATION_EVENTS = [
+    {"round": 6, "title": "Bus fleets go electric", "demand": 12},
+    {"round": 12, "title": "Heat pumps replace gas boilers", "demand": 18},
+    {"round": 18, "title": "Delivery vans and freight depots go electric", "demand": 20},
+    {"round": 24, "title": "Factories switch to electric heat", "demand": 25},
+]
 SCENARIO_ORDER = ["standard", "coal_legacy", "greenfield", "emergency"]
 
 # C27 -- the player has EMERGENCY_ROUNDS rounds to bring capacity up to
