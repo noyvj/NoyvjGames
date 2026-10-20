@@ -96,6 +96,8 @@
   let dragging = false;
   let lastPointer = null;
   let cameraDistance = 9.5;
+  const MIN_DISTANCE = 3.5;
+  const MAX_DISTANCE = 16;
 
   // K6 (planning/TODO.md): named camera presets, so a player who has never
   // touched the drag-to-look control still has a reliable way to see the
@@ -153,6 +155,13 @@
     yaw = preset.yaw;
     pitch = preset.pitch;
     cameraDistance = preset.distance;
+    updateCameraPosition();
+    if (renderer && scene) renderer.render(scene, camera);
+    notifyChange();
+  }
+
+  function zoomCamera(deltaY) {
+    cameraDistance = Math.max(MIN_DISTANCE, Math.min(MAX_DISTANCE, cameraDistance * (deltaY < 0 ? 1 / 1.1 : 1.1)));
     updateCameraPosition();
     if (renderer && scene) renderer.render(scene, camera);
     notifyChange();
@@ -488,6 +497,7 @@
 
   function attachDragControls(container) {
     container.style.touchAction = "none";
+    container.addEventListener("wheel", function (event) { event.preventDefault(); zoomCamera(event.deltaY); }, { passive: false });
     container.addEventListener("pointerdown", function (event) {
       dragging = true;
       lastPointer = { x: event.clientX, y: event.clientY };
@@ -717,6 +727,7 @@
   // U2: what hamlet.js may use. The building blocks are the same low-poly
   // helpers every era scene above is made of, so hamlet buildings match.
   window.ContinuumScene = {
+    cameraState: function () { return { yaw: yaw, pitch: pitch, distance: cameraDistance }; },
     ready: function () { return ready; },
     isLight: isLightTheme,
     is3dVisible: function () {
