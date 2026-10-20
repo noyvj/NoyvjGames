@@ -84,9 +84,13 @@ function Show-Tally([bool]$passed) {
         $runToday = @($rows | Where-Object { $_ -match "^\S+  $today" }).Count + 1
         $built = @($rows | Where-Object { $_ -match '^PASSED ' -and $_ -notmatch '\| (T|EDGE)-' }).Count + $(if ($passed -and $isTodo) { 1 } else { 0 })
         $passedAll = @($rows | Where-Object { $_ -like "PASSED*" }).Count + $(if ($passed) { 1 } else { 0 })
+        $failedAll = $run - $passedAll
+        $todayRows = @($rows | Where-Object { $_ -match "^\S+  $today" })
+        $passedToday = @($todayRows | Where-Object { $_ -like "PASSED*" }).Count + $(if ($passed) { 1 } else { 0 })
+        $failedToday = $runToday - $passedToday
         $mark = if ($passed) { [char]0x2713 } else { [char]0x00B7 }
-        Write-Host ("{0} Tally: {1} tasks run ({2} passed) - {3} TODO items built - {4} today" -f $mark, $run, $passedAll, $built, $runToday) -ForegroundColor Cyan
-        $Host.UI.RawUI.WindowTitle = "Local AI: $built TODO built - $run run - $runToday today"
+        Write-Host ("{0} Tally: {1} tasks run ({2} passed, {3} failed) - {4} TODO items built - today {5} run ({6} passed, {7} failed)" -f $mark, $run, $passedAll, $failedAll, $built, $runToday, $passedToday, $failedToday) -ForegroundColor Cyan
+        $Host.UI.RawUI.WindowTitle = "Local AI: $built TODO built - $passedAll passed / $failedAll failed - today $passedToday passed / $failedToday failed"
     } catch { }
 }
 
