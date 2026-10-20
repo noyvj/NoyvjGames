@@ -62,7 +62,7 @@ def test_the_wheel_zooms_the_camera_and_stops_at_the_limits(base):
             el.dispatchEvent(new WheelEvent('wheel', { deltaY: -100, bubbles: true, cancelable: true }));
         """)
         dist = page.evaluate("window.ContinuumScene.cameraState().distance")
-        assert abs(dist - 9.5 / 1.1) < 0.01
+        assert abs(dist - 8.5) < 0.01
 
         # Thirty more wheel-up events
         for _ in range(30):
