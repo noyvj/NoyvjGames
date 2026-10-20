@@ -10,7 +10,7 @@ from grid_rules import (
     PLANT_CAPACITY, PLANT_TYPES, POLICY_LEVER_INTERVAL, RECORD_CLEAN_SHARE, REGIONAL_DEMAND_FRACTION,
     REGIONAL_REVENUE_PER_UNIT_SHARED, REGIONAL_SHORTFALL_COST_PER_UNIT, RENEWABLE_TYPES,
     WEATHER_LOG_MAX_ENTRIES, WEATHER_VARIANCE_FRACTION, SCENARIOS, ELECTRIFICATION_EVENTS,
-    ELECTRIFICATION_NOTICE_ROUNDS,
+    ELECTRIFICATION_NOTICE_ROUNDS, incident_ids,
 )
 
 
@@ -313,6 +313,9 @@ class GridStateRound:
             self.current_clean_streak += 1
             self.best_clean_streak = max(self.best_clean_streak, self.current_clean_streak)
         self.last_aging_event = aging_event
+        for incident_id in incident_ids(event, aging_event):
+            if incident_id not in self.incident_files_seen:
+                self.incident_files_seen[incident_id] = round_played
         self._update_emergency()
         # GC-15: a Perfect Round has no disruption (a waived one counts), no aging breakdown and
         # demand fully met; the streak of them raises next round's revenue bonus.

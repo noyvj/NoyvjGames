@@ -26,3 +26,35 @@ def test_incident_ids():
     assert incident_ids({"type": "damage", "damaged_plant": "coal"}, {"plant": "hydro"}) == ["damage_coal", "aging_hydro"]
     assert incident_ids(None, None) == []
     assert incident_ids(None, {"plant": "wind"}) == ["aging_wind"]
+
+
+def test_incident_files_seen_brownout():
+    from grid_state import GridState
+    state = GridState()
+    state.plant_counts["coal"] = 1
+    state.emissions = 1000.0
+    state.advance_round(rng=lambda: 0.0, age_rng=lambda: 1.0)
+    assert state.incident_files_seen == {"brownout_coal": 1}
+
+    # Second identical round should not overwrite the first occurrence
+    state.advance_round(rng=lambda: 0.0, age_rng=lambda: 1.0)
+    assert state.incident_files_seen == {"brownout_coal": 1}
+
+
+def test_incident_files_seen_damage():
+    from grid_state import GridState
+    state = GridState()
+    state.plant_counts["coal"] = 2
+    state.emissions = 2000.0
+    state.advance_round(rng=lambda: 0.0, age_rng=lambda: 1.0)
+    assert "damage_coal" in state.incident_files_seen
+
+
+def test_incident_files_seen_aging():
+    from grid_state import GridState
+    state = GridState()
+    state.plant_counts["gas"] = 1
+    state.plant_age["gas"] = 30.0
+    state.emissions = 0.0
+    state.advance_round(rng=lambda: 1.0, age_rng=lambda: 0.0)
+    assert "aging_gas" in state.incident_files_seen

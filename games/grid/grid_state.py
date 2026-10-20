@@ -57,6 +57,7 @@ class GridState(GridStateRound, GridStateExtras):
         # every other running total.
         self.bau_emissions = 0.0
         self.last_aging_event = None
+        self.incident_files_seen = {}
         # New tracked state for the achievements framework (see the
         # "Achievements" section below) -- nothing else in this module
         # records how many times Maintain has actually been used, or how
