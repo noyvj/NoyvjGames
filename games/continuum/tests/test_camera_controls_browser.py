@@ -150,3 +150,112 @@ def test_a_right_drag_pans_the_camera_and_a_preset_resets_it(base):
         assert s["yaw"] != 0
 
         browser.close()
+
+
+def test_a_two_finger_tap_returns_to_the_last_preset(base):
+    with sync_playwright() as p:
+        browser, page = open_game(p, base)
+        if not scene_ready(page):
+            pytest.skip("no WebGL")
+
+        # Click closeup preset
+        page.click("#camera-preset-closeup-button")
+
+        # Zoom in slightly so distance changes from 5.5
+        page.evaluate("""
+            const el = document.querySelector('#visual3d-container');
+            el.dispatchEvent(new WheelEvent('wheel', { deltaY: -100, bubbles: true, cancelable: true }));
+        """)
+
+        # Two finger down on container
+        page.evaluate("""
+            const el = document.querySelector('#visual3d-container');
+            el.dispatchEvent(new PointerEvent('pointerdown', {pointerType: 'touch', pointerId: 1, bubbles: true, clientX: 200, clientY: 200}));
+        """)
+        page.evaluate("""
+            const el = document.querySelector('#visual3d-container');
+            el.dispatchEvent(new PointerEvent('pointerdown', {pointerType: 'touch', pointerId: 2, bubbles: true, clientX: 260, clientY: 200}));
+        """)
+
+        # Two finger up on window (order: 2 then 1)
+        page.evaluate("window.dispatchEvent(new PointerEvent('pointerup', {pointerId: 2}));")
+        page.evaluate("window.dispatchEvent(new PointerEvent('pointerup', {pointerId: 1}));")
+
+        s = page.evaluate("""
+            (() => {
+                const c = window.ContinuumScene.cameraState();
+                return { yaw: c.yaw, pitch: c.pitch, distance: c.distance, targetX: c.targetX, targetZ: c.targetZ };
+            })()
+        """)
+        assert abs(s["yaw"] - 0.7) < 1e-6
+        assert abs(s["pitch"] - 0.4) < 1e-6
+        assert abs(s["distance"] - 4.5) < 1e-6
+        assert s["targetX"] == 0
+        assert s["targetZ"] == 0
+
+        browser.close()
+
+
+def test_two_finger_tap_with_move_keeps_distance(base):
+    with sync_playwright() as p:
+        browser, page = open_game(p, base)
+        if not scene_ready(page):
+            pytest.skip("no WebGL")
+
+        # Click closeup preset
+        page.click("#camera-preset-closeup-button")
+
+        # Zoom in slightly
+        page.evaluate("""
+            const el = document.querySelector('#visual3d-container');
+            el.dispatchEvent(new WheelEvent('wheel', { deltaY: -100, bubbles: true, cancelable: true }));
+        """)
+        initial_dist = page.evaluate("window.ContinuumScene.cameraState().distance")
+
+        # Two finger down on container
+        page.evaluate("""
+            const el = document.querySelector('#visual3d-container');
+            el.dispatchEvent(new PointerEvent('pointerdown', {pointerType: 'touch', pointerId: 1, bubbles: true, clientX: 200, clientY: 200}));
+        """)
+        page.evaluate("""
+            const el = document.querySelector('#visual3d-container');
+            el.dispatchEvent(new PointerEvent('pointerdown', {pointerType: 'touch', pointerId: 2, bubbles: true, clientX: 260, clientY: 200}));
+        """)
+
+        # Move finger 1 on window
+        page.evaluate("""
+            window.dispatchEvent(new PointerEvent('pointermove', {pointerType: 'touch', pointerId: 1, clientX: 240, clientY: 200}));
+        """)
+
+        # Two finger up on window
+        page.evaluate("window.dispatchEvent(new PointerEvent('pointerup', {pointerId: 2}));")
+        page.evaluate("window.dispatchEvent(new PointerEvent('pointerup', {pointerId: 1}));")
+
+        final_dist = page.evaluate("window.ContinuumScene.cameraState().distance")
+        assert abs(final_dist - initial_dist) < 1e-6
+
+        browser.close()
+
+
+def test_one_finger_tap_does_not_change_camera(base):
+    with sync_playwright() as p:
+        browser, page = open_game(p, base)
+        if not scene_ready(page):
+            pytest.skip("no WebGL")
+
+        # Click closeup preset
+        page.click("#camera-preset-closeup-button")
+
+        initial_dist = page.evaluate("window.ContinuumScene.cameraState().distance")
+
+        # One finger down and up on container
+        page.evaluate("""
+            const el = document.querySelector('#visual3d-container');
+            el.dispatchEvent(new PointerEvent('pointerdown', {pointerType: 'touch', pointerId: 1, bubbles: true, clientX: 200, clientY: 200}));
+        """)
+        page.evaluate("window.dispatchEvent(new PointerEvent('pointerup', {pointerId: 1}));")
+
+        final_dist = page.evaluate("window.ContinuumScene.cameraState().distance")
+        assert abs(final_dist - initial_dist) < 1e-6
+
+        browser.close()
