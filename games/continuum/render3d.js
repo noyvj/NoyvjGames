@@ -102,6 +102,9 @@
   let targetZ = 0;
   const MAX_PAN = 6;
   let panning = false;
+  let lastPresetName = "overview";
+  const touchDown = {};
+  let twoTap = null;
 
   // K6 (planning/TODO.md): named camera presets, so a player who has never
   // touched the drag-to-look control still has a reliable way to see the
@@ -156,6 +159,7 @@
   function applyCameraPreset(name) {
     const preset = CAMERA_PRESETS[name];
     if (!preset || !camera) return;
+    lastPresetName = name;
     yaw = preset.yaw;
     pitch = preset.pitch;
     cameraDistance = preset.distance;
@@ -518,17 +522,42 @@
     container.addEventListener("wheel", function (event) { event.preventDefault(); zoomCamera(event.deltaY); }, { passive: false });
     container.addEventListener("contextmenu", function (e) { e.preventDefault(); });
     container.addEventListener("pointerdown", function (event) {
-      dragging = true;
-      panning = event.pointerType === "mouse" && event.button === 2;
-      lastPointer = { x: event.clientX, y: event.clientY };
-      if (event.button === 1) event.preventDefault();
+      if (event.pointerType === "touch") {
+        touchDown[event.pointerId] = { x: event.clientX, y: event.clientY };
+        if (Object.keys(touchDown).length === 2) {
+          twoTap = { at: event.timeStamp, moved: false };
+          dragging = false;
+          lastPointer = null;
+        } else if (Object.keys(touchDown).length >= 3) {
+          twoTap = null;
+        }
+      } else {
+        dragging = true;
+        panning = event.pointerType === "mouse" && event.button === 2;
+        lastPointer = { x: event.clientX, y: event.clientY };
+        if (event.button === 1) event.preventDefault();
+      }
     });
-    window.addEventListener("pointerup", function () {
-      dragging = false;
-      panning = false;
-      lastPointer = null;
+    window.addEventListener("pointerup", function (event) {
+      if (event.pointerType === "touch") {
+        if (twoTap && !twoTap.moved && event.timeStamp - twoTap.at < 400 && Object.keys(touchDown).length === 2) {
+          applyCameraPreset(lastPresetName);
+        }
+        twoTap = null;
+        delete touchDown[event.pointerId];
+      } else {
+        dragging = false;
+        panning = false;
+        lastPointer = null;
+      }
     });
     window.addEventListener("pointermove", function (event) {
+      if (twoTap && touchDown[event.pointerId]) {
+        if (Math.hypot(event.clientX - touchDown[event.pointerId].x, event.clientY - touchDown[event.pointerId].y) > 12) {
+          twoTap.moved = true;
+        }
+        return;
+      }
       if (!dragging || !lastPointer) return;
       const dx = event.clientX - lastPointer.x;
       const dy = event.clientY - lastPointer.y;
@@ -539,6 +568,10 @@
       updateCameraPosition();
       renderer.render(scene, camera);
       notifyChange();
+    });
+    window.addEventListener("pointercancel", function () {
+      twoTap = null;
+      Object.keys(touchDown).forEach(function (k) { delete touchDown[k]; });
     });
   }
 

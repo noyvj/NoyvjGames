@@ -49,3 +49,12 @@ def test_contextmenu_listener_exists():
     """Test that contextmenu event listener is attached."""
     src = render3d_source()
     assert 'addEventListener("contextmenu"' in src
+
+
+def test_two_finger_tap_reset_camera():
+    """Test that two-finger tap reset camera logic is present."""
+    src = render3d_source()
+    assert 'let lastPresetName = "overview";' in src
+    assert "lastPresetName = name;" in src
+    assert "event.timeStamp - twoTap.at < 400" in src
+    assert "applyCameraPreset(lastPresetName)" in src
