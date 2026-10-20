@@ -9,8 +9,8 @@ import myth as mq
 import puzzle as pz
 import review as rv
 import web as wb
-from setdata import KIND_LABELS, format_date
-from core import (CONFIDENCE_LABELS, HELP, MODES, S, SETS, STRENGTH_LABELS, STRENGTH_MEANING, _LEGEND, _claim_view,
+from setdata import KIND_LABELS, event_start, parse_date, format_date
+from core import (CONFIDENCE_LABELS, HELP, MODES, S, SETS, SET_ORDER, STRENGTH_LABELS, STRENGTH_MEANING, _LEGEND, _claim_view,
                   _cleared, _counts, _cur_set, _event_full, _next_round, _prog, _unlocked, event_start_text,
                   reset_engine)
 from views import (REVIEW_LABELS, _account_judged, _account_next_round, _account_points, _account_unlocked, _apuzzle,
@@ -856,3 +856,25 @@ def _act_review_day(_req):
     S["day"] += 1
     S["rfeedback"] = None
     return True
+
+
+def year_moments(year):
+    result = []
+    for set_id in SET_ORDER:
+        cset = SETS[set_id]
+        for event_id in cset.event_order:
+            e = cset.events[event_id]
+            if event_id not in _prog(set_id)["learned"]:
+                continue
+            start = parse_date(event_start(e))[0]
+            end = parse_date(e["end"])[0] if e.get("end") else start
+            if start <= year <= end:
+                result.append({
+                    "set": set_id,
+                    "set_title": cset.title,
+                    "id": event_id,
+                    "kind": e["kind"],
+                    "title": e["title"],
+                    "date_label": format_date(event_start_text(e)),
+                })
+    return result
