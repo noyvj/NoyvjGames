@@ -63,6 +63,9 @@ function Sync-WithGitHub {
     python (Join-Path $aiDir "refresh_queue.py") | ForEach-Object { Write-Host "  $_" }
     # 2. Push finished local-ai branches (only ever local-ai/..., never main).
     if ((Setting "push" "off") -ne "on") { Write-Host "  Pushing is off (push = off in config.txt)."; return }
+    # First drop the branches Noy2's audit has finished with (2026-10-20: each sync spent ~10 minutes pushing about
+    # 190 audited branches back that the audit had just deleted on GitHub). See local-ai/branch_cleanup.py.
+    python (Join-Path $aiDir "branch_cleanup.py") | ForEach-Object { Write-Host "  $_" }
     $pushed = 0
     foreach ($b in @(git -C $root for-each-ref --format="%(refname:short)" refs/heads/local-ai/)) {
         if ($b -notlike "local-ai/*") { continue }
