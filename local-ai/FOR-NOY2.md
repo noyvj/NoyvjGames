@@ -82,6 +82,13 @@ pocket-bazaar, signal, heist-committee, hull-repair, robot-script, station-medic
 - To check for others, run each game's suite under Windows-like conditions, or ask the Windows session to run
   them.
 
+- **The file-size tests fail on Windows only (2026-10-20).** games/<slug>/tests/test_file_sizes.py (and
+  shared/tests/test_game_file_sizes.py) count `len(path.read_bytes())`, and a Windows checkout has CRLF line
+  endings, one extra byte per line. Herd's index.html is 13,869 tokens on main (limit 14,000) but 14,064 here;
+  SOL and Trade Empire fail the same way. Then ai.ps1 has to leave the size test out of every Herd, SOL and
+  Trade Empire task as "already failing", so a task could grow a file past the limit unnoticed. Fix: count
+  `len(path.read_bytes().replace(b"\r\n", b"\n"))`.
+
 ## 5. Make the big games' files smaller (more work fits the fast 64k model)
 - Split the giant game.py files the same way Chronicle was split (core / views / actions, commit 34270f89):
   Tide (349 KB), Loop (262 KB), then Drift, Thaw, Herd and Continuum. SOL, Canopy, Grid, Aftermath,
