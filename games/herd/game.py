@@ -250,6 +250,9 @@ def setup():
     document.getElementById("golden-cow-glider").addEventListener("click", create_proxy(on_welcome_golden_cow))
     document.getElementById("settings-export-button").addEventListener("click", create_proxy(on_settings_export))
     document.getElementById("settings-import-button").addEventListener("click", create_proxy(on_settings_import))
+    document.getElementById("allocation-slider").addEventListener(
+        "input", create_proxy(lambda e: setattr(runstate.farm, "allocation_poultry", int(e.target.value) / 100))
+    )
     document.getElementById("profile-select").addEventListener("change", create_proxy(on_profile_change))
     document.getElementById("settings-reset-button").addEventListener("click", create_proxy(on_profile_change))
     document.getElementById("mixer-result-button").addEventListener("click", create_proxy(on_mixer_result))

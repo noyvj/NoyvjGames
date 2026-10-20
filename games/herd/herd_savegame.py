@@ -61,6 +61,8 @@ def get_state():
         "summary": steward_summary(),  # B-23: write-only, never read back
         "achievements_earned": achievement_ids_earned(),
     }
+    if runstate.farm.allocation_poultry != 0.0:
+        state["allocation_poultry"] = runstate.farm.allocation_poultry
     # F1: satellite state only once the satellite has been opened.
     if runstate.farm.satellite_open:
         state["satellite_open"] = True
