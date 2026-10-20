@@ -13,6 +13,7 @@
   var engine = null;   // { handle, getState, loadState, needs, settled }
   var view = null;
   var selected = 0;    // the leg the quick-turn buttons act on
+  var measure = { held: false, from: null, skipClick: false };
 
   function lsGet(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
   function lsSet(k, v) { try { localStorage.setItem(k, v); } catch (e) { /* convenience only */ } }
@@ -264,8 +265,27 @@
     setText($("chart-intro"), view.story.intro);
   }
 
+  // Convert client coordinates to chart nautical miles, or null if invalid.
+  function chartXY(clientX, clientY) {
+    if (!view || view.phase !== "plan") return null;
+    var svg = $("dr-chart");
+    if (!svg) return null;
+    var ctm = svg.getScreenCTM();
+    if (!ctm) return null;
+    var pt = svg.createSVGPoint();
+    pt.x = clientX;
+    pt.y = clientY;
+    var local = pt.matrixTransform(ctm.inverse());
+    var f = view.frame;
+    var x = (local.x - f.left) / f.s;
+    var y = f.size - (local.y - f.top) / f.s;
+    if (x < -0.5 || y < -0.5 || x > f.size + 0.5 || y > f.size + 0.5) return null;
+    return { x: x, y: y };
+  }
+
   // A tap on the chart marks the ruler's point. Converting the tap to nautical miles is the one bit of geometry the view does.
   function onChartTap(event) {
+    if (measure.skipClick) { measure.skipClick = false; return; }
     if (!view || view.phase !== "plan") return;
     var svg = $("dr-chart");
     if (!svg || !svg.contains(event.target)) return;
@@ -881,6 +901,41 @@
     mountCopyResult();
     guard("retry-button", function () { send({ action: "retry" }); });
     guard("redo-button", function () { send({ action: "restart" }); });
+    document.addEventListener("keydown", function(e) {
+      if (e.key === "r" || e.key === "R") {
+        if (!e.repeat && !e.ctrlKey && !e.altKey && !e.metaKey && !/^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName)) {
+          measure.held = true;
+        }
+      }
+    });
+    document.addEventListener("keyup", function(e) {
+      if (e.key === "r" || e.key === "R") {
+        measure.held = false;
+      }
+    });
+    $("chart-holder").addEventListener("pointerdown", function(e) {
+      if (measure.held && e.pointerType === "mouse" && e.button === 0) {
+        var pt = chartXY(e.clientX, e.clientY);
+        if (pt) { measure.from = pt; measure.skipClick = true; } else { measure.skipClick = false; }
+      } else {
+        measure.skipClick = false;
+      }
+    });
+    document.addEventListener("pointermove", function(e) {
+      if (measure.from) {
+        var to = chartXY(e.clientX, e.clientY);
+        if (to) {
+          var dx = to.x - measure.from.x;
+          var dy = to.y - measure.from.y;
+          var dist = Math.round(Math.hypot(dx, dy) * 10) / 10;
+          var bearing = Math.round((Math.atan2(dx, dy) * 180 / Math.PI + 360) % 360) % 360;
+          setText($("measure-readout"), "Measure: " + dist + " nm on " + String(bearing).padStart(3, "0"));
+        }
+      }
+    });
+    document.addEventListener("pointerup", function() {
+      measure.from = null;
+    });
     document.addEventListener("keydown", onKey);
   }
 
