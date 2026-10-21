@@ -5,10 +5,7 @@ Part of the split of the old single-file game.py: see "File map" in games/grid/C
 import json
 import os
 
-try:
-    from js import document
-except ImportError:
-    document = None
+from js import document
 
 import grid_runstate as runstate
 from grid_rules import GENERATION_TYPES, PLANT_CAPACITY, PLANT_LABEL
