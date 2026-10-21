@@ -19,7 +19,7 @@ from canopy_tend import _tended_plot
 from canopy_valuation import standing_forest_value
 from canopy_worldvars import (
     CHALLENGE_NONE, PACE_NORMAL, PERFECT_SEASON_MIN_RELATIONS, contract_board, contract_stamps, plot_notes,
-    request_history, rival_claims, rival_enabled, rival_locked, rival_state,
+    request_history, rival_claims, rival_enabled, rival_locked, rival_state, season_frames,
 )
 
 
@@ -138,6 +138,8 @@ def _gb_state_fields():
             "cleared": runstate.season_cleared,
             "min_relations": low if low is not None else runstate.community_relations,
         }
+    if season_frames:
+        out["season_frames"] = copy.deepcopy(season_frames)
     out.update(_gb2_state_fields())
     out.update(_levels_state_fields())  # GB batch 3: levels, Seed Vault, running level
     return out

@@ -16,7 +16,7 @@ from canopy_valuation import standing_forest_value
 from canopy_vault import _advance_crews, _load_levels
 from canopy_weather import _note_season_relations
 from canopy_worldvars import (
-    FOREST_NAME_MAX, GOLDEN_SEEDLING_MIN_GAP, NICKNAME_MAX, RARE_WILDLIFE, STANDING_TIERS,
+    FOREST_NAME_MAX, GOLDEN_SEEDLING_MIN_GAP, NICKNAME_MAX, RARE_WILDLIFE, SEASON_FRAMES_MAX, STANDING_TIERS,
     TEND_COOLDOWN_TICKS, TEND_DURATION_TICKS, _gb_toast_queue, _pending_bloom, _pending_golden_bursts,
     season_frames,
 )
@@ -67,6 +67,37 @@ def _reset_gb_state():
     _reset_gb2_state()  # GB batch 2: challenge result, contract board
     _reset_level_run()  # GB batch 3: the running level's own state and the crew counters
     _sync_name_inputs()
+
+
+def _load_season_frames(data):
+    del season_frames[:]
+    saved = data.get("season_frames")
+    if not isinstance(saved, list):
+        return
+    for item in saved:
+        if not isinstance(item, dict):
+            continue
+        n = int(_number_or(item.get("n"), 0, 0, 10 ** 6))
+        cells = item.get("cells")
+        cols = item.get("cols")
+        label = item.get("label", "")
+        if n < 1:
+            continue
+        if not isinstance(cols, int) or isinstance(cols, bool) or cols < 1 or cols > 40:
+            continue
+        if not isinstance(cells, str) or len(cells) == 0 or len(cells) > 1600:
+            continue
+        if not all(c in "PBR CX" for c in cells):
+            continue
+        if len(cells) % cols != 0:
+            continue
+        season_frames.append({
+            "n": n,
+            "label": str(label)[:20] if isinstance(label, str) else "",
+            "cols": cols,
+            "cells": cells,
+        })
+    del season_frames[:-SEASON_FRAMES_MAX]
 
 
 def _load_gb_state(data):
@@ -122,6 +153,7 @@ def _load_gb_state(data):
         runstate.season_cleared = saved_perfect.get("cleared") is True
         low = _number_or(saved_perfect.get("min_relations"), None, 0, 100)
         runstate.season_min_relations = int(low) if low is not None else None
+    _load_season_frames(data)
     _load_gb2_state(data)
     _load_levels(data)  # GB batch 3
     _load_expedition(data)  # GB-3: after the grid, difficulty, pace, scenario, layout and level it depends on
