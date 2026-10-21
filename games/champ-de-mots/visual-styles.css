@@ -859,6 +859,7 @@ html[data-visual-style="cartoon"] .achievement-glyph {
 
 html[data-visual-style="textbased"] .achievement-glyph {
   font-size: 0;
+  margin-right: 0.35rem; /* the em margin is 0 at font-size 0, and the trailing space in the bracket text collapses */
 }
 
 html[data-visual-style="textbased"] .achievement-glyph::after {
