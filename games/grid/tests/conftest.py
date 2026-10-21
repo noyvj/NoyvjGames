@@ -193,6 +193,9 @@ ELEMENT_IDS += ["pref-coach", "coach-panel", "coach-text", "settings-reset-butto
                 "sandbox-bal-cost-decay", "sandbox-bal-cost-decay-out", "sandbox-bal-breakdown", "sandbox-bal-breakdown-out",
                 "sandbox-bal-growth", "sandbox-bal-growth-out", "sandbox-bal-revenue", "sandbox-bal-revenue-out", "trend-controls", "plant-mix",
                 "rank-display", "career-rank-display", "rank-theme-select", "rank-theme-note"]
+# Plan table.
+ELEMENT_IDS += ["plan-table", "plan-body"] + [f"plan-sort-{k}" for k in ("plant", "cost", "output", "emissions", "payback")]
+
 # C-14 fleet overview.
 ELEMENT_IDS += ["fleet-body"] + [f"fleet-sort-{k}" for k in ("plant", "count", "wear", "risk", "next", "revenue")]
 
