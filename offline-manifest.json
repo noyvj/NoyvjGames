@@ -8650,7 +8650,7 @@
     },
     {
      "path": "games/logic-gates/game.py",
-     "bytes": 25127,
+     "bytes": 26501,
      "precached": true
     },
     {
@@ -8973,7 +8973,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14424939,
+   "bytes": 14426313,
    "bytes_complete": true
   },
   "robot-script": {
