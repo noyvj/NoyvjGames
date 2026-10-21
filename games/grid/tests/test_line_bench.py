@@ -42,3 +42,26 @@ def test_bench_panel_in_pc_zones():
         config = json.load(f)
     side_ids = config["zones"]["side"]
     assert "#bench-panel" in side_ids, "Missing #bench-panel in pc-config.json zones.side"
+
+
+def test_bench_text_session():
+    from grid_views import BENCH_SESSION, bench_text
+
+    # Reset session to ensure deterministic results
+    BENCH_SESSION["tries"] = 0
+    BENCH_SESSION["best"] = None
+
+    res1 = bench_text(110, 500, 100)
+    assert res1 == (
+        "Sending 55.0 MW at 110 kV and 500 A over 100 km loses 1.25 MW (2.3%) as heat. "
+        "Settings tried: 1. Lowest loss found: 2.3%. Lower loss needs a higher voltage, less current or a shorter line."
+    )
+
+    res2 = bench_text(11, 500, 100)
+    assert "(22.7%)" in res2
+    assert "Settings tried: 2." in res2
+    assert "Lowest loss found: 2.3%." in res2
+
+    # Clean up after test to avoid polluting other tests
+    BENCH_SESSION["tries"] = 0
+    BENCH_SESSION["best"] = None

@@ -2,7 +2,10 @@
 Part of the split of the old single-file game.py: see "File map" in games/grid/CLAUDE.md.
 """
 
-from js import document
+try:
+    from js import document
+except ImportError:
+    document = None
 
 import grid_runstate as runstate
 from grid_rules import (
@@ -189,6 +192,40 @@ def render_chart_tables():
 
 
 BENCH_OHMS_PER_KM = 0.05
+BENCH_SESSION = {"tries": 0, "best": None}
+
+
+def bench_text(voltage_kv, current_a, distance_km):
+    """Power line bench readout text."""
+    result = line_loss(voltage_kv, current_a, distance_km)
+    BENCH_SESSION["tries"] += 1
+    if BENCH_SESSION["best"] is None or result["percent"] < BENCH_SESSION["best"]:
+        BENCH_SESSION["best"] = result["percent"]
+
+    return (
+        f"Sending {result['sent_mw']:.1f} MW at {voltage_kv:g} kV and {current_a:g} A over "
+        f"{distance_km:g} km loses {result['loss_mw']:.2f} MW ({result['percent']:.1f}%) as heat. "
+        f"Settings tried: {BENCH_SESSION['tries']}. Lowest loss found: {BENCH_SESSION['best']:.1f}%. "
+        f"Lower loss needs a higher voltage, less current or a shorter line."
+    )
+
+
+def update_bench(event=None):
+    """Read inputs and update the bench readout."""
+    try:
+        v = float(document.getElementById("bench-voltage").value)
+    except (ValueError, TypeError, AttributeError):
+        v = 110
+    try:
+        c = float(document.getElementById("bench-current").value)
+    except (ValueError, TypeError, AttributeError):
+        c = 500
+    try:
+        d = float(document.getElementById("bench-distance").value)
+    except (ValueError, TypeError, AttributeError):
+        d = 100
+
+    document.getElementById("bench-readout").innerText = bench_text(v, c, d)
 
 
 def line_loss(voltage_kv, current_a, distance_km):
