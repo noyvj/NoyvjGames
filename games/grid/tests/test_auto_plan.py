@@ -45,5 +45,17 @@ def test_funds_100_wins_wind():
     runstate.state.funds = 100
 
     result = grid_coach.auto_plan_suggestion()
-
     assert result["plant"] == "wind"
+
+
+def test_autoplan_markup_in_page():
+    from .pagefiles import page_text
+    import json
+    text = page_text()
+    assert "autoplan-panel" in text
+    assert "autoplan-text" in text
+    assert "autoplan-build-button" in text
+
+    with open("pc-config.json") as f:
+        config = json.load(f)
+    assert "#autoplan-panel" in config["zones"]["side"]
