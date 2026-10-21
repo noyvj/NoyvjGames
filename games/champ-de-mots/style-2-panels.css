@@ -316,6 +316,13 @@
   color: #33291f;
 }
 
+.achievement-glyph {
+  display: inline-block;
+  min-width: 1.6em;
+  margin-right: 0.35em;
+  text-align: center;
+}
+
 .achievement-next,
 .achievement-empty {
   margin: 0;
