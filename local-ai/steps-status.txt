@@ -1,0 +1,5 @@
+# Hand-kept by Noy2 after audits (read by scripts/build_incoming_tasks.py -> local-ai/incoming-tasks.txt -> refresh_queue.py)
+# done: steps Noy2 finished by hand while auditing (the queue drops them, never runs them)
+# redo: steps an audit reverted (the queue runs them again, in order)
+done: chain:R4-GR-1:5, chain:R4-PG-25:4, chain:R4-GRMO-7:3, chain:R4-GRMO-7:4
+redo: chain:R4-GRPC-8:1, chain:R4-GRPC-8:2

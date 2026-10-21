@@ -96,12 +96,27 @@ def main(argv):
     seen = {key(x) for x in queue + read(NEXT) if is_task(x)} | {k for k in map(done_key, read(DONE)) if k}
     report = []
 
-    # 1. Noy2's split steps
+    # 1. Noy2's split steps. `# done: chain:X:N` = Noy2 finished that step by hand in an audit (drop it from the queue and never
+    # add it); `# redo: chain:X:N` = the audit reverted that step, so run it again even though it was run before.
+    done_steps, redo_steps = set(), set()
+    for line in read(INCOMING):
+        m = re.match(r"#\s*(done|redo):\s*(.+)$", line.strip(), re.I)
+        if m:
+            (done_steps if m.group(1).lower() == "done" else redo_steps).update(x.strip() for x in m.group(2).split(",") if x.strip())
+    seen = {k for k in seen if k[1] not in redo_steps}
+    if done_steps:
+        before = len(queue) + len(parked)
+        queue = [x for x in queue if not (is_task(x) and key(x)[1] in done_steps)]
+        parked = [x for x in parked if not (is_task(x) and key(x)[1] in done_steps)]
+        if before != len(queue) + len(parked):
+            report.append("dropped %d steps Noy2 finished by hand" % (before - len(queue) - len(parked)))
     replaced, incoming_todo, incoming_next = set(), [], []
     for line in read(INCOMING):
         m = re.match(r"#\s*replaces:\s*(.+)$", line.strip(), re.I)
         if m:
             replaced |= {x.strip() for x in m.group(1).split(",") if x.strip()}
+        elif is_task(line) and key(line)[1] in done_steps:
+            continue
         elif is_task(line) and key(line) not in seen:
             (incoming_next if "TODO-NEXT" in line or key(line)[1].startswith("R4-") else incoming_todo).append(line.strip())
             seen.add(key(line))
