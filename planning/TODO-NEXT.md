@@ -1,6 +1,6 @@
 # Next TODO list (from the Round 4 ideas, started 2026-10-12)
 
-**Progress: 152/921 items checked off (16.5%).** This is the NEXT list, written alongside the live `planning/TODO.md` (which is untouched). It becomes the live list once the current one is archived. Run `python3 scripts/todo-progress.py planning/TODO-NEXT.md` after ticking items.
+**Progress: 154/921 items checked off (16.7%).** This is the NEXT list, written alongside the live `planning/TODO.md` (which is untouched). It becomes the live list once the current one is archived. Run `python3 scripts/todo-progress.py planning/TODO-NEXT.md` after ticking items.
 
 How it is built: one section per Round 4 section on the ideas sheet (`planning/IMPROVEMENT-IDEAS-ROUND-4.md`), in the sheet's order, ids `R4-<section code>-<number>`. Only ideas you answered "yes" to are items, with your note where you wrote one. A section that is not fully answered keeps its heading and ends with one item to add the rest once you have answered them. "No" answers are dropped (listed under the heading); "later" answers are parked in `planning/LATER.md`.
 
@@ -12,17 +12,17 @@ How it is built: one section per Round 4 section on the ideas sheet (`planning/I
 |---|---:|---:|---|
 | LEMO. Lexis: mobile view | 9/10 | 90% | █████████░ |
 | SIPC. Signal: PC view | 8/10 | 80% | ████████░░ |
+| SIMO. Signal: mobile view | 8/10 | 80% | ████████░░ |
 | PBPC. Pocket Bazaar: PC view | 8/10 | 80% | ████████░░ |
 | PBMO. Pocket Bazaar: mobile view | 8/10 | 80% | ████████░░ |
 | SMPC. Station Medic: PC view | 8/10 | 80% | ████████░░ |
 | SMMO. Station Medic: mobile view | 8/10 | 80% | ████████░░ |
-| SIMO. Signal: mobile view | 7/10 | 70% | ███████░░░ |
 | LHMO. Lighthouse: mobile view | 7/10 | 70% | ███████░░░ |
+| RSMO. Robot Script: mobile view | 7/10 | 70% | ███████░░░ |
 | THMO. Thaw: mobile view | 6/10 | 60% | ██████░░░░ |
 | HCPC. Heist Committee: PC view | 6/10 | 60% | ██████░░░░ |
 | HCMO. Heist Committee: mobile view | 6/10 | 60% | ██████░░░░ |
 | LHPC. Lighthouse: PC view | 6/10 | 60% | ██████░░░░ |
-| RSMO. Robot Script: mobile view | 6/10 | 60% | ██████░░░░ |
 | HRPC. Hull Repair: PC view | 6/10 | 60% | ██████░░░░ |
 | HRMO. Hull Repair: mobile view | 6/10 | 60% | ██████░░░░ |
 | HEMO. Herd: mobile view | 5/10 | 50% | █████░░░░░ |
@@ -111,7 +111,7 @@ How it is built: one section per Round 4 section on the ideas sheet (`planning/I
 | OCP. Overclock: made for you | 0/1 | 0% | ░░░░░░░░░░ |
 | AU. Sound | 0/1 | 0% | ░░░░░░░░░░ |
 | **Done: 1 sections at 100%** (LEPC) | 10/10 | 100% | ██████████ |
-| **All sections** | **152/921** | **16.5%** | ██░░░░░░░░ |
+| **All sections** | **154/921** | **16.7%** | ██░░░░░░░░ |
 
 <!-- PROGRESS-CHART:END -->
 
@@ -125,7 +125,7 @@ How it is built: one section per Round 4 section on the ideas sheet (`planning/I
 - `[Claude: ...]`: needs a Claude session (site-wide or shared files, backend, live web data, hub registration, or not tied to one game).
 - `[needs you]`: waits on your answer, account or decision. `[on hold]`: the QA pass, on hold until closing time.
 
-Open items now: [local AI: yes] 363, [needs you] 87, [Claude: design] 85, [local AI: after the game is built] 58, [Claude: backend] 50, [Claude: site-wide] 39, [local AI: in steps] 31, [local AI: after split] 9, [Claude: shared] 7, [Claude: art] 6, [Claude: story writing] 5, [Claude: not one game] 5, [Claude: new puzzle engine] 3, [Claude: 3D] 2, [Claude: drag] 2, [Claude: look and animals] 1, [Claude: painted art] 1, [Claude: look and levels] 1, [Claude: achievements] 1, [Claude: cutaway art] 1, [Claude: zoom and pan] 1, [Claude: drag UI] 1, [Claude: gestures] 1, [Claude: story text and scenario balance] 1, [Claude: drag UI and a map] 1, [Claude: swipe gesture] 1, [Claude: pointer events, after R4-GRPC-4 merges] 1, [Claude: look and art] 1, [Claude: layered SVG art] 1, [Claude: map UI and placement model] 1, [Claude: gesture] 1, [Claude: swipe] 1, [Claude: hold gesture and sheet] 1.
+Open items now: [local AI: yes] 363, [needs you] 87, [Claude: design] 83, [local AI: after the game is built] 58, [Claude: backend] 50, [Claude: site-wide] 39, [local AI: in steps] 30, [local AI: after split] 9, [Claude: shared] 7, [Claude: art] 6, [Claude: story writing] 5, [Claude: not one game] 5, [Claude: new puzzle engine] 3, [Claude: 3D] 2, [Claude: drag] 2, [Claude: look and animals] 1, [Claude: painted art] 1, [Claude: look and levels] 1, [Claude: achievements] 1, [Claude: cutaway art] 1, [Claude: zoom and pan] 1, [Claude: drag UI] 1, [Claude: gestures] 1, [Claude: story text and scenario balance] 1, [Claude: drag UI and a map] 1, [Claude: swipe gesture] 1, [Claude: pointer events, after R4-GRPC-4 merges] 1, [Claude: look and art] 1, [Claude: layered SVG art] 1, [Claude: map UI and placement model] 1, [Claude: gesture] 1, [Claude: swipe] 1, [Claude: hold gesture and sheet] 1.
 <!-- LOCAL-AI-LABELS:END -->
 
 ## XG. Whole site: general ideas
@@ -979,7 +979,7 @@ Dropped (you said no): PG-30.
 
 10 ideas on the sheet: 10 yes, 0 no, 0 later, 0 not answered yet.
 
-- [ ] R4-SIMO-1: (big) Hold a tile to show a magnifier bubble above your finger with the tile's coordinate and a ping preview, so your thumb never hides the target. Precise tapping works on a small screen. [Claude: design]
+- [x] R4-SIMO-1: (big) Hold a tile to show a magnifier bubble above your finger with the tile's coordinate and a ping preview, so your thumb never hides the target. Precise tapping works on a small screen. [Claude: design]
 - [x] R4-SIMO-2: (small) Put the Ping and Mark tool switch as two big buttons at the bottom edge. The main choice sits under your thumb.
 - [ ] R4-SIMO-3: (small) Let a tap ping the tile and a long-press mark it, as an option in Settings. One finger does both jobs without a tool switch. [local AI: yes]
 - [x] R4-SIMO-4: (small) Add a haptic pulse on each ping that grows stronger with a bigger reading, where the browser allows. You feel how close you are.
@@ -1473,7 +1473,7 @@ Parked in LATER.md (you said later): PX-25.
 
 10 ideas on the sheet: 10 yes, 0 no, 0 later, 0 not answered yet.
 
-- [ ] R4-RSMO-1: (big) Build programs from a bottom keypad of large instruction buttons, with a scrolling list above and long-press handles to reorder. Writing a program works with one thumb. [Claude: design]
+- [x] R4-RSMO-1: (big) Build programs from a bottom keypad of large instruction buttons, with a scrolling list above and long-press handles to reorder. Writing a program works with one thumb. [Claude: design]
 - [x] R4-RSMO-2: (small) Add a soft tick as the robot takes each step and a longer buzz at the exit, where the browser allows. Watching a run is felt.
 - [ ] R4-RSMO-3: (small) Split the screen into room on top and list below with a draggable divider. You choose how much of each you see. [local AI: yes]
 - [x] R4-RSMO-4: (small) Swipe an instruction left to delete it with an undo bar. Editing is a flick.

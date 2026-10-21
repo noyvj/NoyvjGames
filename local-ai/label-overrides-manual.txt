@@ -3,3 +3,4 @@ FY-11 | [Claude: live web data]   # 2026-10-21 audit: the AI only flipped a stat
 CH-11 | [Claude: live web data]
 F-8 | [Claude: design]   # 2026-10-21 audit: the allocation slider changes nothing in the economy; needs a design for what an allocation really does
 I-2 | [Claude: design]   # 2026-10-21 audit: Scenario Builder needs a new engine action, a save key and a custom-run tag
+FY-68 | [needs you]   # 2026-10-21 audit: an owner question (Q8_1b), not a code task
