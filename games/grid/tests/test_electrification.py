@@ -65,3 +65,42 @@ def test_scenario_button_cycles_to_electrified(game_env):
         btn.dispatch("click", None)
     assert game_env.state.scenario == "electrified"
     assert btn.innerText == "Scenario: Electrified city"
+
+
+def _electrified_env(game_env):
+    for _ in range(4):
+        game_env.elements["scenario-toggle-button"].dispatch("click", None)
+    assert game_env.state.scenario == "electrified"
+    return game_env
+
+
+def test_notice_is_hidden_at_the_start_of_the_electrified_city(game_env):
+    _electrified_env(game_env)
+    game_env.module.render()
+    assert game_env.elements["electrification-display"].hidden is True
+
+
+def test_notice_counts_down_to_the_bus_fleet_jump(game_env):
+    _electrified_env(game_env)
+    for _ in range(2):
+        game_env.state.advance_round(rng=lambda: 1.0, age_rng=lambda: 1.0)
+    game_env.module.render()
+    element = game_env.elements["electrification-display"]
+    assert element.hidden is False
+    assert element.innerText == (
+        "In 3 rounds: Bus fleets go electric (+12 demand). Clean power now covers more than lights."
+    )
+    for _ in range(2):
+        game_env.state.advance_round(rng=lambda: 1.0, age_rng=lambda: 1.0)
+    game_env.module.render()
+    assert element.innerText.startswith("In 1 round: ")
+    game_env.state.advance_round(rng=lambda: 1.0, age_rng=lambda: 1.0)
+    game_env.module.render()
+    assert element.innerText.startswith("This round: ")
+
+
+def test_standard_scenario_never_shows_the_notice(game_env):
+    for _ in range(4):
+        game_env.state.advance_round(rng=lambda: 1.0, age_rng=lambda: 1.0)
+    game_env.module.render()
+    assert game_env.elements["electrification-display"].hidden is True

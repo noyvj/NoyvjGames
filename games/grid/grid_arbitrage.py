@@ -43,6 +43,16 @@ def emergency_message():
     )
 
 
+def electrification_message():
+    """Announces the next demand jump of the Electrified city scenario three rounds ahead, or '' when none is near."""
+    notice = runstate.state.electrification_notice()
+    if notice is None:
+        return ""
+    event, away = notice
+    when = "This round" if away == 0 else "In 1 round" if away == 1 else f"In {away} rounds"
+    return f"{when}: {event['title']} (+{event['demand']} demand). Clean power now covers more than lights."
+
+
 def _render_arbitrage_and_emergency():
     has_battery = runstate.state.plant_counts["battery"] > 0
     mode_button = document.getElementById("arbitrage-mode-button")
@@ -60,3 +70,7 @@ def _render_arbitrage_and_emergency():
     text = emergency_message()
     emergency_el.hidden = not text
     emergency_el.innerText = text
+    electrification_el = document.getElementById("electrification-display")
+    electrification_text = electrification_message()
+    electrification_el.hidden = not electrification_text
+    electrification_el.innerText = electrification_text
