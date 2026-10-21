@@ -44,6 +44,7 @@ class GridState(GridStateRound, GridStateExtras):
         self.emissions_history = []
         self.avg_renewable_cost_history = []
         self.renewable_unlocked = False
+        self.capacity_history = []
         self.plant_age = {t: 0.0 for t in PLANT_TYPES}
         self.global_reference_emissions = 0.0
         self.global_reference_emissions_history = []

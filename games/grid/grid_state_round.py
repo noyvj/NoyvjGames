@@ -331,6 +331,7 @@ class GridStateRound:
         self.clean_fraction_log.append(1 - self.fossil_share())
         self.emissions_history.append(self.emissions)
         self.avg_renewable_cost_history.append(self.average_renewable_cost())
+        self.capacity_history.append(self.total_capacity())
         self.global_reference_emissions_history.append(self.global_reference_emissions)
         self.funds_history.append(self.funds)
         self.demand_history.append(self.demand)
