@@ -9,7 +9,7 @@ import random
 import herd_runstate as runstate
 from herd_rules import (
     AUDIT_EVERY, AUDIT_FINE_INCOME_ROUNDS, AUDIT_GOODWILL_BONUS, AUDIT_LOG_MAX, AUDIT_PERKS,
-    FARM_EVENTS, FARM_EVENT_CHANCE,
+    EVENT_BUY_PRICE, EVENT_SELL_PRICE, EVENT_UNITS, FARM_EVENTS, FARM_EVENT_CHANCE,
     AUDIT_PERK_REPEAT_FUNDS, AUDIT_TRUST_PENALTY, AUDIT_TRUST_ROUNDS, BASE_COUPLING_RATIO,
     BIOGAS_SALE_PER_UNIT, BULK_MAX_UNITS, CAPTURE_SELF_USE_UNITS, CERTIFICATION_PRICE_PREMIUM,
     CERTIFICATION_RATIO_THRESHOLD, CERTIFICATION_ROUNDS_REQUIRED, DECOUPLING_MEASURES,
@@ -204,15 +204,37 @@ class FarmState:
         self.event_data = None
         self.event_choice_made = False
 
+    def event_effect_possible(self, effect):
+        """True when the farm can take this event effect right now (None, the refusal, always can)."""
+        if effect == "sell_units":
+            return self.herd_size >= EVENT_UNITS
+        if effect == "buy_units":
+            return self.funds >= EVENT_BUY_PRICE and not self.cap_blocks_growth(herd=EVENT_UNITS)
+        return True
+
+    def apply_event_effect(self, effect):
+        """Apply a chosen event effect; False (and no change) when the farm cannot take it."""
+        if not self.event_effect_possible(effect):
+            return False
+        if effect == "sell_units":
+            self.herd_size -= EVENT_UNITS
+            self.funds += EVENT_SELL_PRICE
+        elif effect == "buy_units":
+            self.funds -= EVENT_BUY_PRICE
+            self.herd_size += EVENT_UNITS
+            self.log_purchase("herd", EVENT_BUY_PRICE)
+        return True
+
     def draw_event(self):
-        """Draw a random farm event for this round."""
-        if random.random() < FARM_EVENT_CHANCE:
+        """GF-20: 20% chance of an event this round, picked from the ones the farm can take."""
+        eligible = [e for e in FARM_EVENTS if self.event_effect_possible(e["choice_a"]["effect"])]
+        if eligible and random.random() < FARM_EVENT_CHANCE:
             self.event_active = True
-            self.event_data = random.choice(FARM_EVENTS)
-            self.event_choice_made = False
+            self.event_data = random.choice(eligible)
         else:
             self.event_active = False
             self.event_data = None
+        self.event_choice_made = False
 
     # ---- F-19 bulk buying ----
     def bulk_plan(self, key, mode):
@@ -719,7 +741,6 @@ class FarmState:
         }
 
     def advance_round(self):
-        self.draw_event()  # GF-20
         pressure = self.pressure_fraction()
         season = 1 + self.season_modifier()
         self.funds += self.income_breakdown()["total"]

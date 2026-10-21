@@ -292,30 +292,22 @@ COW_NAMES = [
 HALL_OF_FAME_SIZE = 5
 HALL_PER_HANDOVER = 3
 
-# GF-20: Farm event cards — one-line flavour events with small stakes
+# GF-20: Farm event cards: a one-line event with a two-button choice. Both choices change something you can see
+# (funds and herd size), and the first choice is only offered when the farm can do it. Never timed, never saved.
+EVENT_UNITS = 2
+EVENT_SELL_PRICE = 40
+EVENT_BUY_PRICE = 30
 FARM_EVENTS = [
     {
         "id": "neighbour_buy",
-        "text": "A neighbour offers to buy 2 herd units at a premium.",
-        "choice_a": {"label": "Sell them (+60 funds)", "effect": lambda farm: setattr(farm, 'funds', farm.funds + 60)},
+        "text": f"A neighbour offers to buy {EVENT_UNITS} units of your herd.",
+        "choice_a": {"label": f"Sell {EVENT_UNITS} units (+{EVENT_SELL_PRICE} funds, herd -{EVENT_UNITS})", "effect": "sell_units"},
         "choice_b": {"label": "Refuse", "effect": None},
     },
     {
-        "id": "feed_surge",
-        "text": "Feed prices drop unexpectedly this week.",
-        "choice_a": {"label": "Stock up (-15 funds)", "effect": lambda farm: setattr(farm, 'funds', farm.funds - 15)},
-        "choice_b": {"label": "Skip it", "effect": None},
-    },
-    {
-        "id": "wildlife_visit",
-        "text": "A herd of wild deer wanders through your pasture.",
-        "choice_a": {"label": "Let them graze (+2 welfare)", "effect": lambda farm: setattr(farm, '_event_welfare', getattr(farm, '_event_welfare', 0) + 2)},
-        "choice_b": {"label": "Shoo them away", "effect": None},
-    },
-    {
-        "id": "equipment_sale",
-        "text": "A local farmer is selling old equipment cheap.",
-        "choice_a": {"label": "Buy it (-30 funds)", "effect": lambda farm: setattr(farm, 'funds', farm.funds - 30)},
+        "id": "neighbour_sell",
+        "text": f"A neighbour is selling {EVENT_UNITS} units cheap.",
+        "choice_a": {"label": f"Buy {EVENT_UNITS} units (-{EVENT_BUY_PRICE} funds, herd +{EVENT_UNITS})", "effect": "buy_units"},
         "choice_b": {"label": "Pass", "effect": None},
     },
 ]

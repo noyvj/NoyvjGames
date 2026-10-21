@@ -262,8 +262,8 @@ def setup():
     if ghost_toggle is not None:
         ghost_toggle.addEventListener("change", create_proxy(on_toggle_ghost))
     document.getElementById("ledger-clear-button").addEventListener("click", create_proxy(on_ledger_clear))
-    document.getElementById("event-choice-a").addEventListener("click", create_proxy(lambda: on_event_choice("a")))
-    document.getElementById("event-choice-b").addEventListener("click", create_proxy(lambda: on_event_choice("b")))
+    document.getElementById("event-choice-a").addEventListener("click", create_proxy(lambda event=None: on_event_choice("a")))
+    document.getElementById("event-choice-b").addEventListener("click", create_proxy(lambda event=None: on_event_choice("b")))
     for horizon in PLAN_HORIZONS:
         document.getElementById(f"plan-horizon-{horizon}-button").addEventListener(
             "click", create_proxy(_make_plan_horizon_handler(horizon))

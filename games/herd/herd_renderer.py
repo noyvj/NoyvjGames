@@ -79,6 +79,9 @@ def render():
         document.getElementById("event-text").innerText = runstate.farm.event_data["text"]
         document.getElementById("event-choice-a").innerText = runstate.farm.event_data["choice_a"]["label"]
         document.getElementById("event-choice-b").innerText = runstate.farm.event_data["choice_b"]["label"]
+        document.getElementById("event-choice-a").disabled = not runstate.farm.event_effect_possible(
+            runstate.farm.event_data["choice_a"]["effect"]
+        )
     else:
         event_el.hidden = True
 
