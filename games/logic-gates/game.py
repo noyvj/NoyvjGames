@@ -23,6 +23,7 @@ note = ""
 last_result = None
 probe = {"inputs": {}, "sim": None, "step": None, "prog": None}
 difficulty = "normal"   # AN-17: easy | normal | hard, told to the engine by the page (a per-browser choice, never saved); Normal is the game as it was
+timing_on = False
 
 SIXTEEN = ("FALSE", "A AND B", "A AND NOT B", "A", "NOT A AND B", "B", "A XOR B", "A OR B",
            "A NOR B", "A XNOR B", "NOT B", "A OR NOT B", "NOT A", "NOT A OR B", "A NAND B", "TRUE")
@@ -431,9 +432,15 @@ def _a_difficulty(req):
     return "NOEVAL"
 
 
+def _a_timing(req):
+    global timing_on
+    timing_on = req.get("on") is True
+    return "NOEVAL"
+
+
 ACTIONS = {"add": _a_add, "remove": _a_remove, "wire": _a_wire, "pick": _a_pick, "cancel": _a_clear_pick, "undo": _a_undo,
            "clear": _a_clear, "restore": _a_restore, "start": _a_start, "next": _a_next, "flip": _a_flip, "script": _a_script,
-           "manual": _a_manual, "hint": _a_hint, "answer": _a_place_answer, "difficulty": _a_difficulty}
+           "manual": _a_manual, "hint": _a_hint, "answer": _a_place_answer, "difficulty": _a_difficulty, "timing": _a_timing}
 READ_ONLY = ("open", "reset")
 
 
@@ -557,6 +564,41 @@ def _rows_high(level, circuit):
     return out
 
 
+def _timing():
+    if not timing_on:
+        return None
+    level = _cur()
+    if not level.get("steps"):
+        return None
+    circuit = _board()
+    sim = Sim(probe["prog"])
+    inputs = {n: 0 for n in level["ins"]}
+    switch_bits = {n: [] for n in level["ins"]}
+    lamp_bits = {n: [] for n in level["outs"]}
+    for step in level["steps"]:
+        inputs.update(step["set"])
+        sim.step(inputs)
+        for name in level["ins"]:
+            switch_bits[name].append(1 if inputs.get(name) else 0)
+        for name in level["outs"]:
+            src = circuit["wires"].get("out:" + name)
+            val = 0
+            if src:
+                if src.startswith("const:"):
+                    val = int(src[6:])
+                elif src.startswith("in:"):
+                    val = inputs.get(src[3:], 0)
+                else:
+                    val = sim.top_value(src)
+            lamp_bits[name].append(val)
+    rows = []
+    for name in level["ins"]:
+        rows.append({"name": name, "kind": "switch", "bits": switch_bits[name]})
+    for name in level["outs"]:
+        rows.append({"name": name, "kind": "lamp", "bits": lamp_bits[name]})
+    return {"steps": len(level["steps"]), "rows": rows}
+
+
 def view():
     level = _cur()
     circuit = _board()
@@ -585,7 +627,7 @@ def view():
         "table": _table(level) if not sandbox else None,
         "sandbox": {"found": len(meta["found"]), "total": 256,
                     "sixteen": [{"name": n, "found": any(code_name(c) == n for c in meta["found"])} for n in SIXTEEN]},
-        "info": info.view(), "difficulty": difficulty,
+        "info": info.view(), "timing": _timing(), "difficulty": difficulty,
         "story": [{"name": lv["name"], "text": lv["log"]} for lv in levels.LEVELS if recs.get(lv["id"], {}).get("solved")],
     }
     if sandbox:
