@@ -4787,7 +4787,7 @@
     },
     {
      "path": "games/champ-de-mots/champ_achievements.py",
-     "bytes": 15435,
+     "bytes": 16295,
      "precached": true
     },
     {
@@ -5162,7 +5162,7 @@
     },
     {
      "path": "games/champ-de-mots/style-2-panels.css",
-     "bytes": 16148,
+     "bytes": 16263,
      "precached": true
     },
     {
@@ -5187,7 +5187,7 @@
     },
     {
      "path": "games/champ-de-mots/visual-styles.css",
-     "bytes": 35118,
+     "bytes": 35821,
      "precached": true
     }
    ],
@@ -5420,7 +5420,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 15858402,
+   "bytes": 15860080,
    "bytes_complete": true
   },
   "continuum": {
