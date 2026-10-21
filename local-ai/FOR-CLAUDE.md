@@ -94,3 +94,12 @@ To do on the Windows side (Claude on the Alienware):
 ## Prep work for Noy2 (2026-10-16)
 `local-ai/FOR-NOY2.md` lists the audits and file changes that should raise the local AI's pass rate most (splitting
 big tasks, a per-game map in CLAUDE.md, a shared browser-test helper, smaller big-game files, reviewing the stacks).
+
+## Writing steps for the local AI: lessons from the Chronicle pilot audit (2026-10-21)
+- **Where the step text gave exact code, the AI copied it almost verbatim** (Chronicle's year-lookup steps 1 to 3 were nearly perfect). Give the code when you can.
+- **Where it named only a test setup, the AI cut corners:** "use fixtures g, p" became hand-mutating a global. Write the test skeleton (`def test_x(g):`, the exact fixture call) and put "use the `g` fixture, never import `_prog` at module level" in the game's "For the local AI" block.
+- **Data shapes were guessed:** a claim's sources are `{source, note}` dicts and `sets/index.json` entries are `{folder}`, not `{id}`. State every file shape the step touches, and add a "file shapes" line to the game's map.
+- **A test-first step whose targets do not exist yet is silently all-skipped.** Require at least one non-skipped self-check that runs on real data (for example `presidents-sample`).
+- **A chain can arrive incomplete** (Chronicle R4-CLP-21 pushed steps 1 to 3 but not 4): the last visible step must leave nothing dead, or the audit has to keep the chain open. Put the click handler and the browser test in the same step as the markup when that is small enough.
+- **Open-question items must not be queued** (FY-11 "may I author the presidents set": the AI flipped a status word and pinned it in a test). Keep them out with `local-ai/label-overrides-manual.txt`.
+

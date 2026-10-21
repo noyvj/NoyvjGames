@@ -69,7 +69,7 @@ def chain_info(incoming=None):
         for line in path.read_text(encoding="utf-8-sig").splitlines():
             m = re.match(r"#\s*replaces:\s*(.+)", line)
             if m:
-                reps = [x.strip() for x in m.group(1).split(",") if x.strip()]
+                reps = [re.split(r"[\s(]", x.strip(), 1)[0] for x in m.group(1).split(",") if x.strip()]
                 continue
             m = re.match(r"^\S+\s*\|\s*chain:([A-Za-z0-9-]+):(\d+)\s*\|", line)
             if m:
@@ -373,13 +373,23 @@ def cmd_live(args):
 
 # ---------------------------------------------------------------- finish
 
-def tick(todo_path, ids):
-    text = todo_path.read_text()
+def tick(todo_paths, ids):
+    """Tick the accepted items in every list that holds them (TODO-NEXT.md first, then TODO.md); returns how many were ticked."""
+    if not isinstance(todo_paths, (list, tuple)):
+        todo_paths = [todo_paths]
+    texts = {p: p.read_text() for p in todo_paths}
+    ticked = 0
     for rid in [i for i in items_to_tick(ids) if not i.startswith("T-")]:
-        text, n = re.subn(r"^(\s*)- \[ \] (%s):" % re.escape(rid), r"\1- [x] \2:", text, flags=re.M)
-        if not n:
+        found = False
+        for p in todo_paths:
+            texts[p], n = re.subn(r"^(\s*)- \[ \] (%s):" % re.escape(rid), r"\1- [x] \2:", texts[p], flags=re.M)
+            found = found or bool(n)
+        ticked += found
+        if not found:
             print("  note: %s not found as an open item (already ticked?)" % rid)
-    todo_path.write_text(text)
+    for p, text in texts.items():
+        p.write_text(text)
+    return ticked
 
 
 def cmd_finish(args):
@@ -414,7 +424,8 @@ def cmd_finish(args):
         else:
             print("could not find a place in sw.js for: " + ", ".join(miss))
     run([sys.executable, "scripts/generate-offline-manifest.py"])
-    tick(ROOT / "planning" / "TODO-NEXT.md", accepted)
+    n_ticked = tick([ROOT / "planning" / "TODO-NEXT.md", ROOT / "planning" / "TODO.md"], accepted)
+    run([sys.executable, "scripts/todo-progress.py"])   # the live list may have been ticked too
     code, out = run([sys.executable, "scripts/todo-progress.py", "planning/TODO-NEXT.md"])
     print(out.strip().splitlines()[-1] if out.strip() else "")
     git("add", "sw.js", "offline-manifest.json", "planning/TODO-NEXT.md")
@@ -424,7 +435,7 @@ def cmd_finish(args):
     if wt.exists():
         git("worktree", "remove", "-f", "-f", str(wt))
     git("branch", "-D", branch, check=False)
-    print("merged %s, ticked %d, worktree and branch closed" % (slug, len(accepted)))
+    print("merged %s, ticked %d of %d accepted ids (a chain ticks its items only when every step is accepted), worktree and branch closed" % (slug, n_ticked, len(accepted)))
     if args.delete_remote:
         git("fetch", "-q", "--prune")
         handled = set(accepted) | set(partial) | ticked_ids((ROOT / "planning" / "TODO-NEXT.md").read_text())   # ticked earlier = audited earlier

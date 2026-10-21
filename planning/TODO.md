@@ -46,7 +46,7 @@
 - `[Claude: ...]`: needs a Claude session (site-wide or shared files, backend, live web data, hub registration, or not tied to one game).
 - `[needs you]`: waits on your answer, account or decision. `[on hold]`: the QA pass, on hold until closing time.
 
-Open items now: [local AI: after split] 187, [local AI: yes] 106, [on hold] 76, [Claude: backend] 47, [Claude: hub registration] 35, [Claude: not one game] 16, [Claude: site-wide] 16, [local AI: after the game is built] 15, [Claude: design] 11, [needs you] 9, [Claude: shared] 6, [local AI: in steps] 6, [Claude: wire the shared skill tree] 1, [Claude: wire the shared level select] 1, [Claude: art] 1, [Claude: live web data] 1.
+Open items now: [local AI: after split] 187, [local AI: yes] 105, [on hold] 76, [Claude: backend] 47, [Claude: hub registration] 35, [Claude: not one game] 16, [Claude: site-wide] 16, [local AI: after the game is built] 15, [Claude: design] 11, [needs you] 8, [Claude: shared] 6, [local AI: in steps] 6, [Claude: live web data] 2, [Claude: wire the shared skill tree] 1, [Claude: wire the shared level select] 1, [Claude: art] 1, [Claude: live web data]   # 2026-10-21 audit: the AI only flipped a status word (no set authored, no owner sign-off) 1.
 <!-- LOCAL-AI-LABELS:END -->
 
 Built from your answers in `planning/IMPROVEMENT-IDEAS-ROUND-3.md` (Part 4). Every Round 3 section is now answered (2026-10-07 below the Warframe section); earlier this list held only: **GB** (Canopy gamified), **M** (new games), **N** (seasonal events), **O** (Trade Empire and Continuum replayability), **P/Q/S/T** (Signal, Undersleep, Overclock, Last Line open questions), **X** (Warframe tracker) and **R** (returning later). GC-GI, A-L, U, Z and Y are unanswered and wait for you. The previous list is archived at `planning/todo-archive/260914_260927.md`; anything from it that was moved here is marked "moved" there.
@@ -1811,7 +1811,7 @@ Classic stays the default boot (`index.html`); Desktop is a second boot (`pc.htm
 - [x] CH-8: Milestone 5, myth or record, plus the Info page showing the three sources for every claim.
 - [x] CH-9: Milestone 6, "whose account?" source evaluation.
 - [x] CH-10: Milestone 7, spaced review and decision points.
-- [ ] CH-11: Milestone 8, author the American presidents set in full (three sources per claim, a review page, then your review), balanced and non-partisan. [needs you]
+- [ ] CH-11: Milestone 8, author the American presidents set in full (three sources per claim, a review page, then your review), balanced and non-partisan. [Claude: live web data]
 - [ ] CH-12: Milestone 9, second and third sets (history of food, Ancient Greece) and the set picker. [Claude: live web data]
 - [ ] CH-13: (Note: `scripts/generate-last-updated.py` adds chronicle to `game-manifest.json`; it was removed by hand until the game is hub-registered, so re-run the script then.) Milestone 10, polish, accessibility pass, hub registration, Desktop boot. [Claude: shared]
 
@@ -1939,7 +1939,7 @@ Classic stays the default boot (`index.html`); Desktop is a second boot (`pc.htm
 - [x] FY-8: Read the 3 new Le Champ de Mots answer reports that arrived after the first review (a10db191 "the road" for "the street"; 4f38d109 and 8295f0aa on the "Is it far/close (from here)?" phrase) and tick "fixed" on the ones the data fixes.
 - [ ] FY-9: U1: Undersleep: should the optional daily check-in layer be hidden until the player turns it on (you said yes: yes, hidden by default ("Just play" is the default).) [local AI: after the game is built]
 - [ ] FY-10: U2: Undersleep: keep the player's personal data on the device only, with manual export and import, and never in a save code or the cloud (you said yes: yes. A cloud version needs per-account encryption, which is a real project; say "later" if you want that project eventually.) [Claude: backend]
-- [ ] FY-11: Ch1: Chronicle: after you spot-check the sample set, may I author the full American presidents set (three sources per claim) (you said yes: yes, then the history of food and Ancient Greece as sets 2 and 3.) [local AI: yes]
+- [ ] FY-11: Ch1: Chronicle: after you spot-check the sample set, may I author the full American presidents set (three sources per claim) (you said yes: yes, then the history of food and Ancient Greece as sets 2 and 3.) [Claude: live web data]   # 2026-10-21 audit: the AI only flipped a status word (no set authored, no owner sign-off)
 - [ ] FY-12: Ch7: Chronicle: when it is ready, should Chronicle go on the hub (card, thumbnail, favicon) now, or wait until the presidents set is fully authored (you said yes: wait until the full presidents set is done.) [Claude: site-wide]
 - [ ] FY-13: Lexis: keep growing it toward the Large size (planets 4 and 5). Your answer was 'no' with "Continue to grow it.", which I read as: keep growing it, no separate stop. (Lx1 answered yes 2026-10-12: yes, build planets 4 and 5.) [local AI: yes]
 - [x] FY-14: Le Champ de Mots: when a question asks for just the word, do not require its le/la (you said no to requiring it: "Don’t require it when just asking for the word").

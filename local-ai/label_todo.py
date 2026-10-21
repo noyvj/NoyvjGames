@@ -26,15 +26,17 @@ ROOT = HERE.parent
 LISTS = [ROOT / "planning" / "TODO.md", ROOT / "planning" / "TODO-NEXT.md"]
 TOO_BIG = set()   # SP-1 split every big game's files on 2026-10-17 (Loop and Drift: see local-ai/FOR-CLAUDE.md)
 OVERRIDES_FILE = HERE / "label-overrides.txt"   # written by scripts/build_incoming_tasks.py from the LA-8 notes
+MANUAL_OVERRIDES_FILE = HERE / "label-overrides-manual.txt"   # hand-kept: items an audit showed the local AI must not take
 
 
 def load_overrides():
     out = {}
-    if OVERRIDES_FILE.exists():
-        for line in OVERRIDES_FILE.read_text(encoding="utf-8").splitlines():
-            if line.strip() and not line.startswith("#") and "|" in line:
-                item, tag = (x.strip() for x in line.split("|", 1))
-                out[item] = tag
+    for f in (OVERRIDES_FILE, MANUAL_OVERRIDES_FILE):   # the manual file wins
+        if f.exists():
+            for line in f.read_text(encoding="utf-8").splitlines():
+                if line.strip() and not line.startswith("#") and "|" in line:
+                    item, tag = (x.strip() for x in line.split("|", 1))
+                    out[item] = tag
     return out
 
 

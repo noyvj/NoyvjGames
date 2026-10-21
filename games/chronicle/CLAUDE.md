@@ -14,6 +14,8 @@ Page script, cut from the old `app.js` into classic scripts that share ONE objec
 Rule for the page parts: state used by more than one part lives on the object (`A.view`, `A.selected`, `A.webPick`, `A.engineReady`, `A.currentReport`); a function another part calls is exported with `A.name = name` at the end of its own part and copied to a local `var name = A.name` at the top of the parts that load later (a call to a LATER part is written `A.name(...)`). A new cross-part function needs both lines. `tests/pagefiles.py` (`app_text()`) reads all parts together; `tests/test_script_parts.py` and `tests/test_file_sizes.py` guard order, exports and size (14,000 tokens per file).
 
 ## For the local AI (exact names; every one was checked against the code on 2026-10-18)
+- **File shapes and test setup (from the 2026-10-21 audit):** a claim's `sources` is a list of `{source, note}` dicts (the id is `item['source']`); `sets/index.json` is `{"sets": [{"folder": id}]}`. In tests use the `g` fixture (`g._prog('presidents-sample')[...]`), never mutate `core._prog` at module level, and give every test-first file at least one check that runs on `presidents-sample` so it is never all-skipped.
+
 - **Entry points** (the only Python the page calls, by `pyodide.globals.get(name)`): `handle(json_string) -> json_string`, `get_state()`, `load_state(proxy)`. In JS use `A.act({action: ...})` (returns the response, redraws); never read a Python variable from JS by name.
 - **Response**: `{ok, error, view, new, dirty}`. The view is rebuilt after EVERY action (`views._view`).
 - **Actions** (`game._MUTATORS` + the read-only ones; an unknown name gives "Unknown action."; argument names are exact):

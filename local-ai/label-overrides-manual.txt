@@ -1,0 +1,3 @@
+# ITEM | [label]: items the local AI must not take, found by audits (wins over the generated overrides)
+FY-11 | [Claude: live web data]   # 2026-10-21 audit: the AI only flipped a status word (no set authored, no owner sign-off)
+CH-11 | [Claude: live web data]

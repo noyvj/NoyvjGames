@@ -69,3 +69,17 @@ def test_a_chain_ticks_its_items_only_when_every_step_is_accepted():
     assert a.items_to_tick(["R4-CLP-21-1", "R4-CLP-21-2"], info) == []
     assert a.items_to_tick(["R4-CLP-21-1", "R4-CLP-21-2", "R4-CLP-21-3"], info) == ["R4-CLP-21"]
     assert a.items_to_tick(["LA7-CANOPY-1", "LA7-CANOPY-2", "R4-AB-1"], info) == ["R4-AB-1", "R4-CA-8", "R4-CA-14"]
+
+
+def test_a_replaces_line_keeps_only_the_item_ids(tmp_path):
+    f = tmp_path / "incoming-tasks.txt"
+    f.write_text("# replaces: LA7-X, CH-12 (the data part: already exists)\nchronicle | chain:LA7-X:1 | a.py | text\n", encoding="utf-8")
+    assert audit.chain_info(f) == {"LA7-X": (1, ["LA7-X", "CH-12"])}
+
+
+def test_tick_marks_items_in_either_list(tmp_path):
+    nxt, live = tmp_path / "next.md", tmp_path / "live.md"
+    nxt.write_text("- [ ] R4-A-1: x\n", encoding="utf-8")
+    live.write_text("- [ ] FY-9: y\n", encoding="utf-8")
+    assert audit.tick([nxt, live], ["R4-A-1", "FY-9", "NOPE-1"]) == 2
+    assert "- [x] R4-A-1:" in nxt.read_text() and "- [x] FY-9:" in live.read_text()
