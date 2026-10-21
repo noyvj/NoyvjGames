@@ -72,6 +72,19 @@ def render():
     )
     document.getElementById("score-display").innerText = "Score: not counted (sandbox)" if runstate.sandbox_active else f"Score: {runstate.farm.score():.0f}"
 
+    # GF-20: farm event card
+    event_el = document.getElementById("farm-event-card")
+    if runstate.farm.event_active and not runstate.farm.event_choice_made:
+        event_el.hidden = False
+        document.getElementById("event-text").innerText = runstate.farm.event_data["text"]
+        document.getElementById("event-choice-a").innerText = runstate.farm.event_data["choice_a"]["label"]
+        document.getElementById("event-choice-b").innerText = runstate.farm.event_data["choice_b"]["label"]
+        document.getElementById("event-choice-a").disabled = not runstate.farm.event_effect_possible(
+            runstate.farm.event_data["choice_a"]["effect"]
+        )
+    else:
+        event_el.hidden = True
+
     grow_cost = runstate.farm.grow_herd_cost()
     grow_button = document.getElementById("grow-herd-button")
     grow_button.innerText, grow_button.disabled = bulk_button_label("herd", "Grow Herd", grow_cost, ".0f")

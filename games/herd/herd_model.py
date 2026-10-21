@@ -4,10 +4,12 @@ Part of the split of the old single-file game.py: see "File map" in games/herd/C
 """
 
 import copy
+import random
 
 import herd_runstate as runstate
 from herd_rules import (
     AUDIT_EVERY, AUDIT_FINE_INCOME_ROUNDS, AUDIT_GOODWILL_BONUS, AUDIT_LOG_MAX, AUDIT_PERKS,
+    EVENT_BUY_PRICE, EVENT_SELL_PRICE, EVENT_UNITS, FARM_EVENTS, FARM_EVENT_CHANCE,
     AUDIT_PERK_REPEAT_FUNDS, AUDIT_TRUST_PENALTY, AUDIT_TRUST_ROUNDS, BASE_COUPLING_RATIO,
     BIOGAS_SALE_PER_UNIT, BULK_MAX_UNITS, CAPTURE_SELF_USE_UNITS, CERTIFICATION_PRICE_PREMIUM,
     CERTIFICATION_RATIO_THRESHOLD, CERTIFICATION_ROUNDS_REQUIRED, DECOUPLING_MEASURES,
@@ -164,6 +166,7 @@ class FarmState:
         # None where an older save never recorded it), the purchase log and the
         # perfect-round streak.
         self.funds_history = [rule("starting_funds")]
+        self.round_records = [[0, BASE_COUPLING_RATIO, 0.0]]
         # F-1: true once any round (or the farm's start) happened under non-standard Ranch Rules.
         self.custom_rules_used = rules_are_custom()
         self.lever_log = []
@@ -195,6 +198,43 @@ class FarmState:
         # Advance Round) is never saved; undo_used is, once it is true.
         self.undo_used = False
         self.undo_snapshot = None
+
+        # GF-20: farm event card state (transient, not saved)
+        self.event_active = False
+        self.event_data = None
+        self.event_choice_made = False
+
+    def event_effect_possible(self, effect):
+        """True when the farm can take this event effect right now (None, the refusal, always can)."""
+        if effect == "sell_units":
+            return self.herd_size >= EVENT_UNITS
+        if effect == "buy_units":
+            return self.funds >= EVENT_BUY_PRICE and not self.cap_blocks_growth(herd=EVENT_UNITS)
+        return True
+
+    def apply_event_effect(self, effect):
+        """Apply a chosen event effect; False (and no change) when the farm cannot take it."""
+        if not self.event_effect_possible(effect):
+            return False
+        if effect == "sell_units":
+            self.herd_size -= EVENT_UNITS
+            self.funds += EVENT_SELL_PRICE
+        elif effect == "buy_units":
+            self.funds -= EVENT_BUY_PRICE
+            self.herd_size += EVENT_UNITS
+            self.log_purchase("herd", EVENT_BUY_PRICE)
+        return True
+
+    def draw_event(self):
+        """GF-20: 20% chance of an event this round, picked from the ones the farm can take."""
+        eligible = [e for e in FARM_EVENTS if self.event_effect_possible(e["choice_a"]["effect"])]
+        if eligible and random.random() < FARM_EVENT_CHANCE:
+            self.event_active = True
+            self.event_data = random.choice(eligible)
+        else:
+            self.event_active = False
+            self.event_data = None
+        self.event_choice_made = False
 
     # ---- F-19 bulk buying ----
     def bulk_plan(self, key, mode):
@@ -744,6 +784,7 @@ class FarmState:
             self.methane_history[-1] - self.methane_history[-2] if len(self.methane_history) >= 2 else 0.0
         )
         self.methane_history.append(self.methane)
+        self.round_records.append([self.herd_size, self.coupling_ratio(), self.pressure_fraction()])
         # F16 — curve flattening: this round added less than the last.
         self.just_flattened = (
             prev_increment > 0 and (self.methane_history[-1] - self.methane_history[-2]) < prev_increment - 1e-9
@@ -809,7 +850,7 @@ def clone_farm(source):
     twin = copy.copy(source)
     twin.decoupling_investment = dict(source.decoupling_investment)
     twin.poultry_investment = dict(source.poultry_investment)
-    for name in ("genetics_pending", "methane_history", "funds_history", "policy_offer", "policy_seen", "audit_perks"):
+    for name in ("genetics_pending", "methane_history", "funds_history", "policy_offer", "policy_seen", "audit_perks", "round_records"):
         setattr(twin, name, list(getattr(source, name)))
     twin.lever_log = [list(entry) for entry in source.lever_log]
     twin.audit_log = [list(entry) for entry in source.audit_log]

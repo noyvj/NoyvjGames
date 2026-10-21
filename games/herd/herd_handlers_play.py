@@ -31,6 +31,18 @@ from herd_renderer import render
 from herd_loading import load_state
 
 
+def on_event_choice(slot):
+    """GF-20: apply the chosen effect for the active farm event, then close the card."""
+    farm = runstate.farm
+    if not farm.event_active or farm.event_choice_made:
+        return
+    effect = farm.event_data["choice_a" if slot == "a" else "choice_b"]["effect"]
+    if effect is not None and not farm.apply_event_effect(effect):
+        return
+    farm.event_choice_made = True
+    render()
+
+
 def _make_satellite_handler(action, button_id):
     def handler(event=None):
         def do_buy():
@@ -261,6 +273,10 @@ def on_advance_round(event=None):
     welfare_before, pressure_before = runstate.farm.welfare(), runstate.farm.pressure_fraction()
     runstate.farm.undo_snapshot = None if runstate.sandbox_active else get_state()  # GF-18: the state to rewind to
     runstate.farm.advance_round()
+    if runstate.sandbox_active:
+        runstate.farm.event_active = False
+    else:
+        runstate.farm.draw_event()  # GF-20: drawn for live play only, never in projections or the sandbox
     runstate.session_rounds += 1
     runstate.last_deltas = round_deltas(funds_before, methane_before, welfare_before, pressure_before)
     _schedule_delta_fade()
@@ -271,7 +287,8 @@ def on_advance_round(event=None):
     celebrate_round(income_this_round, beat)
     audit_text = audit_result_message(runstate.farm.just_audit) if runstate.farm.just_audit else ""
     runstate.farm.just_audit = None
-    document.getElementById("round-announcer").innerText = (round_announcement(funds_before, methane_before) + " " + audit_text).strip()
+    event_text = runstate.farm.event_data["text"] if runstate.farm.event_active else ""
+    document.getElementById("round-announcer").innerText = (round_announcement(funds_before, methane_before) + " " + audit_text + " " + event_text).strip()
     nudge = save_nudge_message()
     if audit_text:
         nudge = f"{audit_text} {nudge}".strip()

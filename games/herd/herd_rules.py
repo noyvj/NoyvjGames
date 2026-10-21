@@ -292,6 +292,27 @@ COW_NAMES = [
 HALL_OF_FAME_SIZE = 5
 HALL_PER_HANDOVER = 3
 
+# GF-20: Farm event cards: a one-line event with a two-button choice. Both choices change something you can see
+# (funds and herd size), and the first choice is only offered when the farm can do it. Never timed, never saved.
+EVENT_UNITS = 2
+EVENT_SELL_PRICE = 40
+EVENT_BUY_PRICE = 30
+FARM_EVENTS = [
+    {
+        "id": "neighbour_buy",
+        "text": f"A neighbour offers to buy {EVENT_UNITS} units of your herd.",
+        "choice_a": {"label": f"Sell {EVENT_UNITS} units (+{EVENT_SELL_PRICE} funds, herd -{EVENT_UNITS})", "effect": "sell_units"},
+        "choice_b": {"label": "Refuse", "effect": None},
+    },
+    {
+        "id": "neighbour_sell",
+        "text": f"A neighbour is selling {EVENT_UNITS} units cheap.",
+        "choice_a": {"label": f"Buy {EVENT_UNITS} units (-{EVENT_BUY_PRICE} funds, herd +{EVENT_UNITS})", "effect": "buy_units"},
+        "choice_b": {"label": "Pass", "effect": None},
+    },
+]
+FARM_EVENT_CHANCE = 0.2
+
 
 # F-1 -- Ranch Rules: four balance sliders for a custom run. Standard values are the ones the rest of
 # the file is written around, so a farm on standard rules behaves exactly as it always has. Any other
