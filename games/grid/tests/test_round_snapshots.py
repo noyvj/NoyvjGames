@@ -28,3 +28,44 @@ def test_snapshot_limit(game_env):
     snaps = game_env.state.round_snapshots
     assert len(snaps) == 100
     assert snaps[-1]["round"] == 105
+
+
+def test_save_load_round_snapshots(game_env):
+    import copy
+    game_env.state.build_plant("coal")
+    game_env.state.advance_round(rng=lambda: 1.0, age_rng=lambda: 1.0)
+    game_env.state.advance_round(rng=lambda: 1.0, age_rng=lambda: 1.0)
+
+    data = game_env.module.get_state()
+    assert "round_snapshots" in data
+    assert len(data["round_snapshots"]) == 2
+
+    # load twice gives same result
+    game_env.module.load_state(copy.deepcopy(data))
+    assert len(game_env.state.round_snapshots) == 2
+    game_env.module.load_state(copy.deepcopy(data))
+    assert len(game_env.state.round_snapshots) == 2
+
+
+def test_fresh_save_no_round_snapshots_key(game_env):
+    data = game_env.module.get_state()
+    assert "round_snapshots" not in data
+
+
+def test_load_clears_planted_fake_snapshots(game_env):
+    game_env.state.round_snapshots.append({"round": 1, "demand": 0, "funds": 0, "plants": {t: 0 for t in PLANT_TYPES}, "disruption": None, "aging_plant": None, "weather_pct": None})
+    data = {"round_snapshots": []}
+    game_env.module.load_state(data)
+    assert game_env.state.round_snapshots == []
+
+
+def test_load_keeps_only_valid_snapshots(game_env):
+    valid_snap = {
+        "round": 1, "demand": 100.0, "funds": 500.0,
+        "plants": {t: 1 for t in PLANT_TYPES},
+        "disruption": "brownout", "aging_plant": "coal", "weather_pct": 10.0
+    }
+    data = {"round_snapshots": ["x", {"round": "a"}, valid_snap]}
+    game_env.module.load_state(data)
+    assert len(game_env.state.round_snapshots) == 1
+    assert game_env.state.round_snapshots[0] == valid_snap

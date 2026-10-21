@@ -8,7 +8,7 @@ import grid_runstate as runstate
 from grid_rules import SCENARIOS
 from grid_savegame import (
     _load_career, _load_regional_grid, _load_round3_fields, _load_round6_fields, _load_round_history_fields,
-    _load_shadow, _merge_plant_dict, compute_load_report, load_report,
+    _load_round_snapshots, _load_shadow, _merge_plant_dict, compute_load_report, load_report,
 )
 from grid_announce import _seed_achievement_toast_baseline
 from grid_sandbox import _sandbox_notify_page, _sandbox_restore_real
@@ -79,6 +79,7 @@ def load_state(data):
     runstate.real_grid_choice = saved_real if isinstance(saved_real, str) and saved_real in REAL_GRIDS else None
     _load_round3_fields(data)
     _load_round_history_fields(data)
+    _load_round_snapshots(data)
     _load_career(data)
     _load_round6_fields(data)
     # "achievements_earned" is intentionally never read back here — see

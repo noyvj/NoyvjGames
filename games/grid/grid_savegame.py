@@ -10,7 +10,7 @@ import grid_runstate as runstate
 from grid_rules import (
     ARBITRAGE_MODES, EMERGENCY_HOLD_ROUNDS, EMERGENCY_ROUNDS, GRANTS, GRANT_CLEAN_ROUNDS,
     GRANT_CONTEST_ROUNDS, LOADOUT_NODES, MAINTENANCE_SCHEDULE_OPTIONS, NAME_MAX_LEN, PLANT_LABEL, PLANT_TYPES,
-    POLICY_LEVER_DURATION, SCENARIOS, SEED_GAME, WEATHER_LOG_MAX_ENTRIES,
+    POLICY_LEVER_DURATION, SCENARIOS, SEED_GAME, SNAPSHOT_MAX, WEATHER_LOG_MAX_ENTRIES,
 )
 from grid_career_data import _sync_perks, save_career_to_storage, validate_career
 from grid_achievements import ACHIEVEMENTS, achievement_ids_earned, renewable_capacity_share
@@ -122,6 +122,7 @@ def get_state():
         "aging_breakdown_count": runstate.state.aging_breakdown_count,
         "first_90_clean_round": runstate.state.first_90_clean_round,
         "last_round_recap": copy.deepcopy(runstate.state.last_round_recap),
+        **({"round_snapshots": copy.deepcopy(runstate.state.round_snapshots)} if runstate.state.round_snapshots else {}),
         # 2026-10-08 batch: the seeded run, loadout, peek, Perfect Round streak, Ironman, nicknames, grants.
         "seed": runstate.state.seed,
         "start_option": runstate.state.start_option,
@@ -321,6 +322,54 @@ def _load_round_history_fields(data):
     first = data.get("first_90_clean_round")
     runstate.state.first_90_clean_round = _as_int(first, 1, 1) if first is not None and not isinstance(first, bool) else None
     runstate.state.last_round_recap = _load_round_recap(data.get("last_round_recap"))
+
+
+def _load_round_snapshots(data):
+    """C-15-2: load round snapshots with strict validation, keeping only the newest SNAPSHOT_MAX."""
+    raw = data.get("round_snapshots")
+    if not isinstance(raw, list):
+        runstate.state.round_snapshots.clear()
+        return
+    valid = []
+    for entry in raw:
+        if not isinstance(entry, dict) or not isinstance(entry.get("plants"), dict):
+            continue
+        rnd = _as_int(entry.get("round"), 0, 0)
+        if rnd < 1:
+            continue
+        plants = {}
+        for pt in PLANT_TYPES:
+            v = entry["plants"].get(pt)
+            plants[pt] = _as_int(v, 0, 0, 10 ** 6)
+
+        disruption = entry.get("disruption")
+        if disruption not in ("brownout", "damage"):
+            disruption = None
+
+        aging_plant = entry.get("aging_plant")
+        if aging_plant not in PLANT_LABEL:
+            aging_plant = None
+
+        weather_pct = entry.get("weather_pct")
+        if weather_pct is None:
+            weather_pct_val = None
+        else:
+            weather_pct_val = _finite_number(weather_pct)
+
+        valid.append({
+            "round": rnd,
+            "demand": _finite_number(entry.get("demand")),
+            "funds": _finite_number(entry.get("funds")),
+            "plants": plants,
+            "disruption": disruption,
+            "aging_plant": aging_plant,
+            "weather_pct": weather_pct_val,
+        })
+
+    if len(valid) > SNAPSHOT_MAX:
+        valid = valid[-SNAPSHOT_MAX:]
+    runstate.state.round_snapshots.clear()
+    runstate.state.round_snapshots.extend(valid)
 
 
 def _load_round6_fields(data):
