@@ -19,6 +19,8 @@ STRENGTH_MEANING = {
     "contributing": "The sources name this as one factor among several, not the whole story.",
 }
 MAX_IDS = 2000
+MAX_BOOKMARKS = 20
+BOOKMARK_NAME_MAX = 30
 CONFIDENCE_LABELS = {
     "documented": ("Documented", "✔"),
     "disputed": ("Disputed", "≈"),
@@ -79,7 +81,7 @@ def register_set(cset):
 def _blank_state():
     return {"sets": {}, "unknown": {}, "viewed": set(), "settings": {"set": None, "hints": True, "mode": "timeline"},
             "flags": {"onboarded": False}, "session": None, "wsession": None, "msession": None, "asession": None,
-            "dsession": None, "day": 0, "rfeedback": None, "earned": []}
+            "dsession": None, "day": 0, "rfeedback": None, "earned": [], "bookmarks": []}
 
 
 def reset_engine():

@@ -10,7 +10,7 @@ import puzzle as pz
 import review as rv
 import web as wb
 from setdata import KIND_LABELS, event_start, parse_date, format_date
-from core import (CONFIDENCE_LABELS, HELP, MODES, S, SETS, SET_ORDER, STRENGTH_LABELS, STRENGTH_MEANING, _LEGEND, _claim_view,
+from core import (CONFIDENCE_LABELS, HELP, MAX_BOOKMARKS, BOOKMARK_NAME_MAX, MODES, S, SETS, SET_ORDER, STRENGTH_LABELS, STRENGTH_MEANING, _LEGEND, _claim_view,
                   _cleared, _counts, _cur_set, _event_full, _next_round, _prog, _unlocked, event_start_text,
                   reset_engine)
 from views import (REVIEW_LABELS, _account_judged, _account_next_round, _account_points, _account_unlocked, _apuzzle,
@@ -886,3 +886,32 @@ def year_moments(year):
                     "date_label": format_date(event_start_text(e)),
                 })
     return result
+
+
+def _act_bookmark(req):
+    name = _str(req, "name").strip()
+    if not name:
+        raise _Bad("Give the bookmark a name.")
+    if len(name) > BOOKMARK_NAME_MAX:
+        raise _Bad("Names are at most 30 characters.")
+    sess = S["session"]
+    if sess is None:
+        raise _Bad("Open a puzzle first.")
+    entry = {"name": name, "set": sess["set"], "section": sess["section"], "round": sess["round"]}
+    for i, bm in enumerate(S["bookmarks"]):
+        if bm["name"] == name:
+            S["bookmarks"][i] = entry
+            return True
+    if len(S["bookmarks"]) >= MAX_BOOKMARKS:
+        raise _Bad("The shelf is full (20). Remove one first.")
+    S["bookmarks"].append(entry)
+    return True
+
+
+def _act_unbookmark(req):
+    name = _str(req, "name")
+    for i, bm in enumerate(S["bookmarks"]):
+        if bm["name"] == name:
+            S["bookmarks"].pop(i)
+            return True
+    raise _Bad("No bookmark with that name.")

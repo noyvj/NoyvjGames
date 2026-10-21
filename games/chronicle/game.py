@@ -59,11 +59,11 @@ from core import (HELP, LOAD_PROBLEMS, MAX_IDS, MODES, S, SCHEMA, SETS, SET_ORDE
 from views import (REVIEW_LABELS, _review_explainer, _account_unlocked, _decision_unlocked, _earned_now, _ensure_session, _myth_unlocked, _thread_view,  # noqa: F401
                    _view, _web_unlocked)
 from actions import (_Bad, _act_account_answer, _act_account_check, _act_account_next, _act_account_show,
-                     _act_account_start, _act_ack, _act_check, _act_choose_set, _act_decision_pick,
+                     _act_account_start, _act_ack, _act_bookmark, _act_check, _act_choose_set, _act_decision_pick,
                      _act_decision_start, _act_entry, _act_info, _act_mode, _act_myth_check, _act_myth_next,
                      _act_myth_show, _act_myth_sort, _act_myth_start, _act_next, _act_place, _act_report, _act_reset,
                      _act_review_answer, _act_review_day, _act_review_next, _act_settings, _act_show_answer,
-                     _act_start, _act_unplace, _act_view_claim, _act_web_link, _act_web_next, _act_web_show,
+                     _act_start, _act_unbookmark, _act_unplace, _act_view_claim, _act_web_link, _act_web_next, _act_web_show,
                      _act_web_start, _act_year, _archive, _set_for)
 
 
@@ -121,6 +121,7 @@ _MUTATORS = {
     "account_show": _act_account_show, "account_next": _act_account_next,
     "decision_start": _act_decision_start, "decision_pick": _act_decision_pick,
     "review_answer": _act_review_answer, "review_next": _act_review_next, "review_day": _act_review_day,
+    "bookmark": _act_bookmark, "unbookmark": _act_unbookmark,
 }
 
 
