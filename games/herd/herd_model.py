@@ -166,6 +166,7 @@ class FarmState:
         # None where an older save never recorded it), the purchase log and the
         # perfect-round streak.
         self.funds_history = [rule("starting_funds")]
+        self.round_records = [[0, BASE_COUPLING_RATIO, 0.0]]
         # F-1: true once any round (or the farm's start) happened under non-standard Ranch Rules.
         self.custom_rules_used = rules_are_custom()
         self.lever_log = []
@@ -765,6 +766,7 @@ class FarmState:
             self.methane_history[-1] - self.methane_history[-2] if len(self.methane_history) >= 2 else 0.0
         )
         self.methane_history.append(self.methane)
+        self.round_records.append([self.herd_size, self.coupling_ratio(), self.pressure_fraction()])
         # F16 — curve flattening: this round added less than the last.
         self.just_flattened = (
             prev_increment > 0 and (self.methane_history[-1] - self.methane_history[-2]) < prev_increment - 1e-9
@@ -830,7 +832,7 @@ def clone_farm(source):
     twin = copy.copy(source)
     twin.decoupling_investment = dict(source.decoupling_investment)
     twin.poultry_investment = dict(source.poultry_investment)
-    for name in ("genetics_pending", "methane_history", "funds_history", "policy_offer", "policy_seen", "audit_perks"):
+    for name in ("genetics_pending", "methane_history", "funds_history", "policy_offer", "policy_seen", "audit_perks", "round_records"):
         setattr(twin, name, list(getattr(source, name)))
     twin.lever_log = [list(entry) for entry in source.lever_log]
     twin.audit_log = [list(entry) for entry in source.audit_log]
