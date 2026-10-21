@@ -195,6 +195,8 @@ ELEMENT_IDS += ["pref-coach", "coach-panel", "coach-text", "settings-reset-butto
                 "rank-display", "career-rank-display", "rank-theme-select", "rank-theme-note"]
 # C-14 fleet overview.
 ELEMENT_IDS += ["fleet-body"] + [f"fleet-sort-{k}" for k in ("plant", "count", "wear", "risk", "next", "revenue")]
+ELEMENT_IDS += ["plan-table", "plan-body"] + [f"plan-sort-{k}" for k in ("plant", "cost", "output", "emissions", "payback")]
+
 
 INITIALLY_DISABLED_IDS = (
     [f"{p}-build-button" for p in PLANT_TYPES]
