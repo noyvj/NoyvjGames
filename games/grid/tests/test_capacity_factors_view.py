@@ -53,3 +53,19 @@ def test_load_capacity_factors_fallback():
     assert data is not None
     assert "tables" in data
     assert "read" in data
+
+
+def test_capacity_factor_markup_in_index_and_pc_config():
+    from .pagefiles import page_text
+
+    html = page_text("index.html")
+    assert "capacity-factor-panel" in html
+    assert "capacity-factor-table" in html
+    assert "capacity-factor-source" in html
+
+    pc_config_path = Path(__file__).resolve().parents[1] / "pc-config.json"
+    with open(pc_config_path, encoding="utf-8") as f:
+        config = json.load(f)
+
+    compare_panel = next(c for c in config["composites"] if c["id"] == "pc-compare-panel")
+    assert "#capacity-factor-panel" in compare_panel["members"]

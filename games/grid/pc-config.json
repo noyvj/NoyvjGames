@@ -98,6 +98,7 @@
         "#real-grid-verdict",
         "#real-grid-table",
         "#real-grid-source",
+        "#capacity-factor-panel",
         ".meter-label:has(+ #regional-grid-connect-button)",
         "#regional-grid-connect-button",
         ".info-toggle:has(+ #regional-grid-display)",
