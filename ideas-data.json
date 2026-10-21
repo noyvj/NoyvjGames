@@ -178,6 +178,271 @@
        "n": "Th7",
        "text": "**Thaw: the four new per-device phone switches are not part of the exported settings code. Should they be added to it?** Recommended: not yet. Say \"yes\" to add them.",
        "answered": false
+      },
+      {
+       "n": "La1",
+       "text": "**Herd, Canopy, SOL and Grid: should each get three play styles (Herd: Techie, Naturalist, Dealmaker; Canopy: Ranger, Naturalist, Planner; SOL: Hands-on miner, Trade baron, Hands-off overseer; Grid: Engineer, Economist, Campaigner) with their own goal list and badge, so every style can reach 100 percent? (R4-PH-5, R4-PC-6, R4-PS-3, R4-PG-5)** Recommended: yes, as goal lists only. Each style gets about six goals built from things the game already counts, all three lists are visible at once and can be done in any order, no style locks anything or changes a balance number, and in Grid a style only changes which numbers the dashboard highlights (no perks). Say yes and the local AI can build all four.",
+       "answered": false
+      },
+      {
+       "n": "La2",
+       "text": "**Canopy and Tide: should each get an extra space scenario (Canopy's Dome Garden on Mars with thin soil and hardy invented wildlife, R4-PC-4; Tide's Europa dome harbour under an icy moon, R4-PI-16)?** Recommended: yes, as a separate mode on the first screen from the start (not unlocked after finishing), about five levels each, with the main game untouched. Say yes and the local AI can write the level data and numbers for both; say \"later\" to keep them parked.",
+       "answered": false
+      },
+      {
+       "n": "La3",
+       "text": "**Le Champ de Mots: you said coins are cosmetic only and come from watering only (FY-46: \"yes, cosmetic only\"). The shop idea L-1 would add coins from mastered plots, a bigger can that reminds neighbours, decor and a market stall. Keep the earlier decision, or change it?** Recommended: keep it, plus one addition. Say \"keep\" and the local AI adds cosmetic decor to the Farm shop, bought with the same watering coins, and nothing else changes (no new coin source, the can stays cosmetic, nothing touches review timing). Say \"change\" and name which of the four parts you now want.",
+       "answered": false
+      },
+      {
+       "n": "La4",
+       "text": "**Le Champ de Mots: the visiting student (R4-PN-3) needs a meaning for \"teaching\". May it be a small pen pal who is shown a word, where you pick which of three hints to give (a picture, an example sentence, the English)?** Recommended: yes. It counts as one practice answer in the ledger so it visibly raises the practice score; the pen pal never fails and there is no penalty for a weak hint. Say yes and the local AI can build it; say \"no\" and describe what teaching should be.",
+       "answered": false
+      },
+      {
+       "n": "La5",
+       "text": "**Le Champ de Mots: the French skill tree (R4-PN-19) needs its nodes and levels. May it follow the four areas the arcade games already cover (Greetings and basics, Verbs, Boutique, Cafe), with each node levelling at 5, 15 and 30 grown plots in that area, nothing spent and nothing refunded?** Recommended: yes. The tree only reads the farm, so every plot you grow visibly counts and a wrong spend is impossible. Say yes and the local AI can build it.",
+       "answered": false
+      },
+      {
+       "n": "La6",
+       "text": "**Le Champ de Mots: the portrait minigame lobby (R4-CHMO-7) wants \"your best score on each\", but only Blitz and Sprint keep a best, and only until the page reloads. Should the bests be saved?** Recommended: yes, save one best per minigame (a small new save field that defaults to empty, so old saves load unchanged). Say \"no\" to show only this visit's bests.",
+       "answered": false
+      },
+      {
+       "n": "La7",
+       "text": "**Aftermath: the skill map already pans and zooms (E-2), with Ctrl+wheel to zoom so the page can still scroll. For the hover card on each skill (R4-AFPC-1), keep Ctrl+wheel, and show the skill's earned rank instead of \"which runs used it\" (the game keeps ranks by use, not a list of runs)?** Recommended: yes to both. Say yes and the local AI adds the hover card (cost, effect, rank) and the item is done; say \"plain wheel\" if you want the wheel alone to zoom.",
+       "answered": false
+      },
+      {
+       "n": "La8",
+       "text": "**Chronicle: three new draft sets (History of Computing with 8 claims, Ancient Greece with 7, History of Food with 3) have three sources per claim. Once they are built, will you skim them on `games/chronicle/review.html` and say which count as reviewed?** Recommended: yes. Mark Computing and Greece reviewed if the wording looks fair, and keep Food as a draft until it has more than 3 events. Say \"later\" to leave all three as drafts.",
+       "answered": false
+      },
+      {
+       "n": "La9",
+       "text": "**Chronicle: the archivist (R4-CLP-3) needs a look, with no generated images allowed. May it be a small lamp-like figure drawn in code (no face), who says one short line per shelf, and restoring a shelf means putting about five torn scraps back in place?** Recommended: yes. The lamp brightens as the shelf comes back, nothing is timed, and a wrong scrap simply slides back. Say yes and the local AI can build it; say \"no\" and describe the look you want.",
+       "answered": false
+      },
+      {
+       "n": "La10",
+       "text": "**Chronicle: the world mosaic (R4-CLP-8) gets one tile for every puzzle you solve in any set. Your note asked for several era maps and a one-location timeline map. May the first version be one world mosaic of simple coloured shapes (no borders, no country names), with era maps and the timeline map added later as separate items?** Recommended: yes. Say yes and the local AI can build the first mosaic; era maps and the location timeline then wait for your later answer.",
+       "answered": false
+      },
+      {
+       "n": "La11",
+       "text": "**Chronicle: the branching \"letters from a witness\" story (R4-CLP-12) needs one real documented person. May it be Samuel Pepys during the Great Fire of London (2 to 6 September 1666): five short letters, a choice in each, then a reveal of what his diary says he actually did?** Recommended: yes (his diary is a primary source, the story is calm and a little funny). Say yes and the work moves to Claude to find three sources per claim; or name another person.",
+       "answered": false
+      },
+      {
+       "n": "La12",
+       "text": "**Chronicle: the diplomat's seat (R4-CLP-22) needs one treaty with documented delegations. May it be the Treaty of Tordesillas (1494): you read the Spanish and then the Portuguese position before seeing what was signed, with a note on who was not in the room?** Recommended: yes (only two delegations, so it stays short). Say yes and the work moves to Claude to source it; or name another treaty.",
+       "answered": false
+      },
+      {
+       "n": "La13",
+       "text": "**Drift: the arrival mix (R4-DR-1) wants a bar showing who arrived. May it be three groups (households with children, single adults, older adults) that each need a different service (schools and childcare, housing, health), with the split fixed per round and the total arrivals unchanged?** Recommended: yes. Keeping the total unchanged leaves the existing balance numbers alone, and groups stay counts, never people. Say yes and the local AI can build it.",
+       "answered": false
+      },
+      {
+       "n": "La14",
+       "text": "**Drift: modular versus permanent housing (R4-DR-5). May modular units cost about 60 percent as much and add capacity at once but cost about 50 percent more to run each round, while permanent homes cost full price, finish two rounds later and are cheap to keep?** Recommended: yes, as a choice on the housing button with those starting numbers (the local AI tunes them with the balance tests). Say yes, or give your own numbers.",
+       "answered": false
+      },
+      {
+       "n": "La15",
+       "text": "**Drift: the neighbour book (R4-PD-1) is a card per housed household with an invented note, which breaks Drift's rule: \"Institutions, not individuals ... Never individual migrant stories or named people.\" Keep the rule, or change it?** Recommended: keep the rule. Say \"keep\" and the local AI builds the same collector's book as a \"service book\": one page per kind of service you build (clinic, school, language class, bus line) with a short factual note. Say \"change\" only if you want invented household cards, which lifts the rule.",
+       "answered": false
+      },
+      {
+       "n": "La16",
+       "text": "**Drift: Arkship mode (R4-PD-4) retells the game as a space habitat taking in refugees from a failing colony. Could it be one more skin (words and colours swapped, ring-ships in place of towns, same rules) rather than a new mode?** Recommended: yes, as a skin using the existing skin switch, with no new art beyond colours. Say \"later\" to park it.",
+       "answered": false
+      },
+      {
+       "n": "La17",
+       "text": "**Drift: the region charter (R4-PD-5) says \"every five-round council goal\", but Drift has no five-round goal (the Mayor's Council offers one pick every 10 rounds). May it be one charter clause for each council program you adopt (nine at most)?** Recommended: yes. Say yes and the local AI can build it as a four-step chain.",
+       "answered": false
+      },
+      {
+       "n": "La18",
+       "text": "**Drift: a building search (R4-DRPC-5) as Ctrl+F would replace the browser's own find, and buildings have no names. May it be a small Find box, opened with the / key, that highlights buildings by kind (housing, services, infrastructure) instead?** Recommended: yes, and leave Ctrl+F alone. Say yes and the local AI can build it.",
+       "answered": false
+      },
+      {
+       "n": "La19",
+       "text": "**Herd: the three-round lever planner (R4-HEPC-7) is already largely built as the what-if planner, which looks 5 or 10 rounds ahead. Keep it as built, or add a 3-round view as well?** Recommended: add the 3-round view (a one-line change to `PLAN_HORIZONS = (3, 5, 10)`) and tick the item done. Say \"keep\" to tick it done with 5 and 10 only.",
+       "answered": false
+      },
+      {
+       "n": "La20",
+       "text": "**Canopy: the river (R4-CA-1) needs a shape. May it be a fixed river down one column, only on a new River level set, where plots beside it grow about 20 percent faster and clearing a plot upstream slows the plots directly downstream by about 10 percent until it is replanted?** Recommended: yes, River levels only, so the numbers the main game's tests pin never change. Say yes and the local AI can build it; or give your own percentages.",
+       "answered": false
+      },
+      {
+       "n": "La21",
+       "text": "**Canopy: access roads (R4-CA-2). May a road be a fixed line of tiles on a new Roads level set, where clearing a plot touching the road costs about 20 percent less but each road tile lowers the wildlife count on both sides a little, shown with a visible split line?** Recommended: yes, new Roads levels only. Say yes and the local AI can build it.",
+       "answered": false
+      },
+      {
+       "n": "La22",
+       "text": "**Canopy: natural regrowth (R4-CA-3) lets a bare plot beside three or more mature plots recover for free. Should it be an opt-in Settings switch, off by default, and never active in the Pacifist and Scorched challenges or the replant contract?** Recommended: yes, opt-in, with drifting seed specks that stop under Reduce Motion. Say \"on by default\" if you want it always on.",
+       "answered": false
+      },
+      {
+       "n": "La23",
+       "text": "**Canopy: wildlife rescue (R4-PC-1). May clearing a plot show a displaced animal that you tap and then drop onto any mature plot, with a shelter badge the first time each kind is rescued, an animal that is never moved simply waiting, and nothing timed?** Recommended: yes. Say yes and the local AI can build it.",
+       "answered": false
+      },
+      {
+       "n": "La24",
+       "text": "**Canopy: forest fog (R4-PC-7). May it be an opt-in Settings switch (off by default) that hides unexplored plots in pale mist, clears them when you tend a neighbour, and never blocks any action?** Recommended: yes, opt-in and still under Reduce Motion. Say yes and the local AI can build it.",
+       "answered": false
+      },
+      {
+       "n": "La25",
+       "text": "**Canopy: farmer partners (R4-PC-12). May there be three invented neighbouring farmers, each a card with a request (for example a tree line on their north edge) and a one-sentence reason from their side, planned on a practice board with a plain checklist and nothing penalised?** Recommended: yes. Say yes and the local AI can build it.",
+       "answered": false
+      },
+      {
+       "n": "La26",
+       "text": "**Canopy: the bed-time mode (R4-CAMO-7) hides numbers except one. Which one: \"Mature trees\" (for example 12 of 36)? It would reuse the existing dim and calm settings without editing the shared files.** Recommended: Mature trees. Say yes, or name a different number.",
+       "answered": false
+      },
+      {
+       "n": "La27",
+       "text": "**Signal: \"hold Space\" for the ping reach rings (R4-SIPC-5) clashes with Space, which already marks a tile. Which key instead? (Held Shift is already the distance ruler on the Desktop page.)** Recommended: G, for \"guide\". Say yes and the local AI can build it with the rings drawn only from your own pings.",
+       "answered": false
+      },
+      {
+       "n": "La28",
+       "text": "**Tide: should the three scenario speeds really follow the IPCC numbers (R4-TI-11)? Changing them would move the game's pinned balance tests; the planned note beside the picker already shows the IPCC figures (0.44, 0.56 and 0.77 m by 2100) with their source.** Recommended: no, keep the game's own simpler speeds and let the note show the real numbers. Say \"change\" to move the game's numbers too.",
+       "answered": false
+      },
+      {
+       "n": "La29",
+       "text": "**Tide: rescue boats (R4-PI-2). May storm seasons show one to three boats as dots, where you choose which of two gates to open for each, a wrong choice just leaves the boat waiting in harbour until the next season (nobody lost), and Restore stays available?** Recommended: yes. Say yes and the local AI can build it.",
+       "answered": false
+      },
+      {
+       "n": "La30",
+       "text": "**Tide: harbour mysteries (R4-PI-10). May there be six short cases, each with three tide-log entries and three possible causes to name, where every cause is a real natural thing with a named source and a wrong guess just lets you try again?** Recommended: yes. Say yes and the local AI can build it.",
+       "answered": false
+      },
+      {
+       "n": "La31",
+       "text": "**Tide: wreck sites (R4-PI-22) need a \"survey\". May you spend one free survey per season on a tile to reveal a site, with six invented sites of three salvage items each (no real shipwrecks)?** Recommended: yes. Say yes and the local AI can build it.",
+       "answered": false
+      },
+      {
+       "n": "La32",
+       "text": "**Tide: chart-reading puzzles (R4-PI-24). May there be eight hand-made puzzles where two bearings and a depth reading let you tap where the lighthouse stands, with a generous tolerance and a check button?** Recommended: yes. Say yes and the local AI can build it.",
+       "answered": false
+      },
+      {
+       "n": "La33",
+       "text": "**Tide: the boatyard (R4-PI-25). May it be six old boats, each needing four parts sorted from a shelf by a plain rule, each joining a shelf with the last captain's quiet log, nothing timed?** Recommended: yes. Say yes and the local AI can build it.",
+       "answered": false
+      },
+      {
+       "n": "La34",
+       "text": "**SOL: the signature buildings (R4-SO-3), one per world with a special rule. May each rule only change that world's own numbers (about plus 10 percent on one thing there), so the core simulation and other worlds never move?** Recommended: yes, in-world effects only (the Venus example about neighbouring ecology is skipped). Say yes and the local AI can build all eight; or say \"cross-world\" to allow effects between worlds.",
+       "answered": false
+      },
+      {
+       "n": "La35",
+       "text": "**SOL: alternate openings (R4-SO-11). May there be one first, a Mars start chosen from the new-game screen from day one (not unlocked later), with a fixed starting kit and its own early unlock order, and Venus later?** Recommended: yes, Mars only first. Say yes and the local AI can build it.",
+       "answered": false
+      },
+      {
+       "n": "La36",
+       "text": "**SOL: rescue worlds (R4-SO-13). May there be six hand-made puzzle scenarios (for example \"Ceres starts with no water and 5 percent ecology; bring it above 50 percent with six buildings\"), with no timer and a free retry?** Recommended: yes, six first. Say yes and the local AI can write them; Claude checks each is solvable.",
+       "answered": false
+      },
+      {
+       "n": "La37",
+       "text": "**SOL: the express opening (R4-PS-9). May it be a separate Quick start option on the new-game screen that teaches the first world by playing and opens the second system within five minutes, with the normal opening and its numbers untouched?** Recommended: yes. Say yes and the local AI can build it.",
+       "answered": false
+      },
+      {
+       "n": "La38",
+       "text": "**Grid: the dispatch puzzle (GC-3). May it be an optional step each round, with tap-to-order instead of dragging (tap a plant to place it next in the queue), where cheapest-first earns full revenue and any other order loses up to 10 percent of it, and a Skip button?** Recommended: yes. Say yes and the local AI can build it.",
+       "answered": false
+      },
+      {
+       "n": "La39",
+       "text": "**Grid: a siting map (GC-7) and transmission lines (R4-GR-3) both need places for plants. May one small 6 by 6 tile map serve both (tiles of ridge, desert, river and plain, the city on one tile), where a plant more than 3 tiles from the city delivers 80 percent unless you pay for a line, and coal or nuclear beside the city costs a little revenue?** Recommended: yes, as an opt-in Map mode at the start of a run, default off, so existing balance tests hold. Say yes and the local AI can build it.",
+       "answered": false
+      },
+      {
+       "n": "La40",
+       "text": "**Grid: neighbour trading (GC-22) has no \"negotiated price\" rule. May the neighbour instead offer one fixed take-it-or-leave-it price each round (no haggling), with the interconnector limit at 2 units?** Recommended: yes (no luck, no haggling). Say yes and the local AI can build it.",
+       "answered": false
+      },
+      {
+       "n": "La41",
+       "text": "**Grid: the winter and summer split (R4-GR-4) changes every demand and revenue test. May it be an opt-in Two seasons mode (default off) with the normal round untouched?** Recommended: yes. Say yes and the local AI can build it.",
+       "answered": false
+      },
+      {
+       "n": "La42",
+       "text": "**Grid: fault tracing (R4-PG-17). May a flicker show three dials (frequency, voltage, load) and three possible causes, where naming the right one adds about 5 percent revenue for that round and a wrong guess costs nothing?** Recommended: yes. Say yes and the local AI can build it.",
+       "answered": false
+      },
+      {
+       "n": "La43",
+       "text": "**Grid: equippable parts (R4-PG-20). May each plant have three slots and 12 parts in all, each unlocked by a fixed milestone (no random drops) and each changing one number by about 5 percent?** Recommended: yes. Say yes and the local AI can build it.",
+       "answered": false
+      },
+      {
+       "n": "La44",
+       "text": "**Grid: the Continental Grid endgame (R4-PG-22). May it open after you finish a normal run, run four regions one after another, and show numbers in billions with a plain \"bn\" label and no new mechanics beyond sums?** Recommended: yes. Say yes and the local AI can build it.",
+       "answered": false
+      },
+      {
+       "n": "La45",
+       "text": "**Grid: the parts catalogue (R4-PG-14) asked for 40 components, but the open EIA data covers only 17 real plant types that fit the game. Keep the 17 as the full catalogue, or name another source for the rest?** Recommended: keep the 17 and call that the catalogue. Say \"NREL\" to also look at NREL's technology baseline later.",
+       "answered": false
+      },
+      {
+       "n": "La46",
+       "text": "**Continuum: the relic hunt (R4-PO-2) needs 64 relics (eight per era). May they be invented objects of the settlement (a clay seed jar, a signal lamp) with a one-sentence description and no real-world claim, found by tapping a glowing object in that era's Look Back view, with a \"relics left: n\" counter so nothing is hidden?** Recommended: yes. Say yes and the local AI can draft the 64; Claude reads them over.",
+       "answered": false
+      },
+      {
+       "n": "La47",
+       "text": "**Continuum: the low-power 2D view (R4-COMO-6). Is the existing 2D diorama (plus the 2D/3D button and lite mode) enough, or do you want a new flat map with a tap sheet per building?** Recommended: the existing diorama is enough. Say yes and the item is ticked done; say \"new map\" to build the flat map.",
+       "answered": false
+      },
+      {
+       "n": "La48",
+       "text": "**Thaw: the Ice Core Archive (R4-PT-4) needs an unlock rule. May core number n open when your furthest round in any region reaches n + 1, so a long game (about 50 rounds) opens all 30?** Recommended: yes. It reads the existing archive progress, so nothing new is saved. Say yes, or give your own rule.",
+       "answered": false
+      },
+      {
+       "n": "La49",
+       "text": "**Thaw: the temperature chart legend (R4-THPC-2). There is no single chart to put a legend on, as each region draws its own graph. May the legend simply show and hide the four region cards instead of building a new combined chart?** Recommended: yes. Say \"new chart\" if you want one combined chart.",
+       "answered": false
+      },
+      {
+       "n": "La50",
+       "text": "**Thaw: graph zoom (R4-THPC-6). A bare mouse wheel would trap page scrolling. May zoom be Ctrl+wheel plus two buttons, \"Last 10\" and \"All\", with the plain wheel left alone?** Recommended: yes, the same rule as Aftermath's map. Say yes and the local AI can build it.",
+       "answered": false
+      },
+      {
+       "n": "La51",
+       "text": "**Lexis: the broken guardian (R4-PX-2), a quiet tragic log, needs a shape. May it be about eight short log entries from a damaged robot guarding the Pulse planet's beacon, optional to read, barely speaking but showing feeling, never explaining any sign?** Recommended: yes. Say yes and the local AI can draft it for you to read over.",
+       "answered": false
+      },
+      {
+       "n": "La52",
+       "text": "**Lexis: crew choices (R4-PX-3). May there be one short talk after each planet with two or three replies, from a captain who makes real mistakes, where the replies never change a puzzle, only what the crew says and a line in the crew log?** Recommended: yes, nothing missable. Say yes and the local AI can build it.",
+       "answered": false
+      },
+      {
+       "n": "La53",
+       "text": "**Lexis: your note on the branching voyage (R4-PX-7) says you reach every planet in the end, each opening with the same message in a different language. May planets 2 and 3 open in any order after the first (each marked Gentle, Medium or Hard), with the crew reacting differently to your order?** Recommended: yes. Say yes and the local AI can redesign the unlock order.",
+       "answered": false
       }
      ]
     }
