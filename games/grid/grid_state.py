@@ -141,6 +141,7 @@ class GridState(GridStateRound, GridStateExtras):
         # structured breakdown of the last round, for the round recap line.
         self.funds_history = []
         self.demand_history = []
+        self.round_snapshots = []
         self.aging_breakdown_count = 0
         self.first_90_clean_round = None
         self.last_round_recap = None

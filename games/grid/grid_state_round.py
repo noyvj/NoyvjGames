@@ -9,7 +9,7 @@ from grid_rules import (
     GLOBAL_AVG_FOSSIL_EMISSIONS_FACTOR, GLOBAL_AVG_FOSSIL_SHARE, MAX_REVENUE_LOSS_FRACTION, PLANT_BASE_COST,
     PLANT_CAPACITY, PLANT_TYPES, POLICY_LEVER_INTERVAL, RECORD_CLEAN_SHARE, REGIONAL_DEMAND_FRACTION,
     REGIONAL_REVENUE_PER_UNIT_SHARED, REGIONAL_SHORTFALL_COST_PER_UNIT, RENEWABLE_TYPES,
-    WEATHER_LOG_MAX_ENTRIES, WEATHER_VARIANCE_FRACTION, SCENARIOS, ELECTRIFICATION_EVENTS,
+    SNAPSHOT_MAX, WEATHER_LOG_MAX_ENTRIES, WEATHER_VARIANCE_FRACTION, SCENARIOS, ELECTRIFICATION_EVENTS,
     ELECTRIFICATION_NOTICE_ROUNDS, incident_ids,
 )
 
@@ -338,6 +338,16 @@ class GridStateRound:
         self.global_reference_emissions_history.append(self.global_reference_emissions)
         self.funds_history.append(self.funds)
         self.demand_history.append(self.demand)
+        self.round_snapshots.append({
+            "round": round_played,
+            "demand": demand_played,
+            "funds": self.funds,
+            "plants": dict(self.plant_counts),
+            "disruption": event["type"] if event else None,
+            "aging_plant": aging_event["plant"] if aging_event else None,
+            "weather_pct": None if weather_delta_pct is None else round(weather_delta_pct, 1),
+        })
+        self.round_snapshots = self.round_snapshots[-SNAPSHOT_MAX:]
         # GC-26: the first round the standing grid was at least 90% clean.
         if (
             self.first_90_clean_round is None

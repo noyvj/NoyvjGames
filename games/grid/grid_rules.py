@@ -281,6 +281,7 @@ DEMAND_RESPONSE_MIN_GROWTH = 3.0
 # event_log/ticker-style logs are capped elsewhere in the quartet, so a
 # very long run's save doesn't grow this list unboundedly.
 WEATHER_LOG_MAX_ENTRIES = 30
+SNAPSHOT_MAX = 100
 
 # TODO-C19 -- policy lever: an occasional opt-in choice that temporarily
 # shifts the cost curve, offered every POLICY_LEVER_INTERVAL rounds if no
