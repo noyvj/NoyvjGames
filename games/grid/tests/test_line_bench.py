@@ -44,13 +44,8 @@ def test_bench_panel_in_pc_zones():
     assert "#bench-panel" in side_ids, "Missing #bench-panel in pc-config.json zones.side"
 
 
-def test_bench_text_session():
-    from grid_views import BENCH_SESSION, bench_text
-
-    # Reset session to ensure deterministic results
-    BENCH_SESSION["tries"] = 0
-    BENCH_SESSION["best"] = None
-
+def test_bench_text_counts_tries_and_remembers_the_lowest_loss(game_env):
+    bench_text = game_env.module.bench_text
     res1 = bench_text(110, 500, 100)
     assert res1 == (
         "Sending 55.0 MW at 110 kV and 500 A over 100 km loses 1.25 MW (2.3%) as heat. "
@@ -62,6 +57,14 @@ def test_bench_text_session():
     assert "Settings tried: 2." in res2
     assert "Lowest loss found: 2.3%." in res2
 
-    # Clean up after test to avoid polluting other tests
-    BENCH_SESSION["tries"] = 0
-    BENCH_SESSION["best"] = None
+
+def test_moving_a_slider_updates_the_readout(game_env):
+    elements = game_env.elements
+    elements["bench-voltage"].value = "110"
+    elements["bench-current"].value = "500"
+    elements["bench-distance"].value = "100"
+    elements["bench-voltage"].dispatch("input", None)
+    assert "loses 1.25 MW (2.3%)" in elements["bench-readout"].innerText
+    elements["bench-voltage"].value = "11"
+    elements["bench-voltage"].dispatch("input", None)
+    assert "(22.7%)" in elements["bench-readout"].innerText

@@ -2,10 +2,7 @@
 Part of the split of the old single-file game.py: see "File map" in games/grid/CLAUDE.md.
 """
 
-try:
-    from js import document
-except ImportError:
-    document = None
+from js import document
 
 from grid_rules import (
     AGE_GRACE_PERIOD, CAREER_MIN_ROUNDS, FOSSIL_TYPES, GENERATION_TYPES, PLANT_CAPACITY, RENEWABLE_TYPES,

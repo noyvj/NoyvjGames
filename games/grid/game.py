@@ -21,7 +21,7 @@ from grid_sandbox_state import SANDBOX_BALANCE
 from grid_career_data import _default_career, _sync_perks, load_career_from_storage
 from grid_prefs import load_prefs_from_storage
 from grid_panels import on_toggle_changelog, on_toggle_info_page, on_toggle_weather_log
-from grid_views import TREND_CHECKBOX_PREFS
+from grid_views import TREND_CHECKBOX_PREFS, update_bench
 from grid_announce import _seed_achievement_toast_baseline
 from grid_summary import on_toggle_summary_panel
 from grid_achievement_cards import on_toggle_achievements
@@ -183,6 +183,8 @@ def setup():
         document.getElementById(f"sandbox-bal-{balance_key.replace('_', '-')}").addEventListener(
             "input", create_proxy(_make_sandbox_balance_handler(balance_key))
         )
+    for bench_id in ("bench-voltage", "bench-current", "bench-distance"):
+        document.getElementById(bench_id).addEventListener("input", create_proxy(update_bench))
     document.getElementById("slot-select").addEventListener("change", create_proxy(on_slot_select))
     document.getElementById("slot-save-button").addEventListener("click", create_proxy(on_slot_save))
     document.getElementById("slot-load-button").addEventListener("click", create_proxy(on_slot_load))
