@@ -52,3 +52,20 @@ def test_tick_marks_only_the_named_open_items(tmp_path):
     todo.write_text("- [ ] R4-AB-1: a\n  - [ ] R4-AB-2: b\n  - [ ] R4-AB-3: c\n")
     audit.tick(todo, ["R4-AB-1", "R4-AB-3"])
     assert todo.read_text() == "- [x] R4-AB-1: a\n  - [ ] R4-AB-2: b\n  - [x] R4-AB-3: c\n"
+
+
+def test_chain_step_subjects_are_idea_commits():
+    a = audit
+    assert a.parse_subject("local-ai: R4-CLP-21-3: Same year, markup") == "R4-CLP-21-3"
+    assert a.parse_subject("local-ai: F-3-1: Round replay part 1") == "F-3-1"
+    assert a.parse_subject("local-ai: LA7-CANOPY-1: NEW file tests/test_x.py") == "LA7-CANOPY-1"
+    assert a.parse_subject("local-ai: R4-LHMO-9: Round 4 idea") == "R4-LHMO-9"
+    assert a.parse_subject("local-ai: make_r4_tasks: tooling") is None
+
+
+def test_a_chain_ticks_its_items_only_when_every_step_is_accepted():
+    a = audit
+    info = {"R4-CLP-21": (3, ["R4-CLP-21"]), "LA7-CANOPY": (2, ["R4-CA-8", "R4-CA-14"])}
+    assert a.items_to_tick(["R4-CLP-21-1", "R4-CLP-21-2"], info) == []
+    assert a.items_to_tick(["R4-CLP-21-1", "R4-CLP-21-2", "R4-CLP-21-3"], info) == ["R4-CLP-21"]
+    assert a.items_to_tick(["LA7-CANOPY-1", "LA7-CANOPY-2", "R4-AB-1"], info) == ["R4-AB-1", "R4-CA-8", "R4-CA-14"]

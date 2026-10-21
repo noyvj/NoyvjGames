@@ -32,7 +32,9 @@ import sys
 from pathlib import Path
 
 ROOT = Path(os.environ.get("NOYVJ_ROOT") or Path(__file__).resolve().parent.parent)
-IDEA = re.compile(r"^local-ai: (R4-[A-Z]+-\d+|[A-Z]{1,4}-\d+[a-z]?\d*|T-[^:\s]+):")
+# An idea commit subject starts with its id: an item (R4-LHMO-9, G-6), a step of a chain (R4-CLP-21-3, F-3-1, LA7-CANOPY-1: the
+# steps Noy2 writes in local-ai/incoming-tasks.txt) or a test-writing task (T-...).
+IDEA = re.compile(r"^local-ai: (R4-[A-Z]+-\d+(?:-\d+)?|LA7-[A-Z0-9]+-\d+|[A-Z]{1,4}-\d+[a-z]?\d*(?:-\d+)?|T-[^:\s]+):")
 TOOLING_PATHS = ("local-ai/", "BCM206-DEV-LOG.md", "BCM114-DEV-LOG.md")
 LOCAL_REF = re.compile(r"""(?:src|href)=["']([^"'#?:]+\.(?:js|css|py|json|svg))["']""")
 GH = ["git", "-c", "credential.helper=!gh auth git-credential"]
@@ -57,6 +59,41 @@ def parse_subject(subject):
     """'local-ai: R4-LHMO-9: Round 4 idea ...' -> 'R4-LHMO-9'; tooling and merge subjects -> None."""
     m = IDEA.match(subject)
     return m.group(1) if m else None
+
+
+def chain_info(incoming=None):
+    """{chain name: (number of steps, [item ids the steps replace])} from local-ai/incoming-tasks.txt."""
+    path = incoming or ROOT / "local-ai" / "incoming-tasks.txt"
+    info, reps = {}, []
+    if path.exists():
+        for line in path.read_text(encoding="utf-8-sig").splitlines():
+            m = re.match(r"#\s*replaces:\s*(.+)", line)
+            if m:
+                reps = [x.strip() for x in m.group(1).split(",") if x.strip()]
+                continue
+            m = re.match(r"^\S+\s*\|\s*chain:([A-Za-z0-9-]+):(\d+)\s*\|", line)
+            if m:
+                n, r = info.get(m.group(1), (0, reps))
+                info[m.group(1)] = (max(n, int(m.group(2))), r)
+    return info
+
+
+def items_to_tick(accepted, info=None):
+    """Accepted ids -> the TODO items to tick. A step id of a chain (R4-CLP-21-2) ticks the items the chain replaces only when
+    every step of the chain is accepted; any other id ticks itself."""
+    info = chain_info() if info is None else info
+    out, steps = [], {}
+    for rid in accepted:
+        m = re.match(r"^(.*)-(\d+)$", rid)
+        if m and m.group(1) in info:
+            steps.setdefault(m.group(1), set()).add(int(m.group(2)))
+        else:
+            out.append(rid)
+    for name, got in steps.items():
+        count, reps = info[name]
+        if got >= set(range(1, count + 1)):
+            out.extend(reps or [name])
+    return out
 
 
 def game_of(paths):
@@ -338,7 +375,7 @@ def cmd_live(args):
 
 def tick(todo_path, ids):
     text = todo_path.read_text()
-    for rid in [i for i in ids if not i.startswith("T-")]:
+    for rid in [i for i in items_to_tick(ids) if not i.startswith("T-")]:
         text, n = re.subn(r"^(\s*)- \[ \] (%s):" % re.escape(rid), r"\1- [x] \2:", text, flags=re.M)
         if not n:
             print("  note: %s not found as an open item (already ticked?)" % rid)
