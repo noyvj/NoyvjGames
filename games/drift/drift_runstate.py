@@ -82,9 +82,6 @@ skin_choice = None  # drift_collection loads the saved skin choice into this whe
 
 non_visual_mode = False
 
-# I-2: Scenario Builder tag for custom runs
-scenario_custom_run = False
-
 # Names that other modules must reach as runstate.<name> (game.py forwards reads and writes to them).
 LIVE_NAMES = (
     "cross_region_learning",
@@ -126,5 +123,4 @@ LIVE_NAMES = (
     "report_note_text",
     "band_note_text",
     "non_visual_mode",
-    "scenario_custom_run",
 )

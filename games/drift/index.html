@@ -88,6 +88,8 @@
 <script src="../../shared/tutorial.js"></script>
 <script src="../../shared/mobile-hud.js"></script>
 <script src="../../shared/confirm-dialog.js"></script>
+<!-- Settings panel (text-scale + reduce-motion): plain, dependency-free
+     JS, deliberately independent of Pyodide -- see settings.js. -->
 <script src="settings.js"></script>
 <!-- AdSense: placeholder client ID until application is approved -->
 <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXXXXXXXXXXX" crossorigin="anonymous"></script>
@@ -130,6 +132,7 @@
          origin K16): same hidden-until-opened idiom as achievements/settings
          above, populated from changelog.json newest-first. -->
     <div id="changelog-panel" class="section changelog-panel" hidden></div>
+    <!-- I-8: Round Ledger. Controls are static here; game.py fills #ledger-summary and #ledger-table. -->
     <div id="ledger-panel" class="section ledger-panel" hidden>
       <p class="meter-label">Round Ledger: every resolved round, newest first by default</p>
       <p id="ledger-summary" class="comparison-message"></p>
@@ -159,10 +162,12 @@
       <textarea id="ledger-copy-area" class="ledger-copy-area" readonly hidden aria-label="Ledger as CSV text"></textarea>
       <div id="ledger-table" class="ledger-scroll"></div>
     </div>
+    <!-- GI-15 / GI-22: Region Collection. game.py fills #collection-list. -->
     <div id="collection-panel" class="section collection-panel" hidden>
       <p class="meter-label">Region Collection: kept in this browser across every region you run</p>
       <div id="collection-list"></div>
     </div>
+    <!-- I-4: Region Report. game.py fills #report-card; Print uses the print-only sheet at the end of the page. -->
     <div id="report-panel" class="section report-panel" hidden>
       <p class="meter-label">Region Report: a summary card of this region so far</p>
       <div class="round-tools-buttons">
@@ -315,41 +320,6 @@
         <p id="tier-note" class="comparison-message"></p>
         <div id="tier-best-table" class="ledger-scroll"></div>
         <p id="tier-best-note" class="gauge-reference-note"></p>
-      </details>
-      <details id="scenario-builder-details" class="context-toggle">
-        <summary>Scenario Builder</summary>
-        <p class="comparison-message">Customize starting conditions and run length. A shareable code will be generated.</p>
-        <div class="settings-control-group" role="group" aria-label="Starting Housing">
-          <label>Housing: <span id="scenario-housing-val">0</span></label>
-          <input type="range" id="scenario-housing-slider" min="0" max="100" value="0" step="5">
-        </div>
-        <div class="settings-control-group" role="group" aria-label="Starting Services">
-          <label>Services: <span id="scenario-services-val">0</span></label>
-          <input type="range" id="scenario-services-slider" min="0" max="100" value="0" step="5">
-        </div>
-        <div class="settings-control-group" role="group" aria-label="Starting Infrastructure">
-          <label>Infrastructure: <span id="scenario-infra-val">0</span></label>
-          <input type="range" id="scenario-infra-slider" min="0" max="100" value="0" step="5">
-        </div>
-        <div class="settings-control-group" role="group" aria-label="Starting Funds">
-          <label>Funds: <span id="scenario-funds-val">300</span></label>
-          <input type="range" id="scenario-funds-slider" min="0" max="200" value="300" step="10">
-        </div>
-        <div class="settings-control-group" role="group" aria-label="Severity Rate">
-          <label>Severity Rise: <span id="scenario-severity-val">0.5</span></label>
-          <input type="range" id="scenario-severity-slider" min="0" max="2" value="0.5" step="0.1">
-        </div>
-        <div class="settings-control-group" role="group" aria-label="Horizon">
-          <label>Horizon: <span id="scenario-horizon-val">50</span></label>
-          <select id="scenario-horizon-select">
-            <option value="50">50 rounds</option>
-            <option value="100">100 rounds</option>
-            <option value="150">150 rounds</option>
-          </select>
-        </div>
-        <button id="scenario-generate-button" class="secondary" type="button">Generate Scenario Code</button>
-        <p id="scenario-code-display" class="comparison-message" hidden></p>
-        <button id="scenario-load-button" class="secondary" type="button" hidden>Load Scenario</button>
       </details>
       <!-- I-29: tap, hover or focus a term for a one-line definition. -->
       <div class="glossary-row" role="group" aria-label="Terms explained">
@@ -639,6 +609,7 @@
       </details>
     </div>
 
+    <!-- I-15 Reset this round, GI-18 Rewind Token, GI-30 Play 5 rounds, I-17 recap. -->
     <div id="round-tools" class="section">
       <p class="meter-label">Round tools</p>
       <div class="round-tools-buttons">
@@ -667,6 +638,7 @@
       </details>
     </div>
 
+    <!-- GI-2 / GI-11 Crisis Calendar, GI-1 Mayor's Council, GI-5 Budget Autopilot. All fixed and visible: no cards, no randomness. -->
     <div id="civic-tools" class="section">
       <p class="meter-label">Council and calendar</p>
       <details class="context-toggle" open>
@@ -751,6 +723,7 @@
       </details>
     </div>
 
+    <!-- B-7: the game's own screen-reader live region; used only when shared/announcer.js is not on the page. -->
     <div id="sr-announcer" class="sr-only" role="status" aria-live="polite" aria-atomic="true"></div>
     <div id="advance-round-wrap"><button id="advance-round-button" class="primary">Advance Round</button></div>
 
@@ -790,6 +763,9 @@
   <!-- I-4: print-only copy of the Region Report (filled by game.py just before the print dialog opens). -->
   <div id="report-print-sheet" class="report-print-sheet" aria-hidden="true"></div>
 
+  <!-- R4-DRMO-9: on phones a long-press on a term (or the "Show as bottom sheet" button next to the term popover)
+       opens its definition here, with a way on to The Real Story. Phone-only CSS; the text comes from the
+       terms' data-term-def (kept equal to game.py GLOSSARY by tests). -->
   <div id="glossary-sheet" class="glossary-sheet" role="dialog" aria-labelledby="glossary-sheet-title" aria-describedby="glossary-sheet-text" tabindex="-1" hidden>
     <div class="glossary-sheet-head">
       <h2 id="glossary-sheet-title" class="glossary-sheet-title"></h2>
@@ -811,8 +787,15 @@
     <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
   </div>
 
+  <!-- boot.js starts the tutorial with window.DRIFT_PC_TUTORIAL_STEPS (set by pc.js on the Desktop page) or with
+       DRIFT_TUTORIAL_STEPS from tutorial-steps.js. -->
   <script src="tutorial-steps.js"></script>
   <script src="boot.js"></script>
+  <!--
+    SAVE-BUTTON-INTEGRATION.md: shared save widget, same as every other
+    game. game.py exposes get_state()/load_state(); the widget itself is
+    untouched per-game.
+  -->
   <script src="../../shared/hub-auth.js"></script>
   <script src="../../shared/save-widget.js" data-game-id="drift"></script>
   <script src="../../shared/opening-screen.js" data-game-id="drift" data-tagline="Manage a region as climate displacement pressure rises." data-game-name="Drift"></script>
@@ -823,6 +806,8 @@
   <script src="../../shared/whats-new-banner.js" data-game-id="drift"></script>
   <script src="../../shared/achievement-stats.js" data-game-id="drift"></script>
   <script src="../../shared/community-index.js" data-game-id="drift" data-target="#community-index" data-template="Community capacity index: across {count} regions, average wellbeing is {wellbeing_score:mean} out of 100 (median {wellbeing_score:p50})."></script>
+  <!-- Z4 (site-wide goal): "?" shows a keyboard-shortcuts help overlay,
+       Esc closes whichever panel is open. See shared/keyboard-shortcuts.js. -->
   <script src="../../shared/keyboard-shortcuts.js"></script>
   <script src="ui.js"></script>
   <script src="shortcuts.js"></script>
@@ -831,6 +816,13 @@
       navigator.serviceWorker.register("../../sw.js");
     }
   </script>
+  <!--
+    Milestone 6 feedback prompt: plain JS, not Pyodide/game.py — same
+    documented exception used across the other games (trivial POST to
+    the shared ratings API, not game state, so no Python/pytest coverage
+    needed). Reuses the schema Canopy already extended with a `response`
+    field; no backend changes needed here.
+  -->
   <script src="feedback.js"></script>
 </body>
 </html>
