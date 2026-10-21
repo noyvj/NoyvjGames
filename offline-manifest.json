@@ -1252,7 +1252,7 @@
     },
     {
      "path": "games/grid/game.py",
-     "bytes": 14548,
+     "bytes": 14863,
      "precached": true
     },
     {
@@ -1277,7 +1277,7 @@
     },
     {
      "path": "games/grid/grid_arbitrage.py",
-     "bytes": 2546,
+     "bytes": 3261,
      "precached": true
     },
     {
@@ -1302,7 +1302,7 @@
     },
     {
      "path": "games/grid/grid_coach.py",
-     "bytes": 4872,
+     "bytes": 6286,
      "precached": true
     },
     {
@@ -1327,7 +1327,7 @@
     },
     {
      "path": "games/grid/grid_handlers_play.py",
-     "bytes": 13468,
+     "bytes": 13782,
      "precached": true
     },
     {
@@ -1352,17 +1352,17 @@
     },
     {
      "path": "games/grid/grid_realgrid.py",
-     "bytes": 6429,
+     "bytes": 8770,
      "precached": true
     },
     {
      "path": "games/grid/grid_renderer.py",
-     "bytes": 18220,
+     "bytes": 18259,
      "precached": true
     },
     {
      "path": "games/grid/grid_rules.py",
-     "bytes": 24088,
+     "bytes": 27439,
      "precached": true
     },
     {
@@ -1417,7 +1417,7 @@
     },
     {
      "path": "games/grid/grid_state.py",
-     "bytes": 28210,
+     "bytes": 28391,
      "precached": true
     },
     {
@@ -1427,7 +1427,7 @@
     },
     {
      "path": "games/grid/grid_state_round.py",
-     "bytes": 20699,
+     "bytes": 22096,
      "precached": true
     },
     {
@@ -1442,7 +1442,7 @@
     },
     {
      "path": "games/grid/grid_views.py",
-     "bytes": 9418,
+     "bytes": 11283,
      "precached": true
     },
     {
@@ -1452,12 +1452,12 @@
     },
     {
      "path": "games/grid/index.html",
-     "bytes": 61228,
+     "bytes": 62145,
      "precached": true
     },
     {
      "path": "games/grid/pc-config.json",
-     "bytes": 5526,
+     "bytes": 5607,
      "precached": false
     },
     {
@@ -1467,7 +1467,7 @@
     },
     {
      "path": "games/grid/pc.html",
-     "bytes": 66069,
+     "bytes": 67049,
      "precached": true
     },
     {
@@ -1815,7 +1815,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14968751,
+   "bytes": 14982661,
    "bytes_complete": true
   },
   "tide": {

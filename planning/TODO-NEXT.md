@@ -1,6 +1,6 @@
 # Next TODO list (from the Round 4 ideas, started 2026-10-12)
 
-**Progress: 145/921 items checked off (15.7%).** This is the NEXT list, written alongside the live `planning/TODO.md` (which is untouched). It becomes the live list once the current one is archived. Run `python3 scripts/todo-progress.py planning/TODO-NEXT.md` after ticking items.
+**Progress: 148/921 items checked off (16.1%).** This is the NEXT list, written alongside the live `planning/TODO.md` (which is untouched). It becomes the live list once the current one is archived. Run `python3 scripts/todo-progress.py planning/TODO-NEXT.md` after ticking items.
 
 How it is built: one section per Round 4 section on the ideas sheet (`planning/IMPROVEMENT-IDEAS-ROUND-4.md`), in the sheet's order, ids `R4-<section code>-<number>`. Only ideas you answered "yes" to are items, with your note where you wrote one. A section that is not fully answered keeps its heading and ends with one item to add the rest once you have answered them. "No" answers are dropped (listed under the heading); "later" answers are parked in `planning/LATER.md`.
 
@@ -35,23 +35,23 @@ How it is built: one section per Round 4 section on the ideas sheet (`planning/I
 | DEPC. Dead Reckoning: PC view | 2/10 | 20% | ██░░░░░░░░ |
 | LGPC. Logic Gates: PC view | 2/10 | 20% | ██░░░░░░░░ |
 | PU. Signal: made for you | 1/6 | 17% | ██░░░░░░░░ |
+| GRMO. Grid: mobile view | 1/10 | 10% | █░░░░░░░░░ |
+| GR. Grid: general ideas | 1/15 | 7% | █░░░░░░░░░ |
+| PG. Grid: made for you | 1/29 | 3% | ░░░░░░░░░░ |
 | PC. Canopy: made for you | 0/30 | 0% | ░░░░░░░░░░ |
 | PI. Tide: made for you | 0/30 | 0% | ░░░░░░░░░░ |
 | PN. Le Champ de Mots: made for you | 0/30 | 0% | ░░░░░░░░░░ |
 | PW. Whole site: made for you | 0/29 | 0% | ░░░░░░░░░░ |
 | PS. SOL: made for you | 0/29 | 0% | ░░░░░░░░░░ |
-| PG. Grid: made for you | 0/29 | 0% | ░░░░░░░░░░ |
 | CLP. Chronicle: made for you | 0/28 | 0% | ░░░░░░░░░░ |
 | XG. Whole site: general ideas | 0/17 | 0% | ░░░░░░░░░░ |
 | SO. SOL: general ideas | 0/15 | 0% | ░░░░░░░░░░ |
-| GR. Grid: general ideas | 0/15 | 0% | ░░░░░░░░░░ |
 | TI. Tide: general ideas | 0/15 | 0% | ░░░░░░░░░░ |
 | CA. Canopy: general ideas | 0/14 | 0% | ░░░░░░░░░░ |
 | SOPC. SOL: PC view | 0/10 | 0% | ░░░░░░░░░░ |
 | CAPC. Canopy: PC view | 0/10 | 0% | ░░░░░░░░░░ |
 | CAMO. Canopy: mobile view | 0/10 | 0% | ░░░░░░░░░░ |
 | GRPC. Grid: PC view | 0/10 | 0% | ░░░░░░░░░░ |
-| GRMO. Grid: mobile view | 0/10 | 0% | ░░░░░░░░░░ |
 | TIPC. Tide: PC view | 0/10 | 0% | ░░░░░░░░░░ |
 | TIMO. Tide: mobile view | 0/10 | 0% | ░░░░░░░░░░ |
 | AFPC. Aftermath: PC view | 0/10 | 0% | ░░░░░░░░░░ |
@@ -111,7 +111,7 @@ How it is built: one section per Round 4 section on the ideas sheet (`planning/I
 | OCP. Overclock: made for you | 0/1 | 0% | ░░░░░░░░░░ |
 | AU. Sound | 0/1 | 0% | ░░░░░░░░░░ |
 | **Done: 1 sections at 100%** (LEPC) | 10/10 | 100% | ██████████ |
-| **All sections** | **145/921** | **15.7%** | ██░░░░░░░░ |
+| **All sections** | **148/921** | **16.1%** | ██░░░░░░░░ |
 
 <!-- PROGRESS-CHART:END -->
 
@@ -359,7 +359,7 @@ Dropped (you said no): CA-15.
 
 15 ideas on the sheet: 15 yes, 0 no, 0 later, 0 not answered yet.
 
-- [ ] R4-GR-1: (big) Add city growth that includes electrifying transport and heating, so demand jumps are announced as stories ("Bus fleets go electric in 3 rounds"). You learn why clean power matters for more than lights. [local AI: in steps]
+- [x] R4-GR-1: (big) Add city growth that includes electrifying transport and heating, so demand jumps are announced as stories ("Bus fleets go electric in 3 rounds"). You learn why clean power matters for more than lights. [local AI: in steps]
 - [ ] R4-GR-2: (small) Announce big new demand a few rounds ahead ("A data centre opens in 3 rounds, +40 demand"). You can plan builds instead of being surprised. [local AI: yes]
 - [ ] R4-GR-3: (big) Add transmission lines: plants far from the city can only deliver fully if you build and pay for lines. You get a planning puzzle about where power is made versus used. [needs you]
 - [ ] R4-GR-4: (big) Add a winter and summer split to each round, because summer air conditioning and winter heating create different peaks that different plants cover best. You see why one plant type is never enough. [needs you]
@@ -404,7 +404,7 @@ Dropped (you said no): PG-30.
 - [ ] R4-PG-22: (big) Add a Continental Grid endgame where several regions run together and numbers reach billions. This follows your love of huge exponential growth. [needs you]
 - [ ] R4-PG-23: (small) Add a hand-drawn blueprint look for plant pictures. This follows your occasional liking for hand-drawn art. [local AI: yes]
 - [ ] R4-PG-24: (small) Add spare capacity favours: a friend's grid can send you one gift of spare capacity, and you can send one back. This follows your helper role and optional friend ties. [Claude: backend]
-- [ ] R4-PG-25: (small) Add a physics bench where you adjust voltage, current and distance to see why power is lost in wires. This follows your physics interest. [local AI: in steps]
+- [x] R4-PG-25: (small) Add a physics bench where you adjust voltage, current and distance to see why power is lost in wires. This follows your physics interest. [local AI: in steps]
 - [ ] R4-PG-26: (small) Add unit conversion mini-puzzles (kW, MW, GW) that give a small funds bonus when right. This follows your maths interest, and the puzzle visibly counts. [local AI: yes]
 - [ ] R4-PG-27: (big) Add script puzzles where you write the shortest set of if-then rules that survive a storm. This follows your wish to learn coding through puzzles. [Claude: new puzzle engine]
 - [ ] R4-PG-28: (big) Add a household story following one family across the run through branching choices about bills and heating. This follows your Lifeline-style story taste and your housing concerns. [Claude: story writing]
@@ -435,7 +435,7 @@ Dropped (you said no): PG-30.
 - [ ] R4-GRMO-4: (small) Show a warning chip when forecast demand exceeds supply that opens a sheet of fixes when tapped. A problem comes with a one-tap path to solve it. [local AI: yes]
 - [ ] R4-GRMO-5: (small) Add a card density option (compact, normal, roomy) in Settings. The plant cards fit your phone and your eyes. [local AI: yes]
 - [ ] R4-GRMO-6: (small) Show an installed-app home card with the current round, emissions trend and a "next best build" line before the game opens. You can glance at your grid in class. [local AI: yes]
-- [ ] R4-GRMO-7: (big) Add a half-asleep Auto-plan that suggests one build per round as a big single button and shows the effect in plain words. A tired player can still make steady progress. [local AI: in steps]
+- [x] R4-GRMO-7: (big) Add a half-asleep Auto-plan that suggests one build per round as a big single button and shows the effect in plain words. A tired player can still make steady progress. [local AI: in steps]
 - [ ] R4-GRMO-8: (small) Turn the weather log into a horizontal card strip you swipe through, one card per round. Reading the past is a thumb flick. [local AI: yes]
 - [ ] R4-GRMO-9: (small) Show emissions as a thin line along the top edge that fills across the screen as they grow. The long-term goal is visible without a panel. [local AI: yes]
 - [ ] R4-GRMO-10: (small) Let a long-press on any gauge pop up a bottom sheet with a plain-words explanation and its last five values. You get the detail without a hover. [local AI: yes]
