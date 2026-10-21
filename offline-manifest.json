@@ -6227,7 +6227,7 @@
     },
     {
      "path": "games/signal/game.py",
-     "bytes": 4370,
+     "bytes": 4367,
      "precached": true
     },
     {
@@ -6494,7 +6494,7 @@
     }
    ],
    "cdn": [],
-   "bytes": 637933,
+   "bytes": 637930,
    "bytes_complete": true
   },
   "lexis": {
