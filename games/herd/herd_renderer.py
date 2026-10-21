@@ -6,8 +6,8 @@ from js import document
 
 import herd_runstate as runstate
 from herd_rules import (
-    BASE_COUPLING_RATIO, DECOUPLING_MEASURES, HERD_INCOME_PER_UNIT, MAX_HAZE_OPACITY, MAX_PLANT_BASED_FRACTION,
-    MAX_PRESSURE, PLANT_BASED_EMISSIONS_MULTIPLIER, PLANT_PIVOT_COST, POULTRY_BASE_RATIO, POULTRY_INCOME_PER_UNIT,
+    BASE_COUPLING_RATIO, DECOUPLING_MEASURES, MAX_HAZE_OPACITY, MAX_PLANT_BASED_FRACTION, MAX_PRESSURE,
+    PLANT_PIVOT_COST,
 )
 from herd_model import pressure_scale
 from herd_blind import blind_hidden, render_blind_run
@@ -175,38 +175,3 @@ def render():
     render_loadouts()
     render_audit()
     render_sandbox()
-
-    # F-8: Mixed-herd allocation UI
-    alloc_el = document.getElementById("allocation-control")
-    if runstate.farm.poultry_unlocked():
-        alloc_el.hidden = False
-        alloc = runstate.farm.allocation_poultry
-        document.getElementById("allocation-value").innerText = f"{int(alloc * 100)}% Poultry"
-
-        plant_frac = runstate.farm.plant_based_fraction()
-        beef_part = (1 - alloc) * (1 - plant_frac)
-        poultry_part = alloc * (1 - plant_frac)
-        plant_part = plant_frac
-
-        total = beef_part + poultry_part + plant_part or 1
-        document.getElementById("alloc-beef").style.width = f"{beef_part / total * 100:.0f}%"
-        document.getElementById("alloc-poultry").style.width = f"{poultry_part / total * 100:.0f}%"
-        document.getElementById("alloc-plant").style.width = f"{plant_part / total * 100:.0f}%"
-
-        beef_income = runstate.farm.herd_size * (1 - alloc) * HERD_INCOME_PER_UNIT * runstate.farm.certification_multiplier() * runstate.farm.welfare_multiplier()
-        poultry_income = runstate.farm.herd_size * alloc * POULTRY_INCOME_PER_UNIT
-        plant_income = runstate.farm.herd_size * plant_frac * HERD_INCOME_PER_UNIT * PLANT_BASED_EMISSIONS_MULTIPLIER
-        total_income = beef_income + poultry_income + plant_income
-
-        beef_methane = runstate.farm.herd_size * (1 - alloc) * BASE_COUPLING_RATIO
-        poultry_methane = runstate.farm.herd_size * alloc * POULTRY_BASE_RATIO
-        plant_methane = runstate.farm.herd_size * plant_frac * PLANT_BASED_EMISSIONS_MULTIPLIER
-        total_methane = beef_methane + poultry_methane + plant_methane
-
-        welfare = runstate.farm.welfare()
-
-        document.getElementById("alloc-income").innerText = f"Income: {total_income:.0f}"
-        document.getElementById("alloc-methane").innerText = f"Methane: {total_methane:.0f}"
-        document.getElementById("alloc-welfare").innerText = f"Welfare: {welfare:.0f}"
-    else:
-        alloc_el.hidden = True

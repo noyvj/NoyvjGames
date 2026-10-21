@@ -159,10 +159,6 @@ ELEMENT_IDS = [
     "loadout-panel", "loadout-summary", "loadout-select", "loadout-note", "loadout-list", "loadout-status",
     # GF-28 blind run.
     "blind-run-checkbox", "blind-run-note", "blind-run-panel", "blind-reveal-text", "blind-reveal-button",
-    # F-8 mixed-herd allocation.
-    "allocation-control", "allocation-slider", "allocation-value", "allocation-bar",
-    "alloc-beef", "alloc-poultry", "alloc-plant", "allocation-breakdown",
-    "alloc-income", "alloc-methane", "alloc-welfare",
     # GF-21 golden cow.
     "golden-cow-panel", "golden-cow-summary", "golden-cow-claim-button", "golden-cow-status", "golden-cow-glider",
     # GF-17 barns.

@@ -194,9 +194,6 @@ class FarmState:
         self.golden_claimed = 0
         self.golden_funds = 0.0
 
-        # F-8: mixed-herd allocation slider (0 to 1, proportion of poultry)
-        self.allocation_poultry = 0.0
-
         # GF-18: one rewind per game. undo_snapshot (the state just before the last
         # Advance Round) is never saved; undo_used is, once it is true.
         self.undo_used = False

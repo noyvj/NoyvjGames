@@ -212,15 +212,3 @@ html:not([data-tactile="off"]) button:active:not(:disabled) { transform: transla
 @media (prefers-reduced-motion: reduce) { .pasture-tractor { display: none; } html:not([data-tactile="off"]) button:active:not(:disabled) { transform: none; } }
 html[data-reduced-motion="true"] .pasture-tractor, html[data-lite="true"] .pasture-tractor { display: none; }
 html[data-reduced-motion="true"] button:active:not(:disabled), html[data-lite="true"] button:active:not(:disabled) { transform: none !important; }
-
-/* F-8: Mixed-herd allocation UI */
-.allocation-control { margin-top: 0.5rem; padding-top: 0.5rem; border-top: 1px solid rgba(140, 160, 255, 0.18); }
-.allocation-control label { font-size: 0.8rem; display: flex; justify-content: space-between; margin-bottom: 0.3rem; }
-.allocation-bar { height: 24px; border-radius: 6px; overflow: hidden; display: flex; background: rgba(140, 160, 255, 0.08); margin-bottom: 0.4rem; }
-.alloc-segment { height: 100%; transition: width 0.3s ease; }
-.alloc-beef { background: #b87900; }
-.alloc-poultry { background: #2f86b8; }
-.alloc-plant { background: #4c9c6e; }
-.allocation-breakdown { display: flex; gap: 0.8rem; font-size: 0.75rem; opacity: 0.8; }
-@media (prefers-reduced-motion: reduce) { .alloc-segment { transition: none; } }
-html[data-reduced-motion="true"] .alloc-segment { transition: none; }

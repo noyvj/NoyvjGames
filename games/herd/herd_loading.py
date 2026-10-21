@@ -122,7 +122,6 @@ def _apply_state(data):
     _load_progress_fields(data)
     runstate.farm.variation_enabled = data.get("variation_enabled") is True
     runstate.farm.regional_cap_enabled = data.get("regional_cap_enabled") is True
-    runstate.farm.allocation_poultry = data.get("allocation_poultry", 0.0)
     runstate.farm.policy_offer_pending = data.get("policy_offer_pending") is True
     runstate.farm.subsidy_rounds_left = _safe_int(data.get("subsidy_rounds_left"), 0)
     _load_policy_fields(data)
