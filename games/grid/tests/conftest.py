@@ -198,7 +198,6 @@ ELEMENT_IDS += ["fleet-body"] + [f"fleet-sort-{k}" for k in ("plant", "count", "
 
 ELEMENT_IDS += ["electrification-display"]
 ELEMENT_IDS += ["bench-panel", "bench-voltage", "bench-current", "bench-distance", "bench-readout"]
-ELEMENT_IDS += ["plan-table", "plan-body"] + [f"plan-sort-{k}" for k in ("plant", "cost", "output", "emissions", "payback")]
 ELEMENT_IDS += ["autoplan-panel", "autoplan-text", "autoplan-build-button"]
 INITIALLY_DISABLED_IDS = (
     [f"{p}-build-button" for p in PLANT_TYPES]
