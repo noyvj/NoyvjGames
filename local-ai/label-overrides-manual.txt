@@ -1,3 +1,4 @@
 # ITEM | [label]: items the local AI must not take, found by audits (wins over the generated overrides)
 FY-11 | [Claude: live web data]   # 2026-10-21 audit: the AI only flipped a status word (no set authored, no owner sign-off)
 CH-11 | [Claude: live web data]
+F-8 | [Claude: design]   # 2026-10-21 audit: the allocation slider changes nothing in the economy; needs a design for what an allocation really does

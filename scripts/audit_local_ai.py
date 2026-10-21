@@ -428,7 +428,7 @@ def cmd_finish(args):
     run([sys.executable, "scripts/todo-progress.py"])   # the live list may have been ticked too
     code, out = run([sys.executable, "scripts/todo-progress.py", "planning/TODO-NEXT.md"])
     print(out.strip().splitlines()[-1] if out.strip() else "")
-    git("add", "sw.js", "offline-manifest.json", "planning/TODO-NEXT.md")
+    git("add", "sw.js", "offline-manifest.json", "planning/TODO-NEXT.md", "planning/TODO.md")
     git("commit", "-q", "-m", "Audited %s: tick %s%s; precache check\n\nCo-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>" % (
         slug, ", ".join(accepted) or "nothing", ("; partial: " + ", ".join(partial)) if partial else ""),
         "--", "sw.js", "offline-manifest.json", "planning/TODO-NEXT.md", check=False)
