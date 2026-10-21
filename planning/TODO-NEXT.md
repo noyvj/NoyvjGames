@@ -1,6 +1,6 @@
 # Next TODO list (from the Round 4 ideas, started 2026-10-12)
 
-**Progress: 151/921 items checked off (16.4%).** This is the NEXT list, written alongside the live `planning/TODO.md` (which is untouched). It becomes the live list once the current one is archived. Run `python3 scripts/todo-progress.py planning/TODO-NEXT.md` after ticking items.
+**Progress: 152/921 items checked off (16.5%).** This is the NEXT list, written alongside the live `planning/TODO.md` (which is untouched). It becomes the live list once the current one is archived. Run `python3 scripts/todo-progress.py planning/TODO-NEXT.md` after ticking items.
 
 How it is built: one section per Round 4 section on the ideas sheet (`planning/IMPROVEMENT-IDEAS-ROUND-4.md`), in the sheet's order, ids `R4-<section code>-<number>`. Only ideas you answered "yes" to are items, with your note where you wrote one. A section that is not fully answered keeps its heading and ends with one item to add the rest once you have answered them. "No" answers are dropped (listed under the heading); "later" answers are parked in `planning/LATER.md`.
 
@@ -28,11 +28,11 @@ How it is built: one section per Round 4 section on the ideas sheet (`planning/I
 | HEMO. Herd: mobile view | 5/10 | 50% | █████░░░░░ |
 | LGMO. Logic Gates: mobile view | 4/10 | 40% | ████░░░░░░ |
 | DRMO. Drift: mobile view | 3/10 | 30% | ███░░░░░░░ |
+| DEPC. Dead Reckoning: PC view | 3/10 | 30% | ███░░░░░░░ |
 | DEMO. Dead Reckoning: mobile view | 3/10 | 30% | ███░░░░░░░ |
 | RSPC. Robot Script: PC view | 3/10 | 30% | ███░░░░░░░ |
 | PX. Lexis: made for you | 6/29 | 21% | ██░░░░░░░░ |
 | HEPC. Herd: PC view | 2/10 | 20% | ██░░░░░░░░ |
-| DEPC. Dead Reckoning: PC view | 2/10 | 20% | ██░░░░░░░░ |
 | LGPC. Logic Gates: PC view | 2/10 | 20% | ██░░░░░░░░ |
 | PU. Signal: made for you | 1/6 | 17% | ██░░░░░░░░ |
 | GRMO. Grid: mobile view | 1/10 | 10% | █░░░░░░░░░ |
@@ -111,7 +111,7 @@ How it is built: one section per Round 4 section on the ideas sheet (`planning/I
 | OCP. Overclock: made for you | 0/1 | 0% | ░░░░░░░░░░ |
 | AU. Sound | 0/1 | 0% | ░░░░░░░░░░ |
 | **Done: 1 sections at 100%** (LEPC) | 10/10 | 100% | ██████████ |
-| **All sections** | **151/921** | **16.4%** | ██░░░░░░░░ |
+| **All sections** | **152/921** | **16.5%** | ██░░░░░░░░ |
 
 <!-- PROGRESS-CHART:END -->
 
@@ -1207,7 +1207,7 @@ Parked in LATER.md (you said later): PX-25.
 - [ ] R4-DEPC-2: (small) Add mouse-wheel zoom and drag pan on the chart with a scale bar and a recentre key. You can read a big chart closely. [Claude: design]
 - [ ] R4-DEPC-3: (small) Show the position in nautical miles, the current arrow and the tide at that spot as you hover over the chart. The chart tells you what is under the cursor. [local AI: in steps]
 - [ ] R4-DEPC-4: (small) Add a right-click menu on the chart with Drop a fix mark, Measure from the ship and Add a waypoint. Chart tools sit at the cursor. [Claude: design]
-- [ ] R4-DEPC-5: (small) Hold R and drag to measure distance and bearing like parallel rules. You get a real chart tool. [local AI: in steps]
+- [x] R4-DEPC-5: (small) Hold R and drag to measure distance and bearing like parallel rules. You get a real chart tool. [local AI: in steps]
 - [ ] R4-DEPC-6: (small) Add a layers panel to toggle currents, wind, hazards, grid and labels. The chart can be as plain or rich as you like. [local AI: yes]
 - [ ] R4-DEPC-7: (big) Add an editable plan table where every leg is a row with heading, speed and time cells you tab through, and the chart redraws as you type. You can plan like a spreadsheet. [Claude: design]
 - [ ] R4-DEPC-8: (small) Dock the tide table as a window beside the chart and highlight the row for the hour of your current leg. You read tides without hunting. [local AI: yes]

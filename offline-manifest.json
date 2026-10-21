@@ -8146,7 +8146,7 @@
     },
     {
      "path": "games/dead-reckoning/app.js",
-     "bytes": 50875,
+     "bytes": 53190,
      "precached": true
     },
     {
@@ -8264,7 +8264,7 @@
     },
     {
      "path": "games/dead-reckoning/index.html",
-     "bytes": 20966,
+     "bytes": 21164,
      "precached": true
     },
     {
@@ -8294,7 +8294,7 @@
     },
     {
      "path": "games/dead-reckoning/pc.html",
-     "bytes": 23135,
+     "bytes": 23333,
      "precached": true
     },
     {
@@ -8608,7 +8608,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 14631009,
+   "bytes": 14633720,
    "bytes_complete": true
   },
   "logic-gates": {
