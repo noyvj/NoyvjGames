@@ -9,7 +9,8 @@ from grid_rules import (
     GLOBAL_AVG_FOSSIL_EMISSIONS_FACTOR, GLOBAL_AVG_FOSSIL_SHARE, MAX_REVENUE_LOSS_FRACTION, PLANT_BASE_COST,
     PLANT_CAPACITY, PLANT_TYPES, POLICY_LEVER_INTERVAL, RECORD_CLEAN_SHARE, REGIONAL_DEMAND_FRACTION,
     REGIONAL_REVENUE_PER_UNIT_SHARED, REGIONAL_SHORTFALL_COST_PER_UNIT, RENEWABLE_TYPES,
-    WEATHER_LOG_MAX_ENTRIES, WEATHER_VARIANCE_FRACTION,
+    WEATHER_LOG_MAX_ENTRIES, WEATHER_VARIANCE_FRACTION, SCENARIOS, ELECTRIFICATION_EVENTS,
+    ELECTRIFICATION_NOTICE_ROUNDS, incident_ids,
 )
 
 
@@ -302,6 +303,7 @@ class GridStateRound:
         # response investment -- see that method's own docstring.
         demand_growth = self.demand_growth_this_round()
         self.demand += demand_growth
+        self.demand += self.electrification_jump(self.round_number)
 
         self.last_event = event
         if event:
@@ -311,6 +313,9 @@ class GridStateRound:
             self.current_clean_streak += 1
             self.best_clean_streak = max(self.best_clean_streak, self.current_clean_streak)
         self.last_aging_event = aging_event
+        for incident_id in incident_ids(event, aging_event):
+            if incident_id not in self.incident_files_seen:
+                self.incident_files_seen[incident_id] = round_played
         self._update_emergency()
         # GC-15: a Perfect Round has no disruption (a waived one counts), no aging breakdown and
         # demand fully met; the streak of them raises next round's revenue bonus.
@@ -329,6 +334,7 @@ class GridStateRound:
         self.clean_fraction_log.append(1 - self.fossil_share())
         self.emissions_history.append(self.emissions)
         self.avg_renewable_cost_history.append(self.average_renewable_cost())
+        self.capacity_history.append(self.total_capacity())
         self.global_reference_emissions_history.append(self.global_reference_emissions)
         self.funds_history.append(self.funds)
         self.demand_history.append(self.demand)
@@ -392,3 +398,26 @@ class GridStateRound:
             if self.maintain_plant(plant_type):
                 done.append({"plant": plant_type, "cost": cost})
         return done
+
+    def electrification_active(self):
+        """Returns True if the current scenario has electrification enabled."""
+        return bool(SCENARIOS[self.scenario].get("electrification"))
+
+    def electrification_jump(self, round_number):
+        """Returns the demand increase for an electrification event at `round_number`, or 0."""
+        if not self.electrification_active():
+            return 0
+        for event in ELECTRIFICATION_EVENTS:
+            if event["round"] == round_number:
+                return event["demand"]
+        return 0
+
+    def electrification_notice(self):
+        """Returns (event, rounds_away) for the earliest upcoming electrification event within notice range, or None."""
+        if not self.electrification_active():
+            return None
+        for event in ELECTRIFICATION_EVENTS:
+            diff = event["round"] - self.round_number
+            if 0 <= diff <= ELECTRIFICATION_NOTICE_ROUNDS:
+                return (event, diff)
+        return None

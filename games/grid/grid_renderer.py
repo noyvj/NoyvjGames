@@ -36,7 +36,7 @@ from grid_achievement_cards import update_achievements_display
 from grid_sandbox import render_sandbox_balance
 from grid_fleet import render_fleet_overview
 from grid_runsetup import render_run_setup_and_extras
-from grid_coach import render_coach
+from grid_coach import render_autoplan, render_coach
 from grid_arbitrage import _render_arbitrage_and_emergency
 from grid_schematic import render_schematic
 from grid_realgrid import render_real_grid, render_regional_grid
@@ -124,6 +124,7 @@ def render():
     render_chart_tables()
     render_fleet_overview()
     render_coach()
+    render_autoplan()
     render_rank()
     render_needle_gauge()
     render_gridley()

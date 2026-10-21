@@ -95,3 +95,38 @@ def render_coach():
     document.getElementById("pref-coach").checked = runstate.prefs["coach"]
     if runstate.prefs["coach"]:
         document.getElementById("coach-text").innerText = coach_observation()
+
+
+def auto_plan_suggestion():
+    s = runstate.state
+    capacity = s.total_capacity()
+    next_demand = s.demand + s.demand_growth_this_round()
+    gap = next_demand - capacity
+
+    if gap <= 0:
+        return {
+            "plant": None,
+            "text": f"Nothing to build this round: capacity {capacity:g} already covers next round's demand of {next_demand:g}."
+        }
+
+    affordable = [t for t in RENEWABLE_TYPES if s.plant_cost(t) <= s.funds]
+    if not affordable:
+        cheapest = min(s.plant_cost(t) for t in RENEWABLE_TYPES)
+        return {
+            "plant": None,
+            "text": f"Save up: the cheapest renewable plant costs {cheapest:.0f} and you have {s.funds:.0f}. Next round is {gap:g} short."
+        }
+
+    pick = min(affordable, key=lambda t: s.plant_cost(t) / PLANT_CAPACITY[t])
+    return {
+        "plant": pick,
+        "text": f"Build one {PLANT_LABEL[pick]} plant for {s.plant_cost(pick):.0f} funds. It adds {PLANT_CAPACITY[pick]} capacity and closes {min(PLANT_CAPACITY[pick], gap):g} of the {gap:g} shortfall expected next round."
+    }
+
+
+def render_autoplan():
+    suggestion = auto_plan_suggestion()
+    document.getElementById("autoplan-text").innerText = suggestion["text"]
+    button = document.getElementById("autoplan-build-button")
+    button.disabled = suggestion["plant"] is None
+    button.title = "" if suggestion["plant"] else "Nothing to build right now."

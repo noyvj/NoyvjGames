@@ -227,7 +227,20 @@ SCENARIOS = {
         "demand": 180,
     },
 }
-SCENARIO_ORDER = ["standard", "coal_legacy", "greenfield", "emergency"]
+SCENARIOS["electrified"] = {
+    "label": "Electrified city",
+    "funds": STARTING_FUNDS,
+    "plants": {},
+    "electrification": True,
+}
+ELECTRIFICATION_NOTICE_ROUNDS = 3
+ELECTRIFICATION_EVENTS = [
+    {"round": 6, "title": "Bus fleets go electric", "demand": 12},
+    {"round": 12, "title": "Heat pumps replace gas boilers", "demand": 18},
+    {"round": 18, "title": "Delivery vans and freight depots go electric", "demand": 20},
+    {"round": 24, "title": "Factories switch to electric heat", "demand": 25},
+]
+SCENARIO_ORDER = ["standard", "coal_legacy", "greenfield", "emergency", "electrified"]
 
 # C27 -- the player has EMERGENCY_ROUNDS rounds to bring capacity up to
 # demand and hold it there for EMERGENCY_HOLD_ROUNDS rounds in a row. There
@@ -431,6 +444,22 @@ GRANT_FINE = 70
 GRANT_REPAIR_AGE = 3.0
 GRANT_CONTEST_ROUNDS = 2
 
+BOSS_ROUND_INTERVAL = 8
+BOSS_REWARD_FUNDS = 150
+
+BOSS_ROUNDS = [
+    {"id": "heatwave", "name": "Heatwave", "demand_pct": 20, "hydro_penalty_pct": 0, "preview": "Air conditioners everywhere push demand up 20% for one round."},
+    {"id": "polar_vortex", "name": "Polar Vortex", "demand_pct": 25, "hydro_penalty_pct": 0, "preview": "A deep freeze pushes demand up 25% for one round."},
+    {"id": "dry_summer", "name": "Dry Summer", "demand_pct": 0, "hydro_penalty_pct": 50, "preview": "Low rivers cut Hydro output by half for one round."},
+]
+
+
+def boss_for_round(round_number):
+    if round_number < BOSS_ROUND_INTERVAL or round_number % BOSS_ROUND_INTERVAL != 0:
+        return None
+    return BOSS_ROUNDS[(round_number // BOSS_ROUND_INTERVAL - 1) % len(BOSS_ROUNDS)]
+
+
 # GC-4 -- plant nicknames, drawn from the run's seed (reproducible), and a eulogy when the last
 # coal plant is retired.
 PLANT_NAME_POOL = {
@@ -502,3 +531,50 @@ PREF_CHOICES = {
     "rank_theme": RANK_THEMES,
     "chart_theme": CHART_THEMES,
 }
+
+
+def _build_incident_files():
+    files = {}
+    for p in ("coal", "gas"):
+        label = PLANT_LABEL[p]
+        files[f"brownout_{p}"] = {
+            "title": f"Brownout: {label} strain",
+            "cause": f"{label} was your biggest source of emissions, and accumulated emissions raise the chance and severity of a disruption.",
+            "stops": "Retire fossil plants and build clean capacity: fewer emissions lower both the chance and the severity."
+        }
+    files["brownout_lingering"] = {
+        "title": "Brownout: lingering emissions",
+        "cause": "No fossil plant was left standing, but emissions from earlier rounds still raised the disruption chance.",
+        "stops": "Keep building clean plants: emissions only fall as capacity gets cleaner."
+    }
+    for p in ("coal", "gas"):
+        label = PLANT_LABEL[p]
+        files[f"damage_{p}"] = {
+            "title": f"Damage: {label} plant lost",
+            "cause": "Disruption severity passed the 50% damage line, so your largest fossil fleet lost a unit.",
+            "stops": "Keep accumulated emissions low enough that severity stays under 50%."
+        }
+    for t in PLANT_TYPES:
+        label = PLANT_LABEL[t]
+        files[f"aging_{t}"] = {
+            "title": f"Aging breakdown: {label}",
+            "cause": "The fleet average age passed the 8-round grace period and a worn unit broke down.",
+            "stops": "Maintain the fleet (takes 6 rounds off its age) or set an auto-maintenance schedule."
+        }
+    return files
+
+
+INCIDENT_FILES = _build_incident_files()
+
+
+def incident_ids(event, aging_event):
+    """Return a list of incident file IDs for the given event and aging breakdown."""
+    ids = []
+    if event is not None:
+        if event["type"] == "brownout":
+            ids.append("brownout_" + (event.get("cause_plant") or "lingering"))
+        elif event["type"] == "damage":
+            ids.append("damage_" + event["damaged_plant"])
+    if aging_event is not None:
+        ids.append("aging_" + aging_event["plant"])
+    return ids

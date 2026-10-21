@@ -186,3 +186,50 @@ def render_chart_tables():
     gauge_table = document.getElementById("gauge-table")
     gauge_table.hidden = not on
     gauge_table.innerHTML = gauge_table_html() if on else ""
+
+
+BENCH_OHMS_PER_KM = 0.05
+BENCH_SESSION = {"tries": 0, "best": None}
+
+
+def bench_text(voltage_kv, current_a, distance_km):
+    """Power line bench readout text."""
+    result = line_loss(voltage_kv, current_a, distance_km)
+    BENCH_SESSION["tries"] += 1
+    if BENCH_SESSION["best"] is None or result["percent"] < BENCH_SESSION["best"]:
+        BENCH_SESSION["best"] = result["percent"]
+
+    return (
+        f"Sending {result['sent_mw']:.1f} MW at {voltage_kv:g} kV and {current_a:g} A over "
+        f"{distance_km:g} km loses {result['loss_mw']:.2f} MW ({result['percent']:.1f}%) as heat. "
+        f"Settings tried: {BENCH_SESSION['tries']}. Lowest loss found: {BENCH_SESSION['best']:.1f}%. "
+        f"Lower loss needs a higher voltage, less current or a shorter line."
+    )
+
+
+def update_bench(event=None):
+    """Read inputs and update the bench readout."""
+    try:
+        v = float(document.getElementById("bench-voltage").value)
+    except (ValueError, TypeError, AttributeError):
+        v = 110
+    try:
+        c = float(document.getElementById("bench-current").value)
+    except (ValueError, TypeError, AttributeError):
+        c = 500
+    try:
+        d = float(document.getElementById("bench-distance").value)
+    except (ValueError, TypeError, AttributeError):
+        d = 100
+
+    document.getElementById("bench-readout").innerText = bench_text(v, c, d)
+
+
+def line_loss(voltage_kv, current_a, distance_km):
+    """Power line bench: calculate transmission loss for a given voltage, current, and distance."""
+    if voltage_kv <= 0 or current_a <= 0:
+        return {"sent_mw": 0.0, "loss_mw": 0.0, "percent": 0.0}
+    sent_mw = voltage_kv * current_a / 1000
+    loss_mw = current_a ** 2 * BENCH_OHMS_PER_KM * max(0, distance_km) / 1e6
+    percent = loss_mw / sent_mw * 100
+    return {"sent_mw": sent_mw, "loss_mw": loss_mw, "percent": percent}

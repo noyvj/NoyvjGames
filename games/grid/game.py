@@ -21,7 +21,7 @@ from grid_sandbox_state import SANDBOX_BALANCE
 from grid_career_data import _default_career, _sync_perks, load_career_from_storage
 from grid_prefs import load_prefs_from_storage
 from grid_panels import on_toggle_changelog, on_toggle_info_page, on_toggle_weather_log
-from grid_views import TREND_CHECKBOX_PREFS
+from grid_views import TREND_CHECKBOX_PREFS, update_bench
 from grid_announce import _seed_achievement_toast_baseline
 from grid_summary import on_toggle_summary_panel
 from grid_achievement_cards import on_toggle_achievements
@@ -38,7 +38,7 @@ from grid_handlers_panels import (
 from grid_handlers_play import (
     _make_build_handler, _make_maintain_handler, _make_maintenance_schedule_handler, _make_plant_key_handler,
     _make_retire_handler, _make_sandbox_balance_handler, on_advance_round, on_auto_advance,
-    on_connect_regional_grid, on_cycle_arbitrage_mode, on_cycle_scenario, on_decline_policy,
+    on_autoplan_build, on_connect_regional_grid, on_cycle_arbitrage_mode, on_cycle_scenario, on_decline_policy,
     on_difficulty_preset_change, on_dismiss_maintain_callout, on_dismiss_renewable_milestone,
     on_dismiss_retire_callout, on_enact_carbon_pricing, on_enact_renewable_subsidy, on_invest_demand_response,
     on_real_grid_change, on_sandbox_balance_reset, on_shadow_change, on_toggle_steeper_demand,
@@ -183,6 +183,8 @@ def setup():
         document.getElementById(f"sandbox-bal-{balance_key.replace('_', '-')}").addEventListener(
             "input", create_proxy(_make_sandbox_balance_handler(balance_key))
         )
+    for bench_id in ("bench-voltage", "bench-current", "bench-distance"):
+        document.getElementById(bench_id).addEventListener("input", create_proxy(update_bench))
     document.getElementById("slot-select").addEventListener("change", create_proxy(on_slot_select))
     document.getElementById("slot-save-button").addEventListener("click", create_proxy(on_slot_save))
     document.getElementById("slot-load-button").addEventListener("click", create_proxy(on_slot_load))
@@ -241,6 +243,7 @@ def setup():
     document.getElementById("weather-variability-toggle-button").addEventListener(
         "click", create_proxy(on_toggle_weather_variability)
     )
+    document.getElementById("autoplan-build-button").addEventListener("click", create_proxy(on_autoplan_build))
     document.getElementById("scenario-toggle-button").addEventListener(
         "click", create_proxy(on_cycle_scenario)
     )

@@ -44,6 +44,7 @@ class GridState(GridStateRound, GridStateExtras):
         self.emissions_history = []
         self.avg_renewable_cost_history = []
         self.renewable_unlocked = False
+        self.capacity_history = []
         self.plant_age = {t: 0.0 for t in PLANT_TYPES}
         self.global_reference_emissions = 0.0
         self.global_reference_emissions_history = []
@@ -56,6 +57,7 @@ class GridState(GridStateRound, GridStateExtras):
         # every other running total.
         self.bau_emissions = 0.0
         self.last_aging_event = None
+        self.incident_files_seen = {}
         # New tracked state for the achievements framework (see the
         # "Achievements" section below) -- nothing else in this module
         # records how many times Maintain has actually been used, or how
@@ -142,6 +144,9 @@ class GridState(GridStateRound, GridStateExtras):
         self.aging_breakdown_count = 0
         self.first_90_clean_round = None
         self.last_round_recap = None
+        self.boss_rounds_enabled = False
+        self.bosses_beaten = 0
+        self.last_boss_message = ""
         # Seeded run (see SEED_GAME): the run's seed, the chosen starting loadout (GC-2b), whether
         # Diplomatic Immunity is still unspent, the round of the last paid peek (GC-11).
         self.seed = new_run_seed()

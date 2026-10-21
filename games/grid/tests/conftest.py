@@ -196,6 +196,9 @@ ELEMENT_IDS += ["pref-coach", "coach-panel", "coach-text", "settings-reset-butto
 # C-14 fleet overview.
 ELEMENT_IDS += ["fleet-body"] + [f"fleet-sort-{k}" for k in ("plant", "count", "wear", "risk", "next", "revenue")]
 
+ELEMENT_IDS += ["electrification-display"]
+ELEMENT_IDS += ["bench-panel", "bench-voltage", "bench-current", "bench-distance", "bench-readout"]
+ELEMENT_IDS += ["autoplan-panel", "autoplan-text", "autoplan-build-button"]
 INITIALLY_DISABLED_IDS = (
     [f"{p}-build-button" for p in PLANT_TYPES]
     + [f"{p}-retire-button" for p in PLANT_TYPES]

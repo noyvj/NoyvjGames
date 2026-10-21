@@ -353,6 +353,7 @@
       <p id="skyline-caption" class="skyline-caption"></p>
     </div>
 
+    <details id="bench-panel" class="section"><summary>Power line bench</summary><label for="bench-voltage">Voltage (kV)</label><input type="range" id="bench-voltage" min="11" max="400" step="1" value="110"><label for="bench-current">Current (A)</label><input type="range" id="bench-current" min="100" max="2000" step="50" value="500"><label for="bench-distance">Distance (km)</label><input type="range" id="bench-distance" min="10" max="500" step="10" value="100"><p id="bench-readout" class="comparison-message" role="status">Move a slider to see how much power the line loses.</p></details>
     <!-- C-13: three named run slots kept in this browser (no sign-in); each slot holds a whole run with its own scenario. -->
     <details id="slots-panel" class="slots-panel">
       <summary>Run slots (this browser)</summary>
@@ -424,6 +425,7 @@
     <div id="status" class="section">
       <p id="round-display" class="status-line">Round 1</p>
       <p id="demand-display" class="status-line">Demand: 100</p>
+      <p id="electrification-display" class="callout" hidden></p>
       <!-- C27: emergency-response scenario status (only shown in that scenario) -->
       <p id="emergency-status-display" class="callout" hidden></p>
       <!-- TODO-C7: demand response -- a fourth lever, trimming demand growth
@@ -838,6 +840,7 @@
     <!-- GC-17: play up to five rounds in one click, stopping at the first disruption, breakdown or policy offer. -->
     <button id="auto-advance-button" class="secondary" type="button">Auto-advance up to 5 rounds</button>
     <p id="auto-advance-status" class="comparison-message" hidden></p>
+    <details id="autoplan-panel" class="section"><summary>Auto-plan (one suggested build)</summary><p id="autoplan-text" class="comparison-message"></p><button id="autoplan-build-button" class="primary" type="button">Build the suggestion</button></details>
 
     <div id="feedback-prompt" class="section">
       <p class="feedback-question">Did this change how you think about energy transition &amp; emissions?</p>

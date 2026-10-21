@@ -13,6 +13,7 @@ from grid_savegame import get_state
 from grid_announce import _check_new_achievements_for_toast, _funds_phrase, announce, round_announcement_text
 from grid_difficulty import DIFFICULTY_PRESETS, apply_difficulty_preset
 from grid_sandbox import _SANDBOX_STASHED, _sandbox_fresh_globals, _sandbox_restore_real
+from grid_coach import auto_plan_suggestion
 from grid_realgrid import set_real_grid
 from grid_slots import autosave_slot
 from grid_callouts import (
@@ -51,6 +52,13 @@ def _make_build_handler(plant_type):
         render()
         _check_new_achievements_for_toast()
     return handler
+
+
+def on_autoplan_build(event=None):
+    """R4-GRMO-7: build the one plant the Auto-plan panel suggests (nothing happens when it suggests none)."""
+    plant_type = auto_plan_suggestion()["plant"]
+    if plant_type is not None:
+        _make_build_handler(plant_type)()
 
 
 def on_cycle_scenario(event=None):
