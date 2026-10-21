@@ -100,6 +100,3 @@ try:
     sys.modules[__name__].__class__ = _GameModule
 except TypeError:  # a host without module subclassing: plain names still work, only the forwarding is lost
     pass
-
-
-
