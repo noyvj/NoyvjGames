@@ -29,7 +29,7 @@ from drift_report import render_batch3
 from drift_rules import (
     ACCELERATED_SEVERITY_MULTIPLIER, CAPACITY_EFFECT_SUMMARY, CAPACITY_ICON, CAPACITY_LABEL, CAPACITY_TYPES,
     INVEST_COST, REALLOCATION_FUNDS_COST, REALLOCATION_LOSS_FRACTION, REALLOCATION_UNITS,
-    THRIVING_WELLBEING_SCORE, subscore_arrow, subscore_sparkline,
+    THRIVING_WELLBEING_SCORE, subscore_arrow, subscore_sparkline, trend_indicator,
 )
 from drift_tiers import _maybe_update_tier_best
 from drift_trendgraph import wellbeing_band
@@ -38,6 +38,61 @@ from drift_visuals import (
     REGION_VISUAL_BUILDING_IDS, _pulse, region_visual_building_count, region_visual_height_scale,
     render_pending_pipeline, scaled_seconds, strain_consequence_message, strain_heartbeat_seconds,
 )
+
+
+def _trend_word(subscore_log, key):
+    """Plain-word trend for one sub-score ('' before two rounds exist), so no arrow glyph has to be read out."""
+    if len(subscore_log) < 2:
+        return "not enough rounds yet"
+    return trend_indicator(
+        [e.get(key, 0.0) for e in subscore_log if isinstance(e, dict)], tolerance=1.0
+    )
+
+
+def render_non_visual_tables():
+    """I-5: the region picture, arrival stream and gauges as labelled tables plus a one-sentence round summary.
+    Filled on every render; the Non-Visual Mode button (settings.js) only toggles the `non-visual-mode` class on
+    <html>, and style.css shows or hides the container, so nothing here depends on a Python flag."""
+    rows = [("Round", f"{region.round_number}"), ("Funds", f"{region.funds:.0f}")]
+    for capacity_type in CAPACITY_TYPES:
+        rows.append((CAPACITY_LABEL[capacity_type] + " capacity", f"{region.capacity[capacity_type]:.0f}"))
+    rows += [
+        ("Total capacity", f"{region.total_capacity():.0f}"),
+        ("Strain", f"{region.strain_fraction() * 100:.0f}% ({region.strain_level()})"),
+        ("Integrated population", f"{region.integrated_population:.0f}"),
+        ("Pending population", f"{region.pending_population():.0f}"),
+    ]
+    document.getElementById("nv-status-body").innerHTML = "".join(
+        f"<tr><th scope=\"row\">{label}</th><td>{value}</td></tr>" for label, value in rows
+    )
+
+    current = region.arrivals_this_round()
+    arrival_rows = [f"<tr><th scope=\"row\">Round {region.round_number} (now)</th><td>{current:.0f}</td>"
+                    f"<td>{arrival_stream_dot_count(current)} dots</td></tr>"]
+    past = region.arrivals_log[-5:]
+    for back, value in enumerate(reversed(past), start=1):
+        arrival_rows.append(
+            f"<tr><th scope=\"row\">Round {region.round_number - back}</th><td>{value:.0f}</td>"
+            f"<td>{arrival_stream_dot_count(value)} dots</td></tr>"
+        )
+    document.getElementById("nv-arrival-body").innerHTML = "".join(arrival_rows)
+
+    gauges = [
+        ("Service quality", "service", region.service_quality()),
+        ("Economic health", "economy", region.economic_health()),
+        ("Social cohesion", "cohesion", region.social_cohesion()),
+    ]
+    document.getElementById("nv-gauges-body").innerHTML = "".join(
+        f"<tr><th scope=\"row\">{label}</th><td>{value:.0f} of 100</td>"
+        f"<td>{_trend_word(region.subscore_log, key)}</td></tr>"
+        for label, key, value in gauges
+    )
+
+    document.getElementById("non-visual-summary").innerText = (
+        f"Round {region.round_number}. Funds {region.funds:.0f}. "
+        f"Strain {region.strain_fraction() * 100:.0f}% ({region.strain_level()}). "
+        f"Wellbeing {region.wellbeing_score():.0f} of 100."
+    )
 
 
 def render():
@@ -334,4 +389,5 @@ def render():
     render_ledger()
     render_collection_summary()
     render_batch3()
+    render_non_visual_tables()
     document.title = tab_title()

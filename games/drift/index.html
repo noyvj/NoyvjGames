@@ -124,6 +124,7 @@
            5 accessibility.js established first, so it works even before
            Pyodide finishes booting. -->
       <button id="settings-toggle-button" class="secondary" type="button">⚙️ Settings</button>
+      <button id="non-visual-toggle-button" class="secondary" type="button">Non-Visual Mode: Off</button>
     </div>
     <div id="howto-panel" class="section" hidden></div>
     <div id="achievements-panel" class="section achievements-panel" hidden></div>
@@ -333,6 +334,23 @@
         <!-- R4-DRMO-9: phone-only keyboard path to the bottom sheet (CSS shows it on phones). -->
         <button id="glossary-sheet-open" class="secondary glossary-sheet-open" type="button">Show as bottom sheet</button>
       </div>
+    </div>
+
+    <div id="non-visual-tables" class="non-visual-section">
+      <h2 class="meter-label">Non-visual view: the region as tables</h2>
+      <p id="non-visual-summary" role="status" aria-live="polite"></p>
+      <table aria-label="Region status">
+        <thead><tr><th scope="col">Metric</th><th scope="col">Value</th></tr></thead>
+        <tbody id="nv-status-body"></tbody>
+      </table>
+      <table aria-label="Arrival stream density">
+        <thead><tr><th scope="col">Round</th><th scope="col">Arrivals</th><th scope="col">Dots in the stream</th></tr></thead>
+        <tbody id="nv-arrival-body"></tbody>
+      </table>
+      <table aria-label="Wellbeing gauges">
+        <thead><tr><th scope="col">Dimension</th><th scope="col">Score</th><th scope="col">Trend</th></tr></thead>
+        <tbody id="nv-gauges-body"></tbody>
+      </table>
     </div>
 
     <div id="pressure" class="section">

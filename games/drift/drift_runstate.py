@@ -82,7 +82,6 @@ skin_choice = None  # drift_collection loads the saved skin choice into this whe
 
 _last_seen_saved_at = None  # drift_settings reads the last save time into this when it is imported
 
-
 # Names that other modules must reach as runstate.<name> (game.py forwards reads and writes to them).
 LIVE_NAMES = (
     "cross_region_learning",

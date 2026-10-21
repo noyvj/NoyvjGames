@@ -213,6 +213,23 @@
       });
     });
 
+    var nonVisualKey = "drift-non-visual-mode";
+    var nonVisual = applyFlag(nonVisualKey, "non-visual-mode", readFlag(nonVisualKey));
+    var nvButton = document.getElementById("non-visual-toggle-button");
+    function updateNVButton() {
+      if (!nvButton) return;
+      nvButton.textContent = "Non-Visual Mode: " + (nonVisual ? "On" : "Off");
+      nvButton.classList.toggle("active", nonVisual);
+      nvButton.setAttribute("aria-pressed", nonVisual ? "true" : "false");
+    }
+    updateNVButton();
+    if (nvButton) {
+      nvButton.addEventListener("click", function () {
+        nonVisual = applyFlag(nonVisualKey, "non-visual-mode", !nonVisual);
+        updateNVButton();
+      });
+    }
+
     var news = applyFlag(NEWS_KEY, "news-ticker-on", readFlag(NEWS_KEY));
     var newsButton = document.getElementById("news-ticker-toggle-button");
     function updateNewsButton() {
@@ -296,6 +313,8 @@
         if (dusk) dusk.click();
         news = applyFlag(NEWS_KEY, "news-ticker-on", false);
         updateNewsButton();
+        nonVisual = applyFlag(nonVisualKey, "non-visual-mode", false);
+        updateNVButton();
         animSpeed = applyAnimSpeed("normal");
         density = applyDensity("comfortable");
         markGroup("anim-speed-group", "data-speed", animSpeed);
