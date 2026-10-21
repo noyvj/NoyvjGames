@@ -347,6 +347,28 @@ function Get-NewFindings {
     Remove-Item Env:NOYVJ_ROOT -ErrorAction SilentlyContinue
     (@($now | Where-Object { $_ -and $_ -notlike "static_check: no findings*" -and $known -notcontains (& $strip $_) }) -join "`n")
 }
+# A targeted hint for the errors the model keeps making (2026-10-20: of the day's 20 failures, 12 were the model's
+# own new tests, mostly these). Added to the repair prompt when the failing output shows one of them.
+function Get-ErrorHints([string]$text) {
+    $hints = @()
+    if ($text -match "No module named '(js|pyodide)'|has no attribute 'js'") {
+        $hints += "- 'js' and 'pyodide' exist only in the browser, not in pytest (unless tests/conftest.py makes a fake one). Test the Python function directly with plain values, or put the page check in a browser test built from the template in RULES.md."
+    }
+    if ($text -match "page_errors") {
+        $hints += "- The page itself threw a JavaScript error (see page_errors in the output). Fix the page code that throws (a missing element, a typo, a function used before it exists); do not change the test to ignore errors."
+    }
+    if ($text -match "wait_for_function: Timeout") {
+        $hints += "- The page never became READY: the game did not finish loading, almost always because new page code throws while loading. Look for the error and fix the page code."
+    }
+    if ($text -match "Page\.(click|fill|check): Timeout|wait_for_selector: Timeout") {
+        $hints += "- The element was never visible or clickable: open the panel that contains it first, use the window size where it shows, or check the id is really in index.html."
+    }
+    if ($text -match "KeyError|NoneType' object|has no attribute|unhashable type|unsupported operand") {
+        $hints += "- A value does not have the shape the code expected. Read the function that makes it (get_state, the view, the rules module) and use its real keys and types; do not guess."
+    }
+    if ($hints.Count) { return "Hints for this error:`n" + ($hints -join "`n") + "`n" }
+    return ""
+}
 $verifiedState = $null
 $verifiedLine = ""
 $repairs = 0
@@ -443,6 +465,7 @@ real level from the game's own data files), then check by reading the function w
 delete a test just to pass; fix it, or replace it with one that checks something real. Change only your new
 test file.
 
+$(Get-ErrorHints $tail)
 Test output (end):
 ~~~
 $tail
@@ -468,6 +491,7 @@ index.html#play and wait for READY exactly as the template in RULES.md does, and
 (open its panel, use the right window size) before clicking it. A "Timeout ... exceeded" on a click or a wait
 almost always means one of those. Fix the test or the code, whichever is wrong; never just delete the test.
 
+$(Get-ErrorHints $tail)
 Test output (end):
 ~~~
 $tail
@@ -636,7 +660,23 @@ if (-not $ok) {
     git -C $root branch -q -D $branch 2>$null | Out-Null
     # One automatic second try for a TODO task (not test-writing tasks): back on the second list, which runs
     # after queue.txt. A second failure is not retried again.
-    if ($Item -notmatch '^(T|EDGE)-') {
+    # A chain step (one of Noy2's split steps) is retried right away instead: its later steps are queued after it
+    # and would all be skipped without it, losing the whole item (2026-10-20: 5 of the day's chains stopped at one
+    # failed page step). It goes back as chain:NAME:N, so it again starts from the previous step's branch.
+    if ($Chain) {
+        $queueItem = "chain:${Chain}:$Step"
+        $doneFile = Join-Path $aiDir "queue-done.txt"
+        $failedBefore = @(Get-Content $doneFile -Encoding utf8 -ErrorAction SilentlyContinue | Where-Object { $_ -match "^\W*FAILED .*\| $([regex]::Escape($queueItem)) \|" }).Count
+        if ($failedBefore -eq 0 -and -not $timedOut) {
+            $retryLine = "$Game | $queueItem | $($Files -join ', ') | $($Task -replace '\|', '/')"
+            $queueFile = Join-Path $aiDir "queue.txt"
+            $qLines = @(Get-Content $queueFile -Encoding utf8 -ErrorAction SilentlyContinue)
+            $at = 0; while ($at -lt $qLines.Count -and ($qLines[$at].Trim() -eq "" -or $qLines[$at].Trim().StartsWith("#"))) { $at++ }
+            Set-Content -Encoding utf8 $queueFile (@($qLines | Select-Object -First $at) + @($retryLine) + @($qLines | Select-Object -Skip $at))
+            Write-Host "Queued one more try for $queueItem straight away (top of queue.txt), before the rest of its chain."
+        }
+    }
+    elseif ($Item -notmatch '^(T|EDGE)-') {
         $doneFile = Join-Path $aiDir "queue-done.txt"
         $failedBefore = @(Get-Content $doneFile -Encoding utf8 -ErrorAction SilentlyContinue | Where-Object { $_ -match "^\W*FAILED .*\| $([regex]::Escape($Item)) \|" }).Count
         if ($failedBefore -eq 0 -and -not $timedOut) {
