@@ -85,7 +85,7 @@ Six mode tabs now (Timeline, Cause web, Myth or record, Whose account?, Decision
 | 5 | Myth or record: sort claims by their `confidence` field with a reason from the claim's own source notes (`myth.py`), two new sourced myth claims, Info page audit (cause links, strength legend, coverage, publishers per claim), archive meter, achievements | **DONE** here (2026-10-08, untagged) |
 | 6 | Whose account?: `accounts.json` (2 sample accounts, Gettysburg and the Emancipation Proclamation, 6 passages, each tied to a source read on 2026-10-08 with author, date and primary/secondary), `account.py`, validation `E_ACCOUNT*`, 9 new claims, Info page, archive group, 4 achievements | **DONE** here (2026-10-08, untagged) |
 | 7 | Spaced review (`review.py`, day counter, ladder 1/3/7/14/30, no guilt framing) and decision points (`decisions.json`, 3 in the sample: Fort Sumter, buying Louisiana, Washington and a second term, each part a 3-source claim), tutorial, Info page, `review.html`, 4 achievements | **DONE** here (2026-10-08, untagged) |
-| 8 | Presidents set authored in full, review, owner sign-off | Done |
+| 8 | Presidents set authored in full, review, owner sign-off | planned (the sample is a draft until the owner has reviewed it) |
 | 9 | Second and third sets (history of food, Ancient Greece) | planned |
 | 10 | Polish, hub registration (card, favicon in `icons/`, service worker, `shared/site-settings.js` GAME_KEYS), Desktop boot | planned |
 

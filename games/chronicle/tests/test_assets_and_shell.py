@@ -135,8 +135,3 @@ def test_game_claude_md_has_a_milestone_table():
     assert "| # | Milestone" in text and "sample, draft until reviewed" in text.lower()
     for n in ("1", "2", "3"):
         assert re.search(r"^\| %s \|" % n, text, re.M)
-
-
-def test_milestone_8_is_done():
-    text = (GAME_DIR / "CLAUDE.md").read_text(encoding="utf-8")
-    assert re.search(r"^\| 8 \|.*\| Done \|$", text, re.M), "Milestone 8 should be marked Done"
