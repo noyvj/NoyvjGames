@@ -18,6 +18,7 @@ from canopy_weather import _note_season_relations
 from canopy_worldvars import (
     FOREST_NAME_MAX, GOLDEN_SEEDLING_MIN_GAP, NICKNAME_MAX, RARE_WILDLIFE, STANDING_TIERS,
     TEND_COOLDOWN_TICKS, TEND_DURATION_TICKS, _gb_toast_queue, _pending_bloom, _pending_golden_bursts,
+    season_frames,
 )
 
 
@@ -43,6 +44,7 @@ def _gb_after_tick():
 
 def _reset_gb_state():
     del _gb_toast_queue[:]
+    del season_frames[:]
     runstate.forest_name = ""
     runstate.adopted_plot_nickname = ""
     runstate.heart_tree_index = None

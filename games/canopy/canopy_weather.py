@@ -5,9 +5,9 @@ from canopy_helpers import _announce, _flash_element, _gb_hash, _gb_toast, _log_
 from canopy_rules import SEASONS, SEASON_CYCLE_TICKS, SEASON_LABEL, current_season, current_season_multiplier
 from canopy_worldvars import (
     DUSK_TICKS_IN_AUTUMN, PERFECT_SEASON_MIN_RELATIONS, PERFECT_STREAK_BONUS_PER_SEASON,
-    PERFECT_STREAK_MAX_BONUS_SEASONS, WEATHER_BLOCK_TICKS, WEATHER_DROUGHT_MULTIPLIER,
-    WEATHER_DURATION_TICKS, WEATHER_EPISODE_PERCENT, WEATHER_FIRST_TICK, WEATHER_RAIN_MULTIPLIER,
-    WEATHER_SEASON_KIND,
+    PERFECT_STREAK_MAX_BONUS_SEASONS, SEASON_FRAME_LETTER, SEASON_FRAMES_MAX, WEATHER_BLOCK_TICKS,
+    WEATHER_DROUGHT_MULTIPLIER, WEATHER_DURATION_TICKS, WEATHER_EPISODE_PERCENT, WEATHER_FIRST_TICK,
+    WEATHER_RAIN_MULTIPLIER, WEATHER_SEASON_KIND, season_frames,
 )
 
 
@@ -100,6 +100,13 @@ def _end_season():
         runstate.perfect_streak = 0
     runstate.season_cleared = False
     runstate.season_min_relations = runstate.community_relations
+    season_frames.append({
+        "n": runstate.forest_tick // SEASON_CYCLE_TICKS,
+        "label": ended,
+        "cols": runstate.GRID_COLS,
+        "cells": "".join("X" if plot.blocked else SEASON_FRAME_LETTER[plot.state] for plot in runstate.plots),
+    })
+    del season_frames[:-SEASON_FRAMES_MAX]
     _announce(
         f"{SEASON_LABEL[current_season()]} begins, growth x{current_season_multiplier():.2f}"
     )  # B-7
