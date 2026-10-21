@@ -1,83 +1,41 @@
-import contextlib
-import functools
-import http.server
-import socket
-import threading
-from pathlib import Path
+"""The farm achievement glyph (the crop drawn before each earned achievement) looks different in each visual style.
 
+The glyph span is the one champ_achievements.py draws; the CSS in style-2-panels.css and visual-styles.css is what
+this checks, by putting one such span on the real page and switching data-visual-style the way visual-style.js does.
+"""
 import pytest
 
 pytest.importorskip("playwright.sync_api")
 from playwright.sync_api import sync_playwright  # noqa: E402
 
-ROOT = Path(__file__).resolve().parents[3]
-GAME = "champ-de-mots"
+from browser_helpers import open_game  # noqa: E402
+
+GLYPH = "document.querySelector('.achievement-glyph')"
 
 
-@pytest.fixture(scope="module")
-def base():
-    class Quiet(http.server.SimpleHTTPRequestHandler):
-        def log_message(self, *args):
-            pass
-
-    handler = functools.partial(Quiet, directory=str(ROOT))
-    with contextlib.closing(socket.socket()) as s:
-        s.bind(("127.0.0.1", 0))
-        port = s.getsockname()[1]
-    server = http.server.ThreadingHTTPServer(("127.0.0.1", port), handler)
-    threading.Thread(target=server.serve_forever, daemon=True).start()
-    yield "http://localhost:%d/games/%s/" % (port, GAME)
-    server.shutdown()
+def _style(page, prop, pseudo=None):
+    return page.evaluate("() => getComputedStyle(%s, %s).getPropertyValue('%s')"
+                         % (GLYPH, "'%s'" % pseudo if pseudo else "null", prop))
 
 
-READY = ("(() => { const s = document.querySelector('#engine-status');"
-         " if (s) return s.textContent === '' || s.hidden;"
-         " return !!window.pyodide && !!window.pyodide.globals.get('get_state'); })()")
-
-
-def open_game(p, base, width=1280, height=800):
-    browser = p.chromium.launch()
-    ctx = browser.new_context(viewport={"width": width, "height": height}, service_workers="block")
-    ctx.route("**/*fastapicloud*/**", lambda route: route.abort())
-    page = ctx.new_page()
-    page.goto(base + "index.html#play")
-    page.wait_for_function(READY, timeout=90000)
-    return browser, page
-
-
-def test_achievement_glyphs_four_styles(base):
+def test_achievement_glyph_looks_different_in_each_visual_style_and_raises_no_page_errors(base):
     with sync_playwright() as p:
         browser, page = open_game(p, base)
-
-        # Inject the achievement element to test styles in isolation.
         page.evaluate("""() => {
-            const p = document.createElement('p');
-            p.className = 'achievement-earned';
-            p.innerHTML = '<span class="achievement-glyph" data-glyph-word="sprout">🌱</span>';
-            document.body.appendChild(p);
+            const line = document.createElement('p');
+            line.className = 'achievement-earned';
+            line.innerHTML = '<span class="achievement-glyph" data-glyph-word="sprout" aria-hidden="true">🌱</span>';
+            document.body.appendChild(line);
         }""")
-
-        # High-def (default)
-        clip_path = page.evaluate("() => getComputedStyle(document.querySelector('.achievement-glyph')).getPropertyValue('clip-path')")
-        assert clip_path == "none"
-
-        # Low-poly
+        page.evaluate("document.documentElement.setAttribute('data-visual-style', 'highdef')")
+        assert _style(page, "clip-path") == "none"
+        assert _style(page, "border-top-width") == "0px"
         page.evaluate("document.documentElement.setAttribute('data-visual-style', 'lowpoly')")
-        clip_path = page.evaluate("() => getComputedStyle(document.querySelector('.achievement-glyph')).getPropertyValue('clip-path')")
-        assert clip_path.startswith("polygon(")
-
-        # Cartoon
+        assert _style(page, "clip-path").startswith("polygon(")
         page.evaluate("document.documentElement.setAttribute('data-visual-style', 'cartoon')")
-        border_top_width = page.evaluate("() => getComputedStyle(document.querySelector('.achievement-glyph')).getPropertyValue('border-top-width')")
-        assert border_top_width == "2px"
-
-        # Text-based
+        assert _style(page, "border-top-width") == "2px"
         page.evaluate("document.documentElement.setAttribute('data-visual-style', 'textbased')")
-        font_size = page.evaluate("() => getComputedStyle(document.querySelector('.achievement-glyph')).getPropertyValue('font-size')")
-        assert font_size == "0px"
-
-        pseudo_content = page.evaluate("() => getComputedStyle(document.querySelector('.achievement-glyph'), '::after').getPropertyValue('content')")
-        assert pseudo_content == '"[sprout] "'
-
-        assert True
+        assert _style(page, "font-size") == "0px"
+        assert _style(page, "content", "::after") == '"[sprout] "'
+        assert page.errors == []
         browser.close()
