@@ -1,10 +1,19 @@
-import game
 import json
 
+import pytest
+
+import game
 from tests.helpers import call, fresh, solve, solve_all
 
 
-def test_timing_off_or_no_steps():
+@pytest.fixture(autouse=True)
+def _timing_back_off():
+    """timing_on is a module global (never saved); put it back so it cannot leak into other test files."""
+    yield
+    game.timing_on = False
+
+
+def test_timing_is_none_on_a_level_without_steps_even_when_on():
     fresh()
     v = call("timing", on=True)
     assert v["timing"] is None
