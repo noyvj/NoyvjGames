@@ -354,6 +354,7 @@
     </div>
 
     <!-- C-13: three named run slots kept in this browser (no sign-in); each slot holds a whole run with its own scenario. -->
+    <details id="bench-panel" class="section"><summary>Power line bench</summary><label for="bench-voltage">Voltage (kV)</label><input type="range" id="bench-voltage" min="11" max="400" step="1" value="110"><label for="bench-current">Current (A)</label><input type="range" id="bench-current" min="100" max="2000" step="50" value="500"><label for="bench-distance">Distance (km)</label><input type="range" id="bench-distance" min="10" max="500" step="10" value="100"><p id="bench-readout" class="comparison-message" role="status">Move a slider to see how much power the line loses.</p></details>
     <details id="slots-panel" class="slots-panel">
       <summary>Run slots (this browser)</summary>
       <div class="slots-row">
