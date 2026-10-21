@@ -171,8 +171,7 @@
   }
 
   function zoomCamera(deltaY) {
-    cameraDistance += deltaY * 0.01;
-    cameraDistance = Math.max(MIN_DISTANCE, Math.min(MAX_DISTANCE, cameraDistance));
+    cameraDistance = Math.max(MIN_DISTANCE, Math.min(MAX_DISTANCE, cameraDistance * (deltaY < 0 ? 1 / 1.1 : 1.1)));
     updateCameraPosition();
     if (renderer && scene) renderer.render(scene, camera);
     notifyChange();
@@ -521,14 +520,21 @@
     container.style.touchAction = "none";
     container.addEventListener("wheel", function (event) { event.preventDefault(); zoomCamera(event.deltaY); }, { passive: false });
     container.addEventListener("contextmenu", function (e) { e.preventDefault(); });
+    // A middle press would start the browser's auto-scroll; the mouse event is what starts it.
+    container.addEventListener("mousedown", function (e) { if (e.button === 1) e.preventDefault(); });
     container.addEventListener("pointerdown", function (event) {
       if (event.pointerType === "touch") {
         touchDown[event.pointerId] = { x: event.clientX, y: event.clientY };
-        if (Object.keys(touchDown).length === 2) {
+        if (Object.keys(touchDown).length === 1) {
+          // One finger still orbits, as it did before the two-finger tap existed.
+          dragging = true;
+          panning = false;
+          lastPointer = { x: event.clientX, y: event.clientY };
+        } else if (Object.keys(touchDown).length === 2) {
           twoTap = { at: event.timeStamp, moved: false };
           dragging = false;
           lastPointer = null;
-        } else if (Object.keys(touchDown).length >= 3) {
+        } else {
           twoTap = null;
         }
       } else {
@@ -539,12 +545,14 @@
       }
     });
     window.addEventListener("pointerup", function (event) {
-      if (event.pointerType === "touch") {
+      if (touchDown[event.pointerId]) {
         if (twoTap && !twoTap.moved && event.timeStamp - twoTap.at < 400 && Object.keys(touchDown).length === 2) {
           applyCameraPreset(lastPresetName);
         }
         twoTap = null;
         delete touchDown[event.pointerId];
+        dragging = false;
+        lastPointer = null;
       } else {
         dragging = false;
         panning = false;

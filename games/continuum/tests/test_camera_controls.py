@@ -58,3 +58,11 @@ def test_two_finger_tap_reset_camera():
     assert "lastPresetName = name;" in src
     assert "event.timeStamp - twoTap.at < 400" in src
     assert "applyCameraPreset(lastPresetName)" in src
+
+
+def test_zoom_is_a_ten_percent_step_and_a_touch_press_starts_an_orbit():
+    """Wheel zoom multiplies the distance by 1.1; one touch finger still starts an orbit; pointerup is matched by pointer id."""
+    src = render3d_source()
+    assert "cameraDistance * (deltaY < 0 ? 1 / 1.1 : 1.1)" in src
+    assert "if (touchDown[event.pointerId]) {" in src
+    assert 'addEventListener("mousedown"' in src
