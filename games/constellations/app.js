@@ -740,10 +740,6 @@
     listFill("pledge-list", info.pledge);
     setText($("how-heading"), info.how_heading);
     listFill("how-list", info.how);
-    if (info.plain_rules_heading) {
-      setText($("rules-heading"), info.plain_rules_heading);
-      listFill("plain-rules-list", info.plain_rules);
-    }
     setText($("facts-heading"), info.facts_heading);
     var list = $("info-page-sources");
     if (list.dataset.drawn) return;
