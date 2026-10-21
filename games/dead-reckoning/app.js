@@ -913,6 +913,7 @@
         measure.held = false;
       }
     });
+    window.addEventListener("blur", function() { measure.held = false; measure.from = null; });   // a key released in another window must not leave R stuck on
     $("chart-holder").addEventListener("pointerdown", function(e) {
       if (measure.held && e.pointerType === "mouse" && e.button === 0) {
         var pt = chartXY(e.clientX, e.clientY);
