@@ -301,7 +301,6 @@
         <button id="save-nudge-dismiss" class="secondary" type="button">Dismiss</button>
       </div>
       <p id="collection-summary-display" class="status-line"></p>
-      <div id="non-visual-summary" class="sr-only" role="status" aria-live="polite"></div>
       <p id="region-title-display" class="status-line"></p>
       <p id="run-stars-display" class="status-line"></p>
       <label class="region-name-row">Region name (optional, carried into the coda)
@@ -337,17 +336,19 @@
       </div>
     </div>
 
-    <div id="non-visual-tables" class="non-visual-section" hidden>
+    <div id="non-visual-tables" class="non-visual-section">
+      <h2 class="meter-label">Non-visual view: the region as tables</h2>
+      <p id="non-visual-summary" role="status" aria-live="polite"></p>
       <table aria-label="Region status">
-        <thead><tr><th>Metric</th><th>Value</th></tr></thead>
+        <thead><tr><th scope="col">Metric</th><th scope="col">Value</th></tr></thead>
         <tbody id="nv-status-body"></tbody>
       </table>
       <table aria-label="Arrival stream density">
-        <thead><tr><th>Round</th><th>Arrivals</th><th>Dots</th></tr></thead>
+        <thead><tr><th scope="col">Round</th><th scope="col">Arrivals</th><th scope="col">Dots in the stream</th></tr></thead>
         <tbody id="nv-arrival-body"></tbody>
       </table>
       <table aria-label="Wellbeing gauges">
-        <thead><tr><th>Dimension</th><th>Score</th><th>Trend</th></tr></thead>
+        <thead><tr><th scope="col">Dimension</th><th scope="col">Score</th><th scope="col">Trend</th></tr></thead>
         <tbody id="nv-gauges-body"></tbody>
       </table>
     </div>

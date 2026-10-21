@@ -17,7 +17,7 @@
       ["settings-toggle-button", "⚙️"]
     ],
     "menu": [
-      {"heading": "Game", "ids": ["accelerated-severity-toggle-button", "crisis-start-toggle-button"]},
+      {"heading": "Game", "ids": ["accelerated-severity-toggle-button", "crisis-start-toggle-button", "non-visual-toggle-button"]},
       {"heading": "Help", "ids": ["tutorial-restart-button", "info-page-toggle-button", "credits-link"]},
       {"heading": "Records", "ids": ["ledger-toggle-button", "collection-toggle-button", "report-toggle-button", "changelog-toggle-button"]}
     ]
@@ -42,7 +42,7 @@
   "zones": {
     "topbar": [".hub-back-link", "h1", ".game-toolbar"],
     "stagebar": [],
-    "stage": [".region-visual", "#status", "#pressure", "#integration", "#wellbeing"],
+    "stage": [".region-visual", "#status", "#non-visual-tables", "#pressure", "#integration", "#wellbeing"],
     "side": ["#advance-round-button", "#coda-button", "#capacity", "#round-tools", "#civic-tools", "#neighbor-panel", "#capacity-tools"],
     "hidden": ["#round-display", "#funds-display", "#total-capacity-display"]
   },

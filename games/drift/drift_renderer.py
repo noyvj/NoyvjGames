@@ -29,7 +29,7 @@ from drift_report import render_batch3
 from drift_rules import (
     ACCELERATED_SEVERITY_MULTIPLIER, CAPACITY_EFFECT_SUMMARY, CAPACITY_ICON, CAPACITY_LABEL, CAPACITY_TYPES,
     INVEST_COST, REALLOCATION_FUNDS_COST, REALLOCATION_LOSS_FRACTION, REALLOCATION_UNITS,
-    THRIVING_WELLBEING_SCORE, subscore_arrow, subscore_sparkline,
+    THRIVING_WELLBEING_SCORE, subscore_arrow, subscore_sparkline, trend_indicator,
 )
 from drift_tiers import _maybe_update_tier_best
 from drift_trendgraph import wellbeing_band
@@ -38,6 +38,61 @@ from drift_visuals import (
     REGION_VISUAL_BUILDING_IDS, _pulse, region_visual_building_count, region_visual_height_scale,
     render_pending_pipeline, scaled_seconds, strain_consequence_message, strain_heartbeat_seconds,
 )
+
+
+def _trend_word(subscore_log, key):
+    """Plain-word trend for one sub-score ('' before two rounds exist), so no arrow glyph has to be read out."""
+    if len(subscore_log) < 2:
+        return "not enough rounds yet"
+    return trend_indicator(
+        [e.get(key, 0.0) for e in subscore_log if isinstance(e, dict)], tolerance=1.0
+    )
+
+
+def render_non_visual_tables():
+    """I-5: the region picture, arrival stream and gauges as labelled tables plus a one-sentence round summary.
+    Filled on every render; the Non-Visual Mode button (settings.js) only toggles the `non-visual-mode` class on
+    <html>, and style.css shows or hides the container, so nothing here depends on a Python flag."""
+    rows = [("Round", f"{region.round_number}"), ("Funds", f"{region.funds:.0f}")]
+    for capacity_type in CAPACITY_TYPES:
+        rows.append((CAPACITY_LABEL[capacity_type] + " capacity", f"{region.capacity[capacity_type]:.0f}"))
+    rows += [
+        ("Total capacity", f"{region.total_capacity():.0f}"),
+        ("Strain", f"{region.strain_fraction() * 100:.0f}% ({region.strain_level()})"),
+        ("Integrated population", f"{region.integrated_population:.0f}"),
+        ("Pending population", f"{region.pending_population():.0f}"),
+    ]
+    document.getElementById("nv-status-body").innerHTML = "".join(
+        f"<tr><th scope=\"row\">{label}</th><td>{value}</td></tr>" for label, value in rows
+    )
+
+    current = region.arrivals_this_round()
+    arrival_rows = [f"<tr><th scope=\"row\">Round {region.round_number} (now)</th><td>{current:.0f}</td>"
+                    f"<td>{arrival_stream_dot_count(current)} dots</td></tr>"]
+    past = region.arrivals_log[-5:]
+    for back, value in enumerate(reversed(past), start=1):
+        arrival_rows.append(
+            f"<tr><th scope=\"row\">Round {region.round_number - back}</th><td>{value:.0f}</td>"
+            f"<td>{arrival_stream_dot_count(value)} dots</td></tr>"
+        )
+    document.getElementById("nv-arrival-body").innerHTML = "".join(arrival_rows)
+
+    gauges = [
+        ("Service quality", "service", region.service_quality()),
+        ("Economic health", "economy", region.economic_health()),
+        ("Social cohesion", "cohesion", region.social_cohesion()),
+    ]
+    document.getElementById("nv-gauges-body").innerHTML = "".join(
+        f"<tr><th scope=\"row\">{label}</th><td>{value:.0f} of 100</td>"
+        f"<td>{_trend_word(region.subscore_log, key)}</td></tr>"
+        for label, key, value in gauges
+    )
+
+    document.getElementById("non-visual-summary").innerText = (
+        f"Round {region.round_number}. Funds {region.funds:.0f}. "
+        f"Strain {region.strain_fraction() * 100:.0f}% ({region.strain_level()}). "
+        f"Wellbeing {region.wellbeing_score():.0f} of 100."
+    )
 
 
 def render():
@@ -334,47 +389,5 @@ def render():
     render_ledger()
     render_collection_summary()
     render_batch3()
-    # I-5: Non-visual mode tables and aria-live summary
-    if runstate.non_visual_mode:
-        nv_tables = document.getElementById("non-visual-tables")
-        nv_tables.hidden = False
-
-        status_body = document.getElementById("nv-status-body")
-        status_body.innerHTML = (
-            f"<tr><td>Round</td><td>{region.round_number}</td></tr>"
-            f"<tr><td>Funds</td><td>{region.funds:.0f}</td></tr>"
-            f"<tr><td>Total capacity</td><td>{region.total_capacity():.0f}</td></tr>"
-            f"<tr><td>Strain</td><td>{region.strain_fraction() * 100:.0f}% ({region.strain_level()})</td></tr>"
-            f"<tr><td>Integrated</td><td>{region.integrated_population:.0f}</td></tr>"
-            f"<tr><td>Pending</td><td>{region.pending_population():.0f}</td></tr>"
-        )
-
-        arrival_body = document.getElementById("nv-arrival-body")
-        current_arrivals = region.arrivals_this_round()
-        visible_dots = arrival_stream_dot_count(current_arrivals)
-        arrival_body.innerHTML = (
-            f"<tr><td>Current round</td><td>{current_arrivals:.0f}</td><td>{visible_dots} dots</td></tr>"
-        )
-        if hasattr(region, "arrivals_log") and region.arrivals_log:
-            for i, val in enumerate(reversed(region.arrivals_log[-5:])):
-                arrival_body.innerHTML += f"<tr><td>Round {region.round_number - len(region.arrivals_log) + i + 1}</td><td>{val:.0f}</td><td>{arrival_stream_dot_count(val)} dots</td></tr>"
-
-        gauges_body = document.getElementById("nv-gauges-body")
-        sq_arrow = subscore_arrow(region.subscore_log, "service")
-        eh_arrow = subscore_arrow(region.subscore_log, "economy")
-        sc_arrow = subscore_arrow(region.subscore_log, "cohesion")
-        gauges_body.innerHTML = (
-            f"<tr><td>Service quality</td><td>{region.service_quality():.0f}</td><td>{sq_arrow}</td></tr>"
-            f"<tr><td>Economic health</td><td>{region.economic_health():.0f}</td><td>{eh_arrow}</td></tr>"
-            f"<tr><td>Social cohesion</td><td>{region.social_cohesion():.0f}</td><td>{sc_arrow}</td></tr>"
-        )
-
-        document.getElementById("non-visual-summary").innerText = (
-            f"Round {region.round_number}. Funds: {region.funds:.0f}. "
-            f"Strain: {region.strain_fraction() * 100:.0f}% ({region.strain_level()}). "
-            f"Wellbeing: {region.wellbeing_score():.0f}."
-        )
-    else:
-        document.getElementById("non-visual-tables").hidden = True
-
+    render_non_visual_tables()
     document.title = tab_title()

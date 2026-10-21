@@ -181,8 +181,9 @@ html.high-contrast[data-theme="light"] #save-nudge, html.high-contrast[data-them
   #mobile-swipe-container { scroll-behavior: smooth; }
 }
 
-/* I-5: Non-visual play mode tables */
-.non-visual-section { margin: 1rem 0; font-size: 0.9rem; }
+/* I-5: Non-visual play mode tables. Hidden until the Non-Visual Mode button puts .non-visual-mode on <html>. */
+.non-visual-section { display: none; margin: 1rem 0; font-size: 0.9rem; }
+html.non-visual-mode .non-visual-section { display: block; }
 .non-visual-section table { width: 100%; border-collapse: collapse; margin-bottom: 0.5rem; }
 .non-visual-section th, .non-visual-section td { padding: 0.4rem; text-align: left; border-bottom: 1px solid rgba(255,255,255,0.1); }
 html[data-theme="light"] .non-visual-section th, html[data-theme="light"] .non-visual-section td { border-color: rgba(0,0,0,0.1); }

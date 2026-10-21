@@ -313,6 +313,8 @@
         if (dusk) dusk.click();
         news = applyFlag(NEWS_KEY, "news-ticker-on", false);
         updateNewsButton();
+        nonVisual = applyFlag(nonVisualKey, "non-visual-mode", false);
+        updateNVButton();
         animSpeed = applyAnimSpeed("normal");
         density = applyDensity("comfortable");
         markGroup("anim-speed-group", "data-speed", animSpeed);
