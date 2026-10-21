@@ -597,7 +597,7 @@
     },
     {
      "path": "games/canopy/canopy_gbstate.py",
-     "bytes": 5950,
+     "bytes": 5994,
      "precached": true
     },
     {
@@ -632,7 +632,7 @@
     },
     {
      "path": "games/canopy/canopy_helpers.py",
-     "bytes": 13747,
+     "bytes": 14432,
      "precached": true
     },
     {
@@ -762,12 +762,12 @@
     },
     {
      "path": "games/canopy/canopy_weather.py",
-     "bytes": 4736,
+     "bytes": 5096,
      "precached": true
     },
     {
      "path": "games/canopy/canopy_worldvars.py",
-     "bytes": 14806,
+     "bytes": 14933,
      "precached": true
     },
     {
@@ -1195,7 +1195,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 15311327,
+   "bytes": 15312543,
    "bytes_complete": true
   },
   "grid": {
