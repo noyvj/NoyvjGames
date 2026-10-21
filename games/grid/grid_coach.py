@@ -2,6 +2,8 @@
 Part of the split of the old single-file game.py: see "File map" in games/grid/CLAUDE.md.
 """
 
+from js import document
+
 import grid_runstate as runstate
 from grid_rules import (
     GENERATION_TYPES, MAINTENANCE_AGE_REDUCTION, PLANT_BASE_COST, PLANT_CAPACITY, PLANT_LABEL, PLANT_TYPES,
@@ -88,7 +90,6 @@ def coach_observation():
 
 
 def render_coach():
-    from js import document
     panel = document.getElementById("coach-panel")
     panel.hidden = not runstate.prefs["coach"]
     document.getElementById("pref-coach").checked = runstate.prefs["coach"]
@@ -121,3 +122,11 @@ def auto_plan_suggestion():
         "plant": pick,
         "text": f"Build one {PLANT_LABEL[pick]} plant for {s.plant_cost(pick):.0f} funds. It adds {PLANT_CAPACITY[pick]} capacity and closes {min(PLANT_CAPACITY[pick], gap):g} of the {gap:g} shortfall expected next round."
     }
+
+
+def render_autoplan():
+    suggestion = auto_plan_suggestion()
+    document.getElementById("autoplan-text").innerText = suggestion["text"]
+    button = document.getElementById("autoplan-build-button")
+    button.disabled = suggestion["plant"] is None
+    button.title = "" if suggestion["plant"] else "Nothing to build right now."
