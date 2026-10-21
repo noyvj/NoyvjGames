@@ -69,3 +69,43 @@ def test_load_keeps_only_valid_snapshots(game_env):
     game_env.module.load_state(data)
     assert len(game_env.state.round_snapshots) == 1
     assert game_env.state.round_snapshots[0] == valid_snap
+
+
+def test_scrub_lines_basic(game_env):
+    snap = {
+        "round": 2, "demand": 110, "funds": 420.0,
+        "plants": {t: (1 if t == "coal" else 0) for t in PLANT_TYPES},
+        "disruption": None, "aging_plant": None, "weather_pct": None
+    }
+    res = game_env.module.scrub_lines(snap)
+    assert res == "Round 2: demand 110, funds after the round 420. Fleet after the round: Coal 1. Disruption: none. Weather: no variability this round."
+
+
+def test_scrub_lines_disruption_aging(game_env):
+    snap = {
+        "round": 5, "demand": 150, "funds": 300.0,
+        "plants": {t: 0 for t in PLANT_TYPES},
+        "disruption": "damage", "aging_plant": "gas", "weather_pct": None
+    }
+    res = game_env.module.scrub_lines(snap)
+    assert "Disruption: damage, aging breakdown of Gas" in res
+
+
+def test_scrub_lines_weather(game_env):
+    snap = {
+        "round": 3, "demand": 120, "funds": 400.0,
+        "plants": {t: 0 for t in PLANT_TYPES},
+        "disruption": None, "aging_plant": None, "weather_pct": -12.4
+    }
+    res = game_env.module.scrub_lines(snap)
+    assert "renewable output 12% below nameplate" in res
+
+
+def test_scrub_lines_empty_fleet(game_env):
+    snap = {
+        "round": 1, "demand": 100, "funds": 500.0,
+        "plants": {t: 0 for t in PLANT_TYPES},
+        "disruption": None, "aging_plant": None, "weather_pct": None
+    }
+    res = game_env.module.scrub_lines(snap)
+    assert "Fleet after the round: no plants" in res

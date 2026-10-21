@@ -8,6 +8,7 @@ from pyodide.ffi import create_proxy
 import grid_runstate as runstate
 from grid_announce import round_recap_text
 from grid_callouts import _check_renewable_milestone
+from grid_rules import PLANT_LABEL, PLANT_TYPES
 
 
 # ---- C-23 round-advance animation ------------------------------------------------------------------------------------
@@ -148,3 +149,28 @@ def render_round_recap():
     summary, details = round_recap_text()
     document.getElementById("round-recap-summary").innerText = summary
     document.getElementById("round-recap-body").innerText = details
+
+
+def scrub_lines(snapshot):
+    r = snapshot["round"]
+    demand = snapshot["demand"]
+    funds = snapshot["funds"]
+    plants = snapshot["plants"]
+    disruption = snapshot["disruption"]
+    aging_plant = snapshot["aging_plant"]
+    weather_pct = snapshot["weather_pct"]
+
+    fleet = ", ".join(f"{PLANT_LABEL[t]} {plants[t]}" for t in PLANT_TYPES if plants[t] > 0) or "no plants"
+
+    disp_str = disruption if disruption else "none"
+    if aging_plant:
+        disp_str += f", aging breakdown of {PLANT_LABEL[aging_plant]}"
+
+    if weather_pct is None:
+        weather_str = "no variability this round"
+    else:
+        p = weather_pct
+        direction = "above" if p > 0 else "below"
+        weather_str = f"renewable output {abs(p):.0f}% {direction} nameplate"
+
+    return f"Round {r}: demand {demand:g}, funds after the round {funds:.0f}. Fleet after the round: {fleet}. Disruption: {disp_str}. Weather: {weather_str}."
