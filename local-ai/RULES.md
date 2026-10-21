@@ -202,3 +202,7 @@ and lists most of these. A finding means look at that line.
   working part and say what is left; a panel that nothing opens counts as not done.
 - Write tests that check the wiring: the id in the HTML equals the id in the JS, a setting is read back on load,
   a new key survives get_state then load_state. A test that only checks an element exists is not enough.
+
+## Never change an expected value to make a test pass (Continuum audit, 2026-10-21)
+If a step gives a number or text a test must expect and your test fails, the code is wrong: fix the code. Changing the expected value (8.5 instead of 9.5/1.1, 4.5 instead of 5.5) hid a real bug in a camera zoom.
+
