@@ -1,6 +1,6 @@
 # Next TODO list (from the Round 4 ideas, started 2026-10-12)
 
-**Progress: 148/921 items checked off (16.1%).** This is the NEXT list, written alongside the live `planning/TODO.md` (which is untouched). It becomes the live list once the current one is archived. Run `python3 scripts/todo-progress.py planning/TODO-NEXT.md` after ticking items.
+**Progress: 150/921 items checked off (16.3%).** This is the NEXT list, written alongside the live `planning/TODO.md` (which is untouched). It becomes the live list once the current one is archived. Run `python3 scripts/todo-progress.py planning/TODO-NEXT.md` after ticking items.
 
 How it is built: one section per Round 4 section on the ideas sheet (`planning/IMPROVEMENT-IDEAS-ROUND-4.md`), in the sheet's order, ids `R4-<section code>-<number>`. Only ideas you answered "yes" to are items, with your note where you wrote one. A section that is not fully answered keeps its heading and ends with one item to add the rest once you have answered them. "No" answers are dropped (listed under the heading); "later" answers are parked in `planning/LATER.md`.
 
@@ -36,6 +36,8 @@ How it is built: one section per Round 4 section on the ideas sheet (`planning/I
 | LGPC. Logic Gates: PC view | 2/10 | 20% | ██░░░░░░░░ |
 | PU. Signal: made for you | 1/6 | 17% | ██░░░░░░░░ |
 | GRMO. Grid: mobile view | 1/10 | 10% | █░░░░░░░░░ |
+| COPC. Continuum: PC view | 1/10 | 10% | █░░░░░░░░░ |
+| COMO. Continuum: mobile view | 1/10 | 10% | █░░░░░░░░░ |
 | GR. Grid: general ideas | 1/15 | 7% | █░░░░░░░░░ |
 | PG. Grid: made for you | 1/29 | 3% | ░░░░░░░░░░ |
 | PC. Canopy: made for you | 0/30 | 0% | ░░░░░░░░░░ |
@@ -63,8 +65,6 @@ How it is built: one section per Round 4 section on the ideas sheet (`planning/I
 | DRPC. Drift: PC view | 0/10 | 0% | ░░░░░░░░░░ |
 | TEPC. Trade Empire: PC view | 0/10 | 0% | ░░░░░░░░░░ |
 | TEMO. Trade Empire: mobile view | 0/10 | 0% | ░░░░░░░░░░ |
-| COPC. Continuum: PC view | 0/10 | 0% | ░░░░░░░░░░ |
-| COMO. Continuum: mobile view | 0/10 | 0% | ░░░░░░░░░░ |
 | CHPC. Le Champ de Mots: PC view | 0/10 | 0% | ░░░░░░░░░░ |
 | CHMO. Le Champ de Mots: mobile view | 0/10 | 0% | ░░░░░░░░░░ |
 | CLPC. Chronicle: PC view | 0/10 | 0% | ░░░░░░░░░░ |
@@ -111,7 +111,7 @@ How it is built: one section per Round 4 section on the ideas sheet (`planning/I
 | OCP. Overclock: made for you | 0/1 | 0% | ░░░░░░░░░░ |
 | AU. Sound | 0/1 | 0% | ░░░░░░░░░░ |
 | **Done: 1 sections at 100%** (LEPC) | 10/10 | 100% | ██████████ |
-| **All sections** | **148/921** | **16.1%** | ██░░░░░░░░ |
+| **All sections** | **150/921** | **16.3%** | ██░░░░░░░░ |
 
 <!-- PROGRESS-CHART:END -->
 
@@ -840,7 +840,7 @@ Dropped (you said no): PG-30.
 
 10 ideas on the sheet: 10 yes, 0 no, 0 later, 0 not answered yet.
 
-- [ ] R4-COPC-1: (big) Add mouse-wheel zoom, middle-drag orbit and right-drag pan on the 3D settlement, with the 1 to 4 camera presets kept as shortcuts. The scene becomes a proper strategy-game view. [local AI: in steps]
+- [x] R4-COPC-1: (big) Add mouse-wheel zoom, middle-drag orbit and right-drag pan on the 3D settlement, with the 1 to 4 camera presets kept as shortcuts. The scene becomes a proper strategy-game view. [local AI: in steps]
 - [ ] R4-COPC-2: (small) Show a hover card on every building in the 3D scene with its output, workers and the next upgrade. You read the settlement by pointing. [local AI: yes]
 - [ ] R4-COPC-3: (small) Add a right-click menu on a building with Upgrade, Assign workers, Show its research and Look back. Common jobs sit at the cursor. [local AI: yes]
 - [ ] R4-COPC-4: (big) Add a wide mission-control layout that tiles the City Views dashboard, the civic map and the flow diagram as three docked panes with resizable dividers. A big monitor holds the whole city. [Claude: shared]
@@ -858,7 +858,7 @@ Dropped (you said no): PG-30.
 - [ ] R4-COMO-1: (big) Make the 3D scene full-screen in portrait with a one-finger orbit, a pinch to zoom, and a bottom sheet that opens when you tap a building. The settlement is something you touch. [Claude: design]
 - [ ] R4-COMO-2: (small) Keep the camera presets as four large buttons along the bottom edge, with a fifth for "my last view". Camera changes are one tap. [local AI: yes]
 - [ ] R4-COMO-3: (small) Add a bottom tab bar (City, Research, Look back, Log) so the main areas are one thumb tap apart. The big game fits four tabs. [local AI: yes]
-- [ ] R4-COMO-4: (small) Reset the camera to the last preset with a two-finger tap on the 3D scene. A lost camera is fixed in one gesture. [local AI: in steps]
+- [x] R4-COMO-4: (small) Reset the camera to the last preset with a two-finger tap on the 3D scene. A lost camera is fixed in one gesture. [local AI: in steps]
 - [ ] R4-COMO-5: (small) Add a first-run picker for text size and 3D detail (small, standard, large) that sets phone-friendly defaults. The game starts comfortable instead of cramped. [Claude: backend]
 - [ ] R4-COMO-6: (big) Add a low-power 2D view for old phones that replaces the 3D scene with a flat illustrated map and the same tap sheet. Weak phones still get a full game. [needs you]
 - [ ] R4-COMO-7: (small) Add swipeable era cards in the Look Back panel with a tap to open each era's snapshot. History is a card flick. [local AI: yes]

@@ -5438,7 +5438,7 @@
     {
      "path": "games/continuum/answer-report.js",
      "bytes": 673,
-     "precached": false
+     "precached": true
     },
     {
      "path": "games/continuum/archive.py",
@@ -5458,12 +5458,12 @@
     {
      "path": "games/continuum/boot.js",
      "bytes": 9350,
-     "precached": false
+     "precached": true
     },
     {
      "path": "games/continuum/card.js",
      "bytes": 6881,
-     "precached": false
+     "precached": true
     },
     {
      "path": "games/continuum/challengerun.py",
@@ -5488,7 +5488,7 @@
     {
      "path": "games/continuum/community-compare.js",
      "bytes": 2662,
-     "precached": false
+     "precached": true
     },
     {
      "path": "games/continuum/consulting.py",
@@ -5673,12 +5673,12 @@
     {
      "path": "games/continuum/copy-result-wiring.js",
      "bytes": 1034,
-     "precached": false
+     "precached": true
     },
     {
      "path": "games/continuum/daily-leaderboard.js",
      "bytes": 456,
-     "precached": false
+     "precached": true
     },
     {
      "path": "games/continuum/dataexport.py",
@@ -5728,7 +5728,7 @@
     {
      "path": "games/continuum/hamlet.js",
      "bytes": 14745,
-     "precached": false
+     "precached": true
     },
     {
      "path": "games/continuum/hamlet.py",
@@ -5823,17 +5823,17 @@
     {
      "path": "games/continuum/register-sw.js",
      "bytes": 89,
-     "precached": false
+     "precached": true
     },
     {
      "path": "games/continuum/render3d-scenes.js",
      "bytes": 28462,
-     "precached": false
+     "precached": true
     },
     {
      "path": "games/continuum/render3d.js",
-     "bytes": 30224,
-     "precached": false
+     "bytes": 33369,
+     "precached": true
     },
     {
      "path": "games/continuum/research.py",
@@ -5858,12 +5858,12 @@
     {
      "path": "games/continuum/settings.js",
      "bytes": 16608,
-     "precached": false
+     "precached": true
     },
     {
      "path": "games/continuum/shortcuts.js",
      "bytes": 1512,
-     "precached": false
+     "precached": true
     },
     {
      "path": "games/continuum/sim.py",
@@ -5928,7 +5928,7 @@
     {
      "path": "games/continuum/tutorial-steps.js",
      "bytes": 5398,
-     "precached": false
+     "precached": true
     },
     {
      "path": "games/continuum/views.py",
@@ -6190,7 +6190,7 @@
      "kind": "pyodide"
     }
    ],
-   "bytes": 16231138,
+   "bytes": 16234283,
    "bytes_complete": true
   },
   "signal": {
