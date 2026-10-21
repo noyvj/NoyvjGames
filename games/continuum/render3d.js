@@ -96,6 +96,15 @@
   let dragging = false;
   let lastPointer = null;
   let cameraDistance = 9.5;
+  const MIN_DISTANCE = 3.5;
+  const MAX_DISTANCE = 16;
+  let targetX = 0;
+  let targetZ = 0;
+  const MAX_PAN = 6;
+  let panning = false;
+  let lastPresetName = "overview";
+  const touchDown = {};
+  let twoTap = null;
 
   // K6 (planning/TODO.md): named camera presets, so a player who has never
   // touched the drag-to-look control still has a reliable way to see the
@@ -140,19 +149,40 @@
   function updateCameraPosition() {
     const clampedPitch = Math.max(MIN_PITCH, Math.min(MAX_PITCH, pitch));
     camera.position.set(
-      cameraDistance * Math.cos(clampedPitch) * Math.sin(yaw),
+      targetX + cameraDistance * Math.cos(clampedPitch) * Math.sin(yaw),
       cameraDistance * Math.sin(clampedPitch),
-      cameraDistance * Math.cos(clampedPitch) * Math.cos(yaw)
+      targetZ + cameraDistance * Math.cos(clampedPitch) * Math.cos(yaw)
     );
-    camera.lookAt(0, 0.4, 0);
+    camera.lookAt(targetX, 0.4, targetZ);
   }
 
   function applyCameraPreset(name) {
     const preset = CAMERA_PRESETS[name];
     if (!preset || !camera) return;
+    lastPresetName = name;
     yaw = preset.yaw;
     pitch = preset.pitch;
     cameraDistance = preset.distance;
+    targetX = 0;
+    targetZ = 0;
+    updateCameraPosition();
+    if (renderer && scene) renderer.render(scene, camera);
+    notifyChange();
+  }
+
+  function zoomCamera(deltaY) {
+    cameraDistance = Math.max(MIN_DISTANCE, Math.min(MAX_DISTANCE, cameraDistance * (deltaY < 0 ? 1 / 1.1 : 1.1)));
+    updateCameraPosition();
+    if (renderer && scene) renderer.render(scene, camera);
+    notifyChange();
+  }
+
+  function panCamera(dx, dy) {
+    const k = cameraDistance * 0.0016;
+    targetX += -Math.cos(yaw) * dx * k - Math.sin(yaw) * dy * k;
+    targetZ += Math.sin(yaw) * dx * k - Math.cos(yaw) * dy * k;
+    targetX = Math.max(-MAX_PAN, Math.min(MAX_PAN, targetX));
+    targetZ = Math.max(-MAX_PAN, Math.min(MAX_PAN, targetZ));
     updateCameraPosition();
     if (renderer && scene) renderer.render(scene, camera);
     notifyChange();
@@ -488,24 +518,68 @@
 
   function attachDragControls(container) {
     container.style.touchAction = "none";
+    container.addEventListener("wheel", function (event) { event.preventDefault(); zoomCamera(event.deltaY); }, { passive: false });
+    container.addEventListener("contextmenu", function (e) { e.preventDefault(); });
+    // A middle press would start the browser's auto-scroll; the mouse event is what starts it.
+    container.addEventListener("mousedown", function (e) { if (e.button === 1) e.preventDefault(); });
     container.addEventListener("pointerdown", function (event) {
-      dragging = true;
-      lastPointer = { x: event.clientX, y: event.clientY };
+      if (event.pointerType === "touch") {
+        touchDown[event.pointerId] = { x: event.clientX, y: event.clientY };
+        if (Object.keys(touchDown).length === 1) {
+          // One finger still orbits, as it did before the two-finger tap existed.
+          dragging = true;
+          panning = false;
+          lastPointer = { x: event.clientX, y: event.clientY };
+        } else if (Object.keys(touchDown).length === 2) {
+          twoTap = { at: event.timeStamp, moved: false };
+          dragging = false;
+          lastPointer = null;
+        } else {
+          twoTap = null;
+        }
+      } else {
+        dragging = true;
+        panning = event.pointerType === "mouse" && event.button === 2;
+        lastPointer = { x: event.clientX, y: event.clientY };
+        if (event.button === 1) event.preventDefault();
+      }
     });
-    window.addEventListener("pointerup", function () {
-      dragging = false;
-      lastPointer = null;
+    window.addEventListener("pointerup", function (event) {
+      if (touchDown[event.pointerId]) {
+        if (twoTap && !twoTap.moved && event.timeStamp - twoTap.at < 400 && Object.keys(touchDown).length === 2) {
+          applyCameraPreset(lastPresetName);
+        }
+        twoTap = null;
+        delete touchDown[event.pointerId];
+        dragging = false;
+        lastPointer = null;
+      } else {
+        dragging = false;
+        panning = false;
+        lastPointer = null;
+      }
     });
     window.addEventListener("pointermove", function (event) {
+      if (twoTap && touchDown[event.pointerId]) {
+        if (Math.hypot(event.clientX - touchDown[event.pointerId].x, event.clientY - touchDown[event.pointerId].y) > 12) {
+          twoTap.moved = true;
+        }
+        return;
+      }
       if (!dragging || !lastPointer) return;
       const dx = event.clientX - lastPointer.x;
       const dy = event.clientY - lastPointer.y;
       lastPointer = { x: event.clientX, y: event.clientY };
+      if (panning) { panCamera(dx, dy); return; }
       yaw -= dx * 0.008;
       pitch += dy * 0.006;
       updateCameraPosition();
       renderer.render(scene, camera);
       notifyChange();
+    });
+    window.addEventListener("pointercancel", function () {
+      twoTap = null;
+      Object.keys(touchDown).forEach(function (k) { delete touchDown[k]; });
     });
   }
 
@@ -717,6 +791,7 @@
   // U2: what hamlet.js may use. The building blocks are the same low-poly
   // helpers every era scene above is made of, so hamlet buildings match.
   window.ContinuumScene = {
+    cameraState: function () { return { yaw: yaw, pitch: pitch, distance: cameraDistance, targetX: targetX, targetZ: targetZ }; },
     ready: function () { return ready; },
     isLight: isLightTheme,
     is3dVisible: function () {
