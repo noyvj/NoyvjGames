@@ -1,6 +1,6 @@
 # Next TODO list (from the Round 4 ideas, started 2026-10-12)
 
-**Progress: 150/921 items checked off (16.3%).** This is the NEXT list, written alongside the live `planning/TODO.md` (which is untouched). It becomes the live list once the current one is archived. Run `python3 scripts/todo-progress.py planning/TODO-NEXT.md` after ticking items.
+**Progress: 151/921 items checked off (16.4%).** This is the NEXT list, written alongside the live `planning/TODO.md` (which is untouched). It becomes the live list once the current one is archived. Run `python3 scripts/todo-progress.py planning/TODO-NEXT.md` after ticking items.
 
 How it is built: one section per Round 4 section on the ideas sheet (`planning/IMPROVEMENT-IDEAS-ROUND-4.md`), in the sheet's order, ids `R4-<section code>-<number>`. Only ideas you answered "yes" to are items, with your note where you wrote one. A section that is not fully answered keeps its heading and ends with one item to add the rest once you have answered them. "No" answers are dropped (listed under the heading); "later" answers are parked in `planning/LATER.md`.
 
@@ -25,7 +25,7 @@ How it is built: one section per Round 4 section on the ideas sheet (`planning/I
 | RSMO. Robot Script: mobile view | 6/10 | 60% | ██████░░░░ |
 | HRPC. Hull Repair: PC view | 6/10 | 60% | ██████░░░░ |
 | HRMO. Hull Repair: mobile view | 6/10 | 60% | ██████░░░░ |
-| HEMO. Herd: mobile view | 4/10 | 40% | ████░░░░░░ |
+| HEMO. Herd: mobile view | 5/10 | 50% | █████░░░░░ |
 | LGMO. Logic Gates: mobile view | 4/10 | 40% | ████░░░░░░ |
 | DRMO. Drift: mobile view | 3/10 | 30% | ███░░░░░░░ |
 | DEMO. Dead Reckoning: mobile view | 3/10 | 30% | ███░░░░░░░ |
@@ -111,7 +111,7 @@ How it is built: one section per Round 4 section on the ideas sheet (`planning/I
 | OCP. Overclock: made for you | 0/1 | 0% | ░░░░░░░░░░ |
 | AU. Sound | 0/1 | 0% | ░░░░░░░░░░ |
 | **Done: 1 sections at 100%** (LEPC) | 10/10 | 100% | ██████████ |
-| **All sections** | **150/921** | **16.3%** | ██░░░░░░░░ |
+| **All sections** | **151/921** | **16.4%** | ██░░░░░░░░ |
 
 <!-- PROGRESS-CHART:END -->
 
@@ -611,7 +611,7 @@ Dropped (you said no): PG-30.
 
 - [ ] R4-HEMO-1: (big) Make the farm a portrait scene with levers as large cards below it, where a swipe on a card buys it and a long-press shows the cost over time. A round plays with one thumb. [Claude: design]
 - [x] R4-HEMO-2: (small) Pin round, funds and methane in a thin sticky top strip that gently changes label when methane crosses a band. The main trade-off stays in sight.
-- [ ] R4-HEMO-3: (small) Put levers in a sideways shelf of large tiles above Advance, grouped as feed, herd and capture. You pick a lever without scrolling the page. [local AI: yes]
+- [x] R4-HEMO-3: (small) Put levers in a sideways shelf of large tiles above Advance, grouped as feed, herd and capture. You pick a lever without scrolling the page. [local AI: yes]
 - [x] R4-HEMO-4: (small) Show methane as a tall thermometer on the screen edge that opens its breakdown sheet when tapped. The key risk stays in view.
 - [ ] R4-HEMO-5: (small) Make the baseline-farm comparison a flip card where a tap turns your farm into the unchecked-growth farm. You compare with one tap. [local AI: yes]
 - [ ] R4-HEMO-6: (small) Let a pull-down on the farm advance one round with a confirm tick. A one-gesture turn suits tired thumbs. [local AI: yes]
