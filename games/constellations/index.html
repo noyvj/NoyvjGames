@@ -204,9 +204,12 @@
 <script src="../../shared/goals-panel.js"></script>
 <script>
   // pc.js (the Desktop boot only) defines window.CONSTELLATIONS_PC_TUTORIAL_STEPS, because the Classic walkthrough points at buttons
-  // the Desktop layout turns into icons and windows. app.js asks this function which steps to run.
+  // the Desktop layout turns into icons and windows. app.js (boot) asks this function which steps to run.
   window.constellationsTutorialSteps = function (classicSteps) { return window.CONSTELLATIONS_PC_TUTORIAL_STEPS || classicSteps; };
 </script>
+<script src="app-1-core.js"></script>
+<script src="app-2-board.js"></script>
+<script src="app-3-panels.js"></script>
 <script src="app.js"></script>
 <script src="../../shared/last-played.js" data-game-id="constellations"></script>
 <script src="../../shared/whats-new-banner.js" data-game-id="constellations"></script>

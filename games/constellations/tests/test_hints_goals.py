@@ -12,10 +12,11 @@ import game as game_module
 import goals
 import hints
 import sky
+from .pagefiles import app_text
 
 GAME_DIR = Path(__file__).resolve().parent.parent
 HTML = (GAME_DIR / "index.html").read_text(encoding="utf-8")
-APP = (GAME_DIR / "app.js").read_text(encoding="utf-8")
+APP = app_text()   # every app-*.js part plus app.js, in load order
 CSS = (GAME_DIR / "style.css").read_text(encoding="utf-8")
 
 

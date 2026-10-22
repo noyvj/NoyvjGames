@@ -177,6 +177,6 @@ def test_bad_saved_anomalies_are_dropped(game_env):
 def test_setting_is_wired_in_the_page():
     from pathlib import Path
     root = Path(__file__).resolve().parent.parent
-    assert 'id="anomalies-checkbox"' in (root / "index.html").read_text()
-    assert '"sol-anomalies"' in (root / "settings.js").read_text()
-    assert '"#anomaly-strip"' in (root / "pc-config.json").read_text()
+    assert 'id="anomalies-checkbox"' in (root / "index.html").read_text(encoding="utf-8")
+    assert '"sol-anomalies"' in (root / "settings.js").read_text(encoding="utf-8")
+    assert '"#anomaly-strip"' in (root / "pc-config.json").read_text(encoding="utf-8")

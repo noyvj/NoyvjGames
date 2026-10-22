@@ -8,10 +8,11 @@ import pytest
 import achievements
 import charts
 import game as game_module
+from .pagefiles import app_text
 
 GAME_DIR = Path(__file__).resolve().parent.parent
 HTML = (GAME_DIR / "index.html").read_text(encoding="utf-8")
-APP = (GAME_DIR / "app.js").read_text(encoding="utf-8")
+APP = app_text()   # every app-*.js part plus app.js, in load order
 CSS = (GAME_DIR / "style.css").read_text(encoding="utf-8")
 BY_ID = {a[0]: a for a in achievements.ACHIEVEMENTS}
 SEASON_IDS = [[c["id"] for c in s["charts"]] for s in charts.SEASONS]
@@ -296,9 +297,9 @@ def test_the_panel_toast_count_and_share_button_are_wired_with_the_hub_hooks():
 
 def test_the_toast_only_fires_for_something_new_and_never_on_load():
     """app.js remembers what was earned before: null until the first view, and a loaded save resets it (so loading never toasts)."""
-    assert "var knownEarned = null" in APP and "knownEarned = null; send({ action: \"open\" })" in APP
+    assert "A.knownEarned = null;" in APP and "knownEarned = null; send({ action: \"open\" })" in APP
     assert "knownEarned.indexOf(a.id) === -1" in APP
-    assert "achText" in APP and "showToast((view.message" in APP        # shown after the move's own message, never replaced by it
+    assert "achText" in APP and "showToast((A.view.message" in APP        # shown after the move's own message, never replaced by it
 
 
 def test_the_count_is_text_and_the_earned_state_is_not_colour_alone():

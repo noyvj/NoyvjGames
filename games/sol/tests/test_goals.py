@@ -76,8 +76,8 @@ def test_tick_refresh_is_a_no_op_without_the_shared_script(game_env):
 
 
 def test_page_wiring():
-    html = (GAME_DIR / "index.html").read_text()
+    html = (GAME_DIR / "index.html").read_text(encoding="utf-8")
     assert 'id="goals"' in html
     assert "shared/goals-panel.js" in html  # the script links its own stylesheet
     assert 'id="goals-checkbox"' in html
-    assert '"#goals"' in (GAME_DIR / "pc-config.json").read_text()
+    assert '"#goals"' in (GAME_DIR / "pc-config.json").read_text(encoding="utf-8")

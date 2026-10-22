@@ -5,13 +5,14 @@ import importlib.util
 import json
 import re
 from pathlib import Path
+from .pagefiles import app_text
 
 GAME_DIR = Path(__file__).resolve().parent.parent
 ROOT = GAME_DIR.parent.parent
 CFG = json.loads((GAME_DIR / "pc-config.json").read_text(encoding="utf-8"))
 CLASSIC = (GAME_DIR / "index.html").read_text(encoding="utf-8")
 DESKTOP = (GAME_DIR / "pc.html").read_text(encoding="utf-8")
-APP = (GAME_DIR / "app.js").read_text(encoding="utf-8")
+APP = app_text()   # every app-*.js part plus app.js, in load order
 PC_JS = (GAME_DIR / "pc.js").read_text(encoding="utf-8")
 PC_CSS = (GAME_DIR / "pc.css").read_text(encoding="utf-8")
 SHELL = {"pc-stagebar", "pc-stage", "pc-side", "pc-topbar", "pc-body", "pc-menu-button", "pc-hud", "pc-readouts"}
@@ -109,7 +110,7 @@ def test_only_keys_the_game_really_has_are_listed():
 
 
 def test_the_board_fills_the_stage_on_the_desktop_and_the_larger_sizes_stay_a_classic_thing():
-    assert 'getAttribute("data-layout") === "pc"' in APP and "var z = pc ? 1 : ZOOMS[zoomIdx]" in APP
+    assert 'getAttribute("data-layout") === "pc"' in APP and "var z = pc ? 1 : ZOOMS[A.zoomIdx]" in APP
     assert "#pc-stage #board {" in PC_CSS and "max-height: none" in PC_CSS and "position: absolute" in PC_CSS
     assert "#pc-stage #board-wrap" in PC_CSS and "minmax(0, 1fr)" in PC_CSS
     # Classic is untouched: its board keeps its own height limit

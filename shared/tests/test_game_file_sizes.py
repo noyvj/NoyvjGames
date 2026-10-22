@@ -29,6 +29,11 @@ EXEMPT = {
 }
 
 
+def size(path):
+    """Bytes with LF line endings: a Windows checkout has CRLF (one extra byte per line) and must not fail the cap."""
+    return len(path.read_bytes().replace(b"\r\n", b"\n"))
+
+
 def editable_files(game_dir):
     for p in sorted(game_dir.iterdir()):
         if not p.is_file() or p.suffix not in CODE_SUFFIXES:
@@ -48,8 +53,8 @@ def test_no_game_file_the_ai_may_edit_is_over_the_limit():
             limit = INDEX_CAPS.get(game_dir.name, LIMIT_BYTES) if path.name == "index.html" else LIMIT_BYTES
             if rel in EXEMPT:
                 continue
-            if path.stat().st_size > limit:
-                too_big.append(f"{rel}: {path.stat().st_size} bytes (limit {limit})")
+            if size(path) > limit:
+                too_big.append(f"{rel}: {size(path)} bytes (limit {limit})")
     assert not too_big, "Files too big for the local AI (split them, see TODO section SP): %s" % too_big
 
 
@@ -58,6 +63,6 @@ def test_the_not_split_yet_list_stays_honest():
         game_dir = ROOT / "games" / game
         if not game_dir.is_dir():
             continue
-        over = [p for p in editable_files(game_dir) if p.stat().st_size > LIMIT_BYTES]
+        over = [p for p in editable_files(game_dir) if size(p) > LIMIT_BYTES]
         assert over, f"{game} has no file over the limit any more: remove it from NOT_SPLIT_YET"
         assert len(over) <= allowed + 5, f"{game}: {len(over)} files over the limit"
