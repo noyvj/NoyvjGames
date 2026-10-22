@@ -739,3 +739,218 @@ Finishing TODAY's Scarcity Run (`_scarcity_finish`, date equal to `_today_utc()`
 
 ## Shared ghost (Z-3d3, 2026-10-12)
 The Ghost Run (A-29) now also runs through `shared/ghost.py` (written to the Pyodide filesystem as `ghost.py` in `index.html`; `pc.html` regenerated). **Measure:** the average terraform percent over all worlds, one number per checkpoint (every `challenges.GHOST_STEP` = 25 ticks; "turn" in the shared wording is a checkpoint, so `ghost_sentence` writes "checkpoint"). Higher is ahead; the best run is still the fastest full playthrough. **No new storage:** the stored recordings (`sol-ghost-pb-v1`, `sol-ghost-daily-v1`, tenths of a percent at full resolution, validated by `challenges.clean_recording`) stay the source; `ghost_trace(recording)` turns any of them (the personal best, a day's best, the Governor's par, a friend's blueprint run) into a shared trace through `ghost.Recorder` (thinned to 120 numbers, cached per recording), so every older recording works with no migration and the split track keeps its full resolution. `ghost_sentence(samples, recording, label)` runs `ghost.compare` and `ghost.summary(unit=" points")` and fills `#ghost-sentence` (a visually hidden `role="status"`, in `index.html` and `pc.html`) from `_refresh_ghost_strip`; it refreshes every `GHOST_SENTENCE_EVERY` (8) checkpoints so a screen reader is not chatty, is empty when nothing is raced, and is empty (not an error) for a run longer than the shared cap of 5000 checkpoints. SOL has no chart for this, so it is words only: the visible strip and split track are unchanged. Switch: the existing "Ghost run: On/Off" button (default off) and the Scarcity "No ghost" choice hide strip and sentence alike; the stored ghost is never deleted by hiding. Tests: `tests/test_shared_ghost.py`.
+
+
+## Design specs (LA-13)
+
+Written 2026-10-22 (LA-13 design pass, batch 2). Steps: `local-ai/incoming/sol-design.txt`. Standing rules hold:
+nothing timed, nothing lost, no luck needed for 100%, no audio files, saves load unchanged. Of the SOL items in this
+batch only R4-SO-4 is designed; R4-SO-2 (depot) and R4-PS-26 (transfer windows) wait on one owner question (what a
+transfer moves), and R4-PS-12, R4-PS-22 and R4-PS-29 are larger than one design pass (see the batch report).
+
+### R4-SO-4: research forks (pick one of two, swap later for a small fee)
+- **Rule.** Three optional fork points hang off the research tree. At each you research ONE of two upgrades; the other
+  side then shows "Swap to this" for 25% of its price (rounded up), which drops the old side and takes the new one, so
+  no choice is permanent and nothing is ever stuck. Forks are never required by any node and are NOT part of a level's
+  Iron target, so they cannot block or slow the path to new worlds. They stay on screen after their level is done (a
+  "Forks" list under the node list), so a swap is always possible.
+
+| Fork | Opens after | Level | Price | Side A | Side B |
+|---|---|---|---|---|---|
+| `drills_or_machines` | Automation Basics | Near Bodies | 120 Iron | Deep Drills: +3% yield | Lean Machines: Auto-Miners and Recyclers 8% cheaper |
+| `freight_or_survey` | Long-Haul Logistics | Far Bodies | 400 Iron | Freight Lanes: trade routes 10% cheaper | Survey Rigs: +3% yield |
+| `fusion_paths` | Fusion Research | Far Bodies | 500 Iron | Fusion Mining: +4% yield | Fusion Fabrication: machinery 10% cheaper |
+
+  Scale check: the ordinary nodes give +1 to +2% yield or 5% discounts for 40 to 340 Iron, so a fork is a little
+  stronger than its neighbours (it costs a choice) and far below a tier's total (1,000 and 5,000 Iron). All forks
+  together add at most +10% yield, against the tree's existing +25%.
+- **Data.** Fork nodes are ordinary research nodes with two extra keys, `fork` (the fork id) and `fork_other` (the
+  other side). They go into `RESEARCH_NODE_BY_ID` (so `research_effect`, `research_node_status`, saves and
+  `_clean_researched_nodes` handle them) but NOT into `RESEARCH_NODES` (so every per-level list, the tier targets, the
+  progress sum and the old-save migration stay exactly as they are).
+- **Saves.** None new: fork ids are kept in `researched_nodes` like any node. `_clean_researched_nodes` also keeps at
+  most one side of each fork (side A when a tampered save holds both). Old saves load unchanged.
+- **Engine code.** `sol_rules.py`, directly after the line `RESEARCH_NODE_BY_ID = {node["id"]: node for node in RESEARCH_NODES}`:
+
+```python
+# R4-SO-4: research forks. At each fork the player researches one of two upgrades and may swap to the other later
+# for RESEARCH_FORK_SWAP_SHARE of its price. Fork nodes are in RESEARCH_NODE_BY_ID (effects, status, saves) but not in
+# RESEARCH_NODES, so no level's node list, Iron target or old-save migration changes; nothing requires a fork node.
+RESEARCH_FORK_SWAP_SHARE = 0.25
+RESEARCH_FORKS = [
+    {"id": "drills_or_machines", "requires": "automation_basics", "tier": 0, "cost": 120,
+     "sides": [("deep_drills", "Deep Drills", {"yield_pct": 3}),
+               ("lean_machines", "Lean Machines", {"machinery_discount": 8})]},
+    {"id": "freight_or_survey", "requires": "long_haul_logistics", "tier": 1, "cost": 400,
+     "sides": [("freight_lanes", "Freight Lanes", {"route_discount": 10}),
+               ("survey_rigs", "Survey Rigs", {"yield_pct": 3})]},
+    {"id": "fusion_paths", "requires": "fusion_research", "tier": 1, "cost": 500,
+     "sides": [("fusion_mining", "Fusion Mining", {"yield_pct": 4}),
+               ("fusion_fabrication", "Fusion Fabrication", {"machinery_discount": 10})]},
+]
+FORK_NODES = []
+for _fork in RESEARCH_FORKS:
+    for _side, (_id, _name, _effects) in enumerate(_fork["sides"]):
+        _node = {"id": _id, "name": _name, "cost": _fork["cost"], "requires": [_fork["requires"]],
+                 "effects": dict(_effects), "tier": _fork["tier"], "fork": _fork["id"],
+                 "fork_other": _fork["sides"][1 - _side][0]}
+        FORK_NODES.append(_node)
+        RESEARCH_NODE_BY_ID[_id] = _node
+```
+
+  `sol_econ.py` (import `RESEARCH_FORK_SWAP_SHARE` from rules), directly after `research_node_cost`:
+
+```python
+def fork_swap_cost(node):
+    """R4-SO-4: the fee to swap a fork to this side (free in the sandbox)."""
+    if _sandbox_active():
+        return 0
+    return math.ceil(node["cost"] * RESEARCH_FORK_SWAP_SHARE)
+```
+
+  `_clean_researched_nodes`: directly before its `return wanted` add (import `RESEARCH_FORKS` from rules):
+
+```python
+    for node_id in [n for n in wanted if RESEARCH_NODE_BY_ID[n].get("fork_other") in wanted]:
+        node = RESEARCH_NODE_BY_ID[node_id]
+        fork = next(f for f in RESEARCH_FORKS if f["id"] == node["fork"])
+        if node_id != fork["sides"][0][0]:
+            wanted.discard(node_id)  # R4-SO-4: a tampered save with both sides keeps side A only
+```
+
+  `sol_actions.py` `research_node_action`: directly after the line
+  `earth = planet_state["Earth"]` add:
+
+```python
+    if node.get("fork_other") in researched_nodes:  # R4-SO-4: swap a fork to this side for a small fee
+        fee = fork_swap_cost(node)
+        if earth["resource_count"] < fee:
+            return False
+        earth["resource_count"] -= fee
+        researched_nodes.discard(node["fork_other"])
+        researched_nodes.add(node_id)
+        _player_action("research", "Earth")
+        return True
+```
+
+  (import `fork_swap_cost` from `sol_econ`).
+- **Engine tests, NEW file `tests/test_research_forks.py`:**
+
+```python
+"""LA-13 / R4-SO-4: research forks, one side at a time, swappable for a quarter of the price."""
+
+
+def _ready(game_env, node_id):
+    """Researches every prerequisite of `node_id` (not the node itself) with plenty of Iron."""
+    m = game_env.module
+    order = []
+
+    def visit(nid):
+        if nid in order or nid in m.researched_nodes:
+            return
+        for req in m.RESEARCH_NODE_BY_ID[nid]["requires"]:
+            visit(req)
+        order.append(nid)
+
+    for req in m.RESEARCH_NODE_BY_ID[node_id]["requires"]:
+        visit(req)
+    for nid in order:
+        game_env.earth["resource_count"] = 100_000
+        assert m.research_node_action(nid) is True
+
+
+def test_forks_are_not_in_any_level(game_env):
+    m = game_env.module
+    assert [t["target"] for t in m.RESEARCH_TIERS] == [1000, 5000]
+    assert not any(n.get("fork") for n in m.RESEARCH_NODES)
+    assert len(m.FORK_NODES) == 6 and all(n["id"] in m.RESEARCH_NODE_BY_ID for n in m.FORK_NODES)
+
+
+def test_choose_one_side_then_swap_for_a_quarter(game_env):
+    m = game_env.module
+    _ready(game_env, "deep_drills")
+    game_env.earth["resource_count"] = 120
+    assert m.research_node_action("deep_drills") is True and game_env.earth["resource_count"] == 0
+    assert m.research_effect("yield_pct") * 100 >= 3
+    game_env.earth["resource_count"] = 29
+    assert m.research_node_action("lean_machines") is False
+    game_env.earth["resource_count"] = 30
+    assert m.research_node_action("lean_machines") is True and game_env.earth["resource_count"] == 0
+    assert "deep_drills" not in m.researched_nodes and "lean_machines" in m.researched_nodes
+
+
+def test_a_fork_needs_its_branch(game_env):
+    m = game_env.module
+    game_env.earth["resource_count"] = 100_000
+    assert m.research_node_action("deep_drills") is False
+
+
+def test_a_tampered_save_keeps_one_side(game_env):
+    m = game_env.module
+    _ready(game_env, "deep_drills")
+    kept = m._clean_researched_nodes(set(m.researched_nodes) | {"deep_drills", "lean_machines"})
+    assert "deep_drills" in kept and "lean_machines" not in kept
+
+
+def test_forks_survive_a_save(game_env):
+    m = game_env.module
+    _ready(game_env, "lean_machines")
+    game_env.earth["resource_count"] = 500
+    m.research_node_action("lean_machines")
+    m.load_state(m.get_state())
+    assert "lean_machines" in m.researched_nodes
+```
+
+- **Page** (second and third steps). `sol_econ.py`, directly after `update_research_node_list`:
+
+```python
+def update_research_fork_list():
+    """R4-SO-4: every fork whose branch is researched, with Choose / Swap buttons (shown after its level too)."""
+    container = document.getElementById("research-fork-list")
+    container.innerHTML = ""
+    earth_iron = planet_state["Earth"]["resource_count"]
+    shown = 0
+    for node in FORK_NODES:
+        if node["requires"][0] not in researched_nodes:
+            continue
+        shown += 1
+        owned = node["id"] in researched_nodes
+        swap = node["fork_other"] in researched_nodes
+        row = document.createElement("div")
+        row.className = "research-node research-fork " + ("research-node--researched" if owned else "research-node--available")
+        title = document.createElement("p")
+        title.className = "research-node-name"
+        title.innerText = node["name"] + (" (chosen)" if owned else "")
+        row.appendChild(title)
+        detail = document.createElement("p")
+        detail.className = "research-node-detail"
+        detail.innerText = _research_effect_text(node) + (" — or " + RESEARCH_NODE_BY_ID[node["fork_other"]]["name"] if not owned else "")
+        row.appendChild(detail)
+        if not owned:
+            cost = fork_swap_cost(node) if swap else research_node_cost(node)
+            button = document.createElement("button")
+            button.type = "button"
+            button.className = "secondary research-node-button"
+            button.innerText = f"{'Swap to this' if swap else 'Choose'} ({cost} Iron)"
+            button.setAttribute("data-node", node["id"])
+            button.disabled = earth_iron < cost
+            row.appendChild(button)
+        container.appendChild(row)
+    container.hidden = shown == 0
+```
+
+  (import `FORK_NODES` from rules), and `update_research_fork_list()  # R4-SO-4` as the FIRST line of
+  `update_research_node_list()` (that function returns early once every tier is done, and both research redraw paths
+  call it, so the forks are rebuilt on every research redraw).
+  `index.html`: directly after `<div id="research-node-list" class="research-node-list"></div>` add
+  `<div id="research-fork-list" class="research-node-list research-fork-list" hidden></div>`. `game.py` `setup()`:
+  directly after the `research-node-list` click listener, the same line for `research-fork-list`
+  (`on_research_node_click` already reads `data-node`). After a successful click the handler re-renders the research
+  display, which rebuilds both lists. `tests/conftest.py` `ELEMENT_IDS`: `"research-fork-list",` after
+  `"research-node-list",`. CSS (the stylesheet part that holds `.research-node-list`): `.research-fork { border-left: 3px double currentColor; padding-left: 0.5rem; }`
+  (a shape cue, not a colour). Fake-DOM test: `test_the_fork_list_appears_after_its_branch` (hidden at start; after
+  `_ready(game_env, "deep_drills")` and `m.update_research_display()` it is not hidden and has 2 children; clicking
+  through `game_env.panel_click("research-fork-list", node="deep_drills")` with 120 Iron researches it). Browser test
+  NEW `tests/test_research_forks_browser.py`: research the Automation Basics path through
+  `window.pyodide.globals.get("research_node_action")` with Iron set by `load_state` (or by clicking), open the research
+  panel, `#research-fork-list` is visible and has a button "Choose (120 Iron)"; `page.errors == []`.

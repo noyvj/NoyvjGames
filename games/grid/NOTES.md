@@ -579,3 +579,213 @@ Built from `planning/TODO.md` "GC + C. Grid" (tests: `tests/test_round8_*.py`). 
 - **C-5 arrow keys on the plant rows.** Each `{plant}-row` has a keydown listener (`_make_plant_key_handler`; `plant_key_command()` is the pure part): Right arrow = Build, Left arrow = Retire (the very same `_make_build_handler` / `_make_retire_handler`, so the last-unit confirm, the refund and the spoken result are unchanged), Up/Down move focus to the plant above or below keeping the kind of control (build, retire or maintain; the top and bottom rows stay put and moving never builds). Keys with Ctrl/Alt/Meta, anything from the row's Auto-maintain `<select>` and any other key are ignored; a held key (`event.repeat`) acts once. `preventDefault()` only for the keys it handles. Explained in `#plant-keys-hint` (Classic), the `?` help (`extra` lines on `KeyboardShortcuts.init`, both pages) and the Desktop hint bar. Together with Round B-7 (tab order and `role="group"` rows, the round announcement, the gauge caption) this finishes C-5.
 - **C-23 placement note.** `#round-animation` lives INSIDE `.grid-visual` (the pylon scene), absolutely positioned over it, so playing it never moves the layout; it is not a separate Desktop zone.
 - **Today's run (Z-5c, 2026-10-12).** `NoyvjSeed.daily.mountButton` in `#todays-run-slot` (above the "Run setup" details, so it lives in the Difficulty and run setup window on Desktop), with `shared/seed.js` loaded from `index.html` (already in the service worker precache) and a small inline mount script. The page passes the UTC date's shared seed (`GRID-XXXXX`, `NoyvjSeed.daily.seed("grid", today)`) to `game.py`'s `start_todays_run(seed_text)` (read at click time through `window.pyodide.globals`), which validates it and calls `state.set_seed` only while `state.unstarted()` (nothing built or advanced), exactly like the "Use a seed" box; in the sandbox, or with a run under way, it changes nothing and returns the sentence the page shows in `#todays-run-note` (the run under way is never replaced: finish it first, Career, Finish run). `finish_run()` ends by calling `_record_shared_daily(state.seed, grade, score)`: when the page says the seed is today's (`NoyvjSeed.daily.isDaily`) it calls `markCompleted("grid", {text: "Grade B, clean score 72 of 100"})`, counted once per day in `noyvj-daily-v1`; an older day's seed, an ordinary run, a sandbox run or a run too short to bank record nothing, and any error is swallowed. A run begun just before 00:00 UTC and finished after it does not count. Scenario, difficulty, perks and loadout stay the player's own choice (only the seed is shared). No save key, career field or number changes; old saves load unchanged. Tests: `tests/test_todays_run.py` (fake DOM, 10) and `tests/test_todays_run_browser.py` (Playwright, fixed clock, 1440x900, 360x740 and Desktop).
+
+
+## Design specs (LA-13)
+
+Written 2026-10-22 (LA-13 design pass, batch 2). Steps: `local-ai/incoming/grid-design.txt`. Standing rules hold:
+nothing timed, nothing lost, no luck needed for 100%, no audio files, saves load unchanged.
+
+### R4-PG-11: Moon base scenario (power a colony through the lunar nights)
+- **Rule.** A sixth scenario, "Moon base (lunar nights)", at the end of `SCENARIO_ORDER`. Each round is half a lunar
+  day: the Moon's synodic day is 29.53 Earth days (NASA NSSDCA Moon Fact Sheet, `data/moon_facts.json`, a dated
+  snapshot since the page has no CORS header), so a round is about 14.8 Earth days of sunlight or of darkness. Odd
+  rounds are lunar day, even rounds lunar night.
+  - Only three plant types work there: solar, battery and nuclear (a fission surface reactor). Coal and gas need air to
+    burn, wind needs air, hydro needs flowing water: their Build buttons are disabled with a title saying why.
+  - No weather on the Moon: the Weather Variability switch has no effect in this scenario.
+  - Lunar day output: nuclear + solar. Lunar night output: nuclear + what the batteries stored during the day, at most
+    the battery capacity and at most the solar nameplate that charged them. So nights need either batteries backed by
+    enough solar, or a reactor.
+  - A reactor has to be flown up: nuclear costs 3 times as much here (`MOON_COST_MULTIPLIER`).
+  - The colony starts small: demand 30, growing 3 a round (instead of 100 and 10); funds 600; 4 solar plants built.
+- **What is measured.** The clean-share score stays as it is (every Moon plant is clean, so it reads 100: the
+  scenario's challenge is keeping the lights on, not emissions). A new readout counts lunar nights fully powered:
+  "Nights fully powered: 5 of 6". It is shown in the scenario's status line and in the run summary line; it is not a
+  leaderboard or achievement number, so nothing needs a lucky draw.
+- **Balance** (simulated against the real `GridState`, 30 rounds): building nothing loses all 15 nights but never
+  money (revenue only falls; funds still reach about 1,260); a player who, before each night, adds batteries and solar
+  until the night supply covers demand plus 6 lights all 15 nights (13 solar, 9 batteries, funds about 3,440); saving
+  for reactors (one per 100 demand) also lights all 15 (funds about 3,540). Two strategies, both fully reachable, and the
+  reactor is the lumpy up-front one. Disruptions scale with emissions, so none happen on the Moon; the only chance
+  left is Grid's ordinary aging breakdown, which the planner simply rebuilds.
+- **Saves.** One new key, `moon`, `{"nights": int, "lit": int}`, written only in the Moon scenario (like `emergency`)
+  and restored only when the scenario is `moon_base` and `0 <= lit <= nights`. Old saves load unchanged.
+- **Engine code.** `grid_rules.py`, at the end:
+
+```python
+# R4-PG-11: the Moon base scenario. A round is half a lunar day: the synodic day is 29.53 Earth days (NASA NSSDCA Moon
+# Fact Sheet, data/moon_facts.json), so about 14.8 Earth days of sun, then as long a night. Odd rounds are day.
+MOON_SCENARIO = "moon_base"
+LUNAR_SYNODIC_DAYS = 29.53
+MOON_PLANT_TYPES = ("solar", "battery", "nuclear")
+MOON_COST_MULTIPLIER = {"nuclear": 3.0}
+MOON_DEMAND_GROWTH = 3
+MOON_NO_BUILD_REASON = {
+    "coal": "Coal needs air to burn, and the Moon has none.",
+    "gas": "Gas needs air to burn, and the Moon has none.",
+    "wind": "There is no air on the Moon, so no wind.",
+    "hydro": "There is no flowing water on the Moon.",
+}
+SCENARIOS[MOON_SCENARIO] = {
+    "label": "Moon base (lunar nights)",
+    "funds": 600,
+    "plants": {"solar": 4},
+    "demand": 30,
+}
+SCENARIO_ORDER.append(MOON_SCENARIO)
+```
+
+  `GridState.__init__` (`grid_state.py`): directly after `self.emergency = None` add
+  `self.moon = None  # R4-PG-11: {"nights", "lit"} while the Moon base scenario is played`. `apply_scenario`: directly
+  after the `self.emergency = (...)` statement add
+  `self.moon = {"nights": 0, "lit": 0} if scenario_id == MOON_SCENARIO else None`. Directly after `apply_scenario` add:
+
+```python
+    def is_lunar_night(self, round_number=None):
+        """R4-PG-11: even rounds of the Moon base are the 14.8-day lunar night."""
+        number = self.round_number if round_number is None else round_number
+        return self.scenario == MOON_SCENARIO and number % 2 == 0
+
+    def moon_effective_capacity(self, round_number=None):
+        """R4-PG-11: no weather on the Moon. Day: nuclear plus solar. Night: nuclear plus what the batteries stored in
+        the day, at most their capacity and at most the solar that charged them."""
+        nuclear = self.plant_counts["nuclear"] * PLANT_CAPACITY["nuclear"]
+        solar = self.plant_counts["solar"] * PLANT_CAPACITY["solar"]
+        if not self.is_lunar_night(round_number):
+            return float(nuclear + solar)
+        return float(nuclear + min(self.battery_capacity(), solar))
+```
+
+  `build_plant`: as its first lines `if self.scenario == MOON_SCENARIO and plant_type not in MOON_PLANT_TYPES:` /
+  `return False  # R4-PG-11`. `plant_cost`: directly before its `return cost` add
+  `if self.scenario == MOON_SCENARIO:` / `cost *= MOON_COST_MULTIPLIER.get(plant_type, 1.0)  # R4-PG-11: flown up from Earth`.
+  (Import the new names from `grid_rules`.) `grid_state_round.py` `effective_capacity_for_revenue`: directly after the
+  `if weather_rng is None: ...` pair add `if self.scenario == MOON_SCENARIO:` /
+  `self.last_weather_renewable_nameplate = 0.0` / `self.last_weather_renewable_actual = 0.0` /
+  `return self.moon_effective_capacity()`. In `advance_round`, directly after
+  `met_demand = min(effective_capacity, self.demand)` add:
+
+```python
+        if self.moon is not None and self.is_lunar_night(round_played):  # R4-PG-11: count the nights kept lit
+            self.moon["nights"] += 1
+            if effective_capacity >= self.demand:
+                self.moon["lit"] += 1
+```
+
+  `grid_state_extras.py` `demand_growth_this_round`: directly after `growth = self.base_demand_growth` add
+  `if self.scenario == MOON_SCENARIO:` / `growth = min(growth, MOON_DEMAND_GROWTH)  # R4-PG-11: a small colony`.
+- **Two pinned tests change on purpose** (the scenario cycle gains a sixth stop): in `tests/test_round2_items.py`
+  `test_c13_scenarios` and `tests/test_round4_items.py` `test_scenario_button_cycles_into_emergency`, directly after the
+  line asserting `"electrified"`, add one more click of the scenario button and
+  `assert ... scenario == "moon_base"  # R4-PG-11 added a sixth scenario`. Nothing else in them changes.
+- **Engine tests, NEW file `tests/test_moon_base.py`** (`game_env` fixture, `m = game_env.module`, `s = game_env.module.state`):
+
+```python
+"""LA-13 / R4-PG-11: the Moon base scenario, lunar day and night rounds."""
+import json
+from pathlib import Path
+
+
+def _moon(game_env):
+    s = game_env.module.state
+    assert s.apply_scenario("moon_base") is True
+    return s
+
+
+def test_the_night_length_is_the_nasa_synodic_day(game_env):
+    m = game_env.module
+    facts = json.loads((Path(__file__).resolve().parent.parent / "data" / "moon_facts.json").read_text(encoding="utf-8"))
+    values = [f["value"] for f in facts["facts"] if "synodic" in f["key"]]
+    assert values and abs(values[0] - m.LUNAR_SYNODIC_DAYS) < 0.01
+
+
+def test_only_moon_plants_can_be_built(game_env):
+    s = _moon(game_env)
+    assert s.build_plant("coal") is False and s.build_plant("wind") is False
+    assert s.build_plant("solar") is True
+    assert s.plant_cost("nuclear") == 3 * game_env.module.PLANT_BASE_COST["nuclear"]
+
+
+def test_day_and_night_output(game_env):
+    s = _moon(game_env)
+    assert s.is_lunar_night(1) is False and s.is_lunar_night(2) is True
+    assert s.moon_effective_capacity(1) == 40.0 and s.moon_effective_capacity(2) == 0.0
+    s.funds = 1000
+    s.build_plant("battery")
+    s.build_plant("battery")
+    assert s.moon_effective_capacity(2) == 30.0
+    s.build_plant("battery")
+    assert s.moon_effective_capacity(2) == 40.0  # never more than the solar that charged them
+
+
+def test_building_for_each_night_lights_every_night(game_env):
+    s = _moon(game_env)
+    for _ in range(12):
+        night = s.round_number + (0 if s.is_lunar_night() else 1)
+        for _ in range(10):
+            if s.moon_effective_capacity(night) >= s.demand + 6:
+                break
+            kind = "battery" if s.battery_capacity() < s.plant_counts["solar"] * 10 else "solar"
+            if not s.build_plant(kind):
+                break
+        s.advance_round()
+    assert s.moon == {"nights": 6, "lit": 6}
+
+
+def test_an_unbuilt_base_loses_the_nights_but_never_money(game_env):
+    s = _moon(game_env)
+    funds = s.funds
+    for _ in range(4):
+        s.advance_round()
+    assert s.moon == {"nights": 2, "lit": 0} and s.funds > funds
+
+
+def test_other_scenarios_are_unchanged(game_env):
+    s = game_env.module.state
+    assert s.moon is None and s.is_lunar_night(2) is False and s.build_plant("coal") in (True, False)
+    assert "moon_base" == game_env.module.SCENARIO_ORDER[-1]
+```
+
+- **Saves** (second step). `grid_savegame.py` `get_state()`: after the `"emergency": ...` entry add
+  `**({"moon": dict(runstate.state.moon)} if runstate.state.moon is not None else {}),  # R4-PG-11`.
+  `_load_arbitrage_and_emergency`: at its end add:
+
+```python
+    moon = data.get("moon")  # R4-PG-11: only in a Moon base run; anything malformed starts the count again
+    if runstate.state.scenario == MOON_SCENARIO:
+        nights = _as_int(moon.get("nights"), 0, 0, 10 ** 6) if isinstance(moon, dict) else 0
+        lit = _as_int(moon.get("lit"), 0, 0, nights) if isinstance(moon, dict) else 0
+        runstate.state.moon = {"nights": nights, "lit": lit}
+    else:
+        runstate.state.moon = None
+```
+
+  Test (append): `test_the_night_count_is_saved` (Moon base, two batteries, 4 rounds, `m.load_state(m.get_state())`,
+  `s.moon == {"nights": 2, "lit": 2}`; a standard-run save has no `moon` key).
+- **Page** (third step). `grid_renderer.py`: in the per-plant loop directly after
+  `build_button.disabled = runstate.state.funds < cost` add
+  `if runstate.state.scenario == MOON_SCENARIO and plant_type not in MOON_PLANT_TYPES:` /
+  `build_button.disabled = True` / `build_button.title = MOON_NO_BUILD_REASON[plant_type]`. A new function in
+  `grid_renderer.py` (called from `render()` next to the scenario button text):
+
+```python
+def moon_status_text(state):
+    """R4-PG-11: the Moon base line (empty in every other scenario)."""
+    if state.moon is None:
+        return ""
+    phase = "Lunar night" if state.is_lunar_night() else "Lunar day"
+    night = state.moon_effective_capacity(state.round_number + (0 if state.is_lunar_night() else 1))
+    return (f"{phase}: each round is about {LUNAR_SYNODIC_DAYS / 2:.1f} Earth days (the Moon's day is "
+            f"{LUNAR_SYNODIC_DAYS} Earth days, NASA Moon Fact Sheet). Night supply now {night:.0f} of "
+            f"{state.demand:.0f} needed. Nights fully powered: {state.moon['lit']} of {state.moon['nights']}.")
+```
+
+  and in `render()`: `moon_el = document.getElementById("moon-display")` / `moon_el.innerText = moon_status_text(runstate.state)` /
+  `moon_el.hidden = runstate.state.moon is None`. `index.html`: directly after the `#scenario-toggle-button` line, `<p id="moon-display" class="status-line" role="status" hidden></p>` (no comment; the page is near its cap).
+  `tests/conftest.py` `ELEMENT_IDS`: `"moon-display"`. Fake-DOM test: `test_the_moon_line_and_locked_buttons`
+  (click `#scenario-toggle-button` five times so that `state.scenario == "moon_base"`; `m.render()`; `moon-display` is
+  not hidden and starts with "Lunar day"; `coal-build-button` is disabled with title "Coal needs air to burn, and the
+  Moon has none."). Browser test NEW `tests/test_moon_base_browser.py`: click `#scenario-toggle-button` 5 times, wait until
+  `#moon-display` is visible, click `#advance-round-button`, wait until `#moon-display` text starts with "Lunar night",
+  `#wind-build-button` is disabled, `page.errors == []`.

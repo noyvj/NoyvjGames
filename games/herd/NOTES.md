@@ -789,3 +789,282 @@ Built on the shared `shared/sandbox-mode.js` / `.css` (Grid, Continuum and Trade
 ## Round 4 view ideas, audited (2026-10-17)
 
 Seven local-model ideas were audited and rebuilt where they were dead. **Phone view** (all in `style.css` inside the `max-width: 600px` block, behaviour in `app.js`, a per-device calm-barn flag in `localStorage["herd-calm-barn"]`, never in a save): R4-HEMO-2 thin fixed top strip (`#mobile-top-strip`: round, funds, methane and a Stable/Rising/High word read from the pressure line, bands at 10 and 25 percent income loss; it hides the shared `#mobile-hud-bar`, which carried the same numbers); R4-HEMO-4 methane thermometer (`#methane-thermometer`, a button in the right gutter outside `#game`, because `#game`'s backdrop blur would trap a fixed child; the tube fills with the pressure line up to the game's 80 percent cap; a tap opens "Why this number?" on methane); R4-HEMO-7 Calm barn (`#calm-barn-toggle`, dims the pasture, slows the animals to 14 s, 14 s and 160 s loops, keeps only the pasture, one honest word, Advance Round and the notices, and has a visible "Leave calm barn" button; everything not marked `calm-keep` is hidden); R4-HEMO-8 herd-size slider (`herd_slider_plan()` / `render_herd_slider()` / `on_herd_slider_buy()` in `game.py`: the handle runs from the herd now to what the funds allow, the numbers come from `clone_farm` and `income_breakdown`, the button buys exactly those units through `_guarded_purchase`; nothing is saved); R4-HEMO-3 lever shelf (`#mobile-lever-shelf` wraps Grow Herd, the decoupling card and the pivot card as a sideways-scrolling row, with Advance Round moved to sit directly after it; the Decoupling tile is still tall, so it is a partial). **Desktop view** (`pc.js`, `pc.css`; no `pc-config.json` change, both pieces are built at run time): R4-HEPC-4 hold I builds `.pasture-label` boxes inside the pasture while the key is down (cleared on release or blur, ignored while typing); R4-HEPC-3 right-click menu on a lever (Buy presses the lever's own button, Pin as a goal is a per-device Goal badge in `localStorage["herd-pinned-goals"]`, Show cost over time opens the Collection window filtered to that lever, Compare opens the Baseline window). Tests: `tests/test_ai_round4_audit.py` (engine plus wiring) and `tests/test_ai_round4_browser.py` (one Pyodide boot per page).
+
+
+## Design specs (LA-13)
+
+Written 2026-10-22 (LA-13 design pass, batch 2). Steps: `local-ai/incoming/herd-design.txt`. Standing rules hold for
+every item: nothing timed, nothing lost, no luck needed for 100%, no audio files, saves load unchanged. R4-PH-2
+(Extension Officer, a whole new mode) is not designed in this batch.
+
+### GF-2: the legacy perks as a visible upgrade tree, with early goals every generation chases
+- **The tree.** The three existing perks keep their names, costs, levels and effects; four new perks join them, and the
+  seven are shown as a tree in three branches with the shared skill-tree component (W-3), above the existing perk
+  buttons (which stay, as the keyboard and screen-reader way to buy; a button of a perk whose requirement is not owned
+  is disabled and its title says what it needs):
+
+| Branch | Perk (id) | Cost | Needs | Effect |
+|---|---|---|---|---|
+| Savings | Family Savings (`family_savings`, 3 levels, drawn as 3 nodes) | 1 each | the level before | +75 starting funds per level (unchanged) |
+| Herd | Mentor's Methods (`mentor_methods`) | 2 | | starts with 1 Feed Additives unit (unchanged) |
+| Herd | Biogas Inheritance (`capture_start`) | 2 | Mentor's Methods | starts with 1 Methane Capture unit |
+| Herd | Heritage Breeding Line (`heritage_line`) | 3 | Biogas Inheritance | breeding investments mature in 2 rounds instead of 3 |
+| Farm | Heritage Flock (`heritage_flock`) | 2 | | poultry from round 1 (unchanged) |
+| Farm | Second Opinion (`second_opinion`) | 2 | Heritage Flock | once per generation, ask the policy advisor for a different pair |
+| Farm | Heritage Farmhouse (`heritage_farmhouse`) | 1 | Second Opinion | a farmhouse barn style for the pasture (looks only) |
+
+  The TODO's "rare breed with better breeding odds" is made deterministic (no luck): the heritage line breeds true, so
+  breeding simply matures a round sooner. "A second policy-advisor option" is the Second Opinion: a fresh pair from the
+  advisor's fixed pool (the same no-repeat order the advisor already uses), once per generation.
+- **Early goals each generation chases.** Handover points become: 1 (as now) + 1 for a flock of 3 or more (as now)
+  + 1 when the farm was certified by round 15 (`CERT_EARLY_ROUND`). The succession panel lists both goals with ✓ or ○
+  and the round. Simulated against the real `FarmState` (growing the herd each round when funds allow): certification
+  comes at round 7 to 9 with capture or mixed levers, 13 with caps only, 17 with feed only, never with no levers; so
+  round 15 rewards using the levers early and never needs luck. Full tree: 15 points, about 5 to 8 generations.
+- **Saves.** Perks stay in `legacy_perks` (the loader already accepts every `LEGACY_PERKS` key, clamped to its max;
+  old saves keep their perks). New farm keys, each written only when not default: `certified_round` (int, set the round
+  certification is earned; an older certified save has none and simply gets no early bonus) and `second_opinion_used`
+  (`True` only). Both validated in `herd_loading.py`.
+- **Engine code.** `herd_succession.py`: add a `"branch"` key to the three existing `LEGACY_PERKS` entries
+  (`family_savings`: `"savings"`, `heritage_flock`: `"farm"`, `mentor_methods`: `"herd"`) and add these four entries at
+  the end of the dict:
+
+```python
+    "capture_start": {"label": "Biogas Inheritance", "cost": 2, "max": 1, "branch": "herd", "requires": ["mentor_methods"],
+                      "blurb": "Every generation starts with one Methane Capture unit already in place."},
+    "heritage_line": {"label": "Heritage Breeding Line", "cost": 3, "max": 1, "branch": "herd", "requires": ["capture_start"],
+                      "blurb": "The heritage line breeds true: breeding investments mature in 2 rounds instead of 3."},
+    "second_opinion": {"label": "Second Opinion", "cost": 2, "max": 1, "branch": "farm", "requires": ["heritage_flock"],
+                       "blurb": "Once per generation, ask the policy advisor for a different pair of options."},
+    "heritage_farmhouse": {"label": "Heritage Farmhouse", "cost": 1, "max": 1, "branch": "farm", "requires": ["second_opinion"],
+                           "blurb": "A farmhouse barn style for the pasture picture. Looks only."},
+```
+
+  and, directly after `FAMILY_SAVINGS_FUNDS = 75`:
+
+```python
+CERT_EARLY_ROUND = 15  # GF-2: a farm certified by this round earns one more legacy point on handover
+SUCCESSION_EARLY_CERT_POINTS = 1
+
+
+def perk_requirements_met(name):
+    return all(runstate.legacy_perks.get(req, 0) >= 1 for req in LEGACY_PERKS[name].get("requires", []))
+
+
+def generation_goals():
+    """GF-2: the two early goals every generation chases, as [(text, done)]."""
+    farm = runstate.farm
+    early = farm.certified_round is not None and farm.certified_round <= CERT_EARLY_ROUND
+    return [
+        (f"Certified by round {CERT_EARLY_ROUND} (+{SUCCESSION_EARLY_CERT_POINTS} point)"
+         + (f": done in round {farm.certified_round}" if early else ""), early),
+        (f"A flock of {SUCCESSION_FLOCK_MIN_SIZE} poultry (+{SUCCESSION_FLOCK_BONUS_POINTS} point)",
+         farm.poultry_size >= SUCCESSION_FLOCK_MIN_SIZE),
+    ]
+```
+
+  `handover_points()`: directly before its `return points` add
+  `if runstate.farm.certified_round is not None and runstate.farm.certified_round <= CERT_EARLY_ROUND:` /
+  `points += SUCCESSION_EARLY_CERT_POINTS  # GF-2`. `buy_legacy_perk`: directly after the line
+  `if level >= spec["max"] or runstate.legacy_points < spec["cost"]:` and its `return False`, add
+  `if not perk_requirements_met(name):` / `return False`. `_apply_perk_to_farm`: add the branches
+  `elif name == "capture_start":` / `runstate.farm.decoupling_investment["capture"] += 1` and
+  `elif name == "heritage_farmhouse" and "farmhouse" not in runstate.barns_unlocked:` /
+  `runstate.barns_unlocked.append("farmhouse")`. `herd_model.py` `FarmState.__init__`: directly after
+  `self.certified = False` add `self.certified_round = None  # GF-2` and `self.second_opinion_used = False  # GF-2`;
+  in `advance_round` directly after `self.certified = True` add `self.certified_round = self.round_number`;
+  `invest_genetics`: change `self.genetics_pending.append(GENETICS_MATURE_ROUNDS)` to
+  `self.genetics_pending.append(GENETICS_MATURE_ROUNDS - (1 if runstate.legacy_perks.get("heritage_line", 0) else 0))  # GF-2`;
+  directly after `choose_policy` add:
+
+```python
+    def ask_second_opinion(self):
+        """GF-2: with the Second Opinion perk, once per generation, a fresh pair from the advisor's fixed pool."""
+        if not self.policy_offer_pending or self.second_opinion_used or not runstate.legacy_perks.get("second_opinion", 0):
+            return False
+        self.policy_offer = self.draw_policy_offer()
+        self.second_opinion_used = True
+        return True
+```
+
+  `herd_savegame.py` `get_state()`, next to the other only-when-not-default fields:
+  `if runstate.farm.certified_round is not None: state["certified_round"] = runstate.farm.certified_round` and
+  `if runstate.farm.second_opinion_used: state["second_opinion_used"] = True`. `herd_loading.py`: directly after
+  `runstate.farm.certified = bool(data.get("certified", False))` add
+  `saved_cert_round = _safe_int(data.get("certified_round"), 0)` /
+  `runstate.farm.certified_round = saved_cert_round if runstate.farm.certified and saved_cert_round >= 1 else None  # GF-2`
+  and directly after the `policy_offer_pending` line
+  `runstate.farm.second_opinion_used = data.get("second_opinion_used") is True  # GF-2`.
+- **Engine tests, NEW file `tests/test_legacy_tree.py`** (`game_env` fixture; `m = game_env.module`):
+
+```python
+"""LA-13 / GF-2: the legacy tree, its requirements, the new perks and the early goals."""
+
+
+def test_new_perks_need_their_branch_first(game_env):
+    m = game_env.module
+    m.legacy_points = 10
+    assert m.buy_legacy_perk("capture_start") is False
+    assert m.buy_legacy_perk("mentor_methods") is True and m.buy_legacy_perk("capture_start") is True
+    assert m.legacy_points == 6 and game_env.farm.decoupling_investment["capture"] == 1
+
+
+def test_inherited_capture_and_the_heritage_line(game_env):
+    m = game_env.module
+    m.legacy_perks = {"mentor_methods": 1, "capture_start": 1, "heritage_line": 1}
+    game_env.farm.funds = 500
+    game_env.farm.invest_genetics()
+    assert game_env.farm.genetics_pending == [2]
+
+
+def test_second_opinion_once_per_generation(game_env):
+    m = game_env.module
+    farm = game_env.farm
+    farm.policy_offer_pending = True
+    farm.policy_offer = farm.draw_policy_offer()
+    first = list(farm.policy_offer)
+    assert farm.ask_second_opinion() is False  # no perk yet
+    m.legacy_perks = {"heritage_flock": 1, "second_opinion": 1}
+    assert farm.ask_second_opinion() is True and farm.policy_offer != first and len(farm.policy_offer) == 2
+    assert farm.ask_second_opinion() is False
+
+
+def test_early_certification_is_a_goal_worth_a_point(game_env):
+    m = game_env.module
+    farm = game_env.farm
+    farm.certified = True
+    farm.certified_round = 12
+    assert m.handover_points() == 2
+    assert m.generation_goals()[0][1] is True
+    farm.certified_round = 16
+    assert m.handover_points() == 1 and m.generation_goals()[0][1] is False
+
+
+def test_the_new_fields_save_only_when_set(game_env):
+    m = game_env.module
+    state = m.get_state()
+    assert "certified_round" not in state and "second_opinion_used" not in state
+    game_env.farm.certified, game_env.farm.certified_round, game_env.farm.second_opinion_used = True, 9, True
+    m.load_state(m.get_state())
+    assert game_env.farm.certified_round == 9 and game_env.farm.second_opinion_used is True
+```
+
+- **The tree data** (second step), `herd_succession.py` at the end (`json` imported at the top):
+
+```python
+# ---- GF-2: the legacy perks as a tree for the shared skill-tree component (Python owns the state) ----
+LEGACY_BRANCHES = [
+    {"id": "savings", "title": "Savings", "blurb": "Money the family puts by."},
+    {"id": "herd", "title": "Herd", "blurb": "Know-how and kit passed down with the cows."},
+    {"id": "farm", "title": "Farm", "blurb": "The flock, the advisor and the farmhouse."},
+]
+
+
+def _node_ids(name):
+    spec = LEGACY_PERKS[name]
+    return [f"{name}_{n}" for n in range(1, spec["max"] + 1)] if spec["max"] > 1 else [name]
+
+
+def legacy_tree():
+    nodes = []
+    for name, spec in LEGACY_PERKS.items():
+        ids = _node_ids(name)
+        for n, node_id in enumerate(ids):
+            requires = [ids[n - 1]] if n else list(spec.get("requires", []))
+            label = spec["label"] + (f" {n + 1}" if len(ids) > 1 else "")
+            nodes.append({"id": node_id, "branch": spec["branch"], "cost": spec["cost"], "label": label,
+                          "description": spec["blurb"], "requires": requires})
+    return {"id": "herd-legacy", "title": "Family legacy", "currency": "legacy points",
+            "branches": LEGACY_BRANCHES, "nodes": nodes}
+
+
+def legacy_tree_json():
+    """For legacy-tree.js: the tree, the owned node ids and the points ever earned."""
+    owned = []
+    spent = 0
+    for name, level in runstate.legacy_perks.items():
+        owned += _node_ids(name)[:level]
+        spent += LEGACY_PERKS[name]["cost"] * level
+    return json.dumps({"tree": legacy_tree(), "owned": owned, "earned": runstate.legacy_points + spent})
+
+
+def buy_legacy_node(node_id):
+    """Buys the perk level a tree node stands for (only the next level of a multi-level perk). Returns the new JSON."""
+    node_id = str(node_id)
+    for name in LEGACY_PERKS:
+        ids = _node_ids(name)
+        if node_id in ids and ids.index(node_id) == runstate.legacy_perks.get(name, 0):
+            buy_legacy_perk(name)
+    return legacy_tree_json()
+```
+
+  `game.py`: add `legacy_tree_json, buy_legacy_node` to its imports from `herd_succession` so the page can reach them.
+  Tests (append): `test_the_tree_matches_the_perks` (`json.loads(m.legacy_tree_json())`: 9 nodes, the three
+  `family_savings_N` ids chained by `requires`, `capture_start` requires `["mentor_methods"]`, `owned == []`, `earned == 0`);
+  `test_buying_through_the_tree` (`m.legacy_points = 3`; `buy_legacy_node("family_savings_2")` buys nothing;
+  `buy_legacy_node("family_savings_1")` gives owned `["family_savings_1"]`, earned 3, `m.legacy_points == 2`).
+- **Page** (third and fourth steps). Python side: `render_succession` (after its perk-button loop) sets each perk
+  button's `disabled` also when `not perk_requirements_met(name)` and its `title` to
+  `spec["blurb"] + (" Needs " + ", ".join(LEGACY_PERKS[r]["label"] for r in spec.get("requires", [])) + "." if not perk_requirements_met(name) else "")`;
+  writes `#succession-goals` as one `<li>` per `generation_goals()` entry ("✓ " or "○ " + text); shows
+  `#policy-second-opinion-button` (in the policy panel) only when the perk is owned and not used this generation;
+  handler `on_second_opinion` (`herd_handlers_play.py`): `runstate.farm.ask_second_opinion()` then `render()`.
+  `herd_barns.py`: a seventh `BARN_SKINS` entry
+  `{"id": "farmhouse", "label": "Heritage Farmhouse", "glyph": "\U0001F3E1", "unlock": "legacy:heritage_farmhouse"}`
+  and, in `barn_card_state` directly above its final `return`, `if skin["unlock"] == "legacy:heritage_farmhouse":` /
+  `return "Locked", True, "Buy the Heritage Farmhouse legacy perk."`. CSS (`style-5-round7.css`, after the gold barn):
+  `.pasture-visual[data-barn="farmhouse"] { --barn-wall: #f1e3c6; --barn-roof: #7a4b2a; --barn-trim: #ffffff; --fence: #b88a5a; --barn-mark: "\1F3E1"; --tractor-filter: sepia(0.4); }`.
+  Markup (`index.html`, inside `#succession-panel`): directly after `#succession-display`:
+  `<ul id="succession-goals" class="succession-goals"></ul><div id="legacy-tree" class="legacy-tree"></div>`; after
+  the `perk-mentor-methods-button` row, four rows in the same shape for `perk-capture-start-button`,
+  `perk-heritage-line-button`, `perk-second-opinion-button`, `perk-heritage-farmhouse-button`; in the policy panel
+  directly after `#policy-cash-button`:
+  `<button id="policy-second-opinion-button" class="secondary" hidden>Ask for a second opinion</button>`. Scripts,
+  directly after the `feedback.js` (or last game) script tag: the shared skill-tree tag
+  (`<script src="../../` + `shared/skill-tree.js"></script>`) then `<script src="legacy-tree.js"></script>`. NEW file
+  `legacy-tree.js`:
+
+```js
+// GF-2: the legacy perks drawn as a tree with the shared skill-tree component. Python owns the state:
+// legacy_tree_json() gives {tree, owned, earned}; buy_legacy_node(id) buys and returns the same JSON.
+(function () {
+  "use strict";
+  var view = null;
+  function call(name, arg) {
+    var fn = window.pyodide && window.pyodide.globals.get(name);
+    if (!fn) { return null; }
+    return JSON.parse(arg === undefined ? fn() : fn(arg));
+  }
+  function draw() {
+    var box = document.getElementById("legacy-tree");
+    var panel = document.getElementById("succession-panel");
+    if (!box || !panel || panel.hidden || !window.NoyvjSkillTree) { return; }
+    var data = call("legacy_tree_json");
+    if (!data) { return; }
+    if (view) { view.update({ owned: data.owned, earned: data.earned }); return; }
+    view = window.NoyvjSkillTree.render(box, {
+      tree: data.tree, owned: data.owned, earned: data.earned,
+      onBuy: function (id) {
+        var after = call("buy_legacy_node", id);
+        if (!after) { return; }
+        view.update({ owned: after.owned, earned: after.earned });
+        var render = window.pyodide.globals.get("render");
+        if (render) { render(); }
+      }
+    });
+  }
+  var display = document.getElementById("succession-display");
+  if (display) {
+    new MutationObserver(draw).observe(display, { childList: true, characterData: true, subtree: true });
+  }
+})();
+```
+
+  `tests/conftest.py` `ELEMENT_IDS`: the four new perk buttons, `succession-goals`, `legacy-tree`,
+  `policy-second-opinion-button`; `game.py`: the four perk buttons in the `_make_perk_handler` list and
+  `("policy-second-opinion-button", on_second_opinion)`. `pc-config.json`: nothing (the panel already exists).
+  Browser test NEW `tests/test_legacy_tree_browser.py`: load a save through `load_state` with `generation: 2`,
+  `legacy_points: 3` (`page.evaluate` calling `window.pyodide.globals.get("load_state")` with a dict from `get_state()`
+  plus those keys, the way `tests/test_save_widget.py` does), then `#succession-panel` is visible, `#legacy-tree` holds
+  9 nodes (count the component's node buttons inside it), clicking `#perk-family-savings-button` lowers the points in
+  `#succession-display` to 2; `page.errors == []`.

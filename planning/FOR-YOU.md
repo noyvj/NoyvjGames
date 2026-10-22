@@ -411,3 +411,31 @@ Recommended: yes. A replay is view-only and never changes cash, reputation or ac
 ### La60. Trade Empire: ship minds (R4-PE-5). How should ship minds differ from the existing Fleet Captains?
 
 Recommended: fold the minds into the captains rather than adding a second system.
+
+### La61. SOL: what does a transfer move (R4-SO-2, R4-PS-26)? Travel is free view-switching now, and the eight worlds use eight different resources.
+
+Recommended: cargo, not the view. A depot turns one world's surplus into another world's resource at 70% value (capped at 200, the cap doubling per upgrade); transfer windows make shipments cheaper at the synodic window, and travel stays free.
+
+### La62. SOL: Mastery web (R4-PS-12). How big, and does it sit alongside the prestige tree?
+
+Recommended: about 30 small nodes in 5 branches, 1 point per achievement and per first visit to a world, no refunds, separate from prestige.
+
+### La63. SOL: Other Stars (R4-PS-22). May a seeded star system reuse SOL's eight world templates with renamed worlds and re-tuned numbers?
+
+Recommended: yes; a true world-data layer is too big a refactor.
+
+### La64. SOL: tidy base (R4-PS-29). What does the base map look like?
+
+Recommended: a 6x6 grid per world of building icons, a neatness bonus of at most +5% yield, no art beyond emoji.
+
+### La65. Tide: Specimen Jars (R4-PI-3). How many jars, and what reveals each one?
+
+Recommended: all 24 species, each revealed by reaching a threshold on one ocean measure, shown as a CSS jar shelf.
+
+### La66. Thaw: drone fleet (R4-PT-1, needs art and a wiring puzzle) and changing how a region fails (R4-PT-2).
+
+Recommended: defer both until a scope talk.
+
+### La67. Continuum: Lantern keeper walking mode (R4-PO-1) and collectable robot caretakers (R4-PO-4). Both need 3D art direction.
+
+Recommended: defer both.

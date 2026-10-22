@@ -819,3 +819,969 @@ Code is in `game.py` (the block headed "Batch 3"-style sections before `_listen`
 - **Ghost of your best run (Z-3d, 2026-10-12).** Aftermath had no per-turn ghost to move (its E-4 "ghost" is a friend's run code, untouched), so this adopts `shared/ghost.py` (loaded as `ghost.py` in `index.html`'s shared-module loop, `pc.html` regenerated). Measure: the resources left after each event (the run score's own number, so the last point is the final score). `RunState.resources_log` appends it in `resolve_next_event`; `get_state()` writes `resources_log` only while the run is eligible and has one number per resolved event, and `load_state` reads it through `_load_resources_log` (wrong length or any non-number = `[]`; an older save has none and the note says that run cannot be compared). Eligible = not a challenge run, not a built schedule, no neighbour aid planned or received (`ghost_run_eligible`). The best run per schedule lives in `meta["ghosts"]` ({"<scenario>" or "<scenario>:long": {run, score, trace}}, the key only exists once a ghost does; `_sanitize_ghosts` cleans each trace with `ghost.load`, drops unknown modes, bad scores and traces whose `turns` is not that schedule's event count; `ghost_entry` re-checks on every read). `file_run_ghost` runs inside the once-per-run payout guard, feeds `ghost.Recorder` one number per event and replaces the stored ghost when the score is at least as good (latest wins a tie). Display: no chart in Aftermath, so words only. `#ghost-note` (`role="status"`) under the damage preview shows the shared `ghost.summary` sentence ("Ghost: you are 12 resources ahead of your best run (Run 3) at turn 4."), with plain sentences for no ghost yet, before the first event, a run saved before ghosts and a run that is itself the new best. `#ghost-toggle` (checkbox, default on, `aftermath-ghost-on` in localStorage, a display preference outside any save) hides the note; recording continues while it is off. Tests: `tests/test_shared_ghost.py`.
 
 - **Today's run (Z-5c, 2026-10-12).** `NoyvjSeed.daily.mountButton` in `#todays-run-slot` inside `#challenge-panel` (summary and Desktop window renamed "Run codes, challenges and Today's run"), with `shared/seed.js` loaded from `index.html` (already in the service worker precache) and a small inline mount script; the sentence `start_todays_run` returns shows in `#todays-run-note`. It uses the existing E-4 route: `daily_run_code(seed)` encodes the classic schedule at the UTC date's shared seed (`AFTERMATH-XXXXX`, `NoyvjSeed.daily.seed("aftermath", today)`) as an ordinary run code and `challenge_run_from_code` builds the run, so it is a challenge run (skills and memory off, no knowledge, no history, no ghost, plain severity band from the seed's number) with `run.challenge["daily_seed"]` set. It starts only when `run.is_complete()` or `run_is_untouched()` (no event faced, no resources spent, no allocation clicks); otherwise nothing changes and the sentence says to finish the run or save it first (there is no confirm dialog in this game for starting a challenge). `RunState.resolve_next_event` ends a normalised run with `_record_shared_daily(run)`: when the page says the seed is today's (`NoyvjSeed.daily.isDaily`) it calls `markCompleted("aftermath", {text: "Ended with N resources"})`, counted once per day in `noyvj-daily-v1`; an older day's seed, a friend's challenge (even one carrying today's seed), an ordinary run or a missing shared script record nothing, and any error is swallowed. The only new save key is `challenge_daily: true`, written only for a run begun with the button; `load_state` honours it only when it is exactly `True` and the saved `challenge_code` is a classic-mode code (the seed is re-derived from the code), so old and damaged saves load unchanged. A run begun just before 00:00 UTC and finished after it does not count. Banner and end-of-run text say "Today's run" and never mention missed days. Tests: `tests/test_todays_run.py` (fake DOM, 13) and `tests/test_todays_run_browser.py` (Playwright, fixed clock, 1440x900, 360x740 and Desktop).
+
+
+## Design specs (LA-13)
+
+Written 2026-10-22 (LA-13 design pass, batch 2). Steps: `local-ai/incoming/aftermath-design.txt`. Standing rules hold for
+every item: nothing timed, nothing lost, no luck needed for 100%, no audio files, saves load unchanged. The four chains
+all edit `RunState` (`aftermath_model_run.py`) and `aftermath_savestate.py`, each at its OWN anchor lines; merge them in
+the order GE-3, R4-PA-5, R4-PA-2, R4-PA-1. None of them adds an achievement, so `achievements.json` is untouched.
+
+### GE-3: Fog of War (opt-in per run)
+- **Rule.** A run started with the "Fog of War" box ticked hides every scheduled event that is not yet in sight. Sight
+  counts from the event about to hit: Early Warning Systems owned = 1 (the next event), Mutual Aid Network owned = 2,
+  both = 3 (the next event and the two after it). With neither, even the next event is hidden. Faced events are never
+  hidden. Buying one of the two skills mid-run widens sight at once (sight reads the live tree, `run._unlocked()`).
+  Early Warning and Mutual Aid keep their mitigation exactly as now; fog changes only what is SHOWN, never a number:
+  damage, severity, score and knowledge are identical to the same run without fog.
+- **Where it applies.** Ordinary runs only: a friend's challenge, Today's run and a built schedule ignore the flag
+  (`fog_active()`). Extended and Marathon runs may be fogged.
+- **Saves.** `get_state()` writes `"fog": True` only for a run where `fog_active()`; `load_state` sets
+  `run.fog = data.get("fog") is True`. Old saves have no key and load unfogged. Nothing in `meta`.
+- **Every surface that shows an upcoming event respects fog** through one test, `run.is_hidden(index)`:
+  schedule strip and its detail text (E-17), plain-text schedule (E-5), countdown note (GE-26), tab title, Flawless
+  hint (GE-15), next-event line and expected-damage preview (E8/E14/E16), mentor, "Helps against" (E-29, counts only
+  events in sight), real-world note, generational memory line, unspent-resources confirm (E-28), neighbour-aid line
+  (R-31: says "before event N", never the type). Not affected: the damage popup and waterfall (they show the event just
+  faced), the ghost (resources only), run codes (only for finished runs), the Codex.
+- **Engine code.** `aftermath_rules.py`, at the end:
+
+```python
+# GE-3: Fog of War. In a fogged run the player sees only the events in sight; each skill below adds to sight,
+# counted from the event about to hit. Faced events are always shown.
+FOG_SIGHT_SKILLS = {"early_warning": 1, "mutual_aid_network": 2}
+FOG_HIDDEN_LABEL = "Unknown shock"
+
+
+def fog_hint(run_state):
+    """GE-3: what would let the player see further, or "" once both sight skills are owned."""
+    owned = run_state._unlocked()
+    if "early_warning" not in owned:
+        return "Early Warning Systems would show the next event."
+    if "mutual_aid_network" not in owned:
+        return "Mutual Aid Network would show two more events ahead."
+    return ""
+
+
+def next_event_label(run_state):
+    """GE-3: the next event's name for a sentence, or "an unknown shock" while the fog hides it."""
+    if run_state.is_hidden(run_state.event_index):
+        return "an unknown shock"
+    return EVENT_LABEL[run_state.next_event_type()]
+```
+
+  `RunState.__init__` (`aftermath_model_run.py`): directly after the line `self.challenge = challenge if ...` add
+  `self.fog = False  # GE-3: set by start_new_run / load_state; only an ordinary run is ever fogged`. Directly after the
+  method `category_bonus` add:
+
+```python
+    def fog_active(self):
+        """GE-3: Fog of War applies to an ordinary run only, never a friend's challenge or a built schedule."""
+        return bool(self.fog) and not self.normalised and not self.custom_events
+
+    def fog_sight(self):
+        """GE-3: how many events, counting the one about to hit, a fogged run shows."""
+        if not self.fog_active():
+            return len(self.schedule)
+        owned = self._unlocked()
+        return sum(n for skill, n in FOG_SIGHT_SKILLS.items() if skill in owned)
+
+    def is_hidden(self, index):
+        """GE-3: True for a scheduled event the fog still hides. Faced events never are."""
+        return self.fog_active() and index >= self.event_index + self.fog_sight()
+```
+
+  (add `FOG_SIGHT_SKILLS` to the `from aftermath_rules import (...)` block). `aftermath_savestate.py` `get_state()`:
+  directly after the `"extended": runstate.run.extended,` line add
+  `**({"fog": True} if runstate.run.fog_active() else {}),  # GE-3`. `load_state`: directly after
+  `runstate.run = restored` add `runstate.run.fog = data.get("fog") is True  # GE-3`. `aftermath_actions.py`
+  `start_new_run()`: directly after the `runstate.run = RunState(run_number=...)` line add
+  `fog_box = _el("fog-run-toggle")  # GE-3` and
+  `runstate.run.fog = bool(fog_box.checked) if fog_box is not None else False`. `aftermath_handlers.py`
+  `on_scenario_change`: directly above the `runstate.run = RunState(...)` line inside the `if` add
+  `was_fog = runstate.run.fog  # GE-3`, and directly below it `runstate.run.fog = was_fog`.
+  `tests/conftest.py` `ELEMENT_IDS`: add `"fog-run-toggle", "fog-run-toggle-wrapper",` directly after
+  `"extended-run-toggle-wrapper",`.
+- **Engine tests, NEW file `tests/test_fog_of_war.py`** (the `game_env` fixture; `m = game_env.module`):
+
+```python
+"""LA-13 / GE-3: Fog of War hides events out of sight; Early Warning shows 1, Mutual Aid 2 more."""
+
+
+def test_fog_hides_every_upcoming_event_without_the_skills(game_env):
+    m = game_env.module
+    r = m.RunState(run_number=2)
+    r.fog = True
+    assert r.fog_sight() == 0
+    assert all(r.is_hidden(i) for i in range(len(r.schedule)))
+    plain = m.RunState(run_number=2)
+    assert plain.fog is False and not any(plain.is_hidden(i) for i in range(len(plain.schedule)))
+
+
+def test_early_warning_shows_one_and_mutual_aid_two_more(game_env):
+    m = game_env.module
+    game_env.skill_tree.unlocked.add("early_warning")
+    r = m.RunState(run_number=2)
+    r.fog = True
+    assert r.fog_sight() == 1 and not r.is_hidden(0) and r.is_hidden(1)
+    game_env.skill_tree.unlocked.add("mutual_aid_network")
+    assert r.fog_sight() == 3
+    assert [r.is_hidden(i) for i in range(4)] == [False, False, False, True]
+
+
+def test_the_horizon_moves_with_the_run_and_faced_events_stay_shown(game_env):
+    m = game_env.module
+    game_env.skill_tree.unlocked.add("early_warning")
+    r = m.RunState(run_number=2)
+    r.fog = True
+    r.resolve_next_event()
+    assert [r.is_hidden(i) for i in range(3)] == [False, False, True]
+
+
+def test_fog_never_changes_a_number(game_env):
+    m = game_env.module
+    fogged, plain = m.RunState(run_number=3), m.RunState(run_number=3)
+    fogged.fog = True
+    for r in (fogged, plain):
+        r.invest_resilience()
+        r.resolve_next_event()
+    assert fogged.resources == plain.resources and fogged.event_log == plain.event_log
+
+
+def test_fog_is_off_for_challenge_and_built_runs(game_env):
+    m = game_env.module
+    challenge = m.RunState(run_number=2, normalised=True, draw=3)
+    built = m.RunState(run_number=2, custom_events=["flood", "storm"])
+    challenge.fog = built.fog = True
+    assert not challenge.fog_active() and not built.fog_active() and not built.is_hidden(0)
+
+
+def test_fog_is_saved_only_when_on_and_loads_back(game_env):
+    m = game_env.module
+    assert "fog" not in m.get_state()
+    m.load_state({**m.get_state(), "fog": True})
+    assert game_env.run.fog is True and m.get_state()["fog"] is True
+    state = m.get_state()
+    state.pop("fog")
+    m.load_state(state)
+    assert game_env.run.fog is False
+
+
+def test_a_new_run_reads_the_fog_box(game_env):
+    while not game_env.run.is_complete():
+        game_env.resolve_event()
+    game_env.elements["fog-run-toggle"].checked = True
+    game_env.start_new_run()
+    assert game_env.run.fog is True
+```
+
+- **Surfaces, part A** (`aftermath_runview.py`, `aftermath_tools.py`). `schedule_strip_entries`: between the
+  `if index < run_state.event_index ...:` block and its `else:` insert
+
+```python
+        elif run_state.is_hidden(index):  # GE-3: out of sight in a fogged run
+            entry.update(state="hidden", type=None, label=FOG_HIDDEN_LABEL, icon="?", category="unknown",
+                         category_bonus=0.0, damage=None, severity=None, mitigation=None)
+```
+
+  `schedule_entry_text`: as its first lines
+  `if entry["state"] == "hidden":` / `return f"Event {entry['number']}: hidden by the fog of war. {fog_hint(runstate.run)}".strip()`.
+  `render_schedule_strip`: the `mark = {...}[entry["state"]]` dict gains `"hidden": ""`; replace
+  `if entry["state"] == "next":` with `if entry["index"] == runstate.run.event_index:` (the same result without fog;
+  with fog it keeps the detail line on the next event instead of "Run complete"). `countdown_note_text` and
+  `tab_title`: replace each `EVENT_LABEL[run_state.next_event_type()]` with `next_event_label(run_state)`.
+  `flawless_hint_text`: directly after its `if run_state.is_complete(): return ""` add
+  `if run_state.is_hidden(run_state.event_index):` /
+  `return "Flawless Defense: the fog hides the next event, so its target is not known yet."`.
+  `aftermath_tools.py` `schedule_plain_text`: before `elif entry["state"] == "next":` insert
+  `elif entry["state"] == "hidden":` / `note = "hidden by fog"`. Tests, appended to `tests/test_fog_of_war.py`:
+
+```python
+def _fogged(game_env):
+    r = game_env.module.RunState(run_number=2)
+    r.fog = True
+    game_env.module.run = r
+    return r
+
+
+def test_hidden_events_read_as_unknown_on_the_strip_and_in_words(game_env):
+    m = game_env.module
+    r = _fogged(game_env)
+    entries = m.schedule_strip_entries(r)
+    assert entries[0]["state"] == "hidden" and entries[0]["label"] == "Unknown shock" and entries[0]["damage"] is None
+    assert m.schedule_entry_text(entries[0]).startswith("Event 1: hidden by the fog of war.")
+    assert m.schedule_plain_text(r).startswith("1. Unknown shock (hidden by fog)")
+    assert "an unknown shock" in m.countdown_note_text(r) and "an unknown shock" in m.tab_title(r)
+    assert "fog hides the next event" in m.flawless_hint_text(r)
+    m.render()
+    assert game_env.elements["schedule-detail"].innerText.startswith("Event 1: hidden by the fog of war.")
+```
+
+- **Surfaces, part B** (`aftermath_renderer.py`, `aftermath_pastruns.py`, `aftermath_panels.py`). In `render()`,
+  directly after the line
+  `document.getElementById("flawless-hint-display").innerText = flawless_hint_text(runstate.run)  # GE-15` add (same
+  indent):
+
+```python
+        if runstate.run.is_hidden(runstate.run.event_index):  # GE-3: the fog hides the next event
+            next_event_el.innerText = f"Next: ? {FOG_HIDDEN_LABEL}"
+            next_event_el.className = "status-line event-category--unknown"
+            expected_el.innerText = f"Expected damage: hidden by the fog of war. {fog_hint(runstate.run)}".strip()
+            expected_el.className = "status-line"
+            expected_el.title = ""
+```
+
+  `mentor_suggestion`: directly after its `if run_state.is_complete(): return (...)` block add
+  `if run_state.is_hidden(run_state.event_index):` / `return ("The fog of war hides the next event. Resilience softens every kind of shock, so it is the safe buy when you cannot see what is coming. " + fog_hint(run_state)).strip()`.
+  `aftermath_panels.py` `real_world_event_type`: directly after its `if runstate.run.event_log: return ...` add
+  `if runstate.run.is_hidden(runstate.run.event_index):` / `return None`. The generational-memory function in the same
+  file (the one with `index = run_state.event_index`, about line 405): directly after that line add
+  `if run_state.is_hidden(index):` / `return ""`. Test `test_the_preview_mentor_and_notes_say_fog`: `_fogged(game_env)`;
+  `m.render()`; `game_env.elements["next-event-display"].innerText == "Next: ? Unknown shock"`;
+  `game_env.elements["expected-damage-display"].innerText.startswith("Expected damage: hidden by the fog of war.")`;
+  `"fog of war hides the next event" in m.mentor_suggestion(game_env.run)`; `m.real_world_event_type() is None`.
+- **Surfaces, part C** (`aftermath_runview.py` `skill_helps_against`, `aftermath_handlers.py`, `aftermath_bonuses.py`).
+  In `skill_helps_against`'s `for index in range(...)` loop, as the loop's first line,
+  `if run_state.is_hidden(index):` / `continue  # GE-3: only events in sight`. `aftermath_handlers.py`
+  `unspent_confirm_message`: replace `EVENT_LABEL[run_state.next_event_type()]` with `next_event_label(run_state)`.
+  `aftermath_bonuses.py` `neighbour_aid_message`: directly above its last `return (` add
+  `if run_state.is_hidden(plan["index"]):  # GE-3: say when, never what` /
+  `return (f"Neighbouring towns will send help before event {plan['index'] + 1}: +{plan['amount']} resources. " "Fixed by this run's number, never luck. It marks the run: off the boards, no run code.")`.
+  Tests: `test_helps_against_counts_only_events_in_sight`: `r = _fogged(game_env)`;
+  `m.skill_helps_against("climate_hardening", r) == ({}, 0.0)`; `game_env.skill_tree.unlocked.add("early_warning")`;
+  `counts, _saved = m.skill_helps_against("climate_hardening", r)`; `counts == {"Flood": 1}` (classic event 1 is a
+  flood, a weather event; check the label against `m.EVENT_LABEL["flood"]`). `test_unspent_confirm_names_no_hidden_event`:
+  `r = _fogged(game_env)`; `"an unknown shock" in m.unspent_confirm_message(r)`.
+- **Page.** `index.html`, directly after the closing `</label>` of `#extended-run-toggle-wrapper`:
+
+```html
+      <!-- GE-3: optional Fog of War, read when a new run starts. -->
+      <label id="fog-run-toggle-wrapper" class="extended-run-toggle-wrapper" hidden>
+        <input type="checkbox" id="fog-run-toggle">
+        <span>Fog of War (upcoming events stay hidden until Early Warning Systems and Mutual Aid Network let you see ahead)</span>
+      </label>
+```
+
+  `aftermath_renderer.py`: directly after
+  `document.getElementById("extended-run-toggle-wrapper").hidden = not runstate.run.is_complete()` add
+  `fog_wrapper = _el("fog-run-toggle-wrapper")` / `if fog_wrapper is not None:` /
+  `fog_wrapper.hidden = not runstate.run.is_complete()` (import `_el` from `aftermath_persist` if the renderer lacks
+  it). CSS (`style-3-panels.css`, end): `.schedule-chip--hidden { font-style: italic; opacity: 0.8; }`. Browser test,
+  NEW `tests/test_fog_browser.py` (copy `test_example_browser.py`): click `#resolve-event-button` 7 times, each time
+  waiting for `#progress-display` to change (the last click shows the run summary); then `#fog-run-toggle-wrapper` is
+  visible; check `#fog-run-toggle`; click `#new-run-button`; wait until `#next-event-display` text is
+  "Next: ? Unknown shock"; the first `#schedule-strip li` text contains "?"; `#schedule-text` text starts with
+  "1. Unknown shock"; `page.errors == []`.
+
+### R4-PA-5: Marathon mode (40 events, save any time, no pressure)
+- **Rule.** A Marathon is one run of 40 events: the chosen scenario's 7-event schedule repeated in order and cut at 40
+  (`marathon_schedule`). Every other rule is the ordinary run's: same costs, income and mitigation cap, the run's own
+  deterministic severity pattern (`event_severity` takes any index), neighbour aid if switched on, fog if ticked.
+  Nothing ends a marathon early; at 0 resources the run simply continues. It saves anywhere through the existing save
+  widget (40 event-log entries are a few KB).
+- **Balance (simulated against the real `RunState`, run 5, a growth-first-then-resilience player).** A 40-event run
+  compounds growth: end scores of 1,100 to 5,600 against 60 to 525 for a 7-event run, so the plain `score / 20` rule
+  would pay 56 to 281 knowledge (farming). A marathon therefore scales its base knowledge by 7/40 through the existing
+  `custom_knowledge_factor` path (`base = max(1, round(base * factor))`; Flawless Defense bonuses are not scaled, as for
+  every run). Knowledge per event played: Marathon 0.6 to 1.7, a 7-event run 0.4 to 4.0, the existing Extended run up to
+  6.1. So a marathon is never the efficient way to farm, but a long evening still pays (24 to 68 knowledge, about 3 to 5
+  skills).
+- **Kept off comparisons.** A marathon score is not comparable with 7-event runs, so it is NOT appended to `run_history`
+  (the score list every comparison, record, streak and the run-1-versus-latest view read). It IS written to
+  `run_log_history` with `"marathon": True` (Past Runs card, Lifetime Stats, knowledge chart) and pays knowledge, legacy
+  counts, societal memory, curriculum and skill progress like any run. It is never a Past Runs record, never a ghost,
+  gets no run code and does not reach the hardest-schedule board. It does not count towards the "complete N runs"
+  achievements (they read `run_history`), so no achievement needs a marathon.
+- **Saves.** `"marathon": True` only for a marathon; `load_state` calls `make_marathon()` on the fresh run when
+  `data.get("marathon") is True` (before the saved event index is restored). Old saves load unchanged.
+- **Engine code.** `aftermath_rules.py`, at the end:
+
+```python
+# R4-PA-5: Marathon mode, one long run of 40 events (the scenario's schedule repeated in order, cut at 40).
+MARATHON_EVENTS = 40
+
+
+def marathon_schedule(scenario):
+    base = SCENARIOS[scenario]["schedule"] if scenario in SCENARIOS else EVENT_SCHEDULE
+    return (list(base) * (MARATHON_EVENTS // len(base) + 1))[:MARATHON_EVENTS]
+```
+
+  `RunState.__init__`: directly after `self.extended = extended` add
+  `self.marathon = False  # R4-PA-5: set by make_marathon()`. Directly above the method `next_event_type` add:
+
+```python
+    def make_marathon(self):
+        """R4-PA-5: turn a fresh ordinary run into a Marathon (40 events). Only before its first event."""
+        if self.event_index or self.event_log or self.normalised or self.custom_events:
+            return False
+        self.marathon = True
+        self.extended = False
+        self.schedule = marathon_schedule(self.scenario)
+        return True
+
+```
+
+  `custom_knowledge_factor`: as its first lines (after the docstring) `if self.marathon:` /
+  `return len(EVENT_SCHEDULE) / MARATHON_EVENTS`. In `resolve_next_event`'s payout block replace the two lines
+  `runstate.run_history.append(self.run_score())` and `save_run_history(runstate.run_history)` with
+  `if not self.marathon:  # R4-PA-5: a Marathon is never compared with 7-event runs` and the same two lines indented
+  one level under it (the one allowed change of existing lines). In the `run_log_history.append({...})` dict, directly
+  after the `neighbour_aid` line, add `**({"marathon": True} if self.marathon else {}),`. Change
+  `if not self.custom_events:  # E-13: a hand-built schedule never competes on the board` to
+  `if not self.custom_events and not self.marathon:  # E-13 / R4-PA-5: never on the board`. Add
+  `MARATHON_EVENTS, marathon_schedule` to the `from aftermath_rules import (...)` block. `aftermath_savestate.py`
+  `get_state()`: directly after the `"extended": runstate.run.extended,` line add
+  `**({"marathon": True} if runstate.run.marathon else {}),  # R4-PA-5`. `load_state`: directly after
+  `runstate.run = restored` add `if data.get("marathon") is True:` / `runstate.run.make_marathon()  # R4-PA-5`.
+- **Engine tests, NEW file `tests/test_marathon.py`:**
+
+```python
+"""LA-13 / R4-PA-5: Marathon mode, 40 events, knowledge scaled 7/40, kept off every comparison."""
+
+
+def test_a_marathon_is_the_scenario_repeated_to_forty(game_env):
+    m = game_env.module
+    r = m.RunState(run_number=2, scenario="coastal")
+    assert r.make_marathon() is True
+    coastal = m.SCENARIOS["coastal"]["schedule"]
+    assert len(r.schedule) == 40 and r.schedule[:7] == coastal and r.schedule[35:] == coastal[:5]
+    assert r.extended is False
+
+
+def test_only_a_fresh_ordinary_run_becomes_a_marathon(game_env):
+    m = game_env.module
+    started = m.RunState(run_number=2)
+    started.resolve_next_event()
+    assert started.make_marathon() is False and len(started.schedule) == 7
+    assert m.RunState(run_number=2, normalised=True, draw=4).make_marathon() is False
+
+
+def test_knowledge_is_scaled_seven_fortieths(game_env):
+    m = game_env.module
+    r = m.RunState(run_number=2)
+    r.make_marathon()
+    r.resources = 800.0
+    info = r.knowledge_breakdown()
+    assert info["raw"] == 40 and info["base"] == 7 and r.custom_knowledge_factor() == 7 / 40
+
+
+def test_a_finished_marathon_pays_but_stays_off_the_score_list(game_env):
+    m = game_env.module
+    game_env.run.make_marathon()
+    before_points = game_env.skill_tree.knowledge_points
+    for _ in range(40):
+        game_env.resolve_event()
+    assert game_env.run.is_complete()
+    assert game_env.run_history == []
+    assert m.run_log_history[-1]["marathon"] is True
+    assert game_env.skill_tree.knowledge_points >= before_points + 1
+
+
+def test_marathon_save_round_trip(game_env):
+    m = game_env.module
+    assert "marathon" not in m.get_state()
+    game_env.run.make_marathon()
+    game_env.resolve_event()
+    state = m.get_state()
+    assert state["marathon"] is True
+    m.load_state(state)
+    assert game_env.run.marathon is True and len(game_env.run.schedule) == 40 and game_env.run.event_index == 1
+```
+
+- **Off the comparisons** (second engine step). `aftermath_challenges.py` `ghost_run_eligible`: inside its existing
+  `not (...)` add `or getattr(run_state, "marathon", False)`. `run_code_fields`: directly after the
+  `if run_state.aid_given:` / `return None` pair add `if getattr(run_state, "marathon", False):  # R4-PA-5` /
+  `return None`. `aftermath_pastruns.py` `new_record_run_indexes`: change `if entry.get("neighbour_aid"):  # R-31 ...`
+  to `if entry.get("neighbour_aid") or entry.get("marathon"):  # R-31 / R4-PA-5: never a record, sets no bar`.
+  `run_mode`: directly after the `custom` early return add:
+
+```python
+    if entry.get("marathon") is True:  # R4-PA-5: tagged when logged
+        length = len(SCENARIOS[DEFAULT_SCENARIO]["schedule"])
+        scenario = next((key for key, spec in SCENARIOS.items() if spec["schedule"] == types[:length]), None)
+        return {"scenario": scenario, "extended": False, "marathon": True}
+```
+
+  `run_mode_label`: directly after `mode = run_mode(entry)` add `if mode.get("marathon"):` /
+  `return (SCENARIOS[mode["scenario"]]["label"] if mode["scenario"] else "Marathon") + ", marathon (40 events)"`.
+  `past_runs_view`: change `if runstate.past_runs_filter == "standard" and mode["extended"]:` to
+  `if runstate.past_runs_filter == "standard" and (mode["extended"] or mode.get("marathon")):`.
+  `aftermath_runview.py` `knowledge_breakdown_lines`: directly before `if info.get("schedule_factor", 1.0) < 1.0:` add
+  `if getattr(run_state, "marathon", False):  # R4-PA-5` /
+  `lines.append(f"Marathon: {MARATHON_EVENTS} events earn knowledge at the rate of {len(EVENT_SCHEDULE)}, so the base is scaled by {len(EVENT_SCHEDULE)}/{MARATHON_EVENTS}")`
+  and change that `if` to `if info.get("schedule_factor", 1.0) < 1.0 and not getattr(run_state, "marathon", False):`
+  (import `EVENT_SCHEDULE, MARATHON_EVENTS` from rules if missing). Test, appended to `tests/test_marathon.py`:
+
+```python
+def test_a_marathon_is_no_record_no_ghost_and_no_code(game_env):
+    m = game_env.module
+    game_env.run.make_marathon()
+    for _ in range(40):
+        game_env.resolve_event()
+    assert m.ghost_run_eligible(game_env.run) is False
+    assert m.run_code_fields(game_env.run) is None
+    assert len(m.run_log_history) - 1 not in m.new_record_run_indexes()
+    assert m.run_mode_label(m.run_log_history[-1]) == "Classic mix, marathon (40 events)"
+    assert any(line.startswith("Marathon: 40 events") for line in m.knowledge_breakdown_lines(game_env.run))
+```
+
+- **Page.** `index.html`, directly after the GE-3 `#fog-run-toggle-wrapper` label (or after
+  `#extended-run-toggle-wrapper` if GE-3 is not merged):
+
+```html
+      <!-- R4-PA-5: Marathon mode, read when a new run starts. -->
+      <label id="marathon-run-toggle-wrapper" class="extended-run-toggle-wrapper" hidden>
+        <input type="checkbox" id="marathon-run-toggle">
+        <span>Marathon (40 events, save any time; scored on its own, never against shorter runs; overrides Extended)</span>
+      </label>
+```
+
+  `aftermath_actions.py` `start_new_run`: directly after the `runstate.run = RunState(run_number=...)` line (after the
+  GE-3 fog lines if present) add `marathon_box = _el("marathon-run-toggle")  # R4-PA-5` /
+  `if marathon_box is not None and marathon_box.checked:` / `runstate.run.make_marathon()`. `aftermath_handlers.py`
+  `on_scenario_change`: directly above the `runstate.run = RunState(...)` line add
+  `was_marathon = runstate.run.marathon  # R4-PA-5`, directly below it `if was_marathon:` /
+  `runstate.run.make_marathon()`. `aftermath_renderer.py`: directly after the line that hides
+  `extended-run-toggle-wrapper` add `marathon_wrapper = _el("marathon-run-toggle-wrapper")` / `if marathon_wrapper is not None:` /
+  `marathon_wrapper.hidden = not runstate.run.is_complete()`. `tests/conftest.py` `ELEMENT_IDS`: add
+  `"marathon-run-toggle", "marathon-run-toggle-wrapper",` directly after `"extended-run-toggle-wrapper",`.
+  Fake-DOM test (append to `tests/test_marathon.py`):
+
+```python
+def test_a_new_run_reads_the_marathon_box(game_env):
+    while not game_env.run.is_complete():
+        game_env.resolve_event()
+    game_env.elements["marathon-run-toggle"].checked = True
+    game_env.start_new_run()
+    assert len(game_env.run.schedule) == 40
+    assert game_env.elements["progress-display"].innerText == "Event 1 of 40"
+```
+
+  Browser test, NEW `tests/test_marathon_browser.py` (copy `test_example_browser.py`): click `#resolve-event-button`
+  7 times (wait for `#progress-display` to change each time); check `#marathon-run-toggle`; click `#new-run-button`;
+  wait until `#progress-display` text is "Event 1 of 40"; `page.errors == []`.
+
+### R4-PA-2: field clinic after heat events
+- **Rule.** Right after a Heatwave or Heat-health emergency resolves (and before the next event), a Field clinic panel
+  offers a small sorting puzzle: four people with mild heat illness, a stock of four supplies (Water, Shade tent, Cool
+  cloths, Rest cot), each person helped by one or two of them. The stock is exactly what one perfect plan uses, so every
+  clinic can be fully solved (checked for runs 1 to 59 and every event index up to 39: exactly one perfect plan among 4
+  to 12 different arrangements, so it is a real small puzzle). Choose a supply for each person and press Treat. A plan
+  that over-uses a supply, or gives someone the wrong thing, changes nothing and says so ("3 of 4 feel better..."); try
+  again as often as you like. A full plan gives back 30% of that event's damage as recovery (rounded, at least 1), once
+  per event, written on the event (`"clinic": amount`). Skipping is fine: the panel closes when the next event is
+  faced. Nobody is ever worse off, nobody dies, nothing is timed.
+- **Numbers.** Heatwave damage is about 5 to 40 depending on the build, so recovery is 2 to 12 resources: worth doing,
+  never decisive. It works in every kind of run (both players of a challenge can do it). The cases are a fixed function
+  of run number and event index (`clinic_cases`), never luck. The clinic is not offered once the run is complete (the
+  score is already paid out).
+- **Counts (the minigame rule).** Every completed clinic adds its four people to `meta["clinic_cared"]` (a lifetime
+  number with the other per-browser records), shown in Lifetime Stats as "People cared for at field clinics: N".
+- **Saves.** The run save gains only the `clinic` number inside that event's own log entry (only once a clinic was
+  done); `meta["clinic_cared"]` exists only once positive and is cleaned in `_sanitize_meta`.
+- **Engine code**, `aftermath_bonuses.py` at the end (add `save_meta` to its `from aftermath_persist import (...)`):
+
+```python
+# ---------------------------------------------------------------------------
+# R4-PA-2: the field clinic. After a heat event the player may sort four people to the supplies that help them.
+# Always solvable, no clock, unlimited retries; a full plan gives back part of that event's damage, once.
+# ---------------------------------------------------------------------------
+CLINIC_EVENTS = ("heatwave", "heat_mortality")
+CLINIC_SUPPLIES = {"water": "Water", "shade": "Shade tent", "cooling": "Cool cloths", "cot": "Rest cot"}
+CLINIC_CASES = [
+    {"id": "thirsty", "text": "Thirsty and worn out after a shift outdoors", "helps": ["water"]},
+    {"id": "flushed", "text": "Hot, flushed skin and a headache", "helps": ["cooling", "shade"]},
+    {"id": "dizzy", "text": "Dizzy when standing up", "helps": ["cot", "water"]},
+    {"id": "elder", "text": "An older neighbour whose flat stays hot at night", "helps": ["shade", "cooling"]},
+    {"id": "cramps", "text": "Muscle cramps after hauling sandbags", "helps": ["cot"]},
+    {"id": "child", "text": "A child who has been playing in the sun", "helps": ["shade", "water"]},
+]
+CLINIC_CASES_PER_EVENT = 4
+CLINIC_RECOVERY_SHARE = 0.3
+
+
+def clinic_cases(run_number, event_index):
+    """The people at this clinic and the supplies on hand: a fixed function of run and event (never luck). The
+    supplies are exactly what one perfect plan uses, so every clinic can be fully solved."""
+    h = (int(run_number) * 131 + int(event_index) * 17) % 997
+    order = sorted(range(len(CLINIC_CASES)), key=lambda i: (i * 7 + h) % 11)
+    picked = [dict(CLINIC_CASES[i]) for i in order[:CLINIC_CASES_PER_EVENT]]
+    supplies = {key: 0 for key in CLINIC_SUPPLIES}
+    for n, case in enumerate(picked):
+        supplies[case["helps"][(h + n) % len(case["helps"])]] += 1
+    return {"cases": picked, "supplies": supplies}
+
+
+def clinic_open_for(run_state):
+    """The clinic for the event just faced, or None: only right after a heat event, before the next one, once."""
+    if not run_state.event_log or run_state.is_complete():
+        return None
+    entry = run_state.event_log[-1]
+    if entry.get("type") not in CLINIC_EVENTS or "clinic" in entry:
+        return None
+    return clinic_cases(run_state.run_number, len(run_state.event_log) - 1)
+
+
+def clinic_score(clinic, plan):
+    """(people helped, "") for a plan (one supply key per person, in order), or (None, why) when the plan is not
+    possible with the supplies on hand. Never changes anything."""
+    if not isinstance(plan, list) or len(plan) != len(clinic["cases"]) or any(k not in CLINIC_SUPPLIES for k in plan):
+        return None, "Choose a supply for every person."
+    for key, label in CLINIC_SUPPLIES.items():
+        if plan.count(key) > clinic["supplies"][key]:
+            return None, f"Only {clinic['supplies'][key]} x {label} on hand. Swap one and treat again."
+    return sum(1 for case, key in zip(clinic["cases"], plan) if key in case["helps"]), ""
+
+
+def clinic_treat(run_state, plan):
+    """Check a plan; a full plan gives the recovery once. Returns (done, message)."""
+    clinic = clinic_open_for(run_state)
+    if clinic is None:
+        return False, "There is no clinic open right now."
+    helped, why = clinic_score(clinic, plan)
+    if helped is None:
+        return False, why
+    total = len(clinic["cases"])
+    if helped < total:
+        return False, f"{helped} of {total} feel better. Someone needs something else: swap a supply and treat again."
+    entry = run_state.event_log[-1]
+    amount = max(1, int(round(entry["damage"] * CLINIC_RECOVERY_SHARE)))
+    run_state.resources += amount
+    entry["clinic"] = amount
+    runstate.meta["clinic_cared"] = runstate.meta.get("clinic_cared", 0) + total
+    save_meta()
+    return True, f"Everyone is cooler and resting. Recovery: +{amount} resources."
+```
+
+  `aftermath_persist.py` `_sanitize_meta`: directly before its final `return meta` add
+  `cared = data.get("clinic_cared", 0)` / `if isinstance(cared, int) and not isinstance(cared, bool) and cared > 0:` /
+  `meta["clinic_cared"] = min(cared, 10 ** 6)  # R4-PA-2`.
+- **Engine tests, NEW file `tests/test_field_clinic.py`:**
+
+```python
+"""LA-13 / R4-PA-2: the field clinic is always solvable, retries are free and a full plan pays once."""
+import itertools
+
+
+def _perfect_plan(m, clinic):
+    pool = [k for k, n in clinic["supplies"].items() for _ in range(n)]
+    for plan in itertools.permutations(pool):
+        if m.clinic_score(clinic, list(plan))[0] == len(clinic["cases"]):
+            return list(plan)
+    return None
+
+
+def _to_the_first_heatwave(game_env):
+    game_env.resolve_event()  # classic event 1: flood
+    game_env.resolve_event()  # classic event 2: heatwave
+    return game_env.run
+
+
+def test_every_clinic_has_a_perfect_plan(game_env):
+    m = game_env.module
+    for run_number in range(1, 31):
+        for index in range(40):
+            clinic = m.clinic_cases(run_number, index)
+            assert sum(clinic["supplies"].values()) == 4 and _perfect_plan(m, clinic) is not None
+
+
+def test_the_clinic_opens_only_after_a_heat_event(game_env):
+    m = game_env.module
+    assert m.clinic_open_for(game_env.run) is None
+    game_env.resolve_event()
+    assert m.clinic_open_for(game_env.run) is None
+    game_env.resolve_event()
+    assert m.clinic_open_for(game_env.run) is not None
+
+
+def test_a_wrong_plan_changes_nothing_and_a_full_plan_pays_once(game_env):
+    m = game_env.module
+    r = _to_the_first_heatwave(game_env)
+    clinic = m.clinic_open_for(r)
+    before = r.resources
+    assert m.clinic_treat(r, ["water", "water", "water", "water"])[0] is False
+    assert r.resources == before and "clinic" not in r.event_log[-1]
+    plan = _perfect_plan(m, clinic)
+    done, _message = m.clinic_treat(r, plan)
+    expected = max(1, int(round(r.event_log[-1]["damage"] * 0.3)))
+    assert done is True and r.resources == before + expected and r.event_log[-1]["clinic"] == expected
+    assert m.clinic_open_for(r) is None and m.clinic_treat(r, plan)[0] is False
+    assert m.meta["clinic_cared"] == 4
+
+
+def test_the_clinic_number_survives_a_save(game_env):
+    m = game_env.module
+    r = _to_the_first_heatwave(game_env)
+    m.clinic_treat(r, _perfect_plan(m, m.clinic_open_for(r)))
+    m.load_state(m.get_state())
+    assert "clinic" in game_env.run.event_log[-1] and m.clinic_open_for(game_env.run) is None
+
+
+def test_bad_meta_is_cleaned(game_env):
+    m = game_env.module
+    assert "clinic_cared" not in m._sanitize_meta({"clinic_cared": "lots"})
+    assert m._sanitize_meta({"clinic_cared": 8})["clinic_cared"] == 8
+```
+
+- **Page (one step: markup, render, handler, wiring, tests).** `index.html`, directly after
+  `<p id="last-event-display" class="status-line"></p>`:
+
+```html
+      <!-- R4-PA-2: field clinic after a heat event (optional, no clock, retry freely). -->
+      <section id="clinic-panel" class="section clinic-panel" aria-labelledby="clinic-heading" hidden>
+        <h2 id="clinic-heading" class="panel-heading">🩺 Field clinic</h2>
+        <p class="panel-note">The heat has left a few people unwell. Give each one the supply that helps them. A wrong plan loses nothing: swap and treat again. Everyone helped gives back some of the damage.</p>
+        <p id="clinic-supplies" class="panel-note"></p>
+        <ol class="clinic-cases">
+          <li><span id="clinic-case-0-label"></span> <select id="clinic-case-0" aria-labelledby="clinic-case-0-label"><option value="">Choose...</option><option value="water">Water</option><option value="shade">Shade tent</option><option value="cooling">Cool cloths</option><option value="cot">Rest cot</option></select></li>
+          <li><span id="clinic-case-1-label"></span> <select id="clinic-case-1" aria-labelledby="clinic-case-1-label"><option value="">Choose...</option><option value="water">Water</option><option value="shade">Shade tent</option><option value="cooling">Cool cloths</option><option value="cot">Rest cot</option></select></li>
+          <li><span id="clinic-case-2-label"></span> <select id="clinic-case-2" aria-labelledby="clinic-case-2-label"><option value="">Choose...</option><option value="water">Water</option><option value="shade">Shade tent</option><option value="cooling">Cool cloths</option><option value="cot">Rest cot</option></select></li>
+          <li><span id="clinic-case-3-label"></span> <select id="clinic-case-3" aria-labelledby="clinic-case-3-label"><option value="">Choose...</option><option value="water">Water</option><option value="shade">Shade tent</option><option value="cooling">Cool cloths</option><option value="cot">Rest cot</option></select></li>
+        </ol>
+        <button id="clinic-treat-button" type="button" class="primary">Treat</button>
+        <p id="clinic-message" class="panel-note" role="status" aria-live="polite"></p>
+      </section>
+```
+
+  `aftermath_bonuses.py`, after the clinic engine:
+
+```python
+def render_field_clinic():
+    """R4-PA-2: shows the clinic only while one is open; the selects keep the player's choices between redraws."""
+    panel = _el("clinic-panel")
+    if panel is None:
+        return  # a cached older page without the clinic
+    clinic = clinic_open_for(runstate.run)
+    panel.hidden = clinic is None
+    if clinic is None:
+        return
+    for n, case in enumerate(clinic["cases"]):
+        document.getElementById(f"clinic-case-{n}-label").innerText = case["text"]
+    stock = [f"{label} x{clinic['supplies'][key]}" for key, label in CLINIC_SUPPLIES.items() if clinic["supplies"][key]]
+    document.getElementById("clinic-supplies").innerText = "On hand: " + ", ".join(stock) + "."
+```
+
+  (bonuses already has `_el` from persist; add `document` to its `from js import ...` line). `aftermath_renderer.py`
+  `render()`: add `render_field_clinic()` directly after the existing `render_neighbour_aid()` call (import it from
+  bonuses). `aftermath_handlers.py`:
+
+```python
+def on_clinic_treat(event=None):
+    """R4-PA-2: check the player's plan; a full plan gives the recovery, anything else just says what to change."""
+    plan = [document.getElementById(f"clinic-case-{n}").value for n in range(CLINIC_CASES_PER_EVENT)]
+    done, message = clinic_treat(runstate.run, plan)
+    render()
+    if done:
+        for n in range(CLINIC_CASES_PER_EVENT):
+            document.getElementById(f"clinic-case-{n}").value = ""
+        _flash_element("resources-display")
+    document.getElementById("clinic-message").innerText = message
+    announce(message)
+```
+
+  (`_flash_element` is already imported in handlers; check with grep, else import it from `aftermath_panels`).
+  `game.py` `setup()`: directly after the `undo-allocation-button` listener add
+  `document.getElementById("clinic-treat-button").addEventListener("click", create_proxy(on_clinic_treat))` (add
+  `on_clinic_treat` to game.py's handlers import). `tests/conftest.py` `ELEMENT_IDS`: add `"clinic-panel",
+  "clinic-supplies", "clinic-treat-button", "clinic-message"` and `clinic-case-0`..`clinic-case-3` with their
+  `-label` ids. CSS (`style-3-panels.css`, end): `.clinic-cases { display: grid; gap: 0.4rem; padding-left: 1.2rem; }`.
+  Fake-DOM test (append to `tests/test_field_clinic.py`):
+
+```python
+def test_the_panel_shows_after_a_heatwave_and_treat_pays(game_env):
+    m = game_env.module
+    r = _to_the_first_heatwave(game_env)
+    assert game_env.elements["clinic-panel"].hidden is False
+    assert game_env.elements["clinic-supplies"].innerText.startswith("On hand: ")
+    for n, key in enumerate(_perfect_plan(m, m.clinic_open_for(r))):
+        game_env.elements[f"clinic-case-{n}"].value = key
+    game_env.elements["clinic-treat-button"].dispatch("click", None)
+    assert game_env.elements["clinic-message"].innerText.startswith("Everyone is cooler and resting.")
+    assert game_env.elements["clinic-panel"].hidden is True
+```
+
+  Browser test, NEW `tests/test_field_clinic_browser.py` (copy `test_example_browser.py`): click
+  `#resolve-event-button` twice (wait for `#progress-display` to read "Event 3 of 7"); `#clinic-panel` is visible;
+  click `#clinic-treat-button` with nothing chosen; `#clinic-message` text is "Choose a supply for every person.";
+  `page.errors == []`.
+- **Lifetime Stats line** (last step). `aftermath_codex.py` `render_stats_panel`: directly after
+  `panel.appendChild(heading)` add `cared = runstate.meta.get("clinic_cared", 0)` / `if cared:` / a `<p>` with
+  `innerText = f"People cared for at field clinics: {cared}"` appended to the panel (so it shows even before any logged
+  run). Test: set `game_env.module.meta["clinic_cared"] = 8`, open stats (`stats-toggle-button` click), the panel's
+  text contains "People cared for at field clinics: 8" (read the fake element's children or `innerText` the way
+  `tests/test_backlog_wave2.py` reads the stats panel).
+
+### R4-PA-1: relief convoys to a neighbouring town
+- **Rule.** Once per run, between events (after at least one event has been faced and before the run is complete), you
+  may send a relief convoy of 10, 20 or 30 resources downriver to a neighbouring town the computer runs. It costs
+  exactly what you choose, and Undo (U) recalls it until you face the next event (it goes on the allocation history).
+  The neighbours send back 1.5 times as much (15, 30 or 45) just before the SECOND event of a later ordinary run (never
+  the run that sent it, never a friend's challenge, Today's run or a built schedule; it waits and never expires). Only
+  one convoy can be on the road: while a return is pending you cannot send another. A line always says what is on the
+  road and when it arrives: nothing is luck.
+- **Records.** R-31 says help from outside never makes a record. The run that RECEIVES a return is tagged
+  (`"convoy_back": N` on the event and in its log entry) and treated exactly like a neighbour-aid run: no Past Runs
+  record, no toughest-run badge, no ghost, no run code, off the hardest-schedule board. The SENDING run is not tagged
+  (giving only lowers its own score). A player who cares about records simply does not send convoys.
+- **Balance.** At most +15 net resources over two runs (under 1 knowledge point): a kindness with a small thank-you,
+  not a strategy. Lifetime counts in `meta`: `convoys_sent` and `convoy_resources`, shown in Lifetime Stats
+  ("Relief convoys sent: N (X resources)").
+- **Saves.** Run save: only the `convoy` (sent) and `convoy_back` (received) numbers inside event-log entries.
+  `meta["convoy_due"] = {"amount": 15|30|45, "run": N}` while a return is pending (removed when it arrives), plus the two
+  lifetime counts once positive; all cleaned in `_sanitize_meta`. Reloading an older run save never pays a return
+  twice (the return lives in `meta`, which is cleared on arrival) and never lets a second convoy leave (blocked while
+  one is due).
+- **Engine code**, `aftermath_bonuses.py` at the end (after the R4-PA-2 clinic code if merged; it also needs
+  `save_meta` from persist):
+
+```python
+# ---------------------------------------------------------------------------
+# R4-PA-1: relief convoys. Once per run you may send 10, 20 or 30 resources to a neighbouring town; 1.5 times as
+# much comes back before the second event of a later ordinary run. One convoy on the road at a time; Undo recalls
+# it until the next event. The run that receives a return is tagged like neighbour aid (never a record).
+# ---------------------------------------------------------------------------
+CONVOY_AMOUNTS = (10, 20, 30)
+CONVOY_RETURN_SHARE = 1.5
+CONVOY_RETURN_INDEX = 1
+
+
+def convoy_sent(run_state):
+    return sum(e.get("convoy", 0) for e in run_state.event_log)
+
+
+def convoy_due():
+    due = runstate.meta.get("convoy_due")
+    return due if isinstance(due, dict) else None
+
+
+def can_send_convoy(run_state, amount):
+    return (amount in CONVOY_AMOUNTS and not run_state.normalised and not run_state.custom_events
+            and bool(run_state.event_log) and not run_state.is_complete() and not convoy_sent(run_state)
+            and convoy_due() is None and run_state.resources >= amount)
+
+
+def send_convoy(run_state, amount):
+    """Sends a convoy (one per run). Returns True when it left."""
+    if not can_send_convoy(run_state, amount):
+        return False
+    run_state.resources -= amount
+    run_state.event_log[-1]["convoy"] = amount
+    run_state.allocation_history.append(("convoy", amount))
+    runstate.meta["convoy_due"] = {"amount": int(amount * CONVOY_RETURN_SHARE), "run": run_state.run_number}
+    runstate.meta["convoys_sent"] = runstate.meta.get("convoys_sent", 0) + 1
+    runstate.meta["convoy_resources"] = runstate.meta.get("convoy_resources", 0) + amount
+    save_meta()
+    return True
+
+
+def recall_convoy(run_state, amount):
+    """Undo of a convoy before the next event: everything goes back as it was."""
+    run_state.resources += amount
+    run_state.event_log[-1].pop("convoy", None)
+    runstate.meta.pop("convoy_due", None)
+    runstate.meta["convoys_sent"] = max(0, runstate.meta.get("convoys_sent", 0) - 1)
+    runstate.meta["convoy_resources"] = max(0, runstate.meta.get("convoy_resources", 0) - amount)
+    save_meta()
+
+
+def convoy_return_due(run_state):
+    """Resources arriving with the event about to resolve: the pending return, at a later ordinary run's 2nd event."""
+    due = convoy_due()
+    if due is None or run_state.normalised or run_state.custom_events or run_state.event_index != CONVOY_RETURN_INDEX:
+        return 0
+    return due["amount"] if run_state.run_number > due["run"] else 0
+
+
+def take_convoy_return():
+    runstate.meta.pop("convoy_due", None)
+    save_meta()
+
+
+def convoy_message(run_state):
+    """The line under the neighbour-aid line: what is on the road, or what was sent."""
+    due = convoy_due()
+    if due is not None:
+        if run_state.run_number > due["run"] and not run_state.normalised and not run_state.custom_events:
+            if run_state.event_index <= CONVOY_RETURN_INDEX:
+                return f"Your neighbours downriver will send back {due['amount']} resources before event 2 of this run."
+            return f"Your neighbours will send back {due['amount']} resources before event 2 of your next ordinary run."
+        return f"Convoy on the road: your neighbours will send back {due['amount']} resources before event 2 of your next run."
+    if convoy_sent(run_state):
+        return "Relief convoy sent this run."
+    return ""
+
+```
+
+  `aftermath_persist.py` (it comes before bonuses), directly above `def _sanitize_meta(data):`:
+
+```python
+def _sanitize_convoy_meta(data, meta):
+    """Called from _sanitize_meta: keep only well-formed convoy records."""
+    due = data.get("convoy_due")
+    if isinstance(due, dict):
+        amount, run = due.get("amount"), due.get("run")
+        if amount in (15, 30, 45) and isinstance(run, int) and not isinstance(run, bool) and run > 0:
+            meta["convoy_due"] = {"amount": amount, "run": run}
+    for key in ("convoys_sent", "convoy_resources"):
+        value = data.get(key, 0)
+        if isinstance(value, int) and not isinstance(value, bool) and value > 0:
+            meta[key] = min(value, 10 ** 6)
+```
+
+  and in `_sanitize_meta`, directly before its final `return meta`, `_sanitize_convoy_meta(data, meta)  # R4-PA-1`.
+  `RunState` (`aftermath_model_run.py`; add `convoy_return_due, recall_convoy, take_convoy_return` to its
+  `from aftermath_bonuses import (...)`): in `undo_last_allocation`, directly before its final `else:` add
+  `elif kind == "convoy":  # R4-PA-1` / `recall_convoy(self, units)`. In `resolve_next_event`, directly after
+  `self.resources += aid` add `back = convoy_return_due(self)  # R4-PA-1` / `self.resources += back`; directly after the
+  `self.event_log.append({...})` line add `if back:` / `self.event_log[-1]["convoy_back"] = back` /
+  `take_convoy_return()`. Directly after the `aid_given` property add:
+
+```python
+    @property
+    def convoy_back_given(self):
+        """R4-PA-1: resources a relief convoy's return brought this run (0 almost always)."""
+        return sum(e.get("convoy_back", 0) for e in self.event_log)
+```
+
+  In the `run_log_history.append({...})` dict, directly after the `neighbour_aid` line, add
+  `**({"convoy_back": self.convoy_back_given} if self.convoy_back_given else {}),  # R4-PA-1`. In the payout block
+  change `_report_hardest_schedule(self)`'s guard so a run with `self.convoy_back_given` does not report (add
+  `and not self.convoy_back_given` to that `if`).
+- **Engine tests, NEW file `tests/test_convoys.py`:**
+
+```python
+"""LA-13 / R4-PA-1: relief convoys cost what you choose, come back 1.5x next run, and never make a record."""
+
+
+def _after_one_event(game_env):
+    game_env.resolve_event()
+    return game_env.run
+
+
+def _finish(game_env):
+    while not game_env.run.is_complete():
+        game_env.resolve_event()
+
+
+def test_a_convoy_costs_what_you_choose_and_undo_recalls_it(game_env):
+    m = game_env.module
+    r = _after_one_event(game_env)
+    before = r.resources
+    assert m.send_convoy(r, 20) is True
+    assert r.resources == before - 20 and m.meta["convoy_due"] == {"amount": 30, "run": r.run_number}
+    assert r.undo_last_allocation() is True
+    assert r.resources == before and "convoy_due" not in m.meta and m.convoy_sent(r) == 0
+
+
+def test_one_convoy_per_run_and_one_on_the_road(game_env):
+    m = game_env.module
+    r = _after_one_event(game_env)
+    assert m.can_send_convoy(r, 10) is True
+    m.send_convoy(r, 10)
+    assert m.can_send_convoy(r, 10) is False
+    _finish(game_env)
+    game_env.start_new_run()
+    game_env.resolve_event()
+    assert m.can_send_convoy(game_env.run, 10) is False  # the first return is still on the road
+
+
+def test_the_return_arrives_before_event_two_of_the_next_run_only(game_env):
+    m = game_env.module
+    m.send_convoy(_after_one_event(game_env), 30)
+    game_env.resolve_event()  # same run, event 2: nothing comes back yet
+    assert "convoy_back" not in game_env.run.event_log[1]
+    _finish(game_env)
+    game_env.start_new_run()
+    game_env.resolve_event()
+    assert "convoy_back" not in game_env.run.event_log[0]
+    game_env.resolve_event()
+    assert game_env.run.event_log[1]["convoy_back"] == 45 and "convoy_due" not in m.meta
+
+
+def test_a_receiving_run_is_never_a_record(game_env):
+    m = game_env.module
+    m.send_convoy(_after_one_event(game_env), 30)
+    _finish(game_env)
+    game_env.start_new_run()
+    _finish(game_env)
+    assert m.run_log_history[-1]["convoy_back"] == 45
+    assert len(m.run_log_history) - 1 not in m.new_record_run_indexes()
+    assert m.run_code_fields(game_env.run) is None and m.ghost_run_eligible(game_env.run) is False
+
+
+def test_no_convoys_in_challenge_runs_and_bad_meta_is_cleaned(game_env):
+    m = game_env.module
+    challenge = m.RunState(run_number=2, normalised=True, draw=3)
+    challenge.resolve_next_event()
+    assert m.can_send_convoy(challenge, 10) is False
+    assert "convoy_due" not in m._sanitize_meta({"convoy_due": {"amount": 999, "run": 1}})
+    assert m._sanitize_meta({"convoy_due": {"amount": 45, "run": 3}})["convoy_due"] == {"amount": 45, "run": 3}
+```
+
+- **Records (second engine step).** `aftermath_pastruns.py`: `new_record_run_indexes`, `toughest_survived_run_badge_earned`
+  and `toughest_badge_title` each skip an entry with `entry.get("convoy_back")` exactly where they skip
+  `entry.get("neighbour_aid")` (extend that `if` with `or entry.get("convoy_back")`). `aftermath_challenges.py`:
+  `ghost_run_eligible` adds `or getattr(run_state, "convoy_back_given", 0)` inside its `not (...)`; `run_code_fields`
+  returns None when `getattr(run_state, "convoy_back_given", 0)`. Test: `test_a_receiving_run_is_never_a_record` above
+  (it fails until this step lands, so this step's runner should run the whole `tests/test_convoys.py`).
+- **Page.** `index.html`, directly after `<p id="neighbour-aid-display" ...></p>`:
+
+```html
+      <!-- R4-PA-1: relief convoys (optional; Undo recalls one until the next event). -->
+      <div id="convoy-panel" class="convoy-panel" hidden>
+        <label for="convoy-amount-select">Send a relief convoy downriver</label>
+        <select id="convoy-amount-select"><option value="10">10 resources</option><option value="20">20 resources</option><option value="30">30 resources</option></select>
+        <button id="convoy-send-button" type="button">Send convoy</button>
+        <p class="panel-note">Your neighbours send back half as much again before event 2 of your next run. A run that receives help is kept off records, like mutual aid.</p>
+      </div>
+      <p id="convoy-display" class="status-line" role="status" hidden></p>
+```
+
+  `aftermath_bonuses.py`, after the convoy engine:
+
+```python
+def render_convoys():
+    """R4-PA-1: the send form while a convoy can leave, and the line about the one on the road."""
+    panel, line = _el("convoy-panel"), _el("convoy-display")
+    if panel is None or line is None:
+        return  # a cached older page without convoys
+    panel.hidden = not can_send_convoy(runstate.run, CONVOY_AMOUNTS[0])
+    text = convoy_message(runstate.run)
+    line.innerText = text
+    line.hidden = not text
+```
+
+  `aftermath_renderer.py` `render()`: `render_convoys()` directly after `render_neighbour_aid()`. `aftermath_handlers.py`:
+
+```python
+def on_send_convoy(event=None):
+    """R4-PA-1: send the chosen convoy; Undo recalls it until the next event."""
+    amount = int(document.getElementById("convoy-amount-select").value or 0)
+    sent = send_convoy(runstate.run, amount)
+    render()
+    if sent:
+        _flash_element("resources-display")
+        announce(f"Relief convoy of {amount} resources sent downriver. Undo recalls it until the next event.")
+```
+
+  `game.py` `setup()`: wire `convoy-send-button` click to `on_send_convoy` (import it). `tests/conftest.py`
+  `ELEMENT_IDS`: `"convoy-panel", "convoy-amount-select", "convoy-send-button", "convoy-display"`. CSS
+  (`style-3-panels.css`, end): `.convoy-panel { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; }`.
+  Fake-DOM test (append to `tests/test_convoys.py`):
+
+```python
+def test_the_send_button_sends_and_the_line_says_so(game_env):
+    _after_one_event(game_env)
+    assert game_env.elements["convoy-panel"].hidden is False
+    game_env.elements["convoy-amount-select"].value = "20"
+    game_env.elements["convoy-send-button"].dispatch("click", None)
+    assert game_env.elements["convoy-panel"].hidden is True
+    assert game_env.elements["convoy-display"].innerText.startswith("Convoy on the road")
+```
+
+  Browser test, NEW `tests/test_convoys_browser.py`: resolve once (wait for "Event 2 of 7"), `#convoy-panel` visible,
+  `select_option("#convoy-amount-select", "20")`, click `#convoy-send-button`, `#convoy-display` text starts with
+  "Convoy on the road", click `#undo-allocation-button`, `#convoy-panel` visible again; `page.errors == []`.
+- **Lifetime Stats line** (with the clinic line): after the heading, when `runstate.meta.get("convoys_sent")`, a `<p>`
+  "Relief convoys sent: N (X resources)".
