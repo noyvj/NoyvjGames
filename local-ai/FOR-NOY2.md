@@ -119,3 +119,10 @@ make it.
 - **Chains:** the runner should not push markup-only steps of a chain ahead of the wiring step; if it cannot, the audit keeps the chain open and finishes the missing steps by hand (done: `local-ai/steps-status.txt`, read by `refresh_queue.py` as `# done:` and `# redo:` lines).
 - **Audit results so far:** Chronicle: 4 of 5 accepted (FY-11 rejected: it flipped a status word); Grid: 17 of 20 accepted after fixes, 1 chain (R4-GRPC-8) reverted and requeued from step 1, and Claude wrote five missing steps by hand.
 
+
+## Page scripts split on 2026-10-22 (Windows session, LA-1e)
+- Pocket Bazaar and Robot Script `app.js` are now `app-1-core.js` ... `app.js` sharing `window.PocketBazaarApp` /
+  `window.RobotScriptApp` (File maps in their CLAUDE.md). Any local-AI branch made before that which edits their
+  `app.js` (stack-pocket-bazaar, stack-robot-script, and chain R4-RSPC-5 step 2 from 2026-10-21) will not merge:
+  drop the page part at intake and let the queue redo it. Chain R4-RSPC-5 step 2 is marked `redo:` in
+  `steps-status.txt`, and the R4-RSPC-2 and R4-RSPC-5 steps in `incoming/robot-script.txt` now name the part files.
