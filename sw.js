@@ -2,7 +2,7 @@
 // the precache list; ordinary content deploys don't need it, because
 // same-origin requests are network-first (see the fetch handler below) and
 // so always pick up fresh files whenever the player is online.
-const SW_VERSION = 81;
+const SW_VERSION = 82;
 const CACHE_NAME = "site-cache-v" + SW_VERSION;
 // How long a same-origin network request may take before we give up and
 // serve the cached copy instead (a slow/flaky connection shouldn't hang).
@@ -122,6 +122,9 @@ const PRECACHE_URLS = [
   // AU-1: sound made in code (no audio files); games load it, the hub Settings page only writes its keys.
   "shared/sfx.js",
   "shared/sfx.css",
+  // H-24: the "next up" achievement chip (games show the closest unearned achievement and its progress).
+  "shared/next-achievement.js",
+  "shared/next-achievement.css",
   "games/sol/index.html",
   "games/sol/style.css",
   "games/sol/game.py",
