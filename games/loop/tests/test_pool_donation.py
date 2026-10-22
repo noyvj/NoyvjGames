@@ -103,6 +103,6 @@ def test_save_only_when_used_and_validated_on_load(game_env):
 
 def test_page_includes_the_pool_script_and_display():
     import pathlib
-    html = (pathlib.Path(__file__).resolve().parent.parent / "index.html").read_text()
+    html = (pathlib.Path(__file__).resolve().parent.parent / "index.html").read_text(encoding="utf-8")
     assert 'shared/community-pool.js" data-game-id="loop" data-pool="recovered_units"' in html
     assert 'id="pool-display"' in html
