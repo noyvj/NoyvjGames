@@ -3,10 +3,11 @@ the script expects that the HTML lacks. Catch both here."""
 
 import re
 from pathlib import Path
+from .pagefiles import app_text
 
 GAME_DIR = Path(__file__).resolve().parent.parent
 HTML = (GAME_DIR / "index.html").read_text(encoding="utf-8")
-APP = (GAME_DIR / "app.js").read_text(encoding="utf-8")
+APP = app_text()
 DEV_ONLY = {"game", "textplay"}                       # the entry point is run last; textplay is the test harness
 LOCAL = {p.stem for p in GAME_DIR.glob("*.py") if p.stem not in DEV_ONLY}
 

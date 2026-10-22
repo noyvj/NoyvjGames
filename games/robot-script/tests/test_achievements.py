@@ -4,10 +4,11 @@ from pathlib import Path
 import achievements
 import game
 import rooms
+from .pagefiles import app_text
 
 GAME_DIR = Path(__file__).resolve().parent.parent
 HTML = (GAME_DIR / "index.html").read_text(encoding="utf-8")
-APP = (GAME_DIR / "app.js").read_text(encoding="utf-8")
+APP = app_text()
 
 
 def call(**req):

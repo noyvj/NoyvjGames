@@ -6,10 +6,11 @@ from pathlib import Path
 
 import render
 import rooms
+from .pagefiles import app_text
 
 GAME_DIR = Path(__file__).resolve().parent.parent
 CSS = (GAME_DIR / "style.css").read_text(encoding="utf-8")
-APP = (GAME_DIR / "app.js").read_text(encoding="utf-8")
+APP = app_text()
 HTML = (GAME_DIR / "index.html").read_text(encoding="utf-8")
 
 
