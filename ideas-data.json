@@ -443,6 +443,41 @@
        "n": "La53",
        "text": "**Lexis: your note on the branching voyage (R4-PX-7) says you reach every planet in the end, each opening with the same message in a different language. May planets 2 and 3 open in any order after the first (each marked Gentle, Medium or Hard), with the crew reacting differently to your order?** Recommended: yes. Say yes and the local AI can redesign the unlock order.",
        "answered": false
+      },
+      {
+       "n": "La54",
+       "text": "**Dead Reckoning: \"fix marks\" and \"waypoints\" (R4-DEPC-4, R4-DEMO-3). What should these be?** Recommended: a fix mark is a pencil cross you put on the chart as a note (at most 5 per chart, not scored, cleared on a new chart, not saved), and \"Add a waypoint\" sets the ruler point there. Say yes and Claude writes the steps.",
+       "answered": false
+      },
+      {
+       "n": "La55",
+       "text": "**Phone bottom sheets (Dead Reckoning R4-DEMO-6/8/9 and R4-DEPC-7, Aftermath R4-AFMO-1/3, Chronicle R4-CLMO-1/4, Heist R4-HCMO-1, Lighthouse R4-LHMO-7, Station Medic R4-SMMO-1/4, Drift R4-DRMO-1, Trade Empire R4-TEMO-1, Continuum R4-COMO-1). May a sheet change height (peek, half, full) by tapping a handle button or with keys, instead of dragging to snap points?** Recommended: yes, tap and keyboard first; dragging can come later as an extra. Drag gestures on boards and sheets failed most often in the local AI's audits.",
+       "answered": false
+      },
+      {
+       "n": "La56",
+       "text": "**Swipes that spend or commit (Herd R4-HEMO-1 swipe to buy, Drift R4-DRMO-7, Champ R4-CHMO-2 swipe to water). Should a swipe ever spend or commit something?** Recommended: no. Swipes only move between views; spending stays a tap, with undo.",
+       "answered": false
+      },
+      {
+       "n": "La57",
+       "text": "**Hull Repair: zoom to fit (R4-HRMO-3). Double-tap already takes back two cells of a line, so may \"fit the whole board\" be a \"Whole board\" button instead of a double-tap?** Recommended: yes.",
+       "answered": false
+      },
+      {
+       "n": "La58",
+       "text": "**Signal: distress-call map (R4-PU-4). Should archive and practice solves count toward the map, and should its eight sectors get names?** Recommended: yes, every solve counts (it is not a streak), and plain sector numbers, no names.",
+       "answered": false
+      },
+      {
+       "n": "La59",
+       "text": "**Heist Committee: job replays (R4-HCMO-10). May the game save a history of your last 10 jobs (target, crew, gear, plan and seed; a new save key) so they can be replayed?** Recommended: yes. A replay is view-only and never changes cash, reputation or achievements; a Replay button comes first and the swipe is optional.",
+       "answered": false
+      },
+      {
+       "n": "La60",
+       "text": "**Trade Empire: ship minds (R4-PE-5). How should ship minds differ from the existing Fleet Captains?** Recommended: fold the minds into the captains rather than adding a second system.",
+       "answered": false
       }
      ]
     }

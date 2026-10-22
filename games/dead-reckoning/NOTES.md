@@ -75,3 +75,226 @@ This is the long history moved out of CLAUDE.md on 2026-10-18 (working conventio
 - Hub registration (M-5b-12) is deliberately not done: title card, `sw.js`, `offline-manifest.json`, `game-*.json`, share cards, root CLAUDE.md row, dev logs, the generated meta and JSON-LD blocks in `index.html`, `scripts/perf-budget.json`, `shared/site-settings.js` and the hub smoke tests.
 
 - **Seed system (Z-1e, 2026-10-12).** Dead Reckoning keeps its own code format as the accepted seed system (not `shared/seed.py`): a practice chart is a pure function of `(difficulty 1-5, seed < 36^6)`, shared as `DR<d>-<SEED>` (seed in base 36), and a daily chart comes from the date text alone (`daily.py`). `app.js` only uses `Math.random` to pick a NEW practice seed (exempt in `shared/tests/test_runtime_random_use.py`).
+
+## Design specs (LA-13)
+
+Written 2026-10-22 (LA-13 design pass). Steps: `local-ai/incoming/dead-reckoning-design.txt`. Standing rules hold for every
+item: nothing timed, nothing lost, no luck needed for 100%, no audio files, saves load unchanged.
+
+### Shared board zoom (used by R4-DEPC-2 and R4-DEMO-2; the same code is in Logic Gates and Hull Repair NOTES.md)
+- **Where the transform lives: the SVG's own `viewBox`.** Not a CSS transform on a wrapper and not a change to `render.py`.
+  The engine's markup, `tests/golden/`, `chartXY` and `onChartTap` stay exactly as they are: `getScreenCTM()` already
+  includes the viewBox, so a tap on a zoomed chart still converts to the right nautical miles. The holder `#chart-holder`
+  is never replaced, so the listeners live on it; the SVG inside it is replaced when the engine's markup changes, and
+  `renderChart()` calls `chartZoom.apply()` at its end, which re-applies the zoom to the new SVG (the untouched viewBox
+  is kept in `data-base-view-box` so a zoom never compounds).
+- **Numbers:** zoom 1 (whole chart) to 6. Wheel step x1.25 / x0.8 about the pointer; keys and buttons the same step
+  about the centre. A drag pans only when zoomed and only after 6 px (a shorter press stays a tap). The view is clamped
+  so the chart always fills the box. A new chart (`view.chart.id` changes) fits back to 1. Printing fits first.
+- **Wheel:** on the Classic page (index.html) the page scrolls, so the wheel zooms only with Ctrl or Cmd held; on the
+  Desktop page (`<html data-layout="pc">`, the chart window) the plain wheel zooms.
+- **Mouse drag** pans; holding R keeps its meaning (measure, R4-DEPC-5): `blockPan` returns `measure.held`.
+  The click that ends a pan or a pinch is swallowed, so it never sets the ruler point.
+- **Touch (R4-DEMO-2):** two fingers pinch and pan together through `touchstart`/`touchmove` (the touchmove listener is
+  not passive and calls `preventDefault` only while two fingers are down, so the browser neither scrolls nor zooms the
+  page for that gesture; this works at zoom 1 too). One finger pans when zoomed (pointer events). CSS: the SVG has
+  `touch-action: pan-x pan-y` at zoom 1 (one finger still scrolls the page) and `touch-action: none` when the holder has
+  the class `zoomed`. Double-tap (dblclick) on a zoomed chart fits it. Check once on a real phone; the + button and the
+  0 key always work.
+- **UI (step 2):** a bar under the chart `#chart-zoom-bar`: `#zoom-out-button` (minus), `#zoom-in-button` (plus),
+  `#zoom-fit-button` ("Fit"), and the scale bar `#chart-scale` = `#chart-scale-bar` (a line whose width in pixels is
+  one round distance) plus `#chart-scale-text` ("2 nm"); `#zoom-level` (sr-only, aria-live) says "Zoom 2.0x". Keys
+  (focus not in a field or on a button, any phase): `+` or `=` zoom in, `-` zoom out, `0` fit (the recentre key;
+  R is taken by measure). The scale uses the steps 0.1 0.25 0.5 1 2 5 10 20 50 nm: the largest whose line is at most
+  120 px. Pixels per nm = `svg.getScreenCTM().a * view.frame.s`.
+- **Saves:** none. The zoom is a view setting of this page visit; nothing is stored.
+- **Must not break:** `test_render.py` and the golden SVGs (Python untouched), `chartXY`/`onChartTap` (unchanged),
+  R-drag measure, leg swipes (`swipe-legs.js` is on the leg list, not the chart), the playback (it edits points inside
+  the SVG; the viewBox is not touched by it), the Desktop chart window (`pc.css` sizes the holder; the SVG keeps its size).
+- **Tests:** `tests/test_chart_zoom_browser.py` (NEW): keys zoom and fit; Ctrl+wheel zooms 1.25 about the pointer; a
+  drag on a zoomed chart pans and does not open the ruler; adding a leg (a redraw) keeps the zoom; the bar's buttons and
+  scale text; a synthetic two-finger pinch reaches zoom 3 and the SVG's touch-action becomes none.
+
+The code (step 1 copies it verbatim into app.js, directly above `function renderChart()`; tested on a stand-alone page
+on 2026-10-22: wheel about the pointer, drag pan with the click swallowed, redraw keeps the zoom, dblclick fits,
+synthetic two-finger TouchEvents from 80 px to 240 px apart give zoom 3 with every touchmove prevented):
+
+```js
+  // ---- board zoom and pan (LA-13 shared design). Only the SVG's viewBox changes: the engine's markup, the
+  // getScreenCTM tap maths and every test that reads the SVG stay as they are. The zoom survives a redraw
+  // because apply() runs again after every innerHTML replacement; nothing is saved. One pointer (mouse, or a
+  // finger on a zoomed board) pans after 6 px; two fingers pinch through touch events, whose preventDefault
+  // stops the browser's own scroll or zoom for that gesture only.
+  function makeBoardZoom(holder, opts) {
+    var MAX = opts.max || 6;
+    var z = 1, cx = null, cy = null, pointers = 0, pinch = null, drag = null, gestured = false;
+    function svg() { return holder.querySelector("svg"); }
+    function base(s) {
+      if (!s.dataset.baseViewBox) s.dataset.baseViewBox = s.getAttribute("viewBox");
+      var b = s.dataset.baseViewBox.split(/[\s,]+/).map(Number);
+      return { x: b[0], y: b[1], w: b[2], h: b[3] };
+    }
+    function apply() {
+      var s = svg();
+      if (!s || !(s.dataset.baseViewBox || s.getAttribute("viewBox"))) return;
+      var b = base(s), w = b.w / z, h = b.h / z;
+      if (cx === null) { cx = b.x + b.w / 2; cy = b.y + b.h / 2; }
+      cx = Math.min(Math.max(cx, b.x + w / 2), b.x + b.w - w / 2);
+      cy = Math.min(Math.max(cy, b.y + h / 2), b.y + b.h - h / 2);
+      s.setAttribute("viewBox", [cx - w / 2, cy - h / 2, w, h].map(function (v) { return Math.round(v * 1000) / 1000; }).join(" "));
+      holder.classList.toggle("zoomed", z > 1.001);
+      if (opts.onChange) opts.onChange(z);
+    }
+    function toUser(clientX, clientY) {
+      var s = svg(), m = s && s.getScreenCTM();
+      if (!m) return null;
+      var p = s.createSVGPoint();
+      p.x = clientX;
+      p.y = clientY;
+      return p.matrixTransform(m.inverse());
+    }
+    function zoomTo(nz, clientX, clientY) {
+      if (!svg()) return;
+      nz = Math.min(Math.max(nz, 1), MAX);
+      if (cx === null) apply();
+      var p = clientX === undefined ? null : toUser(clientX, clientY);
+      if (p) { cx = p.x + (cx - p.x) * z / nz; cy = p.y + (cy - p.y) * z / nz; }
+      z = nz;
+      apply();
+    }
+    function panBy(dxPx, dyPx) {
+      var s = svg(), m = s && s.getScreenCTM();
+      if (!m || z <= 1.001) return;
+      cx -= dxPx / m.a;
+      cy -= dyPx / m.d;
+      apply();
+    }
+    function fit() { z = 1; cx = null; apply(); }
+    var swallowClick = false;   // set when a pan or a pinch ends: the click that follows must not also tap the board
+    function swallowNextClick() { gestured = false; swallowClick = true; }
+    holder.addEventListener("click", function (ev) {
+      if (!swallowClick) return;
+      swallowClick = false;
+      ev.stopImmediatePropagation();
+      ev.preventDefault();
+    }, true);
+    holder.addEventListener("pointerdown", function (e) {
+      swallowClick = false;   // a new press: a gesture that ended without a click leaves nothing behind
+      if (e.pointerType === "mouse" && e.button !== 0) return;
+      pointers += 1;
+      drag = pointers === 1 && !(opts.blockPan && opts.blockPan(e)) ? { id: e.pointerId, x: e.clientX, y: e.clientY, moved: false } : null;
+    });
+    holder.addEventListener("pointermove", function (e) {
+      if (!drag || drag.id !== e.pointerId || pinch || z <= 1.001) return;
+      var dx = e.clientX - drag.x, dy = e.clientY - drag.y;
+      if (!drag.moved && Math.abs(dx) + Math.abs(dy) < 6) return;
+      if (!drag.moved) {
+        drag.moved = true;
+        gestured = true;
+        try { holder.setPointerCapture(e.pointerId); } catch (err) { /* synthetic events have no active pointer */ }
+      }
+      panBy(dx, dy);
+      drag.x = e.clientX;
+      drag.y = e.clientY;
+    });
+    function pointerEnd(e) {
+      pointers = Math.max(0, pointers - 1);
+      if (drag && drag.id === e.pointerId) drag = null;
+      if (!pointers && !pinch && gestured) swallowNextClick();
+    }
+    holder.addEventListener("pointerup", pointerEnd);
+    holder.addEventListener("pointercancel", pointerEnd);
+    function two(e) {
+      var a = e.touches[0], b = e.touches[1];
+      return { d: Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY) || 1, m: { x: (a.clientX + b.clientX) / 2, y: (a.clientY + b.clientY) / 2 } };
+    }
+    holder.addEventListener("touchstart", function (e) {
+      if (e.touches.length !== 2) return;
+      var t = two(e);
+      pinch = { d: t.d, z: z, m: t.m, m0: t.m, on: false };
+      drag = null;
+      if (opts.onPinchStart) opts.onPinchStart();   // the game drops whatever the first finger had started
+    }, { passive: true });
+    holder.addEventListener("touchmove", function (e) {
+      if (!pinch || e.touches.length !== 2) return;
+      e.preventDefault();   // two fingers: no page scroll or browser zoom while they are down
+      var t = two(e);
+      if (!pinch.on && Math.abs(t.d - pinch.d) < 12 && Math.hypot(t.m.x - pinch.m0.x, t.m.y - pinch.m0.y) < 12) return;   // still a two-finger tap
+      pinch.on = true;
+      zoomTo(pinch.z * t.d / pinch.d, t.m.x, t.m.y);
+      panBy(t.m.x - pinch.m.x, t.m.y - pinch.m.y);
+      pinch.m = t.m;
+      gestured = true;
+    }, { passive: false });
+    function touchEnd(e) {
+      if (e.touches.length < 2) pinch = null;
+      if (!e.touches.length && gestured) swallowNextClick();
+    }
+    holder.addEventListener("touchend", touchEnd);
+    holder.addEventListener("touchcancel", touchEnd);
+    holder.addEventListener("wheel", function (e) {
+      if (!svg() || (opts.wheelNeedsCtrl && opts.wheelNeedsCtrl() && !e.ctrlKey && !e.metaKey)) return;
+      e.preventDefault();
+      zoomTo(z * (e.deltaY < 0 ? 1.25 : 0.8), e.clientX, e.clientY);
+    }, { passive: false });
+    if (!opts.noDblclick) holder.addEventListener("dblclick", function (e) { if (z > 1.001) { e.preventDefault(); fit(); } });
+    window.addEventListener("beforeprint", fit);
+    return {
+      apply: apply, fit: fit, panBy: panBy,
+      zoomBy: function (f) { zoomTo(z * f); },
+      level: function () { return z; },
+    };
+  }
+```
+
+Dead Reckoning's own wiring (step 1): `var chartZoom = null;` next to `var measure`; in `wire()` directly after
+`$("chart-holder").addEventListener("click", onChartTap);`:
+
+```js
+    chartZoom = makeBoardZoom($("chart-holder"), {
+      wheelNeedsCtrl: function () { return document.documentElement.getAttribute("data-layout") !== "pc"; },
+      blockPan: function () { return measure.held; },
+      onChange: function () { if (typeof updateScale === "function") updateScale(); },
+    });
+```
+
+At the end of `renderChart()`: `if (holder.dataset.chartId !== view.chart.id) { holder.dataset.chartId = view.chart.id; chartZoom.fit(); } else { chartZoom.apply(); }`.
+In `onKey`, before `if (view.phase === "plan")`: `if (key === "+" || key === "=") { e.preventDefault(); chartZoom.zoomBy(1.25); return; }`,
+the same for `"-"` with 0.8, and `"0"` calls `chartZoom.fit()`.
+
+The zoom bar's markup (index.html, directly after `<div id="chart-holder"></div>`) and CSS (style.css, after the `.dr-chart` rule):
+
+```html
+      <div id="chart-zoom-bar" class="chart-zoom-bar"><button id="zoom-out-button" type="button" aria-label="Zoom out">&minus;</button><button id="zoom-in-button" type="button" aria-label="Zoom in">+</button><button id="zoom-fit-button" type="button">Fit</button><span id="chart-scale" class="chart-scale" aria-hidden="true"><span id="chart-scale-bar" class="chart-scale-bar"></span> <span id="chart-scale-text"></span></span><span id="zoom-level" class="sr-only" aria-live="polite"></span></div>
+```
+
+```css
+.chart-zoom-bar { display: flex; gap: 0.4rem; align-items: center; margin-top: 0.4rem; line-height: normal; }
+.chart-scale-bar { display: inline-block; height: 0; border-bottom: 2px solid var(--text); vertical-align: middle; }
+```
+
+The step that adds the bar also adds `updateScale()` (app.js, directly below `renderChart`):
+
+```js
+  var SCALE_STEPS = [0.1, 0.25, 0.5, 1, 2, 5, 10, 20, 50];
+  function updateScale() {
+    var svg = $("dr-chart"), m = svg && svg.getScreenCTM();
+    if (!m || !view || !view.frame || !chartZoom) return;
+    var pxPerNm = m.a * view.frame.s, nm = SCALE_STEPS[0];
+    SCALE_STEPS.forEach(function (v) { if (v * pxPerNm <= 120) nm = v; });
+    $("chart-scale-bar").style.width = Math.round(nm * pxPerNm) + "px";
+    setText($("chart-scale-text"), nm + " nm");
+    setText($("zoom-level"), "Zoom " + chartZoom.level().toFixed(1) + "x");
+    $("zoom-out-button").disabled = chartZoom.level() <= 1.001;
+    $("zoom-fit-button").disabled = chartZoom.level() <= 1.001;
+    $("zoom-in-button").disabled = chartZoom.level() >= 5.999;
+  }
+```
+
+### R4-DEPC-4 (right-click menu) and R4-DEMO-3 (long-press fix mark): not designed
+What a "fix mark" or a "waypoint" is belongs to the owner (see the LA-13 report). Once answered, the menu is small:
+`contextmenu` on `#chart-holder` uses `chartXY`, and the long-press must not use a timer (use a press that does not
+move 6 px and lasts until pointerup with `e.pointerType === "touch"` and a second confirm tap, or skip long-press).
+
+### R4-DEPC-7, R4-DEMO-6, R4-DEMO-8, R4-DEMO-9 (alternate layouts): not designed in this pass
+They need the shared phone-layout decision (bottom sheet versus the existing sticky dock) asked in the LA-13 report.
