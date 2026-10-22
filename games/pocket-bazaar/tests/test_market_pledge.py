@@ -10,6 +10,7 @@ import pytest
 import game
 import pledge
 from .bot import call, step
+from .pagefiles import app_files, app_text
 
 GAME_DIR = Path(__file__).resolve().parent.parent
 TODAY = "2026-10-11"
@@ -101,14 +102,14 @@ def test_the_open_market_is_exactly_as_left_however_long_the_tab_stays_open():
 
 
 def test_the_only_clock_read_is_in_market_js_and_it_only_names_a_date():
-    for name in ("app.js", "settings.js"):
+    for name in (*app_files(), "settings.js"):
         assert not re.search(r"\bDate\b", (GAME_DIR / name).read_text(encoding="utf-8")), name
     text = (GAME_DIR / "market.js").read_text(encoding="utf-8")
     assert text.count("new Date().toISOString()") == 1 and "function today()" in text
     assert not re.search(r"setInterval|setTimeout|requestAnimationFrame|performance\.now|Date\.now|getTime\(\)|localStorage|fetch\(", text)
-    for name in ("app.js", "settings.js", "market.js"):
+    for name in (*app_files(), "settings.js", "market.js"):
         assert not re.search(r"setInterval|performance\.now|Date\.now", (GAME_DIR / name).read_text(encoding="utf-8")), name
-    assert 'window.PocketBazaarMarket.today()' in (GAME_DIR / "app.js").read_text(encoding="utf-8")
+    assert 'window.PocketBazaarMarket.today()' in app_text()
 
 
 def test_the_words_the_pledge_rules_out_are_not_in_the_market_text_either():

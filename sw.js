@@ -2,7 +2,7 @@
 // the precache list; ordinary content deploys don't need it, because
 // same-origin requests are network-first (see the fetch handler below) and
 // so always pick up fresh files whenever the player is online.
-const SW_VERSION = 80;
+const SW_VERSION = 81;
 const CACHE_NAME = "site-cache-v" + SW_VERSION;
 // How long a same-origin network request may take before we give up and
 // serve the cached copy instead (a slow/flaky connection shouldn't hang).
@@ -728,6 +728,10 @@ const PRECACHE_URLS = [
   "games/pocket-bazaar/index.html",
   "games/pocket-bazaar/style.css",
   "games/pocket-bazaar/game.py",
+  "games/pocket-bazaar/app-1-core.js",
+  "games/pocket-bazaar/app-2-stall.js",
+  "games/pocket-bazaar/app-3-board.js",
+  "games/pocket-bazaar/app-4-actions.js",
   "games/pocket-bazaar/app.js",
   "games/pocket-bazaar/settings.js",
   "games/pocket-bazaar/changelog.json",

@@ -5,6 +5,7 @@ import importlib.util
 import json
 import re
 from pathlib import Path
+from .pagefiles import app_text
 
 GAME_DIR = Path(__file__).resolve().parent.parent
 ROOT = GAME_DIR.parent.parent
@@ -54,7 +55,7 @@ def test_the_side_column_holds_the_tools_and_the_closed_stall_hides_them():
     assert "#tools" in CFG["zones"]["side"]
     css = (GAME_DIR / "pc.css").read_text(encoding="utf-8")
     assert '#game[data-phase="closed"] #pc-side #tools' in css
-    assert 'dataset.phase = view.phase' in (GAME_DIR / "app.js").read_text(encoding="utf-8")
+    assert 'dataset.phase = A.view.phase' in app_text()
 
 
 def test_the_desktop_css_is_scoped_to_the_desktop_layout():

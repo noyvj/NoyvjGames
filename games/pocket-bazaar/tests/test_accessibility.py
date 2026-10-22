@@ -5,6 +5,7 @@ import re
 from pathlib import Path
 
 import goods
+from .pagefiles import app_text
 
 GAME_DIR = Path(__file__).resolve().parent.parent
 CSS = (GAME_DIR / "style.css").read_text(encoding="utf-8")
@@ -56,7 +57,7 @@ def test_selection_and_match_differ_by_outline_style_not_only_colour():
 
 
 def test_tier_is_shown_as_a_number_and_as_pips():
-    app = (GAME_DIR / "app.js").read_text(encoding="utf-8")
+    app = app_text()
     assert "cell.letter + (cell.family" in app and 'el("span", "pip")' in app
 
 
@@ -66,5 +67,5 @@ def test_the_page_has_the_blanket_hidden_rule_and_reduced_motion_support():
 
 
 def test_every_cell_button_has_a_text_label():
-    app = (GAME_DIR / "app.js").read_text(encoding="utf-8")
+    app = app_text()
     assert 'btn.setAttribute("aria-label", label)' in app and "empty" in app
