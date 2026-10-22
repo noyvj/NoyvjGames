@@ -19,6 +19,31 @@ Public surface (what app.js and the shared save widget call):
     get_state()      -- plain JSON-safe dict (shared/save-widget.js contract)
     load_state(data) -- merges a saved dict in (the inverse of get_state)
 
+Actions (signal_actions.handle_dict; every request is {"action": ..., ...}; every answer is
+{ok, error, message, view, new, events, dirty} plus the extra keys named below). Mode ids:
+daily "easy" "hard"; practice also "wide" "bigsky" (signal_rules.PRESETS).
+    boot                   start the engine on today's puzzle (answer adds "changelog"); send it first:
+                           every action below except reset answers "Engine not started" until it is sent
+    reset                  wipe everything and boot again
+    view                   the current view, nothing changes
+    open {date, mode}      a daily puzzle: date "YYYY-MM-DD" (today or an archive day), mode a daily mode
+    practice {mode}        a new practice puzzle of that preset
+    practice {code}        a practice puzzle from its share code ("P-" + preset letter + 5 characters)
+    ping {r, c}            ping one tile (row, column; 0-based); uses one ping of the budget
+    mark {r, c}            put or take back a transmitter marker (interior tiles only, at most k markers)
+    clear_marks            take back every marker
+    commit                 judge the markers: won or lost
+    give_up                end the puzzle as lost
+    share {ascii}          the result text of a finished puzzle (answer adds "text"); ascii (bool, optional)
+                           also sets the ascii_share setting
+    settings {assist_shading, ascii_share, show_streaks, last_preset}   each optional; the first three are
+                           booleans, last_preset a preset id; a bad value answers "Bad value for ..." /
+                           "Unknown preset."
+    stats                  the stats panel (answer adds "stats", "best_streak", "total_solved")
+    achievements           the achievements panel (answer adds "achievements")
+    ack_onboarding         the first-visit help was seen
+Any other action answers "Unknown action.".
+
 The rest of this docstring is the data model, because the save format is the
 part that must never drift:
 

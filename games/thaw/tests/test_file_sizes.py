@@ -19,7 +19,7 @@ SUFFIXES = {".py", ".js", ".css", ".html", ".md", ".txt"}
 
 
 def _tokens(path):
-    return len(path.read_bytes()) // 4
+    return len(path.read_bytes().replace(b"\r\n", b"\n")) // 4
 
 
 def _editable_files():

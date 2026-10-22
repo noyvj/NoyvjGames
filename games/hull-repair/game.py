@@ -6,6 +6,8 @@ reads a clock or a random source: a board's status is a pure function of the boa
 
 Actions (every request is {"action": ..., ...}; every reply is the whole view):
   open                         the current view (with the board's drawing)
+  difficulty {level}           easy | normal | hard, told by the page (AN-17; never saved, reset leaves it alone);
+                               it changes help only: Easy opens nudge and hint on the first press, Hard stops at rung 2
   pick {board}                 go to a board (its deck must be open)
   next                         go to the next board to play
   begin {x, y}                 put a finger on a cell (pick up a line, or start one from a port)
@@ -13,8 +15,8 @@ Actions (every request is {"action": ..., ...}; every reply is the whole view):
   end                          the finger came up (a tap on a line's end takes one cell back); may carry a `result`
   undo | clear | clear_line {line}   take back the last touch | empty the board | empty one line
   hint                         climb one more rung of the hint ladder (nudge, hint, answer) for this board
-  load_answer                  lay the stored layout on the board (after the answer rung)
-  cell {x, y}                  words for one cell (the keyboard cursor)
+  load_answer                  lay the stored layout on the board (after the answer rung; never on Hard)
+  cell {x, y}                  words for one cell (the keyboard cursor): the view plus `cell_text`
   reset                        start over (everything)
 """
 

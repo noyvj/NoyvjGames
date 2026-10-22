@@ -15,11 +15,14 @@ Every request carries `"planet"` (default "pulse"). Actions:
   next_scene                 reveal the next scene of that planet's curriculum (no-op at the end)
   write {form, gloss}        write or clear a notebook entry (never judged). form = a token (pulse) or a letter
                              (compound: a component; bridge: a marker p, n or q)
-  confirm {forms}            how many of the chosen entries are right, not which
+  confirm {forms}            how many of the chosen entries are right, not which (answers {right, chosen,
+                             confirm_stamp}, not a view)
   speak {marks} | {glyph} | {message}   send a signal; the world answers in-world (the bridge language
                              sends a whole message: space-separated tokens such as "ku p 0011")
   name_pin {pin, text}       name what you think is sending received Pulse transmission `pin` (0-based; free text,
                              never judged; empty text clears it)
+  tune_star {id}             tune in a star signal by its star_map.STAR_MAP id: the answer is the view plus
+                             `tuned_star` {id, x, y, strength, label}; an unknown id answers {"error": "unknown signal"}
   reset                      start over (everything)
 """
 

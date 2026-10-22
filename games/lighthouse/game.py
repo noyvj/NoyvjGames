@@ -11,14 +11,16 @@ endless mode.
 Actions (every request is {"action": ..., ...}; every answer is the whole view plus "ok" and "message"):
   open                         the current view
   new_game {seed, seed_text, quiet}  a fresh run (lifetime meta is kept); seed_text is the shared seed it came from, optional
-  abandon {seed}               same as new_game: give up this run
-  reset {seed}                 wipe everything, meta included
+  abandon {seed, seed_text, quiet}   same as new_game: give up this run
+  reset {seed, seed_text, quiet}     wipe everything, meta included
   plan {levels, tasks, ration, focus}   edit tonight's plan (any phase but yearend)
   start_night | step {n}       light the lamp | run n ticks (stops at dawn)
   level {level} | wind | tend | patch {part}   the keeper's hands during the night
   end_morning | continue | end_day             move on
   day {task, part, id}         repair | rest | tidy | beachcomb | garden | rescue
   upgrade {id} | order {order} spend salvage | set the next boat's crates
+  read_letter {id}             read a letter that has come (takes any gift in it; story.read_letter)
+  reply {id, reply}            answer a read letter: id is the letter, reply is one of its reply ids (story.reply)
   settings {eerie}             display choices the engine must know about (never saved)
 """
 

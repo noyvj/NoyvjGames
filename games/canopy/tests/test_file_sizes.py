@@ -31,7 +31,7 @@ def test_no_editable_file_is_over_the_token_limit():
     too_big = []
     for path in _editable_files():
         rel = path.relative_to(GAME_DIR)
-        tokens = len(path.read_bytes()) // 4
+        tokens = len(path.read_bytes().replace(b"\r\n", b"\n")) // 4
         if tokens > CAPS.get(rel.as_posix(), MAX_TOKENS):
             too_big.append(f"{rel}: about {tokens} tokens")
     assert not too_big, (
