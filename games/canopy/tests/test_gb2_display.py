@@ -1,6 +1,7 @@
 """GB batch 2 display and accessibility items: season forecast (B-12), plot card (B-16), request pace
 (B-6), announcer and C/R hotkeys (B-7), high-contrast plots (B-8), soil overlay (B-10), number formats (B-26)."""
 
+import os
 import json
 
 import pytest
@@ -243,7 +244,7 @@ def test_hotkey_c_respects_the_heart_tree(game_env):
 
 
 def test_the_page_routes_c_and_r_and_lists_them(game_env):
-    root = game_env.module.__file__.rsplit("/", 1)[0]
+    root = os.path.dirname(game_env.module.__file__)
     html = page_text("index.html")
     assert 'key !== "c" && key !== "r"' in html
     assert "hotkey_clear_selected" in html and "hotkey_replant_selected" in html
@@ -394,7 +395,7 @@ def test_default_format_is_unchanged(game_env):
 # --- settings.js, index.html, pc page ------------------------------------------------------------------------------
 
 def _read(game_env, name):
-    root = game_env.module.__file__.rsplit("/", 1)[0]
+    root = os.path.dirname(game_env.module.__file__)
     if name in ("index.html", "pc.html"):
         return page_text(name)
     if name == "style.css":

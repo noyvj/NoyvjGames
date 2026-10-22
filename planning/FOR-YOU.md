@@ -439,3 +439,11 @@ Recommended: defer both until a scope talk.
 ### La67. Continuum: Lantern keeper walking mode (R4-PO-1) and collectable robot caretakers (R4-PO-4). Both need 3D art direction.
 
 Recommended: defer both.
+
+### La68. Canopy: Boreal and Tropical forests (R4-CA-4). Should they be extra regions that unlock as the main forest grows (like Highland and Wetland), or a forest type you pick when starting a new forest?
+
+Recommended: extra unlockable regions (at forest values 10,000 and 20,000), growing at 0.6x and 1.5x speed. These numbers are game choices; the loss causes are sourced. Say yes and the local AI can build it from the steps already written.
+
+### La69. Canopy: should finding every species in the Boreal or Tropical region earn an achievement?
+
+Recommended: not yet; it can be a later item.
