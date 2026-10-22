@@ -115,7 +115,7 @@ The queue order, the thinking on/off comparison, context sizes, repair rounds, a
 make it.
 
 ## From the 2026-10-21 audits (Noy2 -> the Windows session)
-- **Runner check:** fail a step whose new or changed test file has no assertion or is empty (Grid R4-GRPC-8 step 1 pushed an empty `test_plan_table.py` as a finished step; Chronicle LA7-CHRONICLE-1 pushed a test file that was all-skipped).
+- **Runner check:** fail a step whose new or changed test file has no assertion or is empty (Grid R4-GRPC-8 step 1 pushed an empty `test_plan_table.py` as a finished step; Chronicle LA7-CHRONICLE-1 pushed a test file that was all-skipped). Done 2026-10-22 on the Windows laptop: `local-ai/test_quality.py` (empty-test, no-assert for new test functions, all-skipped unless the skip is a missing browser or network) runs in ai.ps1's final check on every test file a task added or changed and fails the task; tests in `shared/tests/test_local_ai_test_quality.py`.
 - **Chains:** the runner should not push markup-only steps of a chain ahead of the wiring step; if it cannot, the audit keeps the chain open and finishes the missing steps by hand (done: `local-ai/steps-status.txt`, read by `refresh_queue.py` as `# done:` and `# redo:` lines).
 - **Audit results so far:** Chronicle: 4 of 5 accepted (FY-11 rejected: it flipped a status word); Grid: 17 of 20 accepted after fixes, 1 chain (R4-GRPC-8) reverted and requeued from step 1, and Claude wrote five missing steps by hand.
 

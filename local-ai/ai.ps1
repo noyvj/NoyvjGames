@@ -571,6 +571,14 @@ if ($checkFeature -and -not $testOnly -and $inside.Count -gt 0 -and $testFiles.C
     $what = if ($gamePy.Count -gt 0) { "changed the game's Python ($($gamePy -join ', '))" } else { "changed the page ($((@($inside | Where-Object { $_ -notlike '*/pc.html' }) | Select-Object -First 3) -join ', '))" }
     $problems += "it $what but added or changed no test in games/$Game/tests/"
 }
+# A new or changed test file must test something: not empty, every new test asserts, not all skipped
+# (2026-10-21 audits: Grid pushed an empty test file, Chronicle an all-skipped one; local-ai/test_quality.py).
+$qualityOut = ""
+$touchedTests = @($testFiles | ForEach-Object { Join-Path $work $_ } | Where-Object { Test-Path $_ })
+if ($touchedTests.Count -gt 0) {
+    $qualityOut = (python (Join-Path $aiDir "test_quality.py") $gameDir @touchedTests 2>&1 | Out-String).Trim()
+    if ($LASTEXITCODE -ne 0) { $problems += "a new or changed test file tests nothing (see test_quality below)" }
+}
 $testLine = ($testOut.Trim() -split "`n")[-1]
 
 $flakeOut = ""
@@ -645,6 +653,7 @@ $(if ($problems.Count) { "- Problems: " + ($problems -join "; ") })
 $diffStat
 $(if ($flakeOut) { "## flake8`n$flakeOut" })
 $(if ($staticOut) { "## static_check.py`n~~~`n$staticOut`n~~~" })
+$(if ($qualityOut -and $qualityOut -notlike "test_quality: every*") { "## test_quality.py`n~~~`n$qualityOut`n~~~" })
 $(if (-not $ok -and $diffText.Trim()) { "## The change it tried (first 300 lines)`n~~~diff`n$diffText~~~" })
 $(if (-not $ok -and $testsOk -eq $false) { "## Test output (end)`n~~~`n" + (($testOut -split "`n" | Select-Object -Last 40) -join "`n") + "`n~~~" })
 Full AI conversation: $log
