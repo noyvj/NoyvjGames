@@ -1068,3 +1068,712 @@ def buy_legacy_node(node_id):
   plus those keys, the way `tests/test_save_widget.py` does), then `#succession-panel` is visible, `#legacy-tree` holds
   9 nodes (count the component's node buttons inside it), clicking `#perk-family-savings-button` lowers the points in
   `#succession-display` to 2; `page.errors == []`.
+
+### R4-PH-2: Extension Officer, a helper mode where you advise three computer-run farms
+Written 2026-10-22 (LA-13, after batch 2). Steps: `local-ai/incoming/herd-design.txt`, chain `R4-PH-2` (7 steps). A small
+first version; the open choices are listed at the end as owner questions with a recommended default.
+
+- **What it is.** A separate panel (`#extension-panel`, opened from a toolbar button `#extension-toggle-button`,
+  "🤝 Extension Officer") with its own short season. You are the regional extension officer; three neighbouring farms
+  run themselves and keep growing. Each round you can make **2 visits**, **at most one per farm**; a visit installs one
+  unit of one lever on that farm, paid by an extension grant (the farm's own funds never change). Then you end the round
+  and all three farms play it out. A season is **8 rounds**. Your score is the **methane avoided**: what the three
+  farms emitted less than the same three farms given no advice (each farm has an unadvised twin, its "shadow", that
+  plays the same rounds). The panel also says how much more the advised farms earned (less methane pressure), the
+  hope angle in one line: decoupling paid them, it did not cost them.
+- **The three farms** (`EXT_FARMS`; each is a real `FarmState` from `herd_model.py`, never `runstate.farm`):
+
+| # | Farm | Starts with | Grows each round | Limit | Best lever at the start |
+|---|------|-------------|------------------|-------|-------------------------|
+| 0 | Hillside Dairy | 12 cattle | +1 cattle | Capture Systems at most 2 (the slurry pit) | Capture Systems, cuts 1.2 a round; then Herd Caps |
+| 1 | Brookside Mixed | 4 cattle, 20 poultry (`loadout = "poultry_start"` so `poultry_unlocked()` is true) | +2 poultry | Capture Systems at most 1 | Ventilation Biofilters, cuts 1.0 a round, growing with the flock |
+| 2 | Old Mill Network | 6 cattle, a satellite farm of 10 (`satellite_open`) | nothing | none | Retrofit Barns, cuts 0.8 a round (capture at home only 0.6) |
+
+  The levers a visit can install (`EXT_LEVERS`, also the tie order): `capture caps feed pivot biofilter litter
+  satellite_retrofit`. Each farm's card shows only the levers that would cut something there, each as a button with
+  its number ("Capture Systems: cuts 1.20 a round", from the engine's own `FarmState.methane_saved_by(key)`, so the
+  satellite network offset and the plant-pivot blend are included). That number is the lesson: the same lever is
+  worth different amounts on different farms, and the best one changes as you install it.
+- **Rules.** Unspent visits carry over to the next round (nothing lost), but each farm still takes one visit a round.
+  "Take back last visit" undoes a visit made this round (it rebuilds the season from the visit list); ended rounds stay.
+  After round 8 the season is over: the panel shows the result and "Start a new season" (the best result is kept).
+  Nothing is timed (rounds end only on the button) and nothing is random (the farms are fixed data and a season is
+  rebuilt from its visit list). While the practice sandbox is open the panel's buttons are disabled and every action
+  returns False, because a save made in the sandbox writes the real game's snapshot.
+- **Stars, and why no luck is needed for 100 percent.** Par is the score of an officer who always takes the visit
+  with the biggest cut per round right now (`ext_best_visit()`, ties broken by farm order then `EXT_LEVERS` order):
+  **93.2**. Three stars at par, two stars from 75 percent of par (69.9), one star for any help. Simulated against the
+  real `FarmState` (a scratch copy, 2026-10-22): an exhaustive search over all 3^8 = 6,561 ways to pick two farms each
+  round (each visit taking that farm's best lever) found nothing above 93.2, so par is the best a season can do and the
+  numbers on the buttons lead straight to it. Other plans: every farm's best lever but visiting the farms in turn
+  88.2 (two stars); cattle levers only (capture, then caps, then feed) 72.6 (two stars); capture then caps on the
+  first two farms only 55.4 (one star); feed only 29.8 (one star); no visits 0. The greedy season, round by round:
+  Hillside capture + Brookside biofilter (rounds 1-2), Brookside biofilter + Hillside caps (3-5), Hillside caps + Old
+  Mill retrofit (6-8); it avoids 45.4, 43.0 and 4.8 on the three farms and they earn 200.9 more.
+- **What counts, visibly.** The season's methane avoided and stars, and the best season (avoided, stars, seasons
+  played) in the panel's status line and on the toolbar button ("🤝 Extension Officer (3/3)").
+  It does not touch the main farm, its score, the leaderboard, achievements or legacy points (owner questions below).
+- **Saves.** Two new keys, each written only when not default, both validated in `ext_load()` and both absent from
+  older saves (which load into a fresh season): `extension` = `{"round": int, "visits": [[round, farm index, lever],
+  ...]}` (only once a round has ended or a visit was made) and `extension_best` = `{"avoided": float, "stars": 0-3,
+  "seasons": int >= 1}` (only once a season has ended). Loading replays the visits through `ext_visit()`, so a
+  malformed or impossible visit is simply dropped; a bad `extension_best` is dropped whole. The season itself lives in
+  the module dict `EXT` (changed in place, never rebound, so it is not a `herd_runstate` name and the sandbox never
+  swaps it). The farm handover keeps it (you are the officer, not the farmer).
+- **Must not break.** `get_state()` of a game that never opened the panel is unchanged (`test_save_widget.py`,
+  `test_sandbox.py` byte-identical); the main farm is never read or written by the mode; `coupling_ratio()` and every
+  `FarmState` method are used as they are (no engine change); `index.html` gains about 230 bytes (cap 14,800 tokens in
+  `test_file_sizes.py`). The new module is placed after `herd_profile` in `_PART_NAMES` and `HERD_PY_MODULES`; after the
+  chain merges, run `python scripts/sw-precache-game.py herd`, `python scripts/generate-offline-manifest.py` and
+  `python scripts/generate-pc-pages.py` (the local AI never touches those).
+- **Checked on a scratch copy outside the repo (2026-10-22):** every block below applied in step order, each step's
+  tests passing at that step; then Herd's whole non-browser suite and the new browser test passed, and
+  `shared/tests/test_pc_games.py -k herd` passed after regenerating `pc.html`.
+
+- **Block 1, NEW file `herd_extension.py` (step 1), VERBATIM:**
+
+```python
+"""Extension Officer (R4-PH-2, LA-13): a helper mode. You advise three computer-run farms over a short season, spending a
+few visits a round on the lever that cuts each farm's methane most; your score is the methane they did not emit.
+The client farms are real FarmState objects (herd_model.py) and never touch runstate.farm. Nothing is random: every
+client farm is built from EXT_FARMS and replayed from the saved list of visits, so a season always plays the same way.
+"""
+
+from herd_rules import DECOUPLING_MEASURES, POULTRY_MEASURES
+from herd_model import FarmState
+
+EXT_ROUNDS = 8  # rounds in one advisory season
+EXT_VISITS_PER_ROUND = 2  # visits you can make each round; unspent visits carry over to the next round
+EXT_GRANT = 1000.0  # the extension grant covers a lever's price, so the farm's own funds never change
+EXT_LEVERS = ("capture", "caps", "feed", "pivot", "biofilter", "litter", "satellite_retrofit")  # also the tie order
+EXT_FARMS = [
+    {"name": "Hillside Dairy", "herd": 12, "grow_herd": 1, "grow_poultry": 0, "poultry": 0, "satellite": 0,
+     "limits": {"capture": 2},
+     "blurb": "A big dairy herd that adds a cow every round. Its slurry pit fits only two capture units."},
+    {"name": "Brookside Mixed", "herd": 4, "grow_herd": 0, "grow_poultry": 2, "poultry": 20, "satellite": 0,
+     "limits": {"capture": 1},
+     "blurb": "A few cattle and a big poultry flock that grows by two birds every round."},
+    {"name": "Old Mill Network", "herd": 6, "grow_herd": 0, "grow_poultry": 0, "poultry": 0, "satellite": 10,
+     "limits": {},
+     "blurb": "A small home farm running an old, dirty satellite farm of ten cattle."},
+]
+EXT_STAR_SHARE = 0.75  # two stars from this share of par, three stars at par
+
+# The season in play. Changed in place only (never rebound), so it lives here and not in herd_runstate.
+EXT = {"round": 1, "visits": [], "farms": [], "shadows": [], "best": None}
+_EXT_PAR = []  # cached par (the greedy officer's score); filled on first use
+
+
+def _ext_new_farm(spec):
+    farm = FarmState()
+    farm.herd_size = spec["herd"]
+    if spec["poultry"]:
+        farm.loadout = "poultry_start"  # poultry_unlocked() reads the loadout
+        farm.poultry_size = spec["poultry"]
+    if spec["satellite"]:
+        farm.satellite_open = True
+        farm.satellite_size = spec["satellite"]
+    return farm
+
+
+def _ext_lever_count(farm, lever):
+    if lever in DECOUPLING_MEASURES:
+        return farm.decoupling_investment[lever]
+    if lever in POULTRY_MEASURES:
+        return farm.poultry_investment[lever]
+    if lever == "pivot":
+        return farm.plant_pivot_investment
+    return farm.satellite_retrofits
+
+
+def ext_lever_saving(index, lever, farms=None):
+    """Methane per round one more unit of this lever would remove on client farm `index` (0 when not allowed)."""
+    farm = (farms or EXT["farms"])[index]
+    limit = EXT_FARMS[index]["limits"].get(lever)
+    if limit is not None and _ext_lever_count(farm, lever) >= limit:
+        return 0.0
+    if lever == "satellite_retrofit" and not farm.satellite_open:
+        return 0.0
+    return round(farm.methane_saved_by(lever), 4)
+
+
+def _ext_install(farm, lever):
+    funds = farm.funds
+    farm.funds = funds + EXT_GRANT
+    if lever in DECOUPLING_MEASURES:
+        ok = farm.invest_decoupling(lever)
+    elif lever in POULTRY_MEASURES:
+        ok = farm.invest_poultry(lever)
+    elif lever == "pivot":
+        ok = farm.invest_plant_pivot()
+    else:
+        ok = farm.retrofit_satellite()
+    farm.funds = funds
+    return ok
+
+
+def _ext_advance_farms(farms, shadows):
+    for index, spec in enumerate(EXT_FARMS):
+        for farm in (farms[index], shadows[index]):
+            farm.advance_round()
+            farm.herd_size += spec["grow_herd"]
+            farm.poultry_size += spec["grow_poultry"]
+
+
+def ext_avoided(farms=None, shadows=None):
+    """Methane the client farms did not emit, compared with the same farms given no advice."""
+    farms, shadows = farms or EXT["farms"], shadows or EXT["shadows"]
+    return round(sum(s.methane - f.methane for f, s in zip(farms, shadows)), 1)
+
+
+def ext_income_gain():
+    """Extra funds the advised farms earned (less methane pressure), compared with no advice."""
+    return round(sum(f.funds - s.funds for f, s in zip(EXT["farms"], EXT["shadows"])), 1)
+```
+
+- **Block 2 (step 2).** Directly above the line `from herd_rules import DECOUPLING_MEASURES, POULTRY_MEASURES` add
+  `import herd_runstate as runstate`; then append at the end of `herd_extension.py`, VERBATIM:
+
+```python
+def ext_visits_left():
+    used = sum(1 for visit in EXT["visits"] if visit[0] <= EXT["round"])
+    return max(0, EXT_VISITS_PER_ROUND * min(EXT["round"], EXT_ROUNDS) - used)
+
+
+def ext_finished():
+    return EXT["round"] > EXT_ROUNDS
+
+
+def ext_visited_this_round():
+    """Farm indexes already visited this round (each farm takes at most one visit a round)."""
+    return {visit[1] for visit in EXT["visits"] if visit[0] == EXT["round"]}
+
+
+def ext_visit(index, lever):
+    """One visit: client farm `index` installs one unit of `lever`. False (and no change) when not allowed."""
+    if not isinstance(index, int) or not 0 <= index < len(EXT_FARMS) or lever not in EXT_LEVERS:
+        return False
+    if runstate.sandbox_active or ext_finished() or ext_visits_left() < 1 or index in ext_visited_this_round():
+        return False
+    if ext_lever_saving(index, lever) <= 0 or not _ext_install(EXT["farms"][index], lever):
+        return False
+    EXT["visits"].append([EXT["round"], index, lever])
+    return True
+
+
+def ext_advance():
+    """Ends the round on all three farms. False when not allowed."""
+    if runstate.sandbox_active or ext_finished():
+        return False
+    _ext_advance_farms(EXT["farms"], EXT["shadows"])
+    EXT["round"] += 1
+    return True
+
+
+def ext_reset(visits=None, last_round=1):
+    """A fresh season, then replays `visits` ([round, farm index, lever], in order) up to round `last_round`.
+    Visits that are not allowed are dropped. Used for a new season, for taking a visit back and for loading."""
+    EXT["round"] = 1
+    EXT["visits"] = []
+    EXT["farms"] = [_ext_new_farm(spec) for spec in EXT_FARMS]
+    EXT["shadows"] = [_ext_new_farm(spec) for spec in EXT_FARMS]
+    best = EXT["best"]
+    for visit in visits or []:
+        while EXT["round"] < visit[0] and not ext_finished():
+            ext_advance()
+        if EXT["round"] == visit[0]:
+            ext_visit(visit[1], visit[2])
+    while EXT["round"] < last_round and not ext_finished():
+        ext_advance()
+    EXT["best"] = best  # replaying a season never counts as finishing one again
+
+
+def ext_take_back():
+    """Takes back the last visit made this round (rounds already ended stay as they are)."""
+    if runstate.sandbox_active or not EXT["visits"] or EXT["visits"][-1][0] != EXT["round"]:
+        return False
+    ext_reset(EXT["visits"][:-1], EXT["round"])
+    return True
+
+
+def ext_new_season():
+    """Starts a fresh season once the last one is over (the best result is kept)."""
+    if runstate.sandbox_active or not ext_finished():
+        return False
+    ext_reset()
+    return True
+
+
+ext_reset()
+```
+
+- **Block 3 (step 3).** In `ext_advance()`, directly after `EXT["round"] += 1`, add the two lines
+  `if ext_finished():` / `_ext_record_season()` (indented inside the function); then append at the end, VERBATIM:
+
+```python
+# ---- par and stars: the greedy officer sets the three-star mark ----
+def ext_best_visit(farms=None, visited=None):
+    """(farm index, lever, saving) of the visit that removes the most methane per round right now, or None."""
+    best = None
+    visited = ext_visited_this_round() if visited is None else visited
+    for index in range(len(EXT_FARMS)):
+        if index in visited:
+            continue
+        for lever in EXT_LEVERS:
+            saving = ext_lever_saving(index, lever, farms)
+            if saving > 0 and (best is None or saving > best[2] + 1e-9):
+                best = (index, lever, saving)
+    return best
+
+
+def ext_par():
+    """The score of an officer who always takes ext_best_visit(): the three-star mark (no luck, same every time)."""
+    if not _EXT_PAR:
+        farms = [_ext_new_farm(spec) for spec in EXT_FARMS]
+        shadows = [_ext_new_farm(spec) for spec in EXT_FARMS]
+        for _round in range(EXT_ROUNDS):
+            visited = set()
+            for _visit in range(EXT_VISITS_PER_ROUND):
+                best = ext_best_visit(farms, visited)
+                if best is not None:
+                    _ext_install(farms[best[0]], best[1])
+                    visited.add(best[0])
+            _ext_advance_farms(farms, shadows)
+        _EXT_PAR.append(ext_avoided(farms, shadows))
+    return _EXT_PAR[0]
+
+
+def ext_stars(avoided):
+    par = ext_par()
+    if avoided >= par - 0.05:
+        return 3
+    if avoided >= EXT_STAR_SHARE * par:
+        return 2
+    return 1 if avoided > 0 else 0
+
+
+def _ext_record_season():
+    """Called by ext_advance() when the last round ends: keeps the best result and counts the season."""
+    avoided = ext_avoided()
+    best = EXT["best"] or {"avoided": 0.0, "stars": 0, "seasons": 0}
+    EXT["best"] = {"avoided": max(best["avoided"], avoided), "stars": max(best["stars"], ext_stars(avoided)),
+                   "seasons": best["seasons"] + 1}
+```
+
+- **Block 4 (step 4).** Directly above `from herd_model import FarmState` add
+  `from herd_util import _is_finite_number, _safe_int`; append at the end, VERBATIM:
+
+```python
+# ---- saving (new keys only when not default) ----
+def ext_save_fields():
+    fields = {}
+    if EXT["round"] > 1 or EXT["visits"]:
+        fields["extension"] = {"round": EXT["round"], "visits": [list(visit) for visit in EXT["visits"]]}
+    if EXT["best"]:
+        fields["extension_best"] = dict(EXT["best"])
+    return fields
+
+
+def ext_load(data):
+    """Puts a saved season back by replaying its visits; anything malformed is dropped. Old saves: a fresh season."""
+    EXT["best"] = None
+    best = data.get("extension_best")
+    if isinstance(best, dict) and _is_finite_number(best.get("avoided")) and best.get("stars") in (0, 1, 2, 3):
+        seasons = _safe_int(best.get("seasons"), 0)
+        if seasons >= 1 and best["avoided"] >= 0:
+            EXT["best"] = {"avoided": round(float(best["avoided"]), 1), "stars": best["stars"], "seasons": seasons}
+    saved = data.get("extension")
+    last_round, visits = 1, []
+    if isinstance(saved, dict):
+        last_round = min(EXT_ROUNDS + 1, max(1, _safe_int(saved.get("round"), 1)))
+        raw = saved.get("visits")
+        for visit in raw[:EXT_ROUNDS * EXT_VISITS_PER_ROUND] if isinstance(raw, list) else []:
+            if (isinstance(visit, list) and len(visit) == 3 and visit[2] in EXT_LEVERS
+                    and all(isinstance(v, int) and not isinstance(v, bool) for v in visit[:2])
+                    and 1 <= visit[0] <= last_round):
+                visits.append(list(visit))
+    ext_reset(visits, last_round)
+```
+
+  `herd_savegame.py`: add `from herd_extension import ext_save_fields` directly after
+  `from herd_family import FAMILY_BRANCHES`, and directly before the final `return state` of `get_state()` the line
+  `state.update(ext_save_fields())  # R4-PH-2: Extension Officer keys, only when not default`. `herd_loading.py`: add
+  `from herd_extension import ext_load` directly after `from herd_collection import _sync_collection`, and directly
+  after the line `_load_policy_fields(data)` in `_apply_state()` the line `ext_load(data)  # R4-PH-2`.
+
+- **Block 5 (step 5).** Imports become (exactly this order): `from js import document`, a blank line,
+  `import herd_runstate as runstate`, `from herd_rules import DECOUPLING_MEASURES, LEVER_LABELS, POULTRY_MEASURES`,
+  `from herd_util import _is_finite_number, _safe_int`, `from herd_model import FarmState`. Append at the end, VERBATIM:
+
+```python
+# ---- the panel (Python writes it whole; one click listener on #extension-panel reads the data-ext-* attributes) ----
+EXT_INTRO = ("You are the regional extension officer. Three neighbouring farms keep growing; each round you can visit two "
+             "of them and help one install a lever, paid by an extension grant. Pick the lever that cuts each farm's "
+             "methane most. Your score is the methane they did not emit.")
+
+
+def ext_status_text():
+    avoided = ext_avoided()
+    best = EXT["best"]
+    record = (f" Best season: {best['avoided']:.1f} avoided, {best['stars']} of 3 stars, {best['seasons']} played."
+              if best else "")
+    if ext_finished():
+        return (f"Season over. The three farms emitted {avoided:.1f} less methane than they would have without you, "
+                f"and earned {ext_income_gain():.1f} more. {ext_stars(avoided)} of 3 stars "
+                f"(three stars at {ext_par():.1f}).{record}")
+    return (f"Round {EXT['round']} of {EXT_ROUNDS}. Visits left: {ext_visits_left()} (one per farm a round). "
+            f"Methane avoided so far: {avoided:.1f} (three stars at {ext_par():.1f}).{record}")
+
+
+def _ext_farm_html(index):
+    spec, farm, shadow = EXT_FARMS[index], EXT["farms"][index], EXT["shadows"][index]
+    visited = index in ext_visited_this_round()
+    can_visit = not (runstate.sandbox_active or ext_finished() or visited or ext_visits_left() < 1)
+    sizes = f"{farm.herd_size} cattle"
+    if farm.poultry_size:
+        sizes += f", {farm.poultry_size} poultry"
+    if farm.satellite_open:
+        sizes += f", a satellite farm of {farm.satellite_size} cattle"
+    buttons = ""
+    for lever in EXT_LEVERS:
+        saving = ext_lever_saving(index, lever)
+        if saving > 0:
+            buttons += (f'<button type="button" class="secondary ext-lever" data-ext-farm="{index}" '
+                        f'data-ext-lever="{lever}"{"" if can_visit else " disabled"}>'
+                        f"{LEVER_LABELS[lever]}: cuts {saving:.2f} a round</button> ")
+    return (f'<div class="ext-farm"><h3>{spec["name"]}</h3><p>{spec["blurb"]}</p>'
+            f"<p>{sizes}. Methane this round: {farm.methane_this_round():.1f} "
+            f"(without your advice: {shadow.methane_this_round():.1f}).{' Visited this round.' if visited else ''}</p>"
+            f'<div class="ext-levers">{buttons}</div></div>')
+
+
+def ext_panel_html():
+    off = " disabled" if runstate.sandbox_active else ""
+    if ext_finished():
+        controls = f'<button type="button" data-ext-action="new"{off}>Start a new season</button>'
+    else:
+        controls = (f'<button type="button" data-ext-action="advance"{off}>End this round</button> '
+                    f'<button type="button" class="secondary" data-ext-action="back"{off}>Take back last visit</button>')
+    rest = "<p>The extension office is closed while the practice sandbox is open.</p>" if runstate.sandbox_active else ""
+    farms = "".join(_ext_farm_html(index) for index in range(len(EXT_FARMS)))
+    return (f'<h2>Extension Officer</h2><p>{EXT_INTRO}</p>{rest}<p class="ext-status" role="status">'
+            f'{ext_status_text()}</p><div class="ext-farms">{farms}</div><p class="ext-controls">{controls}</p>')
+
+
+def render_extension():
+    best = EXT["best"]
+    document.getElementById("extension-toggle-button").innerText = (
+        "🤝 Extension Officer" + (f" ({best['stars']}/3)" if best else ""))
+    document.getElementById("extension-panel").innerHTML = ext_panel_html()
+```
+
+  `herd_renderer.py`: `from herd_extension import render_extension` directly after
+  `from herd_profile import render_profile`, and `render_extension()` directly after the `render_sandbox()` call at the
+  end of `render()`. `tests/conftest.py` `ELEMENT_IDS`: before its closing `]` add the comment line
+  `# R4-PH-2 Extension Officer.` and the line `"extension-toggle-button", "extension-panel",`.
+
+- **Block 6 (step 6), handlers.** `herd_handlers_panels.py`: add
+  `from herd_extension import ext_advance, ext_new_season, ext_take_back, ext_visit` directly above
+  `from herd_renderer import render`, and append at the end, VERBATIM:
+
+```python
+def on_toggle_extension(event=None):
+    """R4-PH-2: opens or closes the Extension Officer panel."""
+    panel = document.getElementById("extension-panel")
+    panel.hidden = not panel.hidden
+    render()
+
+
+def on_extension_click(event=None):
+    """R4-PH-2: one listener on #extension-panel; the clicked button says what to do in its data-ext-* attributes."""
+    target = getattr(event, "target", None)
+    if target is None:
+        return
+    farm = target.getAttribute("data-ext-farm")
+    action = target.getAttribute("data-ext-action")
+    if farm is not None and str(farm).isdigit():
+        ext_visit(int(farm), target.getAttribute("data-ext-lever"))
+    elif action == "advance":
+        ext_advance()
+    elif action == "back":
+        ext_take_back()
+    elif action == "new":
+        ext_new_season()
+    else:
+        return
+    render()
+```
+
+  `game.py`: add `on_extension_click, on_toggle_extension,` to the end of the `from herd_handlers_panels import (...)`
+  list, and directly after the line that wires `mixer-auto-button` in `setup()`:
+  `document.getElementById("extension-toggle-button").addEventListener("click", create_proxy(on_toggle_extension))` and
+  `document.getElementById("extension-panel").addEventListener("click", create_proxy(on_extension_click))`.
+  `index.html`: directly above the `<button id="sandbox-toggle-button"` line in `.game-toolbar`:
+  `<button id="extension-toggle-button" class="secondary" type="button">🤝 Extension Officer</button>`; directly after
+  the `<div id="changelog-panel" ...></div>` line: `<div id="extension-panel" class="section extension-panel" hidden></div>`.
+
+- **Block 7 (step 7), Desktop and style.** `pc-config.json`: in `windows`, directly after the `changelog-panel` entry,
+  `["extension-panel", "extension-toggle-button", "Extension Officer"],`; in `toolbar.menu` the "Game" group's ids become
+  `["sandbox-toggle-button", "extension-toggle-button"]`. `style-5-round7.css`, at the end, VERBATIM:
+
+```css
+/* R4-PH-2: Extension Officer panel */
+.extension-panel .ext-farms { display: grid; gap: 0.6rem; grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr)); }
+.extension-panel .ext-farm { border: 1px solid rgba(127, 127, 127, 0.4); border-radius: 8px; padding: 0.5rem 0.7rem; }
+.extension-panel .ext-farm h3 { margin: 0 0 0.3rem; font-size: 1rem; }
+.extension-panel .ext-levers { display: flex; flex-wrap: wrap; gap: 0.3rem; }
+```
+
+- **Tests, NEW file `tests/test_extension_officer.py`** (`game_env` fixture; `m = game_env.module`; every
+  `herd_extension` name is reachable as `m.<name>` and `m.EXT` is the same dict). Step 1 creates the file with this
+  block; steps 2 to 6 each append the next block (step 6 also adds `import types` directly above `from pathlib import Path`).
+
+  Step 1:
+
+```python
+"""LA-13 / R4-PH-2: the Extension Officer, a helper mode where you advise three computer-run farms."""
+from pathlib import Path
+
+
+def _fresh(m):
+    return [m._ext_new_farm(spec) for spec in m.EXT_FARMS], [m._ext_new_farm(spec) for spec in m.EXT_FARMS]
+
+
+def test_the_three_client_farms(game_env):
+    m = game_env.module
+    farms, _shadows = _fresh(m)
+    assert [farm.herd_size for farm in farms] == [12, 4, 6]
+    assert farms[1].poultry_size == 20 and farms[1].poultry_unlocked() is True
+    assert farms[2].satellite_open is True and farms[2].satellite_size == 10
+    assert game_env.farm.herd_size == 0
+
+
+def test_each_farm_has_its_own_best_lever(game_env):
+    m = game_env.module
+    farms, _shadows = _fresh(m)
+    assert m.ext_lever_saving(0, "capture", farms) == 1.2
+    assert m.ext_lever_saving(1, "biofilter", farms) == 1.0
+    assert m.ext_lever_saving(2, "satellite_retrofit", farms) == 0.8
+    assert m.ext_lever_saving(0, "biofilter", farms) == 0.0
+    assert m.ext_lever_saving(0, "satellite_retrofit", farms) == 0.0
+
+
+def test_the_grant_pays_and_the_slurry_pit_takes_two(game_env):
+    m = game_env.module
+    farms, _shadows = _fresh(m)
+    funds = farms[0].funds
+    assert m._ext_install(farms[0], "capture") is True and m._ext_install(farms[0], "capture") is True
+    assert farms[0].funds == funds and farms[0].decoupling_investment["capture"] == 2
+    assert m.ext_lever_saving(0, "capture", farms) == 0.0
+
+
+def test_advice_counts_as_methane_avoided_and_nothing_is_random(game_env):
+    m = game_env.module
+    farms, shadows = _fresh(m)
+    m._ext_install(farms[0], "capture")
+    m._ext_advance_farms(farms, shadows)
+    assert farms[0].herd_size == 13 and farms[1].poultry_size == 22
+    assert m.ext_avoided(farms, shadows) == 1.2
+    source = (Path(__file__).resolve().parent.parent / "herd_extension.py").read_text(encoding="utf-8")
+    assert "import random" not in source and "from random" not in source
+```
+
+  Step 2 (append):
+
+```python
+def test_a_fresh_season(game_env):
+    m = game_env.module
+    assert m.EXT["round"] == 1 and m.EXT["visits"] == [] and m.EXT["best"] is None
+    assert m.ext_visits_left() == 2 and m.ext_avoided() == 0.0
+    assert [farm.herd_size for farm in m.EXT["farms"]] == [12, 4, 6]
+
+
+def test_one_visit_per_farm_a_round(game_env):
+    m = game_env.module
+    assert m.ext_visit(0, "capture") is True and m.EXT["farms"][0].decoupling_investment["capture"] == 1
+    assert m.ext_visit(0, "caps") is False
+    assert m.ext_visit(2, "nonsense") is False and m.ext_visit(7, "caps") is False
+    assert m.ext_visit(1, "capture") is True and m.ext_visits_left() == 0
+    assert m.ext_visit(2, "satellite_retrofit") is False
+    assert m.EXT["visits"] == [[1, 0, "capture"], [1, 1, "capture"]]
+
+
+def test_unspent_visits_carry_over_and_the_season_ends(game_env):
+    m = game_env.module
+    assert m.ext_advance() is True
+    assert m.EXT["round"] == 2 and m.ext_visits_left() == 4
+    for _ in range(7):
+        m.ext_advance()
+    assert m.ext_finished() and m.ext_advance() is False and m.ext_visit(0, "capture") is False
+    assert m.ext_new_season() is True and m.EXT["round"] == 1
+
+
+def test_taking_back_a_visit_this_round_only(game_env):
+    m = game_env.module
+    m.ext_visit(0, "capture")
+    assert m.ext_take_back() is True and m.EXT["visits"] == []
+    assert m.EXT["farms"][0].decoupling_investment["capture"] == 0
+    m.ext_visit(0, "capture")
+    m.ext_advance()
+    assert m.ext_take_back() is False and len(m.EXT["visits"]) == 1
+
+
+def test_closed_while_the_sandbox_is_open_and_the_real_farm_is_untouched(game_env):
+    m = game_env.module
+    before = m.get_state()
+    m.ext_visit(0, "capture")
+    m.ext_advance()
+    after = m.get_state()
+    for key in ("round_number", "funds", "herd_size", "methane", "decoupling_investment"):
+        assert after[key] == before[key]
+    m.sandbox_active = True
+    assert m.ext_visit(1, "biofilter") is False and m.ext_advance() is False and m.ext_take_back() is False
+    m.sandbox_active = False
+```
+
+  Step 3 (append):
+
+```python
+def test_the_best_visit_and_par(game_env):
+    m = game_env.module
+    assert m.ext_best_visit() == (0, "capture", 1.2)
+    m.ext_visit(0, "capture")
+    assert m.ext_best_visit() == (1, "biofilter", 1.0)
+    assert m.ext_par() == 93.2
+    assert m.ext_stars(93.2) == 3 and m.ext_stars(70.0) == 2 and m.ext_stars(5.0) == 1 and m.ext_stars(0.0) == 0
+
+
+def test_following_the_best_visit_reaches_three_stars(game_env):
+    m = game_env.module
+    while not m.ext_finished():
+        for _ in range(2):
+            best = m.ext_best_visit()
+            if best:
+                m.ext_visit(best[0], best[1])
+        m.ext_advance()
+    assert m.ext_avoided() == 93.2 and m.ext_income_gain() > 0
+    assert m.EXT["best"] == {"avoided": 93.2, "stars": 3, "seasons": 1}
+    assert m.ext_new_season() is True and m.EXT["round"] == 1 and m.EXT["best"]["seasons"] == 1
+
+
+def test_an_empty_season_still_counts_as_played(game_env):
+    m = game_env.module
+    for _ in range(8):
+        m.ext_advance()
+    assert m.EXT["best"] == {"avoided": 0.0, "stars": 0, "seasons": 1}
+```
+
+  Step 4 (append):
+
+```python
+def test_saves_only_when_not_default_and_loads_back(game_env):
+    m = game_env.module
+    state = m.get_state()
+    assert "extension" not in state and "extension_best" not in state
+    m.ext_visit(1, "biofilter")
+    m.ext_advance()
+    m.ext_visit(2, "satellite_retrofit")
+    state = m.get_state()
+    assert state["extension"] == {"round": 2, "visits": [[1, 1, "biofilter"], [2, 2, "satellite_retrofit"]]}
+    avoided = m.ext_avoided()
+    m.ext_reset()
+    m.load_state(state)
+    assert m.EXT["round"] == 2 and m.EXT["visits"] == state["extension"]["visits"]
+    assert m.ext_avoided() == avoided and m.EXT["farms"][2].satellite_retrofits == 1
+
+
+def test_an_old_save_and_a_broken_one_load(game_env):
+    m = game_env.module
+    m.ext_visit(0, "capture")
+    state = m.get_state()
+    state.pop("extension")
+    m.load_state(state)
+    assert m.EXT["round"] == 1 and m.EXT["visits"] == []
+    state["extension"] = {"round": "x", "visits": [[1, 7, "capture"], "junk", [1, 0, "capture"], [1, 0, "capture"]]}
+    state["extension_best"] = {"avoided": -3, "stars": 9, "seasons": 1}
+    m.load_state(state)
+    assert m.EXT["visits"] == [[1, 0, "capture"]] and m.EXT["best"] is None
+    state["extension_best"] = {"avoided": 80.5, "stars": 2, "seasons": 3}
+    m.load_state(state)
+    assert m.EXT["best"] == {"avoided": 80.5, "stars": 2, "seasons": 3}
+    assert m.get_state()["extension_best"] == {"avoided": 80.5, "stars": 2, "seasons": 3}
+```
+
+  Step 5 (append):
+
+```python
+def test_the_panel_shows_the_farms_and_their_levers(game_env):
+    m = game_env.module
+    m.render()
+    html = game_env.elements["extension-panel"].innerHTML
+    assert "Hillside Dairy" in html and "Brookside Mixed" in html and "Old Mill Network" in html
+    assert 'data-ext-farm="0" data-ext-lever="capture"' in html and "Capture Systems: cuts 1.20 a round" in html
+    assert "Round 1 of 8. Visits left: 2" in html and "three stars at 93.2" in html
+    assert game_env.elements["extension-toggle-button"].innerText == "\U0001F91D Extension Officer"
+    m.ext_visit(0, "capture")
+    m.render()
+    html = game_env.elements["extension-panel"].innerHTML
+    assert "Visited this round." in html and 'data-ext-lever="caps" disabled' in html
+```
+
+  Step 6 (append):
+
+```python
+def _click(m, **attributes):
+    target = types.SimpleNamespace(getAttribute=lambda name: attributes.get(name))
+    m.on_extension_click(types.SimpleNamespace(target=target))
+
+
+def test_clicks_visit_take_back_and_end_the_round(game_env):
+    m = game_env.module
+    _click(m, **{"data-ext-farm": "0", "data-ext-lever": "capture"})
+    assert m.EXT["visits"] == [[1, 0, "capture"]]
+    assert "Visited this round." in game_env.elements["extension-panel"].innerHTML
+    _click(m, **{"data-ext-action": "back"})
+    assert m.EXT["visits"] == []
+    _click(m, **{"data-ext-action": "advance"})
+    assert m.EXT["round"] == 2 and "Round 2 of 8" in game_env.elements["extension-panel"].innerHTML
+
+
+def test_the_toggle_opens_and_closes_the_panel(game_env):
+    panel = game_env.elements["extension-panel"]
+    panel.hidden = True
+    game_env.elements["extension-toggle-button"].dispatch("click")
+    assert panel.hidden is False
+    game_env.elements["extension-toggle-button"].dispatch("click")
+    assert panel.hidden is True
+```
+
+- **Browser test, NEW file `tests/test_extension_officer_browser.py` (step 7), VERBATIM:**
+
+```python
+"""LA-13 / R4-PH-2: the Extension Officer panel in the real page (one Pyodide boot)."""
+import pytest
+
+pytest.importorskip("playwright.sync_api")
+from playwright.sync_api import sync_playwright  # noqa: E402
+
+from browser_helpers import open_game  # noqa: E402
+
+
+def test_a_visit_and_the_end_of_a_round_in_the_real_page(base):
+    with sync_playwright() as p:
+        browser, page = open_game(p, base)
+        page.click("#extension-toggle-button")
+        page.wait_for_selector("#extension-panel", state="visible")
+        assert "Round 1 of 8. Visits left: 2" in page.inner_text("#extension-panel")
+        page.click('#extension-panel button[data-ext-farm="0"][data-ext-lever="capture"]')
+        page.wait_for_function("document.getElementById('extension-panel').innerText.includes('Visits left: 1')")
+        page.click('#extension-panel button[data-ext-action="advance"]')
+        page.wait_for_function("document.getElementById('extension-panel').innerText.includes('Round 2 of 8')")
+        assert page.errors == []
+        browser.close()
+```
+
+- **Owner questions** (each with the default this first version uses):
+  1. Should a good season feed the main game (for example one legacy point for a first three-star season)? Default: no,
+     the mode stands apart, so the main score, the leaderboard and `test_scoring.py` are untouched.
+  2. Achievements for the mode (first season, three stars)? Default: none in this version (it would change
+     `achievements.json` and the hub's counts); add two later if wanted.
+  3. More than one season layout (other farm sets, or a new set each season from the run seed)? Default: one fixed
+     layout, so par and the three-star mark are proved by search; a rotating set would need par recomputed per set.

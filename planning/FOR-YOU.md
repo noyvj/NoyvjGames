@@ -447,3 +447,11 @@ Recommended: extra unlockable regions (at forest values 10,000 and 20,000), grow
 ### La69. Canopy: should finding every species in the Boreal or Tropical region earn an achievement?
 
 Recommended: not yet; it can be a later item.
+
+### La70. Herd: Extension Officer mode (R4-PH-2). Should a good advisory season feed the main game (for example one legacy point for the first three-star season), and should the mode have achievements?
+
+Recommended: not yet. The first version stays separate, so the main score, leaderboard and achievement counts are untouched; both can be later items.
+
+### La71. Herd: Extension Officer farms. One fixed set of three farms, or a new set each season drawn from the run seed?
+
+Recommended: one fixed set for now, so three stars is proven reachable without luck.
