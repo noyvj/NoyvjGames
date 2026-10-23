@@ -675,3 +675,736 @@ Up to three named forests per browser, for players who are not signed in. The me
 - **Ghost of your best session (Z-3e, 2026-10-12).** Canopy opts in to `shared/ghost.py` (written to the Pyodide filesystem as `ghost.py` in `index.html`; `pc.html` regenerated). A session is Canopy's run: it ends at Reset Session or any setting change that starts a new forest. Measure: the standing forest value after every tick (the same number as the Timeline chart's standing series). `_record_ghost_tick` (called from `tick()` after the report history) appends to `_ghost_live` (capped at `GHOST_LIVE_CAP` = 5000 ticks, ephemeral, cleared by `reset_session` and `load_state` like the other session histories). `_bank_ghost()` runs at the top of `reset_session` (before the settings change): if the session ran at least `GHOST_MIN_TICKS` (30) ticks, was never not-comparable (`ghost_mode_key()` is None for a challenge, level, Expedition, scenario, custom layout or Forest Lab; those taint the session) and its highest standing value is at least the stored one for the same settings, `ghost.Recorder` turns it into a trace kept per device in localStorage `canopy_ghost_v1` ({"difficulty:grid size:pace": {score, trace}}; the key exists only once a ghost does, it is not part of `get_state()` so saves are unchanged, and it is deliberately not in `FOREST_PROFILE_KEYS`, like the personal best). `load_ghosts()` cleans every entry through `ghost.load` and drops bad keys, scores and traces over the cap, at most `GHOST_MAX_MODES` kept. Display: `timeline_chart_svg("standing")` adds a dashed 55%-opacity polyline labelled "Ghost: best session (dashed)" (`data-testid="ghost-line"`, mapped by session tick, the y-scale grows to include it) and puts the shared sentence in the SVG's aria-label and the `<title>`; `#ghost-note` (`role="status"`) under the chart shows the same sentence (shared wording says "turn" for a tick). `#ghost-toggle` (checkbox, default on, `canopy_ghost_on`) hides line and note; the stored ghost is never deleted by hiding. Both live in the Session summary panel, so they refresh while it is open. A player who never resets never gets a ghost (stated in the note). Tests: `tests/test_shared_ghost.py`.
 
 - **Today's run (Z-5c, 2026-10-12).** `NoyvjSeed.daily.mountButton` in `#todays-run-slot` at the top of `#expedition-panel` (Menu/toolbar "Expedition" window on Desktop), with `shared/seed.js` loaded from `index.html` (already in the service worker precache) and a small inline mount script. Canopy's one run seed is the Expedition's, so Today's run is an Expedition on the UTC date's shared seed (`CANOPY-XXXXX`, `NoyvjSeed.daily.seed("canopy", today)`): `game.py`'s `start_todays_run(seed_text)` (read at click time through `window.pyodide.globals`) validates it, does nothing when `current_expedition` is already that seed and unfinished ("already playing today's run"), starts it at once on an untouched forest, and otherwise asks through the same `_confirm_dialog_ask(..., allowSkip=False)` question Start Expedition uses (`canopy-todays-run`, "Start today's run", naming the standing value and income given up; cancelling changes nothing; saves are never touched). Its sentence shows in `#expedition-seed-message` (`_expedition_message`), and the info footer's seed is put back to the Expedition's own (or cleared) whenever the shared button's press did not start anything. `_finish_expedition()` ends by calling `_record_shared_daily(seed, score)`: when the page says the seed is today's (`NoyvjSeed.daily.isDaily`) it calls `markCompleted("canopy", {score, text: "Expedition score N"})`, counted once per day in `noyvj-daily-v1`; an Expedition on an older day's seed, any other seed (including one typed by hand that is not today's), or a missing shared script records nothing, and any error is swallowed. An Expedition finishes once per run, so loading a finished save never re-records. A run begun just before 00:00 UTC and finished after it does not count. No save key, Expedition field or number changes (the map is rebuilt from the seed as before); old saves load unchanged. Tests: `tests/test_todays_run.py` (fake DOM, 11) and `tests/test_todays_run_browser.py` (Playwright, fixed clock, 1440x900, 360x740 and Desktop).
+
+## Design specs (LA-13)
+
+Written 2026-10-22 (LA-13 design pass). Steps: `local-ai/incoming/canopy-design.txt`. Standing rules hold for every
+item: nothing timed, nothing lost, no luck needed for 100%, no audio files, saves load unchanged. Every engine step was
+applied to a scratch copy of the game and run against its own tests and the non-browser suite before it was written
+down; the browser test passed on the real page there too.
+
+### R4-CA-4: two new regions, the Boreal Forest and the Tropical Rainforest
+- **What the player gets.** Two more unlockable regions below the Wetland Forest, each a 3 x 4 grid of the usual `Plot`
+  with the usual Clear and Replant buttons, a sourced line on the main real-world cause of tree cover loss in its
+  countries, a wildlife list (real species with their IUCN Red List status) and its own growth rhythm. Each opens with
+  a "fresh map" that shows its cause of loss, so replaying them feels different from the main forest.
+- **Unlock.** Sticky, by the main forest's standing value, exactly like the Wetland Forest: Boreal at 10,000, Tropical
+  at 20,000 (Highland 2,000, Wetland 5,000). With every main plot left standing, 10,000 comes at about tick 75 and
+  20,000 at about tick 120 (measured on a fresh normal forest). The banner of a locked region shows only once the
+  region before it is open (Wetland, then Boreal). The No-Highland challenge seals them too (`CHALLENGE_NO_HIGHLAND`).
+- **Rhythm (a game choice: no source in the game's data gives a growth speed, and the blurb says so).**
+
+  | Region | Growth (x main) | A stand shelters wildlife after | Opening map | Species |
+  |--------|-----------------|---------------------------------|-------------|---------|
+  | Boreal Forest | 0.6 | 90 ticks intact | plots 1, 2, 5, 6 (a burned patch) regrow by themselves over 30 ticks | 6 |
+  | Tropical Rainforest | 1.5 | 40 ticks intact | plots 0, 4, 8 (the west edge) are bare farmland; plot 11 (a fallow field) regrows by itself over 20 ticks | 8 |
+
+  The regrowing plots are ordinary REPLANTING plots with a longer timer (no cost, not counted as the player's
+  replants). Fire and farming never touch the soil here (`clear_count` stays 0), so the opening map costs nothing.
+- **Cause of loss (sourced, whole-country figures).** `data/region_losses.json` (Global Forest Watch via Our World in
+  Data, "Tree cover loss by dominant driver"; 2015 to 2024, computed from the yearly values): wildfire 72% of loss in
+  Canada and 74% in Russia; permanent agriculture 64% in Brazil and 69% in Indonesia; shifting cultivation 84% in the
+  Democratic Republic of Congo. The file's own note says fire, logging and shifting cultivation cause temporary loss and
+  permanent agriculture permanent loss, which is exactly what the maps show (burned and fallow plots regrow alone,
+  farmland waits for a replant). The text says "in Canada", never "in the boreal forest". A test recomputes every
+  percentage from the file.
+- **Wildlife (sourced).** `data/wildlife_status.json` (IUCN category as published through GBIF), the 6 boreal and 8
+  tropical species in the file's order. The n-th species appears when the region has `ceil(n * 12 / count)` stands that
+  have stood `wildlife_ticks` (boreal 2, 4, ... 12; tropical 2, 3, 5, 6, 8, 9, 11, 12). Once seen it stays seen, even
+  if the player clears every plot afterwards. A test checks the lists and codes against the file. The species and codes
+  are copied into `BIOMES` (no fetch at run time, so it works offline and in the tests).
+- **No hazard, nothing timed.** There is no fire or flood event and no countdown: nothing ever takes value away. 100% is
+  pure patience: preserve every plot, replant the farmland, wait (`test_every_species_is_reachable_by_patience_alone`).
+- **Not counted elsewhere.** Like Highland and Wetland, each region keeps its own income and standing value; neither
+  feeds `standing_forest_value()`, `total_income`, the comparison score, achievements or the ghost. No achievement is
+  added (see the owner question in the report of this design pass).
+- **Page.** `index.html` gets only one empty `<div id="biome-regions" class="biome-regions"></div>` (index.html is
+  within about 1,000 bytes of its 15,000-token cap). `render_biome_sections()` builds each region's markup into it once
+  (banner `<key>-lock-banner`, section `<key>-section`, `<key>-cause`, `<key>-plot-grid` with tiles `<key>-plot-<i>`,
+  `<key>-stats`, `<key>-wildlife`, `<key>-selected-plot-state`, buttons `<key>-clear-button`, `<key>-replant-button`,
+  with `<key>` = `boreal` or `tropical`) and updates it on every render. Tiles carry state as an icon and an
+  `aria-label` (never colour alone). The tile and button clicks call the renderer's `biome_action(key, action,
+  index=None)`, which redraws (a function that calls `render()` must live in `canopy_renderer.py`).
+- **Saves.** One key per OPEN region, `"boreal_region"` / `"tropical_region"`:
+  `{"plots": [plot dicts], "selected": int or None, "income": float, "wildlife": [names in list order]}`. A save without
+  the key (every old save) loads the region fresh and locked; a non-dict value is ignored the same way; inside a
+  present key every field is validated (`_apply_plot_dict`, `_index_or_none`, `_number_or`, names only from the list; a
+  non-list `plots` gets the opening map). Nothing goes into localStorage.
+- **Where the code goes.** No new module (so `_PART_NAMES`, `boot.js`, `sw.js` and the offline manifest do not change):
+  constants in `canopy_worldvars.py`, the growth line in `canopy_plot.py`, engine and drawing in `canopy_regions.py`
+  (state in the dict `biome_state`, changed in place only, so nothing goes into `canopy_runstate.py`), the tick hook in
+  `canopy_tick.py`, `reset_biomes()` and `biome_action` in `canopy_renderer.py`, the save in `canopy_savestate.py` and
+  `canopy_loading.py`. Sizes after all steps: canopy_regions.py about 5,900 tokens, canopy_renderer.py about 11,400,
+  index.html about 14,760 (cap 15,000).
+- **Must not break.** The core numbers (`tests/test_value_accrual.py`, `test_payout_and_degradation.py`,
+  `test_recovery_timer.py`, `test_plot_states.py`: the growth line only fires for region `boreal` / `tropical`),
+  Highland and Wetland (`test_highland_grove.py`, `test_highland_distinct_rates.py`, `test_wetland_forest.py`), the save
+  round trip (`test_save_system.py`: no key is written before a region opens), the comparison
+  (`test_comparison_scoring.py`), `test_module_list.py`, `test_file_sizes.py`, `test_proxy_cleanup.py`.
+- **For the reviewer.** After step 6 regenerate `pc.html` (`scripts/generate-pc-pages.py`; the shared pc test fails
+  until then), add a "What's New" entry to `changelog.json` and a line for the two regions to the CLAUDE.md File map
+  row of `canopy_regions.py`.
+
+**Step 1: constants, growth, data checks.** `canopy_worldvars.py`, at the end:
+
+```python
+# R4-CA-4: two more unlockable regions, the Boreal Forest and the Tropical Rainforest. Each is a 3 x 4 grid of the
+# usual Plot (same clear / replant rules), opened by the main forest's standing value like the Wetland Forest. They
+# differ in rhythm (growth speed and how long a stand needs before it shelters wildlife: a game choice, no source
+# gives a growth speed) and in the map they open with, which shows the main real-world cause of tree cover loss in
+# their countries (data/region_losses.json, Global Forest Watch via Our World in Data, 2015 to 2024): burned plots
+# that grow back by themselves in the boreal, farmland that stays bare until replanted in the tropics. No hazard,
+# no timer: nothing ever takes value away. Wildlife (data/wildlife_status.json, IUCN category via GBIF) appears as
+# more stands grow old, and once seen it stays seen.
+BIOME_KEYS = ("boreal", "tropical")
+BIOME_ROWS = 3
+BIOME_COLS = 4
+IUCN_WORDS = {
+    "LC": "Least Concern", "NT": "Near Threatened", "VU": "Vulnerable", "EN": "Endangered",
+    "CR": "Critically Endangered", "DD": "Data Deficient", "NE": "Not Evaluated",
+}
+BIOMES = {
+    "boreal": {
+        "title": "Boreal Forest",
+        "icon": "❄️",
+        "after": "wetland",
+        "unlock": 10000.0,
+        "growth": 0.6,
+        "wildlife_ticks": 90,
+        "regrowing": (1, 2, 5, 6),
+        "regrowth_ticks": 30,
+        "farmland": (),
+        "blurb": ("A cold northern forest. Stands grow at 60% of the main forest's speed and must stand 90 ticks "
+                  "before they shelter wildlife. The burned patch grows back by itself. (Speeds here are a game "
+                  "choice, not a measured rate.)"),
+        "cause": ("Real world: from 2015 to 2024, wildfire caused 72% of tree cover loss in Canada and 74% in "
+                  "Russia. Fire loss is temporary: the forest grows back, like the burned plots here. Whole-country "
+                  "figures. Source: Global Forest Watch, via Our World in Data (tree cover loss by dominant driver)."),
+        "wildlife": (
+            ("Canada lynx", "LC"), ("Reindeer or caribou", "VU"), ("Wolverine", "LC"), ("Boreal owl", "LC"),
+            ("Moose", "LC"), ("Canada warbler", "LC"),
+        ),
+    },
+    "tropical": {
+        "title": "Tropical Rainforest",
+        "icon": "\U0001F99C",
+        "after": "boreal",
+        "unlock": 20000.0,
+        "growth": 1.5,
+        "wildlife_ticks": 40,
+        "regrowing": (11,),
+        "regrowth_ticks": 20,
+        "farmland": (0, 4, 8),
+        "blurb": ("A warm rainforest. Stands grow at 150% of the main forest's speed and shelter wildlife after "
+                  "40 ticks. The farmland on its west edge stays bare until you replant it; the fallow field in "
+                  "the far corner grows back by itself. (Speeds here are a game choice, not a measured rate.)"),
+        "cause": ("Real world: from 2015 to 2024, permanent agriculture caused 64% of tree cover loss in Brazil and "
+                  "69% in Indonesia: that land stays cleared. In the Democratic Republic of Congo, shifting "
+                  "cultivation caused 84%: fields later left to grow back. Whole-country figures. Source: Global "
+                  "Forest Watch, via Our World in Data (tree cover loss by dominant driver)."),
+        "wildlife": (
+            ("Jaguar", "NT"), ("Harpy eagle", "VU"), ("Red-eyed tree frog", "LC"), ("Brown-throated sloth", "LC"),
+            ("Bornean orangutan", "CR"), ("Toco toucan", "LC"), ("Scarlet macaw", "LC"), ("Blue morpho", "NE"),
+        ),
+    },
+}
+```
+
+`canopy_plot.py`: add `BIOMES` to the `from canopy_worldvars import (` block; in `accrue_tick()` directly after the line
+`delta *= WETLAND_GROWTH_MULTIPLIER` add (same indent as the `elif self.region == "wetland":` line):
+
+```python
+        elif self.region in BIOMES:  # R4-CA-4: the boreal grows slower, the tropics faster
+            delta *= BIOMES[self.region]["growth"]
+```
+
+Tests, step 1 (NEW file `tests/test_boreal_tropical.py`, the whole block):
+
+```python
+"""LA-13 / R4-CA-4: the Boreal Forest and the Tropical Rainforest (engine, saves, sourced numbers, page)."""
+import json
+from pathlib import Path
+
+DATA = Path(__file__).resolve().parent.parent / "data"
+
+
+def test_the_boreal_grows_slower_and_the_tropics_faster(game_env):
+    m = game_env.module
+    main, boreal, tropical = m.Plot(0), m.Plot(0, region="boreal"), m.Plot(0, region="tropical")
+    for plot in (main, boreal, tropical):
+        plot.accrue_tick()
+    assert main.value > 0
+    assert abs(boreal.value - main.value * 0.6) < 1e-9
+    assert abs(tropical.value - main.value * 1.5) < 1e-9
+
+
+def test_the_wildlife_lists_match_the_data_file(game_env):
+    m = game_env.module
+    species = json.loads((DATA / "wildlife_status.json").read_text(encoding="utf-8"))["species"]
+    for key in m.BIOME_KEYS:
+        want = tuple((s["common_name"], s["iucn"]["code"]) for s in species if s["group"] == key)
+        assert m.BIOMES[key]["wildlife"] == want
+        assert all(code in m.IUCN_WORDS for _name, code in want)
+
+
+def test_the_cause_lines_match_the_data_file(game_env):
+    m = game_env.module
+    countries = json.loads((DATA / "region_losses.json").read_text(encoding="utf-8"))["countries"]
+    groups = (("boreal", ("Canada", "Russia")), ("tropical", ("Brazil", "Indonesia", "Democratic Republic of Congo")))
+    for key, names in groups:
+        cause = m.BIOMES[key]["cause"]
+        assert "Global Forest Watch" in cause and "Our World in Data" in cause
+        for name in names:
+            totals = countries[name]["ten_year_total_ha"]
+            driver = countries[name]["largest_driver"]
+            share = round(100 * totals[driver] / sum(v or 0 for v in totals.values()))
+            assert f"{share}%" in cause and name in cause and driver.lower() in cause.lower()
+            assert countries[name]["ten_year_window"] == ["2015", "2024"]
+```
+
+**Step 2: engine part A (unlock, opening map, tick, reset).** `canopy_regions.py`: add `from canopy_plot import Plot`
+directly after `from canopy_helpers import _log_event, fmt_num`; add `BARE` to the `from canopy_rules import (` block and
+`BIOME_COLS, BIOME_KEYS, BIOME_ROWS, BIOMES` to the `from canopy_worldvars import (` block; then at the end of the file:
+
+```python
+# ===========================================================================
+# R4-CA-4: the Boreal Forest and the Tropical Rainforest (constants: BIOMES in canopy_worldvars). Both regions live
+# in `biome_state` (changed in place, never rebound): key -> {"unlocked", "plots", "selected", "income", "wildlife"}.
+# No hazard and no timer: the only thing that changes a plot is the player or the plain tick.
+# ===========================================================================
+
+
+def _fresh_biome(key):
+    return {"unlocked": False, "plots": [Plot(i, region=key) for i in range(BIOME_ROWS * BIOME_COLS)],
+            "selected": None, "income": 0.0, "wildlife": set()}
+
+
+biome_state = {key: _fresh_biome(key) for key in BIOME_KEYS}
+
+
+def reset_biomes():
+    """Both regions back to fresh and locked (a new session, or a save that never reached them)."""
+    for key in BIOME_KEYS:
+        biome_state[key] = _fresh_biome(key)
+
+
+def _apply_biome_map(key):
+    """The map a region opens with: plots regrowing by themselves (fire in the boreal, a fallow field in the
+    tropics) and bare farmland that waits for a replant. Fire and farming never harm the soil here."""
+    spec = BIOMES[key]
+    for index in spec["regrowing"]:
+        plot = biome_state[key]["plots"][index]
+        plot.state = REPLANTING
+        plot.replant_ticks_remaining = plot.replant_ticks_total = spec["regrowth_ticks"]
+    for index in spec["farmland"]:
+        biome_state[key]["plots"][index].state = BARE
+
+
+def _maybe_unlock_biome(key):
+    """Sticky, like the Wetland Forest: once the main forest's standing value reaches the region's threshold."""
+    biome = biome_state[key]
+    if biome["unlocked"] or runstate.current_challenge == CHALLENGE_NO_HIGHLAND:
+        return False
+    if standing_forest_value() < BIOMES[key]["unlock"]:
+        return False
+    biome["unlocked"] = True
+    _apply_biome_map(key)
+    _log_event("unlock", f"{BIOMES[key]['title']} unlocked", None)
+    return True
+
+
+def biome_standing_value(key):
+    return sum(plot.value for plot in biome_state[key]["plots"])
+
+
+def biome_old_stands(key):
+    """Standing plots that have stood long enough to shelter wildlife (BIOMES[key]["wildlife_ticks"])."""
+    need = BIOMES[key]["wildlife_ticks"]
+    return sum(1 for p in biome_state[key]["plots"] if p.state in ACCRUING_STATES and p.ticks_intact >= need)
+
+
+def biome_wildlife_need(key, number):
+    """Old stands needed for the `number`-th species (1-based): spread evenly, all of them for the last one."""
+    plots = len(biome_state[key]["plots"])
+    return -(-number * plots // len(BIOMES[key]["wildlife"]))
+
+
+def note_biome_wildlife(key):
+    """Marks every species the region's old stands now shelter as seen (never unseen). Returns the new names."""
+    biome = biome_state[key]
+    old = biome_old_stands(key)
+    new = []
+    for number, (name, _code) in enumerate(BIOMES[key]["wildlife"], start=1):
+        if name not in biome["wildlife"] and old >= biome_wildlife_need(key, number):
+            biome["wildlife"].add(name)
+            new.append(name)
+            _log_event("wildlife", f"Seen in the {BIOMES[key]['title']}: {name}", None)
+    return new
+
+
+def advance_biomes():
+    """One tick of both regions (called from tick()): unlock check, growth, regrowth, wildlife."""
+    for key in BIOME_KEYS:
+        _maybe_unlock_biome(key)
+        if not biome_state[key]["unlocked"]:
+            continue
+        for plot in biome_state[key]["plots"]:
+            plot.accrue_tick()
+            plot.advance_recovery()
+        note_biome_wildlife(key)
+```
+
+`canopy_tick.py`: add `advance_biomes` to the `from canopy_regions import (` block; in `tick()` directly after
+`note_wetland_wildlife()  # GB-24` add `advance_biomes()  # R4-CA-4`. `canopy_renderer.py`: add `reset_biomes` to the
+`from canopy_regions import (` block; in `reset_session()` directly after `wetland_wildlife_found.clear()  # GB-24` add
+`reset_biomes()  # R4-CA-4`. Tests, step 2 (appended to `tests/test_boreal_tropical.py`):
+
+```python
+def _open(game_env, key):
+    m = game_env.module
+    m.plots[0].value = m.BIOMES[key]["unlock"]
+    game_env.tick(1)
+    assert m.biome_state[key]["unlocked"] is True
+
+
+def test_both_regions_start_locked_and_open_for_good_at_their_threshold(game_env):
+    m = game_env.module
+    assert [m.biome_state[k]["unlocked"] for k in m.BIOME_KEYS] == [False, False]
+    assert m.WETLAND_UNLOCK_STANDING_VALUE_THRESHOLD < m.BIOMES["boreal"]["unlock"] < m.BIOMES["tropical"]["unlock"]
+    _open(game_env, "boreal")
+    assert m.biome_state["tropical"]["unlocked"] is False
+    m.plots[0].value = 0.0
+    game_env.tick(1)
+    assert m.biome_state["boreal"]["unlocked"] is True
+
+
+def test_the_opening_map_shows_each_cause_of_loss(game_env):
+    m = game_env.module
+    _open(game_env, "tropical")
+    boreal, tropical = m.biome_state["boreal"]["plots"], m.biome_state["tropical"]["plots"]
+    assert [i for i, p in enumerate(boreal) if p.state == m.REPLANTING] == [1, 2, 5, 6]
+    assert boreal[1].replant_ticks_remaining == m.BIOMES["boreal"]["regrowth_ticks"] - 1
+    assert [i for i, p in enumerate(tropical) if p.state == m.BARE] == [0, 4, 8]
+    assert [i for i, p in enumerate(tropical) if p.state == m.REPLANTING] == [11]
+    assert all(p.clear_count == 0 for p in boreal + tropical)
+
+
+def test_burned_and_fallow_plots_grow_back_by_themselves_but_farmland_waits(game_env):
+    m = game_env.module
+    _open(game_env, "tropical")
+    game_env.tick(m.BIOMES["boreal"]["regrowth_ticks"])
+    assert all(m.biome_state["boreal"]["plots"][i].state == m.RECOVERED for i in (1, 2, 5, 6))
+    assert m.biome_state["tropical"]["plots"][11].state == m.RECOVERED
+    assert all(m.biome_state["tropical"]["plots"][i].state == m.BARE for i in (0, 4, 8))
+
+
+def test_the_no_highland_challenge_keeps_them_sealed(game_env):
+    m = game_env.module
+    m.current_challenge = m.CHALLENGE_NO_HIGHLAND
+    m.plots[0].value = m.BIOMES["tropical"]["unlock"]
+    game_env.tick(1)
+    assert not any(m.biome_state[k]["unlocked"] for k in m.BIOME_KEYS)
+
+
+def test_reset_session_closes_the_regions_again(game_env):
+    m = game_env.module
+    _open(game_env, "boreal")
+    game_env.reset_session()
+    assert m.biome_state["boreal"]["unlocked"] is False
+    assert m.biome_state["boreal"]["plots"][1].state == m.PRESERVED
+```
+
+**Step 3: engine part B (select, clear, replant, texts).** `canopy_regions.py`: add `IUCN_WORDS` to the
+`from canopy_worldvars import (` block; at the end of the file:
+
+```python
+def biome_select(key, index):
+    biome = biome_state[key]
+    biome["selected"] = index if 0 <= index < len(biome["plots"]) else None
+
+
+def biome_clear(key):
+    """Clears the selected plot of an open region; returns the payout or None."""
+    biome = biome_state[key]
+    if not biome["unlocked"] or biome["selected"] is None:
+        return None
+    payout = biome["plots"][biome["selected"]].clear()
+    if payout is not None:
+        biome["income"] += payout
+    return payout
+
+
+def biome_replant(key):
+    biome = biome_state[key]
+    if not biome["unlocked"] or biome["selected"] is None:
+        return False
+    return biome["plots"][biome["selected"]].replant()
+
+
+def biome_coordinate_label(index):
+    row, col = divmod(index, BIOME_COLS)
+    return f"{chr(ord('A') + col)}{row + 1}"
+
+
+def biome_tooltip_text(key, plot):
+    label = f"{biome_coordinate_label(plot.index)} · {STATE_LABEL[plot.state]} · value {plot.value:.1f}"
+    if plot.state == REPLANTING:
+        label += f" · growing back, {plot.replant_ticks_remaining} ticks to go"
+    elif plot.state == BARE:
+        label += " · bare: replant it to bring the forest back"
+    else:
+        need = BIOMES[key]["wildlife_ticks"]
+        label += " · old enough for wildlife" if plot.ticks_intact >= need else f" · stood {plot.ticks_intact} of {need} ticks"
+    return label
+
+
+def biome_wildlife_text(key):
+    spec, seen = BIOMES[key], biome_state[key]["wildlife"]
+    found = [f"{name} ({IUCN_WORDS.get(code, code)})" for name, code in spec["wildlife"] if name in seen]
+    text = f"Wildlife seen: {', '.join(found)}." if found else "Wildlife seen: none yet."
+    if len(found) < len(spec["wildlife"]):
+        need = biome_wildlife_need(key, len(found) + 1)
+        text += (f" The next one comes with {need} stands of {spec['wildlife_ticks']}+ ticks"
+                 f" (now {biome_old_stands(key)}).")
+    return text + " Status: IUCN Red List via GBIF."
+```
+
+Tests, step 3 (appended):
+
+```python
+def test_wildlife_comes_with_old_stands_and_stays_seen(game_env):
+    m = game_env.module
+    assert [m.biome_wildlife_need("boreal", n) for n in range(1, 7)] == [2, 4, 6, 8, 10, 12]
+    assert [m.biome_wildlife_need("tropical", n) for n in range(1, 9)] == [2, 3, 5, 6, 8, 9, 11, 12]
+    _open(game_env, "boreal")
+    plots = m.biome_state["boreal"]["plots"]
+    for plot in plots[:2]:
+        plot.state, plot.ticks_intact = m.PRESERVED, 90
+    assert m.note_biome_wildlife("boreal") == ["Canada lynx"]
+    for plot in plots:
+        plot.state, plot.ticks_intact = m.PRESERVED, 90
+    m.note_biome_wildlife("boreal")
+    assert len(m.biome_state["boreal"]["wildlife"]) == 6
+    for plot in plots:
+        plot.clear()
+    assert m.note_biome_wildlife("boreal") == []
+    assert len(m.biome_state["boreal"]["wildlife"]) == 6
+
+
+def test_clear_and_replant_work_like_the_other_regions(game_env):
+    m = game_env.module
+    m.biome_select("boreal", 0)
+    assert m.biome_clear("boreal") is None and m.biome_replant("boreal") is False
+    _open(game_env, "boreal")
+    plot = m.biome_state["boreal"]["plots"][0]
+    plot.value = 50.0
+    m.biome_select("boreal", 0)
+    assert m.biome_clear("boreal") == 50.0
+    assert m.biome_state["boreal"]["income"] == 50.0 and plot.state == m.BARE and plot.clear_count == 1
+    assert m.biome_replant("boreal") is True and plot.state == m.REPLANTING
+    m.biome_select("boreal", 12)
+    assert m.biome_state["boreal"]["selected"] is None
+
+
+def test_every_species_is_reachable_by_patience_alone(game_env):
+    m = game_env.module
+    _open(game_env, "tropical")
+    for index in (0, 4, 8):
+        m.biome_select("tropical", index)
+        assert m.biome_replant("tropical") is True
+    game_env.tick(80)
+    assert len(m.biome_state["tropical"]["wildlife"]) == 8
+    game_env.tick(50)
+    assert len(m.biome_state["boreal"]["wildlife"]) == 6
+
+
+def test_the_texts_name_status_and_what_comes_next(game_env):
+    m = game_env.module
+    _open(game_env, "boreal")
+    assert m.biome_wildlife_text("boreal").startswith("Wildlife seen: none yet. The next one comes with 2 stands of 90+")
+    m.biome_state["boreal"]["wildlife"].add("Reindeer or caribou")
+    assert "Reindeer or caribou (Vulnerable)" in m.biome_wildlife_text("boreal")
+    assert m.biome_coordinate_label(5) == "B2"
+    assert "growing back" in m.biome_tooltip_text("boreal", m.biome_state["boreal"]["plots"][1])
+```
+
+**Step 4: saves.** `canopy_savestate.py`: add `from canopy_regions import _apply_biome_map, biome_state, reset_biomes,
+wetland_wildlife_found` (replacing the line that imports only `wetland_wildlife_found`) and `BIOME_KEYS, BIOMES` to the
+`from canopy_worldvars import (` block; directly after the function `_wetland_state_fields()` (before
+`def _clean_stakeholder_request`):
+
+```python
+def _biome_state_fields():
+    """R4-CA-4: one key per OPEN boreal or tropical region ("boreal_region", "tropical_region"); a save that never
+    reached one has no key, so old saves and fresh ones stay exactly as they were."""
+    fields = {}
+    for key in BIOME_KEYS:
+        biome = biome_state[key]
+        if biome["unlocked"]:
+            fields[f"{key}_region"] = {
+                "plots": [_plot_to_dict(plot) for plot in biome["plots"]],
+                "selected": biome["selected"],
+                "income": biome["income"],
+                "wildlife": [name for name, _code in BIOMES[key]["wildlife"] if name in biome["wildlife"]],
+            }
+    return fields
+
+
+def _load_biome_state(data):
+    """R4-CA-4: the inverse of _biome_state_fields(). A missing or malformed key means a fresh, locked region;
+    every field of a present one is validated."""
+    reset_biomes()
+    for key in BIOME_KEYS:
+        saved = data.get(f"{key}_region")
+        if not isinstance(saved, dict):
+            continue
+        biome = biome_state[key]
+        biome["unlocked"] = True
+        plots = saved.get("plots")
+        if isinstance(plots, list):
+            for plot, plot_data in zip(biome["plots"], plots):
+                _apply_plot_dict(plot, plot_data)
+        else:
+            _apply_biome_map(key)
+        biome["selected"] = _index_or_none(saved.get("selected"), len(biome["plots"]))
+        biome["income"] = _number_or(saved.get("income"), 0.0, 0.0, 1e15)
+        names = {name for name, _code in BIOMES[key]["wildlife"]}
+        wildlife = saved.get("wildlife")
+        if isinstance(wildlife, list):
+            biome["wildlife"].update(n for n in wildlife if isinstance(n, str) and n in names)
+```
+
+In `get_state()` directly after `**_wetland_state_fields(),` add `**_biome_state_fields(),  # R4-CA-4`.
+`canopy_loading.py`: add `_load_biome_state` to the `from canopy_savestate import` line; in `load_state()` directly
+above the comment line `# achievements_earned itself is never read back` add
+`_load_biome_state(data)  # R4-CA-4: the boreal and tropical regions (validated)` and one blank line. Tests, step 4
+(appended):
+
+```python
+def test_saves_carry_only_open_regions_and_old_saves_load_unchanged(game_env):
+    m = game_env.module
+    assert "boreal_region" not in m.get_state() and "tropical_region" not in m.get_state()
+    _open(game_env, "boreal")
+    m.biome_select("boreal", 3)
+    m.biome_state["boreal"]["plots"][0].value = 12.5
+    m.biome_state["boreal"]["wildlife"].add("Moose")
+    state = m.get_state()
+    assert "boreal_region" in state and "tropical_region" not in state
+    assert state["boreal_region"]["wildlife"] == ["Moose"]
+    m.reset_session()
+    assert m.biome_state["boreal"]["unlocked"] is False
+    m.load_state(state)
+    boreal = m.biome_state["boreal"]
+    assert boreal["unlocked"] is True and boreal["selected"] == 3 and boreal["wildlife"] == {"Moose"}
+    assert boreal["plots"][0].value == 12.5 and boreal["plots"][1].state == m.REPLANTING
+    state.pop("boreal_region")
+    m.load_state(state)
+    assert m.biome_state["boreal"]["unlocked"] is False and m.biome_state["boreal"]["plots"][1].state == m.PRESERVED
+
+
+def test_a_damaged_region_key_is_cleaned_on_load(game_env):
+    m = game_env.module
+    state = m.get_state()
+    state["boreal_region"] = {"plots": "x", "selected": 99, "income": "lots", "wildlife": ["Canada lynx", "Dodo", 3]}
+    state["tropical_region"] = []
+    m.load_state(state)
+    boreal = m.biome_state["boreal"]
+    assert boreal["unlocked"] is True and boreal["selected"] is None and boreal["income"] == 0.0
+    assert boreal["wildlife"] == {"Canada lynx"} and boreal["plots"][1].state == m.REPLANTING
+    assert m.biome_state["tropical"]["unlocked"] is False
+```
+
+**Step 5: drawing and clicks.** `canopy_regions.py`: add `from pyodide.ffi import create_proxy` directly after
+`from js import document`, `from canopy_gridview import plot_display_color` directly after
+`import canopy_runstate as runstate`, `_el` to the `from canopy_helpers import` line and `STATE_ICON` to the
+`from canopy_rules import (` block; at the end of the file:
+
+```python
+_biome_proxies = {}  # R4-CA-4: (key, name) -> proxy; the buttons' proxies live as long as the page, tiles' are swapped
+
+
+def _biome_el(tag, element_id=None, class_name="", text=""):
+    element = document.createElement(tag)
+    if element_id:
+        element.id = element_id
+    element.className = class_name
+    element.innerText = text
+    return element
+
+
+def _build_biome_section(container, key, on_action):
+    """Builds one region's markup once (index.html only holds the empty #biome-regions)."""
+    spec = BIOMES[key]
+    container.appendChild(_biome_el("p", f"{key}-lock-banner", "section highland-lock-banner"))
+    section = _biome_el("div", f"{key}-section", f"section highland-section biome-section biome-section--{key}")
+    section.hidden = True
+    section.appendChild(_biome_el("h2", None, "highland-heading", f"{spec['icon']} {spec['title']}"))
+    section.appendChild(_biome_el("p", None, "biome-blurb", spec["blurb"]))
+    section.appendChild(_biome_el("p", f"{key}-cause", "biome-cause", spec["cause"]))
+    section.appendChild(_biome_el("div", f"{key}-plot-grid", "plot-grid highland-plot-grid"))
+    section.appendChild(_biome_el("p", f"{key}-stats", "income-display"))
+    section.appendChild(_biome_el("p", f"{key}-wildlife", "biome-wildlife"))
+    section.appendChild(_biome_el("p", f"{key}-selected-plot-state", "selected-plot-state", "No plot selected"))
+    row = _biome_el("div", None, "action-buttons")
+    for action, label in (("clear", "Clear"), ("replant", "Replant")):
+        button = _biome_el("button", f"{key}-{action}-button", "secondary", label)
+        button.disabled = True
+        proxy = create_proxy(lambda event, k=key, a=action: on_action(k, a))
+        _biome_proxies[(key, action)] = proxy
+        button.addEventListener("click", proxy)
+        row.appendChild(button)
+    section.appendChild(row)
+    container.appendChild(section)
+
+
+def _render_biome_grid(key, on_action):
+    biome = biome_state[key]
+    grid = document.getElementById(f"{key}-plot-grid")
+    grid.innerHTML = ""
+    grid.setAttribute("data-cols", str(BIOME_COLS))
+    grid.style.gridTemplateColumns = f"repeat({BIOME_COLS}, 1fr)"
+    for plot in biome["plots"]:
+        tile = _biome_el("button", f"{key}-plot-{plot.index}", f"plot-tile plot-{plot.state}", STATE_ICON[plot.state])
+        if plot.index == biome["selected"]:
+            tile.className += " plot-selected"
+        tile.title = STATE_LABEL[plot.state]
+        tile.style.backgroundColor = plot_display_color(plot)
+        tile.setAttribute("aria-label", biome_tooltip_text(key, plot))
+        tile.setAttribute("data-tooltip", biome_tooltip_text(key, plot))
+        old = _biome_proxies.pop((key, plot.index), None)
+        if old is not None:
+            old.destroy()
+        proxy = create_proxy(lambda event, k=key, i=plot.index: on_action(k, "select", i))
+        _biome_proxies[(key, plot.index)] = proxy
+        tile.addEventListener("click", proxy)
+        grid.appendChild(tile)
+
+
+def _biome_teased(key):
+    """A locked region's banner shows once the region before it is open (the wetland, then the boreal)."""
+    after = BIOMES[key]["after"]
+    if after == "wetland":
+        return runstate.wetland_unlocked
+    return biome_state[after]["unlocked"]
+
+
+def render_biome_sections(on_action):
+    """R4-CA-4: draws both regions into #biome-regions. `on_action(key, action, index=None)` is the renderer's
+    biome_action (it redraws, so it cannot live in this module)."""
+    container = _el("biome-regions")
+    if container is None:
+        return
+    for key in BIOME_KEYS:
+        if _el(f"{key}-section") is None:
+            _build_biome_section(container, key, on_action)
+        spec, biome = BIOMES[key], biome_state[key]
+        banner, section = document.getElementById(f"{key}-lock-banner"), document.getElementById(f"{key}-section")
+        sealed = runstate.current_challenge == CHALLENGE_NO_HIGHLAND
+        banner.hidden = biome["unlocked"] or sealed or not _biome_teased(key)
+        section.hidden = not biome["unlocked"]
+        if not biome["unlocked"]:
+            progress = min(standing_forest_value(), spec["unlock"])
+            banner.innerText = (f"{spec['icon']} {spec['title']} is locked: reach {spec['unlock']:.0f} standing forest "
+                                f"value in your main forest to open it ({progress:.0f}/{spec['unlock']:.0f}).")
+            continue
+        _render_biome_grid(key, on_action)
+        document.getElementById(f"{key}-stats").innerText = (
+            f"Harvested income: {fmt_num(biome['income'])} · Standing value: {fmt_num(biome_standing_value(key))}")
+        document.getElementById(f"{key}-wildlife").innerText = biome_wildlife_text(key)
+        state_el = document.getElementById(f"{key}-selected-plot-state")
+        clear_button = document.getElementById(f"{key}-clear-button")
+        replant_button = document.getElementById(f"{key}-replant-button")
+        if biome["selected"] is None:
+            state_el.innerText = "No plot selected"
+            clear_button.disabled = replant_button.disabled = True
+            continue
+        plot = biome["plots"][biome["selected"]]
+        state_el.innerText = f"Plot {biome_tooltip_text(key, plot)}"
+        clear_button.disabled = "clear" not in VALID_ACTIONS[plot.state]
+        replant_button.disabled = "replant" not in VALID_ACTIONS[plot.state]
+```
+
+`canopy_renderer.py`: add `biome_clear, biome_replant, biome_select, render_biome_sections` to the
+`from canopy_regions import (` block; directly above `def _make_wetland_select_handler(index):` add:
+
+```python
+def biome_action(key, action, index=None):
+    """R4-CA-4: one click in the Boreal or Tropical region (a tile, Clear or Replant), then one redraw."""
+    if action == "select":
+        biome_select(key, index)
+    elif action == "clear":
+        biome_clear(key)
+    elif action == "replant":
+        biome_replant(key)
+    render()
+```
+
+and in `render()` directly after the line `render_wetland_section()` add
+`render_biome_sections(biome_action)  # R4-CA-4`. `tests/conftest.py` `ELEMENT_IDS`: add `"biome-regions",` directly
+after `"wetland-mangrove-button",`. Tests, step 5 (appended):
+
+```python
+def test_the_regions_draw_into_their_container(game_env):
+    m = game_env.module
+    els = game_env.elements
+    m.render()
+    assert els["boreal-section"].hidden is True and els["boreal-lock-banner"].hidden is True
+    m.wetland_unlocked = True
+    m.render()
+    assert els["boreal-lock-banner"].hidden is False and "10000" in els["boreal-lock-banner"].innerText
+    assert els["tropical-lock-banner"].hidden is True
+    _open(game_env, "boreal")
+    assert els["boreal-section"].hidden is False and els["boreal-lock-banner"].hidden is True
+    assert els["tropical-lock-banner"].hidden is False
+    assert els["boreal-cause"].innerText == m.BIOMES["boreal"]["cause"]
+    assert els["boreal-wildlife"].innerText.startswith("Wildlife seen: none yet.")
+    assert len(els["boreal-plot-grid"].children) == 12
+    assert "growing back" in els["boreal-plot-1"].getAttribute("aria-label")
+
+
+def test_tiles_and_buttons_clear_and_replant(game_env):
+    m = game_env.module
+    els = game_env.elements
+    _open(game_env, "boreal")
+    m.biome_state["boreal"]["plots"][0].value = 40.0
+    els["boreal-plot-0"].dispatch("click", None)
+    assert m.biome_state["boreal"]["selected"] == 0
+    assert els["boreal-clear-button"].disabled is False and els["boreal-replant-button"].disabled is True
+    els["boreal-clear-button"].dispatch("click", None)
+    assert m.biome_state["boreal"]["plots"][0].state == m.BARE
+    assert els["boreal-stats"].innerText.startswith("Harvested income: 40")
+    els["boreal-replant-button"].dispatch("click", None)
+    assert m.biome_state["boreal"]["plots"][0].state == m.REPLANTING
+    assert els["boreal-section"].hidden is False
+```
+
+**Step 6: the page.** `index.html`: directly above `<div id="feedback-prompt" class="section">` add
+`<div id="biome-regions" class="biome-regions"></div>` and one blank line. `style-3-features.css`, at the end:
+`.biome-cause, .biome-wildlife { font-size: 0.9rem; line-height: 1.4; }` (with a one-line R4-CA-4 comment above).
+NEW file `tests/test_boreal_tropical_browser.py`:
+
+```python
+"""LA-13 / R4-CA-4: the Boreal Forest opens on the real page and its tiles and Clear button work."""
+import pytest
+from browser_helpers import open_game  # the `base` fixture comes from conftest.py
+
+pytest.importorskip("playwright.sync_api")
+from playwright.sync_api import sync_playwright  # noqa: E402
+
+
+def test_the_boreal_forest_opens_and_a_plot_can_be_cleared(base):
+    with sync_playwright() as p:
+        browser, page = open_game(p, base)
+        page.wait_for_function("document.querySelector('#clear-button').textContent !== 'Loading...'")
+        page.evaluate("window.pyodide.runPython('runstate.plots[0].value = 10000.0')")
+        page.wait_for_selector("#boreal-section:not([hidden])")
+        assert "wildfire" in page.inner_text("#boreal-cause")
+        page.wait_for_function("document.querySelector('#boreal-plot-0').getAttribute('aria-label').indexOf('value 0.0') < 0")
+        page.click("#boreal-plot-0")
+        page.wait_for_selector("#boreal-plot-0.plot-selected")
+        page.click("#boreal-clear-button")
+        page.wait_for_selector("#boreal-plot-0.plot-bare")
+        assert page.inner_text("#boreal-stats").startswith("Harvested income: ")
+        assert page.page_errors == []
+        browser.close()
+```

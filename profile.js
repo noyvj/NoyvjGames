@@ -166,6 +166,8 @@
       fav.textContent = "not chosen yet";
     }
     $("pf-time").textContent = timeText(data.total_seconds, data.games_played || (data.games || []).length);
+    $("pf-copy-stats").hidden = !isOwner;
+    $("pf-tools-status").textContent = "";
 
     renderTitles(data);
 
@@ -281,6 +283,28 @@
     else fallback();
   }
 
+  // Y-20: one plain line about the whole account, e.g. "12 games, 87 achievements, joined March 2026".
+  function statsLine(data) {
+    const games = (data && data.games) || [];
+    const played = typeof data.games_played === "number" ? data.games_played : games.length;
+    const total = typeof data.total_achievements === "number" ? data.total_achievements
+      : games.reduce((sum, g) => sum + (Number(g.achievements) || 0), 0);
+    const parts = [played + " game" + (played === 1 ? "" : "s"), total + " achievement" + (total === 1 ? "" : "s")];
+    const since = memberSince(data.member_since);
+    if (since !== "not known") parts.push("joined " + since);
+    return parts.join(", ");
+  }
+
+  function copyStats() {
+    if (!shown) return;
+    const line = statsLine(shown);
+    const status = $("pf-tools-status");
+    const done = () => { status.textContent = "Copied: " + line; };
+    const fallback = () => { status.textContent = "Copy this line: " + line; };
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(line).then(done, fallback);
+    else fallback();
+  }
+
   // GN-7: raise the profile from the saves already on the account. Runs by itself once per device for a
   // signed-in owner (so games played before profiles existed show up) and on the button.
   async function backfill(manual) {
@@ -362,5 +386,7 @@
   $("pf-backfill").addEventListener("click", () => backfill(true));
   $("pf-favourite").addEventListener("change", (event) => putProfile({ favourite_game: event.target.value || null }));
   $("pf-copy").addEventListener("click", copyLink);
+  $("pf-copy-stats").addEventListener("click", copyStats);
+  $("pf-print").addEventListener("click", () => window.print());
   start();
 })();

@@ -12,6 +12,7 @@ import game
 import pledge
 import shop
 from .bot import call, play_day
+from .pagefiles import app_files, app_text
 
 GAME_DIR = Path(__file__).resolve().parent.parent
 BANNED = re.compile(r"\b(" + "|".join(re.escape(w) for w in pledge.BANNED_WORDS) + r")\b", re.IGNORECASE)
@@ -59,7 +60,7 @@ def test_the_words_the_pledge_rules_out_appear_nowhere_but_the_pledge_itself():
     found = []
     for path in ENGINE:
         found += [(path.name, s) for s in _py_strings(path) if BANNED.search(s)]
-    for name in ("app.js", "settings.js"):
+    for name in (*app_files(), "settings.js"):
         found += [(name, s) for s in _js_strings((GAME_DIR / name).read_text(encoding="utf-8")) if BANNED.search(s)]
     found += [("index.html", s) for s in _html_text((GAME_DIR / "index.html").read_text(encoding="utf-8")) if BANNED.search(s)]
     for name in ("changelog.json", "achievements.json"):
@@ -101,7 +102,7 @@ def test_coins_only_ever_change_through_play():
 
 
 def test_no_page_script_can_reach_a_payment_or_the_network_beyond_its_own_files():
-    app = (GAME_DIR / "app.js").read_text(encoding="utf-8")
+    app = app_text()
     assert "https://" not in app and "http://" not in app and "XMLHttpRequest" not in app and "sendBeacon" not in app
     fetched = set(re.findall(r'fetch\(\s*([^,)]+)', app))
     assert fetched <= {'"changelog.json"', 'ENGINE_MODULES[i]', '"game.py"'}, fetched
@@ -115,13 +116,13 @@ def test_no_game_code_reads_the_real_clock():
         text = path.read_text(encoding="utf-8")
         assert not re.search(r"\b(import|from)\s+(time|datetime|calendar|random|sched|threading)\b", text), path.name
         assert not re.search(r"\b(time|datetime)\.(time|now|today|sleep|monotonic)\b", text), path.name
-    for name in ("app.js", "settings.js"):
+    for name in (*app_files(), "settings.js"):
         text = (GAME_DIR / name).read_text(encoding="utf-8")
         assert not re.search(r"\bDate\b|performance\.now|setInterval|requestAnimationFrame|Intl\.DateTimeFormat", text), name
 
 
 def test_the_only_timeouts_are_tiny_display_effects_that_never_touch_the_game():
-    app = (GAME_DIR / "app.js").read_text(encoding="utf-8")
+    app = app_text()
     matches = re.findall(r"setTimeout\(function \(\) \{(.*?)\}, (\d+)\);", app, flags=re.S)
     assert len(matches) == app.count("setTimeout(") and matches
     for body, delay in matches:
@@ -188,7 +189,7 @@ def test_the_view_has_no_lockout_or_countdown_field_either():
 
 # ---- 5. nothing nags -------------------------------------------------------------------------------------------
 def test_there_are_no_leave_prompts_notifications_or_other_nags():
-    app = (GAME_DIR / "app.js").read_text(encoding="utf-8")
+    app = app_text()
     html = (GAME_DIR / "index.html").read_text(encoding="utf-8")
     for needle in ("beforeunload", "onbeforeunload", "Notification", "requestPermission", "serviceWorker.ready", "alert(", "confirm(", "prompt("):
         assert needle not in app, needle
@@ -196,7 +197,7 @@ def test_there_are_no_leave_prompts_notifications_or_other_nags():
 
 
 def test_the_only_questions_the_game_ever_asks_are_selling_a_high_tier_good_and_erasing_everything():
-    app = (GAME_DIR / "app.js").read_text(encoding="utf-8")
+    app = app_text()
     ids = set(re.findall(r'askThen\("([^"]+)"', app))
     assert ids == {"pocket-bazaar-sell-high", "pocket-bazaar-reset"}
     assert 'allowSkip: id !== "pocket-bazaar-reset"' in app

@@ -59,33 +59,33 @@ def test_sequence_levels_have_no_rows_list():
 
 
 def test_page_js_only_uses_ids_the_pages_have():
-    js = (GAME / "app.js").read_text()
+    js = (GAME / "app.js").read_text(encoding="utf-8")
     for page in ("index.html", "pc.html"):
-        html = (GAME / page).read_text()
+        html = (GAME / page).read_text(encoding="utf-8")
         for ident in ("lg-fit-btn", "chip-drawer", "chip-drawer-handle", "chip-drawer-content", "mobile-chapter-cards", "board-holder", "board-scroll"):
             assert f'id="{ident}"' in html, (page, ident)
     for ident in re.findall(r'\$\("([a-z-]+)"\)', js):
-        assert f'id="{ident}"' in (GAME / "index.html").read_text() or ident in ("announce",), ident
+        assert f'id="{ident}"' in (GAME / "index.html").read_text(encoding="utf-8") or ident in ("announce",), ident
 
 
 def test_removed_dead_code_stays_removed():
-    js = (GAME / "app.js").read_text() + (GAME / "pc.js").read_text() + (GAME / "chip-drawer.js").read_text()
+    js = (GAME / "app.js").read_text(encoding="utf-8") + (GAME / "pc.js").read_text(encoding="utf-8") + (GAME / "chip-drawer.js").read_text(encoding="utf-8")
     for dead in ("lg-place-chip", "chip-drawer:place", "NoyvjResultSheet", "data-lg-landscape", "lg-snap-btn", "lg-selected", "LG_CONTROLS"):
         assert dead not in js, dead
     assert not (GAME / "result-sheet.js").exists()
-    assert 'result-sheet' not in (GAME / "index.html").read_text()
+    assert 'result-sheet' not in (GAME / "index.html").read_text(encoding="utf-8")
 
 
 def test_hover_card_reads_only_attributes_the_board_writes():
-    pcjs = (GAME / "pc.js").read_text()
-    render = (GAME / "render.py").read_text()
+    pcjs = (GAME / "pc.js").read_text(encoding="utf-8")
+    render = (GAME / "render.py").read_text(encoding="utf-8")
     for attr in ("data-value", "data-src", "data-rows"):
         assert attr in pcjs and attr in render
 
 
 def test_dialog_guard_ignores_hidden_frames():
     # on pc.html every window frame is a hidden role=dialog; a shortcut guard must only count the open ones
-    js = (GAME / "app.js").read_text()
+    js = (GAME / "app.js").read_text(encoding="utf-8")
     assert "[role='dialog']:not([hidden])" in js
 
 

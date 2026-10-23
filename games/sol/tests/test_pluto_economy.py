@@ -17,7 +17,7 @@ def test_pluto_resource_label_names_tholins_in_html():
     # The label text is static markup (never touched by game.py, matching
     # Earth's original design), so it can only be checked against the real
     # file rather than through the fake-DOM harness used elsewhere.
-    html = INDEX_HTML.read_text()
+    html = INDEX_HTML.read_text(encoding="utf-8")
     assert 'id="pluto-resource-label"' in html
     assert "Tholins — Pluto" in html
 

@@ -40,7 +40,7 @@ def test_banner_copy_matches_exact_text_in_html():
     # its container's `hidden` attribute is toggled by update_win_display()),
     # so it can only be checked against the real file, matching the pattern
     # used for other static labels (e.g. test_mars_economy.py).
-    html = INDEX_HTML.read_text()
+    html = INDEX_HTML.read_text(encoding="utf-8")
     assert 'id="win-banner-heading"' in html
     assert "100% COMPLETE" in html
     assert 'id="win-banner-subtext"' in html

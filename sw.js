@@ -2,7 +2,7 @@
 // the precache list; ordinary content deploys don't need it, because
 // same-origin requests are network-first (see the fetch handler below) and
 // so always pick up fresh files whenever the player is online.
-const SW_VERSION = 80;
+const SW_VERSION = 82;
 const CACHE_NAME = "site-cache-v" + SW_VERSION;
 // How long a same-origin network request may take before we give up and
 // serve the cached copy instead (a slow/flaky connection shouldn't hang).
@@ -122,6 +122,9 @@ const PRECACHE_URLS = [
   // AU-1: sound made in code (no audio files); games load it, the hub Settings page only writes its keys.
   "shared/sfx.js",
   "shared/sfx.css",
+  // H-24: the "next up" achievement chip (games show the closest unearned achievement and its progress).
+  "shared/next-achievement.js",
+  "shared/next-achievement.css",
   "games/sol/index.html",
   "games/sol/style.css",
   "games/sol/game.py",
@@ -728,6 +731,10 @@ const PRECACHE_URLS = [
   "games/pocket-bazaar/index.html",
   "games/pocket-bazaar/style.css",
   "games/pocket-bazaar/game.py",
+  "games/pocket-bazaar/app-1-core.js",
+  "games/pocket-bazaar/app-2-stall.js",
+  "games/pocket-bazaar/app-3-board.js",
+  "games/pocket-bazaar/app-4-actions.js",
   "games/pocket-bazaar/app.js",
   "games/pocket-bazaar/settings.js",
   "games/pocket-bazaar/changelog.json",
@@ -799,6 +806,10 @@ const PRECACHE_URLS = [
   "games/robot-script/index.html",
   "games/robot-script/style.css",
   "games/robot-script/game.py",
+  "games/robot-script/app-1-core.js",
+  "games/robot-script/app-2-room.js",
+  "games/robot-script/app-3-editor.js",
+  "games/robot-script/app-4-panels.js",
   "games/robot-script/app.js",
   "games/robot-script/settings.js",
   "games/robot-script/changelog.json",

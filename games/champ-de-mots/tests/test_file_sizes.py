@@ -29,7 +29,7 @@ def _editable_files():
 def test_no_editable_file_is_over_the_token_limit():
     too_big = []
     for path in _editable_files():
-        size = len(path.read_bytes())
+        size = len(path.read_bytes().replace(b"\r\n", b"\n"))
         if path.name == "index.html":
             if size > INDEX_HTML_MAX_BYTES:
                 too_big.append(f"index.html: {size} bytes (cap {INDEX_HTML_MAX_BYTES})")

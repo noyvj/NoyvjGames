@@ -12,10 +12,11 @@ import urllib.request
 from pathlib import Path
 
 import pytest
+from .pagefiles import app_text
 
 GAME_DIR = Path(__file__).resolve().parent.parent
 ROOT = GAME_DIR.parents[1]
-APP = (GAME_DIR / "app.js").read_text(encoding="utf-8")
+APP = app_text()
 HTML = (GAME_DIR / "index.html").read_text(encoding="utf-8")
 CSS = (GAME_DIR / "style.css").read_text(encoding="utf-8")
 

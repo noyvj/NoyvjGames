@@ -23,14 +23,14 @@ def _install():
 
 
 def test_every_achievement_and_the_opening_have_a_chapter():
-    chapters = {c["id"] for c in json.loads((HERE / "story.json").read_text())["chapters"]}
-    achievements = {a["id"] for a in json.loads((HERE / "achievements.json").read_text())["achievements"]}
+    chapters = {c["id"] for c in json.loads((HERE / "story.json").read_text(encoding="utf-8"))["chapters"]}
+    achievements = {a["id"] for a in json.loads((HERE / "achievements.json").read_text(encoding="utf-8"))["achievements"]}
     assert "begin" in chapters and achievements <= chapters
     assert chapters - achievements == {"begin"}
 
 
 def test_chapters_are_well_formed():
-    data = json.loads((HERE / "story.json").read_text())
+    data = json.loads((HERE / "story.json").read_text(encoding="utf-8"))
     assert data["title"].strip()
     ids = [c["id"] for c in data["chapters"]]
     assert ids[0] == "begin"
@@ -40,7 +40,7 @@ def test_chapters_are_well_formed():
 
 
 def test_page_loads_the_story_and_lists_it_as_a_story_element():
-    html = (HERE / "index.html").read_text()
+    html = (HERE / "index.html").read_text(encoding="utf-8")
     assert 'shared/story-chapters.js" data-game-id="loop" data-story="story.json"' in html
     assert "#story-chapters" in html.split('shared/story-toggle.js"')[1].split(">")[0]
     assert '#vignette' in html.split('shared/story-toggle.js"')[1].split(">")[0]

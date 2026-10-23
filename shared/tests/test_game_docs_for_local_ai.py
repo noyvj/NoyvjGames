@@ -3,14 +3,14 @@
 A built game (it has an index.html) must have: a CLAUDE.md of at most 30,000 bytes (the AI reads it on every task; the long
 history lives in NOTES.md), a "For the local AI" section in it, and tests/browser_helpers.py plus tests/test_example_browser.py
 (the working example it copies for browser tests). Games listed in NOT_READY are still being prepared: remove an entry when its
-readiness pass lands (Loop: waits for its file split, Zero-G Shift: a paused partial build).
+readiness pass lands (Zero-G Shift: a paused partial build).
 """
 
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 CLAUDE_LIMIT = 30_000
-NOT_READY = {"loop", "zero-g-shift"}
+NOT_READY = {"zero-g-shift"}
 
 
 def built_games():

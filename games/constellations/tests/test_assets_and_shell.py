@@ -4,10 +4,11 @@ the HTML lacks. Catch both here, and keep the About page, sources and changelog 
 import json
 import re
 from pathlib import Path
+from .pagefiles import app_files, app_text
 
 GAME_DIR = Path(__file__).resolve().parent.parent
 HTML = (GAME_DIR / "index.html").read_text(encoding="utf-8")
-APP = (GAME_DIR / "app.js").read_text(encoding="utf-8")
+APP = app_text()   # every app-*.js part plus app.js, in load order
 CSS = (GAME_DIR / "style.css").read_text(encoding="utf-8")
 LOCAL = {p.stem for p in GAME_DIR.glob("*.py") if p.stem != "game"}      # the entry point is run last
 
@@ -89,7 +90,7 @@ def test_every_file_the_page_links_exists():
 
 def test_this_folder_edits_nothing_outside_itself():
     """The game is deliberately not registered with the hub yet: no script reaches outside its folder except to INCLUDE shared files."""
-    for name in ("app.js", "settings.js"):
+    for name in app_files() + ["settings.js"]:
         text = (GAME_DIR / name).read_text(encoding="utf-8")
         assert "../" not in text.replace("../../shared/", ""), name
 

@@ -1,0 +1,78 @@
+/*
+ * Shared "next up" achievement chip styles (planning/TODO.md H-24, shared/next-achievement.js). Every colour is a token on
+ * :root so a game can override one value; the light palette follows html[data-theme="light"] and, when no theme attribute
+ * is set, the OS preference. Nothing is colour-only: the progress is a number in words ("3 of 10") beside the bar.
+ * The chip wraps at 360 px and, when it is a button, is at least 44 px tall. No animation.
+ */
+:root {
+  --nnu-bg: rgba(20, 24, 42, 0.78);
+  --nnu-fg: #e8e9f0;
+  --nnu-muted: #b4bad0;
+  --nnu-border: rgba(140, 160, 255, 0.45);
+  --nnu-accent: #ffd866;
+  --nnu-focus: #ffd866;
+}
+html[data-theme="light"] {
+  --nnu-bg: rgba(255, 255, 255, 0.94);
+  --nnu-fg: #1b2033;
+  --nnu-muted: #4a5275;
+  --nnu-border: rgba(60, 85, 160, 0.55);
+  --nnu-accent: #7a4f00;
+  --nnu-focus: #8a5a00;
+}
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme]) {
+    --nnu-bg: rgba(255, 255, 255, 0.94);
+    --nnu-fg: #1b2033;
+    --nnu-muted: #4a5275;
+    --nnu-border: rgba(60, 85, 160, 0.55);
+    --nnu-accent: #7a4f00;
+    --nnu-focus: #8a5a00;
+  }
+}
+
+[hidden] { display: none !important; }
+
+.noyvj-nextup {
+  box-sizing: border-box;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.25rem 0.5rem;
+  max-width: 100%;
+  margin: 0.4rem 0;
+  padding: 0.4rem 0.65rem;
+  border: 1px solid var(--nnu-border);
+  border-left: 4px solid var(--nnu-accent);
+  border-radius: 10px;
+  background: var(--nnu-bg);
+  color: var(--nnu-fg);
+  font: 0.85rem/1.35 system-ui, sans-serif;
+  text-align: left;
+}
+button.noyvj-nextup {
+  width: 100%;
+  min-height: 44px;
+  cursor: pointer;
+}
+button.noyvj-nextup:focus-visible {
+  outline: 3px solid var(--nnu-focus);
+  outline-offset: 2px;
+}
+.noyvj-nextup-title { color: var(--nnu-muted); }
+.noyvj-nextup-name { font-weight: 700; overflow-wrap: anywhere; }
+.noyvj-nextup-count { font-variant-numeric: tabular-nums; }
+.noyvj-nextup-bar {
+  flex: 1 1 6rem;
+  min-width: 4rem;
+  max-width: 12rem;
+  height: 0.6rem;
+  accent-color: var(--nnu-accent);
+}
+.noyvj-nextup-desc {
+  flex: 1 0 100%;
+  color: var(--nnu-muted);
+  font-size: 0.8rem;
+  overflow-wrap: anywhere;
+}
+.noyvj-nextup[data-state="done"] { border-left-style: double; }

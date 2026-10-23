@@ -5,12 +5,13 @@ target, every engine action the page sends exists, and the new scripts are loade
 import json
 import re
 from pathlib import Path
+from .pagefiles import app_files, app_text
 
 GAME_DIR = Path(__file__).resolve().parent.parent
 READ = lambda name: (GAME_DIR / name).read_text(encoding="utf-8")  # noqa: E731
 HTML = READ("index.html")
 PC_HTML = READ("pc.html")
-APP = READ("app.js")
+APP = app_text()
 GAME_PY = READ("game.py")
 NEW_SCRIPTS = ("haptics.js", "swipe.js", "hint-sheet.js", "zoom.js")
 # ids the scripts build themselves before they use them
@@ -24,7 +25,7 @@ def ids_in(html):
 
 def test_every_id_a_script_looks_up_exists_in_the_page():
     have = ids_in(HTML) | CREATED
-    for name in NEW_SCRIPTS + ("pc.js", "app.js"):
+    for name in NEW_SCRIPTS + ("pc.js",) + tuple(app_files()):
         text = READ(name)
         for found in re.findall(r'(?:getElementById|\$)\("([^"]+)"\)', text):
             assert found in have, "%s looks up #%s but nothing defines it" % (name, found)
@@ -50,7 +51,7 @@ def test_pc_config_windows_and_icons_point_at_real_elements():
 
 
 def test_custom_events_are_sent_and_heard_on_document():
-    sources = {name: READ(name) for name in NEW_SCRIPTS + ("pc.js", "app.js")}
+    sources = {name: READ(name) for name in NEW_SCRIPTS + ("pc.js",) + tuple(app_files())}
     events = set()
     for text in sources.values():
         events |= set(re.findall(r'new CustomEvent\("(robotScript\w+)"', text))
@@ -105,5 +106,5 @@ def test_a_hidden_dialog_never_blocks_the_keyboard_shortcuts():
 
 def test_resume_keeps_the_breakpoint_it_stopped_at_and_the_robot_where_it_is():
     start = APP[APP.index("function startPlay("):APP.index("function onRun()")]
-    assert "if (i === undefined) play.bpAt = -1;" in start
-    assert "applyFrame(play.frames[play.i], true);" in start
+    assert "if (i === undefined) A.play.bpAt = -1;" in start
+    assert "applyFrame(A.play.frames[A.play.i], true);" in start

@@ -15,12 +15,6 @@ Run one slightly overcommitted person's day (and, in story mode, the days of the
 ## Milestones
 | # | Milestone | Content | Status |
 |---|-----------|---------|--------|
-| 3 | Tracker hidden at first run? | **Pending the user's answer** (they did not understand the question). Plain version: "when someone opens the game for the first time, do they see the optional check-in feature straight away, or is it tucked away in Settings until they switch it on?" **Recommendation: hidden by default** ("Just play"). Everything below assumes hidden. | Not started |
-| 4 | Tone | **Cozy and "Unpacking"-esque, not deadpan-absurd.** See "Tone" below. | Not started |
-| 5 | One character or a roster | **Multiple characters**, plus a **story mode in which several characters' stories interconnect.** See "Cast and story mode" below. | Not started |
-| 6 | Journal gate / framing | The answer reads as a framing instruction: **frame the game as one you add personal touches to, so a character feels like you, NOT as a journal or tracker.** (The question actually asked about a one-time "not medical advice" acknowledge gate; the answer did not address that. Recommendation for the gate: no modal gate; keep the persistent footer line. Flagged in the report as a small open point.) | Not started |
-| 7 | Extra journal tags | **None.** Keep only the plan's default tags (stress, exercise, caffeine, screen-late). | Not started |
-| 8 | Story mode | **Yes, built out:** the player chooses a preset that represents "them" and still plays other characters around it. | Not started |
 | 1 | Circadian sim core | Curve function, meters, day step, sleep debt; text-only harness playable in tests | Not started |
 | 2 | Schedule ring UI | 24-hour SVG ring, block placement (drag + keyboard), curve overlay, Run Day and debrief | Not started |
 | 3 | Rhythm + entrainment | Rhythm meter, phase shift, chronotypes, multiplier feedback and visible curve change | Not started |

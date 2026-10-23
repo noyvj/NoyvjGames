@@ -52,6 +52,7 @@
   .pf-title-current { border-width: 2px !important; }
   [hidden] { display: none !important; }
 </style>
+<link rel="stylesheet" href="shared/print-summary.css" media="print">
 <link rel="stylesheet" href="shared/a11y.css">
 <link rel="stylesheet" href="shared/lite-mode.css">
 </head>
@@ -101,11 +102,17 @@
       <p id="pf-owner-status" class="settings-status" role="status"></p>
     </section>
 
-    <section id="pf-card" class="hub-card pf-card" aria-labelledby="pf-name" hidden>
+    <section id="pf-card" class="hub-card pf-card print-summary" aria-labelledby="pf-name" hidden>
       <p id="pf-private-note" class="pf-state pf-private" hidden>This is a preview. Only you can see this page until you make the profile public in Profile settings.</p>
       <p id="pf-ownerbar" class="pf-ownerbar" hidden>
         <button type="button" id="pf-settings-toggle" class="pf-button" aria-expanded="false" aria-controls="pf-owner">Profile settings</button>
         <span id="pf-vis-badge" class="pf-vis-badge"></span>
+      </p>
+      <!-- Y-20 copy my site stats (owner only) and Y-28 print (anyone); print-summary.css hides the buttons on paper. -->
+      <p id="pf-tools" class="pf-ownerbar">
+        <button type="button" id="pf-copy-stats" class="pf-button" hidden>Copy my site stats</button>
+        <button type="button" id="pf-print" class="pf-button">Print</button>
+        <span id="pf-tools-status" class="settings-status" role="status"></span>
       </p>
       <h2 id="pf-name"></h2>
       <p id="pf-title" class="pf-title-line" hidden></p>

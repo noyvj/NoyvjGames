@@ -8,7 +8,8 @@ Actions (every request is {"action": ..., ...}; every reply is the whole view):
   open                         the current view (with the room's drawing)
   pick {room}                  go to a room (its chapter must be open)
   next                         go to the next room to play
-  insert {kind, ...}           put an instruction at the cursor: F L R G P S rep until if call (name)
+  insert {kind, n, cond}       put an instruction at the cursor. kind: F L R G P S | rep (count n, default 3) |
+                               until (cond, default blocked) | if (cond, default part) | callA | callB
   cursor {list, index}         move the cursor to a gap in a list ("main", "main/2/2")
   routine {name}               switch to routine main, A or B
   remove {at}                  delete the instruction at an address ("main/2")
@@ -18,11 +19,13 @@ Actions (every request is {"action": ..., ...}; every reply is the whole view):
   undo | clear                 undo the last edit | empty the list
   load_best                    put the room's best list in the editor
   hint                         climb one more rung of the hint ladder (nudge, hint, answer) for this room
-  load_answer                  put the reference list in the editor (after the answer rung)
+  load_answer                  put the reference list in the editor (after the answer rung; never on Hard)
+  difficulty {level}           easy | normal | hard, told by the page (AN-17; never saved, reset leaves it alone);
+                               it changes help only: Easy opens nudge and hint on the first press, Hard stops at rung 2
   sandbox                      go to the free sandbox (opens once The Long Shift is cleared)
   sbx_paint {x, y, tile}       paint one tile of the sandbox room
   sbx_preset {name}            replace the sandbox room with a preset (open, maze, workshop)
-  run                          run the list; the reply carries the whole trace
+  run                          run the list; the reply carries the whole trace (the view's `run` key)
   reset                        start over (everything)
 """
 

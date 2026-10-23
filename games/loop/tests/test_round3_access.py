@@ -170,7 +170,7 @@ def test_shortcuts_stay_quiet_while_typing_or_over_dialogs():
 
 def test_desktop_bar_lists_the_shortcuts():
     import json
-    hints = json.loads((HERE / "pc-config.json").read_text())["hints"]
+    hints = json.loads((HERE / "pc-config.json").read_text(encoding="utf-8"))["hints"]
     keys = [h[0] for h in hints]
     assert "Space" in keys and "1 2 3" in keys and "T" in keys
 

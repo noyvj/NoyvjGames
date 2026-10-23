@@ -443,6 +443,96 @@
        "n": "La53",
        "text": "**Lexis: your note on the branching voyage (R4-PX-7) says you reach every planet in the end, each opening with the same message in a different language. May planets 2 and 3 open in any order after the first (each marked Gentle, Medium or Hard), with the crew reacting differently to your order?** Recommended: yes. Say yes and the local AI can redesign the unlock order.",
        "answered": false
+      },
+      {
+       "n": "La54",
+       "text": "**Dead Reckoning: \"fix marks\" and \"waypoints\" (R4-DEPC-4, R4-DEMO-3). What should these be?** Recommended: a fix mark is a pencil cross you put on the chart as a note (at most 5 per chart, not scored, cleared on a new chart, not saved), and \"Add a waypoint\" sets the ruler point there. Say yes and Claude writes the steps.",
+       "answered": false
+      },
+      {
+       "n": "La55",
+       "text": "**Phone bottom sheets (Dead Reckoning R4-DEMO-6/8/9 and R4-DEPC-7, Aftermath R4-AFMO-1/3, Chronicle R4-CLMO-1/4, Heist R4-HCMO-1, Lighthouse R4-LHMO-7, Station Medic R4-SMMO-1/4, Drift R4-DRMO-1, Trade Empire R4-TEMO-1, Continuum R4-COMO-1). May a sheet change height (peek, half, full) by tapping a handle button or with keys, instead of dragging to snap points?** Recommended: yes, tap and keyboard first; dragging can come later as an extra. Drag gestures on boards and sheets failed most often in the local AI's audits.",
+       "answered": false
+      },
+      {
+       "n": "La56",
+       "text": "**Swipes that spend or commit (Herd R4-HEMO-1 swipe to buy, Drift R4-DRMO-7, Champ R4-CHMO-2 swipe to water). Should a swipe ever spend or commit something?** Recommended: no. Swipes only move between views; spending stays a tap, with undo.",
+       "answered": false
+      },
+      {
+       "n": "La57",
+       "text": "**Hull Repair: zoom to fit (R4-HRMO-3). Double-tap already takes back two cells of a line, so may \"fit the whole board\" be a \"Whole board\" button instead of a double-tap?** Recommended: yes.",
+       "answered": false
+      },
+      {
+       "n": "La58",
+       "text": "**Signal: distress-call map (R4-PU-4). Should archive and practice solves count toward the map, and should its eight sectors get names?** Recommended: yes, every solve counts (it is not a streak), and plain sector numbers, no names.",
+       "answered": false
+      },
+      {
+       "n": "La59",
+       "text": "**Heist Committee: job replays (R4-HCMO-10). May the game save a history of your last 10 jobs (target, crew, gear, plan and seed; a new save key) so they can be replayed?** Recommended: yes. A replay is view-only and never changes cash, reputation or achievements; a Replay button comes first and the swipe is optional.",
+       "answered": false
+      },
+      {
+       "n": "La60",
+       "text": "**Trade Empire: ship minds (R4-PE-5). How should ship minds differ from the existing Fleet Captains?** Recommended: fold the minds into the captains rather than adding a second system.",
+       "answered": false
+      },
+      {
+       "n": "La61",
+       "text": "**SOL: what does a transfer move (R4-SO-2, R4-PS-26)? Travel is free view-switching now, and the eight worlds use eight different resources.** Recommended: cargo, not the view. A depot turns one world's surplus into another world's resource at 70% value (capped at 200, the cap doubling per upgrade); transfer windows make shipments cheaper at the synodic window, and travel stays free.",
+       "answered": false
+      },
+      {
+       "n": "La62",
+       "text": "**SOL: Mastery web (R4-PS-12). How big, and does it sit alongside the prestige tree?** Recommended: about 30 small nodes in 5 branches, 1 point per achievement and per first visit to a world, no refunds, separate from prestige.",
+       "answered": false
+      },
+      {
+       "n": "La63",
+       "text": "**SOL: Other Stars (R4-PS-22). May a seeded star system reuse SOL's eight world templates with renamed worlds and re-tuned numbers?** Recommended: yes; a true world-data layer is too big a refactor.",
+       "answered": false
+      },
+      {
+       "n": "La64",
+       "text": "**SOL: tidy base (R4-PS-29). What does the base map look like?** Recommended: a 6x6 grid per world of building icons, a neatness bonus of at most +5% yield, no art beyond emoji.",
+       "answered": false
+      },
+      {
+       "n": "La65",
+       "text": "**Tide: Specimen Jars (R4-PI-3). How many jars, and what reveals each one?** Recommended: all 24 species, each revealed by reaching a threshold on one ocean measure, shown as a CSS jar shelf.",
+       "answered": false
+      },
+      {
+       "n": "La66",
+       "text": "**Thaw: drone fleet (R4-PT-1, needs art and a wiring puzzle) and changing how a region fails (R4-PT-2).** Recommended: defer both until a scope talk.",
+       "answered": false
+      },
+      {
+       "n": "La67",
+       "text": "**Continuum: Lantern keeper walking mode (R4-PO-1) and collectable robot caretakers (R4-PO-4). Both need 3D art direction.** Recommended: defer both.",
+       "answered": false
+      },
+      {
+       "n": "La68",
+       "text": "**Canopy: Boreal and Tropical forests (R4-CA-4). Should they be extra regions that unlock as the main forest grows (like Highland and Wetland), or a forest type you pick when starting a new forest?** Recommended: extra unlockable regions (at forest values 10,000 and 20,000), growing at 0.6x and 1.5x speed. These numbers are game choices; the loss causes are sourced. Say yes and the local AI can build it from the steps already written.",
+       "answered": false
+      },
+      {
+       "n": "La69",
+       "text": "**Canopy: should finding every species in the Boreal or Tropical region earn an achievement?** Recommended: not yet; it can be a later item.",
+       "answered": false
+      },
+      {
+       "n": "La70",
+       "text": "**Herd: Extension Officer mode (R4-PH-2). Should a good advisory season feed the main game (for example one legacy point for the first three-star season), and should the mode have achievements?** Recommended: not yet. The first version stays separate, so the main score, leaderboard and achievement counts are untouched; both can be later items.",
+       "answered": false
+      },
+      {
+       "n": "La71",
+       "text": "**Herd: Extension Officer farms. One fixed set of three farms, or a new set each season drawn from the run seed?** Recommended: one fixed set for now, so three stars is proven reachable without luck.",
+       "answered": false
       }
      ]
     }

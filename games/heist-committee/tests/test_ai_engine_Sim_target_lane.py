@@ -11,7 +11,7 @@ _DIR = Path(__file__).resolve().parents[3] / "games" / "heist-committee" / "cont
 def _load_raw():
     raw = {}
     for f in _DIR.glob("*.json"):
-        with open(f) as fh:
+        with open(f, encoding="utf-8") as fh:
             raw[f.stem] = json.load(fh)
     return raw
 

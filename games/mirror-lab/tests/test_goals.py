@@ -1,6 +1,7 @@
 """The three-goals strip: the next three goals not yet done, in any order, each a number the player can already see."""
 
 import json
+import os
 
 import benches
 import game
@@ -54,7 +55,7 @@ def test_every_goal_can_be_finished_and_none_is_lost_by_playing():
 
 
 def test_the_page_has_the_strip_and_the_tally_has_the_hints_stat():
-    html = (game.__file__.rsplit("/", 1)[0] + "/index.html")
+    html = os.path.join(os.path.dirname(game.__file__), "index.html")
     text = open(html, encoding="utf-8").read()
     for needle in ('id="goals"', 'id="goals-list"', 'id="stat-hints"', "Hints asked", "(any order)"):
         assert needle in text

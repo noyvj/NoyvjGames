@@ -35,14 +35,27 @@ def plan_parts(plan_text):
     if not pitch:
         paras = [p for p in plan_text.split("\n\n") if p.strip() and not p.lstrip().startswith(("#", "|", "-"))]
         pitch = " ".join(paras[0].split()) if paras else ""
-    rows = []
+    # Each markdown table with its header row and the heading above it. Only a milestone table counts: a table whose
+    # header names something else ("| # | Question | Decision |") or that sits under a SUPERSEDED heading is skipped,
+    # and a "revised" table wins over the rest (last-line and undersleep carry all three kinds).
+    tables, heading, current = [], "", None
     for line in plan_text.splitlines():
+        if line.lstrip().startswith("#"):
+            heading = line
+        if not line.lstrip().startswith("|"):
+            current = None
+            continue
         cells = [c.strip() for c in line.strip().strip("|").split("|")]
-        if line.lstrip().startswith("|") and len(cells) >= 2 and re.fullmatch(r"M?\d+", cells[0]):
-            num = cells[0].lstrip("M")
-            name = cells[1]
-            content = cells[2] if len(cells) > 2 else ""
-            rows.append((num, name, content))
+        if current is None:
+            current = {"heading": heading, "header": cells, "rows": []}
+            tables.append(current)
+        elif len(cells) >= 2 and re.fullmatch(r"M?\d+", cells[0]):
+            current["rows"].append((cells[0].lstrip("M"), cells[1], cells[2] if len(cells) > 2 else ""))
+    tables = [t for t in tables if t["rows"] and "superseded" not in t["heading"].lower()
+              and (len(t["header"]) < 2 or not re.search(r"question|decision", t["header"][1], re.I))]
+    tables.sort(key=lambda t: (not any("milestone" in c.lower() for c in t["header"][:2]),
+                               "revised" not in t["heading"].lower()))
+    rows = tables[0]["rows"] if tables else []
     if not rows:                                     # "Milestone 1: Name" style headings
         for m in re.finditer(r"(?im)^#+\s*(?:milestone|M)\s*(\d+)\s*[:.-]\s*(.+)$", plan_text):
             rows.append((m.group(1), m.group(2).strip(), ""))

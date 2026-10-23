@@ -204,7 +204,7 @@ def test_leaderboard_hook_is_named_and_pure():
 
 
 def test_challenges_module_never_reads_the_clock():
-    source = (GAME_DIR / "challenges.py").read_text()
+    source = (GAME_DIR / "challenges.py").read_text(encoding="utf-8")
     for forbidden in ("time.time", "datetime.now", "date.today", "import time", "import random", "utcnow"):
         assert forbidden not in source
 
@@ -605,14 +605,14 @@ def test_every_new_element_exists_on_both_pages_and_the_new_files_are_fetched():
         for element_id in ids:
             assert f'id="{element_id}"' in html, (page, element_id)
         assert 'fetch("challenges.py")' in html and 'fetch("../../shared/seed.py")' in html
-    config = json.loads((GAME_DIR / "pc-config.json").read_text())
+    config = json.loads((GAME_DIR / "pc-config.json").read_text(encoding="utf-8"))
     assert ["scarcity-panel", "scarcity-toggle-button", "Scarcity Run"] in config["windows"]
     assert any("scarcity-toggle-button" in group["ids"] for group in config["toolbar"]["menu"])
     assert "#scarcity-strip" in config["zones"]["stagebar"] and "#ghost-strip" in config["zones"]["stagebar"]
 
 
 def test_the_stats_card_and_game_have_no_real_world_tie_in():
-    source = (GAME_DIR / "challenges.py").read_text().lower()
+    source = (GAME_DIR / "challenges.py").read_text(encoding="utf-8").lower()
     assert "http" not in source and "fetch" not in source
 
 

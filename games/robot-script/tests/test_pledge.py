@@ -8,9 +8,10 @@ from pathlib import Path
 
 import game
 import rooms
+from .pagefiles import app_text
 
 GAME_DIR = Path(__file__).resolve().parent.parent
-APP = (GAME_DIR / "app.js").read_text(encoding="utf-8")
+APP = app_text()
 HTML = (GAME_DIR / "index.html").read_text(encoding="utf-8")
 BANNED = re.compile(r"\b(timer|countdown|stopwatch|energy|stamina|lives|hearts|streak|daily|premium|gems?|loot ?box|deck of cards|leaderboard|hurry|expires?|limited time|audio|sound effect)\b", re.IGNORECASE)
 

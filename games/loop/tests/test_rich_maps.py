@@ -300,7 +300,7 @@ def test_broken_hook_never_breaks_the_game(game_env):
 # --- static page wiring ---------------------------------------------------------
 
 def test_index_html_ships_the_toggles_notes_and_script():
-    page = (GAME_DIR / "index.html").read_text()
+    page = (GAME_DIR / "index.html").read_text(encoding="utf-8")
     for element_id in (
         "trade-visual-toggle-button", "trade-visual", "trade-visual-body", "trade-visual-unsupported",
         "supply-visual-toggle-button", "supply-visual", "supply-visual-body", "supply-visual-unsupported",
@@ -322,7 +322,7 @@ def test_stylesheet_has_breakpoint_reduced_motion_and_light_theme():
 
 
 def test_rich_maps_js_wraps_storage_in_try_catch():
-    js = (GAME_DIR / "rich-maps.js").read_text()
+    js = (GAME_DIR / "rich-maps.js").read_text(encoding="utf-8")
     assert "window.loopVisual" in js
     assert js.count("try {") >= 3 and js.count("catch (e)") >= 3
     assert "createSVGRect" in js

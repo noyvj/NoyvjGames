@@ -435,3 +435,36 @@ def test_the_titles_shelf_fits_a_phone(harness):
     h.page.wait_for_selector("#pf-card:not([hidden])")
     assert h.page.evaluate("document.documentElement.scrollWidth <= 360")
     assert len(titles_rows(h)) == 5
+
+
+def test_the_owner_copies_a_one_line_site_stats_summary(harness):
+    """Y-20: '2 games, 11 achievements, joined March 2026' (only on your own page)."""
+    h = harness(init_scripts=[TOKEN, "window.__copied = null; Object.defineProperty(navigator, 'clipboard', {configurable: true, "
+                                     "value: {writeText: (t) => { window.__copied = t; return Promise.resolve(); }}});"])
+    h.api_responses[("GET", "/users/me/profile")] = (200, OWNER)
+    h.goto("/profile.html?u=mara")
+    h.page.wait_for_selector("#pf-copy-stats:not([hidden])")
+    h.page.click("#pf-copy-stats")
+    h.page.wait_for_function("window.__copied !== null")
+    line = h.page.evaluate("window.__copied")
+    assert line.startswith("2 games, 11 achievements, joined ") and "2026" in line
+    assert text(h, "#pf-tools-status") == "Copied: " + line
+
+
+def test_a_visitor_can_print_but_gets_no_copy_stats_button(harness):
+    h = open_profile(harness)
+    h.api_responses[("GET", "/profiles/mara")] = (200, PUBLIC)
+    h.page.reload()
+    h.page.wait_for_selector("#pf-card:not([hidden])")
+    assert h.page.is_hidden("#pf-copy-stats") and h.page.is_visible("#pf-print")
+
+
+def test_printing_keeps_the_card_and_drops_the_buttons(harness):
+    """Y-28 (profile half): shared/print-summary.css, the card is the one printed part."""
+    h = open_profile(harness)
+    h.api_responses[("GET", "/profiles/mara")] = (200, PUBLIC)
+    h.page.reload()
+    h.page.wait_for_selector("#pf-card:not([hidden])")
+    h.page.emulate_media(media="print")
+    assert h.page.is_visible("#pf-name") and h.page.is_visible("#pf-games")
+    assert h.page.is_hidden("#pf-print") and h.page.is_hidden("#hub-header")

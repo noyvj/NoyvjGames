@@ -425,3 +425,870 @@ Built from `planning/TODO.md` "GI + I. Drift": I-9, I-25, I-3, I-28, I-27, I-29,
 - **Band-change confetti (GI-29).** `_celebrate_band_rise()` compares the wellbeing band before and after an Advance Round, Play 5 rounds or Autopilot run; a rise plays 14 CSS pieces over the gauges (`#band-confetti`, one `_pulse` of 2.6 s), shows "Wellbeing rose into the X band." and adds that line to the round announcement. Silent. Hidden by Reduce Motion, the OS setting, Animation speed Off and lite mode; a loaded save never celebrates.
 - **Light theme.** The shared light sheet only lightens ids ending in `-display`, so `#save-nudge`, `#band-change-note` and the older `#load-note` get their own light and high-contrast rules at the end of `style.css`.
 - **Skipped this batch:** GI-3, GI-6, GI-7, GI-10, GI-12, GI-23, GI-24, GI-26 (large new mechanics or design choices not covered by the item text), GI-4/GI-8/GI-9/GI-27/GI-28 (need level select, skill tree), GI-16 (a luck gamble), I-1, I-2, I-5, I-6, I-7, I-10, I-11 (larger builds left for another batch).
+
+
+## Design specs (LA-13)
+
+Written 2026-10-22 (LA-13 design pass, batch 2). Steps: `local-ai/incoming/drift-design.txt`. Standing rules hold for
+every item: nothing timed, nothing lost, no luck needed for 100%, no audio files, saves load unchanged, the framing
+stays institutional. `index.html` is at about 14,650 of its 15,000-token cap (`tests/test_file_sizes.py`): the three
+items together add under 900 bytes of markup, so copy the markup exactly as given and never add comments to it.
+Merge the chains in the order GI-4, GI-6, GI-10.
+
+Why the numbers below: simulated against the real `RegionState`. Any sensible plan reaches the Model Region band
+(about 98) by round 25 and every plan converges near 99 by round 30, so long-run wellbeing cannot tell regions or plans
+apart. What does differ is the opening: the round the region first reaches Thriving (70) and the first net-positive
+round. Both items that compare regions (the Atlas clear and the Rivals card) therefore judge the opening.
+
+### GI-4: Region Atlas (four starting regions, each opened by clearing the one before)
+- **Rule.** Before round 1 (and before anything is bought) the player may start as one of four Atlas regions instead of
+  the ordinary home region. A region is CLEARED when it reaches Thriving (wellbeing 70) by round 15
+  (`ATLAS_CLEAR_ROUND`); clearing the home region opens Coastal Port, clearing Coastal Port opens Mountain Valley, then
+  Border Junction, then Post-Industrial Town (the Crisis Start numbers with an old mill town's infrastructure). An Atlas
+  start replaces Crisis Start (choosing one turns the other off). Runs are otherwise identical: same costs, arrivals
+  curve, calendar and tiers. Atlas runs do not update the tier bests (their start differs).
+- **Numbers** (checked: thriving round for six fixed plans; "-" = never by round 20):
+
+| Region | Funds | Income/round | Starting capacity | Arrived | Pressure | Default Autopilot | No services | Hoard 300 |
+|---|---|---|---|---|---|---|---|---|
+| Home (unchanged) | 300 | 50 | none | 0 | 0 | 13 | - | 5 |
+| Coastal Port | 300 | 65 | 12 infrastructure | 0 | 2.0 | 9 | - | 5 |
+| Mountain Valley | 360 | 40 | 20 housing | 0 | 0 | 13 | - | 6 |
+| Border Junction | 250 | 50 | none | 30 | 3.0 | 7 | - | - |
+| Post-Industrial Town | 150 | 45 | 18 infrastructure | 60 | 2.0 | 7 | - | - |
+
+  Every region clears with the default Autopilot rules and with three other sensible plans (rounds 7 to 14); none
+  clears without integration services; hoarding funds clears the calm regions fastest but never the pressured ones.
+  So each region asks for a different opening, and nothing needs luck.
+- **Unlocks and progress** use the shared level select (W-1, already built): a NEW data file `atlas-levels.json` and
+  the shared script tag; progress lives in the level select's own per-browser store (`levels:drift`), so nothing new is
+  saved per browser by the game. Play on a card calls `window.NoyvjLevelStart(id)`, which a NEW small file `atlas.js`
+  forwards to the Python `on_atlas_start(id)`; Python calls `window.NoyvjLevels.complete(id, round)` when a region is
+  cleared (`better: "lower"`, so the best is the earliest Thriving round). The level select itself enforces the order
+  (`requires`); Python does not re-check it.
+- **Saves.** One new key, `atlas_region`, written only for an Atlas run; `load_state` accepts only a known id and
+  otherwise sets the home region. The region's income per round is derived from it (`base_income`, never saved).
+- **Engine code.** `drift_rules.py`, at the end:
+
+```python
+# GI-4: the Region Atlas. Four starting regions; each opens when the one before it is cleared (the ordinary home
+# region opens the first). Cleared = the region reached Thriving by ATLAS_CLEAR_ROUND. Checked against the real
+# engine: the default Budget Autopilot clears every region (rounds 7 to 13), a region without integration services
+# never does, and hoarding funds clears the calm regions fast but not the pressured ones.
+ATLAS_CLEAR_ROUND = 15
+ATLAS_REGIONS = [
+    {"id": "coastal_port", "name": "Coastal Port", "funds": 300.0, "income": 65.0,
+     "capacity": {"infrastructure": 12.0}, "arrivals": 0.0, "severity": 2.0,
+     "blurb": "A busy harbour: more trade income and docks already built, but more people arrive from the start."},
+    {"id": "mountain_valley", "name": "Mountain Valley", "funds": 360.0, "income": 40.0,
+     "capacity": {"housing": 20.0}, "arrivals": 0.0, "severity": 0.0,
+     "blurb": "A small, steady economy with savings and spare housing, but less income each round."},
+    {"id": "border_junction", "name": "Border Junction", "funds": 250.0, "income": 50.0,
+     "capacity": {}, "arrivals": 30.0, "severity": 3.0,
+     "blurb": "A crossing point: people are already arriving and pressure is high from round 1."},
+    {"id": "post_industrial", "name": "Post-Industrial Town", "funds": CRISIS_START_FUNDS, "income": 45.0,
+     "capacity": {"infrastructure": 18.0}, "arrivals": CRISIS_START_ARRIVALS, "severity": CRISIS_START_SEVERITY,
+     "blurb": "The Crisis Start numbers in an old mill town: little money and a backlog, but sturdy old infrastructure."},
+]
+ATLAS_BY_ID = {a["id"]: a for a in ATLAS_REGIONS}
+```
+
+  `RegionState.__init__` (`drift_model_region.py`): directly after `self.crisis_start_enabled = False` add
+
+```python
+        # GI-4: the Region Atlas start (None = the home region) and the income per round that start earns.
+        self.atlas_region = None
+        self.base_income = BASE_REGIONAL_INCOME_PER_ROUND
+```
+
+  `advance_round`: change `income = BASE_REGIONAL_INCOME_PER_ROUND * (1 - strain)` to
+  `income = self.base_income * (1 - strain)  # GI-4` (the one allowed change of an existing line).
+  `set_crisis_start`: directly after `self.crisis_start_enabled = bool(enabled)` add
+  `self.atlas_region = None  # GI-4: Crisis Start replaces an Atlas start` and
+  `self.base_income = BASE_REGIONAL_INCOME_PER_ROUND`. Directly after the method `set_crisis_start` add:
+
+```python
+    # GI-4: the Region Atlas, chosen before round 1 and before anything is bought.
+    def can_choose_atlas(self):
+        return self.round_number == 1 and not self.strain_log and not any(self.spend_by_type.values())
+
+    def apply_atlas(self, atlas_id):
+        """Start this region as an Atlas region (None = the home region); turns Crisis Start off. Returns False and
+        changes nothing when it is too late or the id is unknown."""
+        if not self.can_choose_atlas() or (atlas_id is not None and atlas_id not in ATLAS_BY_ID):
+            return False
+        profile = ATLAS_BY_ID.get(atlas_id)
+        self.crisis_start_enabled = False
+        self.atlas_region = atlas_id
+        self.base_income = profile["income"] if profile else BASE_REGIONAL_INCOME_PER_ROUND
+        self.funds = profile["funds"] if profile else STARTING_FUNDS
+        self.total_arrivals = profile["arrivals"] if profile else 0.0
+        self.background_severity = profile["severity"] if profile else 0.0
+        self.capacity = {t: (profile["capacity"].get(t, 0.0) if profile else 0.0) for t in CAPACITY_TYPES}
+        return True
+```
+
+  (add `ATLAS_BY_ID` to the `from drift_rules import (...)` block). `drift_savestate.py` `get_state()`: directly after
+  `"crisis_start_enabled": region.crisis_start_enabled,` add
+  `**({"atlas_region": region.atlas_region} if region.atlas_region else {}),  # GI-4`. `load_state`: directly after the
+  line `region.crisis_start_enabled = bool(data.get("crisis_start_enabled", region.crisis_start_enabled))` add
+
+```python
+    saved_atlas = data.get("atlas_region")  # GI-4: absent for the home region and in older saves
+    region.atlas_region = saved_atlas if saved_atlas in ATLAS_BY_ID else None
+    region.base_income = ATLAS_BY_ID[region.atlas_region]["income"] if region.atlas_region else BASE_REGIONAL_INCOME_PER_ROUND
+```
+
+  (import `ATLAS_BY_ID, BASE_REGIONAL_INCOME_PER_ROUND` from `drift_rules`).
+- **Engine tests, NEW file `tests/test_region_atlas.py`** (the `game_env` fixture; `m = game_env.module`):
+
+```python
+"""LA-13 / GI-4: the Region Atlas, four starting regions chosen before round 1."""
+
+
+def _play(region, rounds, m):
+    """The default Budget Autopilot plan: services to half of capacity, the rest on housing, 40 funds kept back."""
+    for _ in range(rounds):
+        for _ in range(25):
+            total = region.total_capacity()
+            share = region.capacity["services"] / total if total else 0.0
+            kind = "services" if share < 0.5 else "housing"
+            if region.funds - 40 < m.INVEST_COST[kind] or not region.invest(kind):
+                break
+        region.advance_round()
+
+
+def test_each_atlas_region_starts_with_its_own_numbers(game_env):
+    m = game_env.module
+    r = m.RegionState()
+    assert r.apply_atlas("border_junction") is True
+    assert (r.funds, r.total_arrivals, r.background_severity, r.base_income) == (250.0, 30.0, 3.0, 50.0)
+    assert r.apply_atlas("post_industrial") is True
+    assert r.funds == m.CRISIS_START_FUNDS and r.capacity["infrastructure"] == 18.0 and r.base_income == 45.0
+    assert r.apply_atlas(None) is True
+    assert (r.funds, r.total_capacity(), r.atlas_region, r.base_income) == (300.0, 0.0, None, 50.0)
+
+
+def test_an_atlas_start_is_only_before_round_one_and_anything_bought(game_env):
+    m = game_env.module
+    r = m.RegionState()
+    r.invest("housing")
+    assert r.apply_atlas("coastal_port") is False and r.atlas_region is None
+    later = m.RegionState()
+    later.advance_round()
+    assert later.apply_atlas("coastal_port") is False
+    assert m.RegionState().apply_atlas("atlantis") is False
+
+
+def test_atlas_and_crisis_start_replace_each_other(game_env):
+    m = game_env.module
+    r = m.RegionState()
+    r.set_crisis_start(True)
+    r.apply_atlas("border_junction")
+    assert r.crisis_start_enabled is False and r.atlas_region == "border_junction"
+    r.set_crisis_start(True)
+    assert r.atlas_region is None and r.base_income == 50.0
+
+
+def test_the_income_follows_the_region(game_env):
+    m = game_env.module
+    coastal, home = m.RegionState(), m.RegionState()
+    coastal.apply_atlas("coastal_port")
+    coastal.background_severity = home.background_severity = 0.0
+    coastal.capacity["infrastructure"] = 0.0
+    coastal.advance_round()
+    home.advance_round()
+    assert coastal.funds - home.funds == 15.0
+
+
+def test_every_region_clears_with_the_default_autopilot_plan(game_env):
+    m = game_env.module
+    for atlas_id in [None] + [a["id"] for a in m.ATLAS_REGIONS]:
+        r = m.RegionState()
+        r.apply_atlas(atlas_id)
+        _play(r, m.ATLAS_CLEAR_ROUND, m)
+        assert r.thriving_round is not None and r.thriving_round <= m.ATLAS_CLEAR_ROUND, atlas_id
+
+
+def test_the_atlas_region_is_saved_only_when_chosen(game_env):
+    m = game_env.module
+    assert "atlas_region" not in m.get_state()
+    game_env.region.apply_atlas("mountain_valley")
+    state = m.get_state()
+    assert state["atlas_region"] == "mountain_valley"
+    m.load_state(state)
+    assert game_env.region.atlas_region == "mountain_valley" and game_env.region.base_income == 40.0
+    m.load_state({**state, "atlas_region": "nowhere"})
+    assert game_env.region.atlas_region is None and game_env.region.base_income == 50.0
+```
+
+- **Choosing and clearing** (second engine step). `drift_tiers.py` (add `ATLAS_BY_ID, ATLAS_CLEAR_ROUND` to its rules
+  import), at the end:
+
+```python
+# ---- GI-4: the Region Atlas (the shared level select shows the cards and keeps which ones are cleared) ----
+def choose_atlas(level_id):
+    """Play on an Atlas card ("home" = the ordinary start). Returns (ok, message); nothing changes when it fails."""
+    atlas_id = None if level_id == "home" else level_id
+    if atlas_id is not None and atlas_id not in ATLAS_BY_ID:
+        return False, "That region is not in the Atlas."
+    if not region.apply_atlas(atlas_id):
+        return False, (
+            "An Atlas region is chosen when a new region starts: before round 1 and before anything is bought. "
+            "Use New Game on the opening screen to start one."
+        )
+    runstate.round_start_snapshot = _take_round_start_snapshot()
+    return True, atlas_status_text()
+
+
+def atlas_status_text():
+    profile = ATLAS_BY_ID.get(region.atlas_region)
+    if profile is None:
+        return f"Home region. Reach Thriving by round {ATLAS_CLEAR_ROUND} to open the first Region Atlas start."
+    return (
+        f"{profile['name']}: {profile['blurb']} Started with {profile['funds']:.0f} funds; "
+        f"{profile['income']:.0f} income a round. Reach Thriving by round {ATLAS_CLEAR_ROUND} to clear it."
+    )
+
+
+def render_atlas_status():
+    status = document.getElementById("atlas-status")
+    status.innerText = atlas_status_text()
+```
+
+  `_maybe_update_tier_best`: change `if runstate.assisted_run or region.round_number <= 1:` to
+  `if runstate.assisted_run or region.round_number <= 1 or region.atlas_region:  # GI-4: an Atlas start has its own numbers`.
+  `drift_collection.py` (add `ATLAS_BY_ID, ATLAS_CLEAR_ROUND` to its rules import), directly above
+  `def _collect_after_round`:
+
+```python
+# ---- GI-4: clearing a Region Atlas start ----
+def atlas_cleared_now(completed_round):
+    """The Atlas level id this round clears ("home" for the ordinary start), or None. A region is cleared on the round
+    it first reaches Thriving, if that is by ATLAS_CLEAR_ROUND; assisted runs never clear one (like the tier bests)."""
+    if runstate.assisted_run or region.thriving_round != completed_round or completed_round > ATLAS_CLEAR_ROUND:
+        return None
+    return region.atlas_region or "home"
+
+
+def _note_atlas_clear(completed_round):
+    level_id = atlas_cleared_now(completed_round)
+    if level_id is None:
+        return None
+    try:
+        from js import window  # noqa: PLC0415 -- Pyodide-only, deliberately lazy
+        levels = getattr(window, "NoyvjLevels", None)
+        if levels is not None:
+            levels.complete(level_id, completed_round)
+    except Exception:  # noqa: BLE001 -- the level select is an extra; the run goes on without it
+        pass
+    name = ATLAS_BY_ID[level_id]["name"] if level_id in ATLAS_BY_ID else "Home region"
+    return f"Region Atlas: {name} cleared (Thriving by round {completed_round})."
+```
+
+  and in `_collect_after_round`, directly before its `return found`:
+  `cleared = _note_atlas_clear(completed_round)  # GI-4` / `if cleared:` / `found.append(cleared)` /
+  `runstate.collection_note = (runstate.collection_note + " " if runstate.collection_note else "") + cleared`.
+  `drift_handlers.py` (import `choose_atlas` from `drift_tiers`), at the end:
+
+```python
+def on_atlas_start(level_id):
+    """GI-4: Play on a Region Atlas card (atlas.js forwards window.NoyvjLevelStart here)."""
+    ok, message = choose_atlas(str(level_id))
+    runstate.round_tools_message = message
+    render()
+    announce(message)
+    return ok
+```
+
+  `game.py`: add `on_atlas_start` to its `from drift_handlers import (...)` block so the page can reach it through
+  `pyodide.globals.get("on_atlas_start")`. `drift_renderer.py` `render()`: directly after the crisis-button lines
+  (after `crisis_button.classList.remove("active")`) add `render_atlas_status()  # GI-4` (import it from `drift_tiers`).
+  `tests/conftest.py` `ELEMENT_IDS`: add `"atlas-status", "atlas-open-button",`. Tests (append to
+  `tests/test_region_atlas.py`):
+
+```python
+def test_choose_atlas_from_the_level_select(game_env):
+    m = game_env.module
+    ok, message = m.choose_atlas("coastal_port")
+    assert ok is True and message.startswith("Coastal Port:")
+    m.on_atlas_start("home")
+    assert game_env.region.atlas_region is None
+    assert game_env.elements["atlas-status"].innerText.startswith("Home region.")
+    game_env.advance_round()
+    ok, message = m.choose_atlas("mountain_valley")
+    assert ok is False and "New Game" in message and game_env.region.atlas_region is None
+
+
+def test_a_clear_is_the_first_thriving_round_by_round_fifteen(game_env):
+    m = game_env.module
+    game_env.region.thriving_round = 9
+    assert m.atlas_cleared_now(9) == "home" and m.atlas_cleared_now(10) is None
+    game_env.region.atlas_region = "border_junction"
+    assert m.atlas_cleared_now(9) == "border_junction"
+    game_env.region.thriving_round = 16
+    assert m.atlas_cleared_now(16) is None
+```
+
+- **Page** (last step). NEW file `atlas-levels.json`:
+
+```json
+{
+  "title": "Region Atlas",
+  "levels": [
+    { "id": "home", "title": "Home region", "kind": "level", "better": "lower", "unit": "rounds to Thriving",
+      "blurb": "The ordinary start: 300 funds, 50 income a round. Reach Thriving by round 15 to open the Atlas." },
+    { "id": "coastal_port", "title": "Coastal Port", "kind": "level", "better": "lower", "unit": "rounds to Thriving",
+      "blurb": "300 funds, 65 income a round, 12 infrastructure built; more people arrive from the start.", "requires": ["home"] },
+    { "id": "mountain_valley", "title": "Mountain Valley", "kind": "level", "better": "lower", "unit": "rounds to Thriving",
+      "blurb": "360 funds and 20 spare housing, but only 40 income a round.", "requires": ["coastal_port"] },
+    { "id": "border_junction", "title": "Border Junction", "kind": "level", "better": "lower", "unit": "rounds to Thriving",
+      "blurb": "250 funds; 30 people already arrived and high pressure from round 1.", "requires": ["mountain_valley"] },
+    { "id": "post_industrial", "title": "Post-Industrial Town", "kind": "mode", "better": "lower", "unit": "rounds to Thriving",
+      "blurb": "The Crisis Start numbers (150 funds, 60 people arrived) with 18 old infrastructure and 45 income a round.",
+      "requires": ["border_junction"] }
+  ]
+}
+```
+
+  NEW file `atlas.js`:
+
+```js
+// GI-4: Play on a Region Atlas card (shared level select) starts that region: Python on_atlas_start in drift_handlers.py.
+window.NoyvjLevelStart = function (levelId) {
+  var start = window.pyodide && window.pyodide.globals.get("on_atlas_start");
+  if (start) { start(String(levelId)); }
+  if (window.NoyvjLevels && window.NoyvjLevels.close) { window.NoyvjLevels.close(); }
+};
+```
+
+  `index.html`: directly after the `#crisis-start-toggle-button` line add
+  `<button id="atlas-open-button" class="secondary" type="button">🗺️ Region Atlas</button>`; directly after the
+  `#realloc-note` element add `<p id="atlas-status" class="panel-note"></p>` (if `#realloc-note` is not a single line,
+  put it after the crisis button line instead); directly after the `last-played.js` script tag add the two tags
+  `<script src="atlas.js"></script>` and the level-select tag from this paragraph's end. The level-select tag is the
+  same one Canopy uses with Drift's values: src `../../` + `shared/level-select.js`, `data-game-id="drift"`,
+  `data-levels="atlas-levels.json"`, `data-open="#atlas-open-button"`. Browser test NEW `tests/test_region_atlas_browser.py`
+  (copy `tests/test_example_browser.py`): `page.evaluate("window.NoyvjLevelStart('coastal_port')")`; wait until
+  `#atlas-status` text starts with "Coastal Port:"; `#funds-display` text contains "300"; click `#atlas-open-button`;
+  `#level-select` is visible and its text contains "Mountain Valley"; `page.page_errors == []`.
+
+### GI-6: Rival Regions (three computer-run regions on the same pressure curve)
+- **Rule.** Three rival regions face exactly your pressure curve (same arrivals formula, and your Accelerated Severity
+  and Crisis Calendar settings; calendar events unbraced, like the passive region) and each follows one fixed plan:
+  - **Frugal region:** keeps 300 funds in reserve; integration services up to 40% of capacity, then housing.
+  - **Builder region:** spends everything each round; services up to 50% of capacity, then infrastructure.
+  - **Reactive region:** buys only in a round when some arrived people are not covered; services up to 30%, then housing.
+  They start from the ordinary home start (never your Atlas start, never Crisis Start), with no cross-region learning.
+  Like the passive region they are a pure function of the round count and the two settings, so NOTHING is saved: each
+  simulation is cached in memory and only extended as rounds pass (200 rounds take under 10 ms).
+- **On the trend graph:** a new layer chip "Rival regions" (off by default) draws the three wellbeing lines, each with
+  its own dash pattern (shape, not colour alone) and in the crosshair tooltip ("Frugal 74").
+- **The round-60 card.** After round 60 has been played, `#rivals-card` shows the standings at round 60, ranked by the
+  round each region first reached Thriving (sooner is better; not by round 60 = last), then by the first net-positive
+  round; on a tie your region is listed first. Wellbeing at round 60 is NOT used: every plan sits near 99 by then
+  (simulated), so it would not separate anyone. At default settings the rivals reach Thriving at rounds 6 (Frugal),
+  13 (Builder) and 6 (Reactive) and turn net positive at 9, 10 and 7; the default Autopilot plan reaches Thriving at 13.
+  So the card is a real target ("beat the Reactive region's round 6") that skill, not luck, decides.
+- **Saves.** None. Old saves show the rivals at once.
+- **Engine code**, `drift_messages.py`, directly after `_simulate_control_region` (add `INVEST_COST` to its rules
+  import if missing):
+
+```python
+# GI-6: three computer-run rival regions on the same pressure curve as yours (your Accelerated Severity and Crisis
+# Calendar settings, events unbraced), each with one fixed plan. Like the passive region they are a pure function of
+# the round count, so nothing is saved; each simulation is cached and only extended as rounds pass.
+RIVALS = [
+    {"id": "frugal", "name": "Frugal region", "reserve": 300.0, "services_share": 0.4, "surplus": "housing",
+     "reactive": False, "plan": "keeps 300 funds in reserve; services to 40% of capacity, then housing"},
+    {"id": "builder", "name": "Builder region", "reserve": 0.0, "services_share": 0.5, "surplus": "infrastructure",
+     "reactive": False, "plan": "spends everything each round; services to 50% of capacity, then infrastructure"},
+    {"id": "reactive", "name": "Reactive region", "reserve": 0.0, "services_share": 0.3, "surplus": "housing",
+     "reactive": True, "plan": "builds only when some arrivals are not covered; services to 30%, then housing"},
+]
+RIVAL_BY_ID = {r["id"]: r for r in RIVALS}
+RIVALS_CARD_ROUND = 60
+_rival_cache = {}
+
+
+def _rival_buys(rival_region, rival):
+    """One round of a rival's fixed plan (at most 25 purchases, like the Autopilot)."""
+    for _ in range(25):
+        if rival["reactive"] and rival_region.round_number > 1 and rival_region.strain_fraction() <= 0.0:
+            return
+        total = rival_region.total_capacity()
+        share = rival_region.capacity["services"] / total if total > 0 else 0.0
+        kind = "services" if share < rival["services_share"] else rival["surplus"]
+        if rival_region.funds - rival["reserve"] < INVEST_COST[kind] or not rival_region.invest(kind):
+            return
+
+
+def simulate_rival(rival_id, round_number, accelerated_severity_enabled, calendar_enabled=False):
+    """The rival region as it stands at the start of `round_number` (cached; a cached run is only ever extended)."""
+    rival = RIVAL_BY_ID[rival_id]
+    key = (rival_id, bool(accelerated_severity_enabled), bool(calendar_enabled))
+    sim = _rival_cache.get(key)
+    if sim is None or sim.round_number > round_number:
+        sim = RegionState()
+        sim.learning_active = False
+        sim.accelerated_severity_enabled = bool(accelerated_severity_enabled)
+        sim.calendar_enabled = bool(calendar_enabled)
+        _rival_cache[key] = sim
+    while sim.round_number < round_number:
+        _rival_buys(sim, rival)
+        sim.advance_round()
+    return sim
+
+
+def rivals_standings(region_state):
+    """GI-6: the round-60 standings once round 60 has been played, else None. Ranked by the round each region first
+    reached Thriving (by round 60; sooner is better, never is last), then by the first net-positive round."""
+    if region_state.round_number <= RIVALS_CARD_ROUND:
+        return None
+
+    def by_60(value):
+        return value if value is not None and value <= RIVALS_CARD_ROUND else None
+
+    rows = [{"name": "Your region", "you": True, "thriving": by_60(region_state.thriving_round),
+             "net_positive": by_60(region_state.net_positive_round)}]
+    for rival in RIVALS:
+        sim = simulate_rival(rival["id"], RIVALS_CARD_ROUND + 1, region_state.accelerated_severity_enabled,
+                             region_state.calendar_enabled)
+        rows.append({"name": rival["name"], "you": False, "thriving": by_60(sim.thriving_round),
+                     "net_positive": by_60(sim.net_positive_round)})
+    never = RIVALS_CARD_ROUND + 1
+    rows.sort(key=lambda row: (row["thriving"] or never, row["net_positive"] or never, not row["you"]))
+    return rows
+
+
+def rivals_card_lines(rows):
+    lines = []
+    for place, row in enumerate(rows, 1):
+        thriving = f"Thriving from round {row['thriving']}" if row["thriving"] else "not Thriving by round 60"
+        net = f"net positive from round {row['net_positive']}" if row["net_positive"] else "not net positive by round 60"
+        lines.append(f"{place}. {row['name']}: {thriving}, {net}.")
+    return lines
+```
+
+- **Engine tests, NEW file `tests/test_rival_regions.py`:**
+
+```python
+"""LA-13 / GI-6: three rival regions with fixed plans, a pure function of the round count."""
+
+
+def test_the_rivals_open_as_simulated(game_env):
+    m = game_env.module
+    got = {r["id"]: m.simulate_rival(r["id"], 61, False, False) for r in m.RIVALS}
+    assert {k: v.thriving_round for k, v in got.items()} == {"frugal": 6, "builder": 13, "reactive": 6}
+    assert {k: v.net_positive_round for k, v in got.items()} == {"frugal": 9, "builder": 10, "reactive": 7}
+
+
+def test_a_cached_rival_matches_a_fresh_one(game_env):
+    m = game_env.module
+    m.simulate_rival("builder", 20, False, False)
+    extended = list(m.simulate_rival("builder", 40, False, False).wellbeing_log)
+    m._rival_cache.clear()
+    assert list(m.simulate_rival("builder", 40, False, False).wellbeing_log) == extended
+    assert len(m.simulate_rival("builder", 10, False, False).wellbeing_log) == 9
+
+
+def test_the_card_waits_for_round_sixty_and_ranks_by_the_opening(game_env):
+    m = game_env.module
+    region = game_env.region
+    assert m.rivals_standings(region) is None
+    region.round_number = 61
+    region.thriving_round, region.net_positive_round = 6, 5
+    rows = m.rivals_standings(region)
+    assert [row["name"] for row in rows][:2] == ["Your region", "Reactive region"]
+    assert rows[-1]["name"] == "Builder region"
+    region.thriving_round = None
+    assert m.rivals_standings(region)[-1]["name"] == "Your region"
+    assert m.rivals_card_lines(m.rivals_standings(region))[-1] == "4. Your region: not Thriving by round 60, net positive from round 5."
+```
+
+- **Graph layer** (second step). `drift_trendgraph.py`: `TREND_LAYER_ORDER` gains `"rivals"` at the end (after
+  `"events"`), `TREND_LAYER_LABEL` gains `"rivals": "Rival regions"`, `TREND_LAYER_DEFAULT` gains `"rivals": False`.
+  `trend_legend_text`: before its final return add `if layers.get("rivals"):` /
+  `parts.append("Rival regions: long dashes Frugal, dash-dot Builder, short dashes Reactive.")`. `trend_graph_svg`:
+  add the keyword `rival_histories=None` at the end of its parameters (a list of `(rival id, name, wellbeing list)`);
+  directly after the control-line block (before the `# I-12: the ROI layer` comment) add:
+
+```python
+    # GI-6: the rival regions' wellbeing, one dash pattern each (CSS), aligned to the left like the passive region.
+    rival_series = []
+    if layers.get("rivals") and rival_histories:
+        for rival_id, name, history in rival_histories:
+            series = list(history[start:start + n]) if len(history) >= n_all else list(history[:n])
+            if len(series) >= 2:
+                ys = _normalize_series(series, TREND_GRAPH_HEIGHT, 0, 100)
+                drawn.append(
+                    f'<polyline points="{" ".join(f"{x:.1f},{y:.1f}" for x, y in zip(xs, ys))}" '
+                    f'class="trend-line trend-line--rival trend-line--rival-{rival_id}" />'
+                )
+                rival_series.append((name.split()[0], series))
+```
+
+  and in the hit-column loop, directly after the `passive region` line, add
+  `for short, series in rival_series:` / `if i < len(series):` / `parts.append(f"{short} {series[i]:.0f}")`.
+  `drift_newsview.py` `render_trend_graph`: build `rivals = [(r["id"], r["name"], simulate_rival(r["id"], region.round_number, region.accelerated_severity_enabled, region.calendar_enabled).wellbeing_log) for r in RIVALS] if trend_layers.get("rivals") and region.round_number > 2 else None`
+  before the `trend_svg = ...` call and pass `rival_histories=rivals` to it (import `RIVALS, simulate_rival` from
+  `drift_messages`). CSS (`style-2-console.css`, directly after the `.trend-line--control` rule):
+  `.trend-line--rival { stroke: var(--text-muted, #9aa3b5); stroke-width: 1.2; fill: none; opacity: 0.85; }`,
+  `.trend-line--rival-frugal { stroke-dasharray: 8 3; }`, `.trend-line--rival-builder { stroke-dasharray: 6 2 1 2; }`,
+  `.trend-line--rival-reactive { stroke-dasharray: 2 2; }`. Markup: directly after the `#trend-layer-events-button`
+  line add `<button id="trend-layer-rivals-button" class="secondary chip" type="button" aria-pressed="false">Rival regions</button>`
+  (game.py already wires every `TREND_LAYER_ORDER` key); `tests/conftest.py` `ELEMENT_IDS`: `"trend-layer-rivals-button",`
+  after `"trend-layer-events-button",`. Test (append to `tests/test_rival_regions.py`):
+
+```python
+def test_the_rivals_layer_draws_three_dashed_lines(game_env):
+    m = game_env.module
+    for _ in range(6):
+        game_env.advance_round()
+    svg = m.trend_graph_svg(game_env.region.strain_log, game_env.region.wellbeing_log, layers={"rivals": True},
+                            rival_histories=[(r["id"], r["name"], m.simulate_rival(r["id"], game_env.region.round_number, False).wellbeing_log) for r in m.RIVALS])
+    assert svg.count("trend-line--rival ") == 3 and "Frugal " in svg
+    assert "trend-line--rival" not in m.trend_graph_svg(game_env.region.strain_log, game_env.region.wellbeing_log)
+    game_env.elements["trend-layer-rivals-button"].dispatch("click", None)
+    assert "trend-line--rival-reactive" in game_env.elements["trend-graph"].innerHTML
+```
+
+- **The card** (third step). Markup directly after the `#trend-legend` element:
+  `<div id="rivals-card" class="rivals-card" role="status" hidden></div>`. `drift_newsview.py`, after
+  `render_trend_graph`:
+
+```python
+def render_rivals_card():
+    """GI-6: the round-60 standings against the three rival regions (hidden before round 60 has been played)."""
+    card = document.getElementById("rivals-card")
+    rows = rivals_standings(region)
+    card.hidden = rows is None
+    if rows is None:
+        return
+    card.innerHTML = "<strong>Round 60 against the rival regions</strong><ol>" + "".join(
+        f"<li>{line.split('. ', 1)[1]}</li>" for line in rivals_card_lines(rows)
+    ) + "</ol><p>Ranked by the round each region first reached Thriving, then the first net-positive round.</p>"
+```
+
+  and call `render_rivals_card()` as the last line of `render_trend_graph()` (import `rivals_standings,
+  rivals_card_lines`). CSS (`style-2-console.css`, end): `.rivals-card { margin-top: 0.5rem; }`,
+  `.rivals-card ol { margin: 0.3rem 0 0.3rem 1.2rem; }`. `tests/conftest.py` `ELEMENT_IDS`: `"rivals-card",`. Tests:
+  fake DOM `test_the_card_shows_after_round_sixty` (call `game_env.advance_round()` 59 times, asserting after each that
+  `elements["rivals-card"].hidden is True`; one more call plays round 60: then `hidden is False` and its `innerHTML`
+  contains "Reactive region");
+  browser NEW `tests/test_rival_regions_browser.py`: advance 3 rounds with `#advance-round-button` (wait for
+  `#round-display` to change each time), click `#trend-layer-rivals-button`, wait until
+  `#trend-graph .trend-line--rival` count is 3, `#trend-legend` text contains "Rival regions", `page.page_errors == []`.
+
+### GI-10: What-if Timeline Scrubber (change one decision, replay to now)
+- **Rule.** From round 3 on, a "What-if" panel lets the player pick any played round, pick one of that round's
+  decisions and change it in one way (one fewer of it; or, for a capacity purchase, one of another capacity type
+  instead), then replay the whole run from round 1 to now with that single change. The what-if wellbeing curve is drawn
+  on the trend graph as its own dashed line and a sentence compares the endings ("What-if: wellbeing now 84 instead of
+  92; Thriving from round 9 instead of 13; 2 later decisions could not be afforded and were skipped"). Nothing in the
+  real run changes; the what-if is in memory only and clears as soon as another round is played.
+- **How the replay works (deterministic, no luck).** Every decision is logged as `[round, verb, argument, count]`
+  (verbs `invest`, `policy`, `realloc`, `brace`, `council`; consecutive identical decisions in one round merge into one
+  entry with a count, so an Autopilot round is one or two entries). The replay starts a fresh region with the run's own
+  start (Crisis Start or Atlas region, Accelerated Severity, Crisis Calendar, cross-region learning), makes each
+  round's logged decisions and advances, exactly as the run did. Autopilot, templates and Play-5 buy through
+  `invest`, so they are logged for free; Reset Round drops the round's entries; the Rewind Token restores the log with
+  the rest of the region (it is part of `region.__dict__`).
+- **Honesty check.** Before offering a what-if the game replays the UNCHANGED log and compares it with the real run
+  (every wellbeing value and the funds). If they differ, the panel says why it cannot replay this run and offers
+  nothing. Runs that cannot match: a region started before this feature (no log), a run that used the neighbouring
+  district (its spillover and support are not replayed), a run that switched Accelerated Severity or the Crisis
+  Calendar after round 1, and a log that reached its 2,000-entry cap. Simulated: an Autopilot run with policies,
+  reallocations, braces and council picks replays exactly.
+- **Saves.** One new key, `decision_log`, written only when not empty; `load_state` keeps it only if every entry is
+  `[positive int, known verb, str or None, positive int]`, at most 2,000 entries, rounds never decreasing; anything else
+  loads as an empty log (that run simply cannot be replayed). About 1-3 KB for a typical 60-round run.
+- **Engine code, logging** (`drift_rules.py`, end):
+
+```python
+# GI-10: the decision log behind the What-if replay.
+DECISION_VERBS = ("invest", "policy", "realloc", "brace", "council")
+DECISION_LOG_MAX = 2000
+SCRUBBER_MIN_ROUND = 3
+```
+
+  `RegionState.__init__`: directly after the GI-4 `self.base_income` line (or after `self.crisis_start_enabled = False`)
+  add `self.decision_log = []  # GI-10: [round, verb, argument, count] per decision, for the What-if replay`.
+  Directly above `def _record_spend` add:
+
+```python
+    def _log_decision(self, verb, arg=None):
+        """GI-10: one decision for the What-if replay; repeats of the same decision in a round add to its count."""
+        log = self.decision_log
+        if log and log[-1][0] == self.round_number and log[-1][1] == verb and log[-1][2] == arg:
+            log[-1][3] += 1
+        elif len(log) < DECISION_LOG_MAX:
+            log.append([self.round_number, verb, arg, 1])
+```
+
+  Then, directly before the final `return True` of each method: `invest` adds `self._log_decision("invest", capacity_type)`,
+  `invest_policy` adds `self._log_decision("policy", policy)`, `reallocate` adds
+  `self._log_decision("realloc", f"{from_type}>{to_type}")`, `brace` adds `self._log_decision("brace")`.
+  `drift_calendar.py` `council_pick`: directly before its `return True` add
+  `region._log_decision("council", program["id"])  # GI-10`. `drift_undo.py` `reset_round`: directly before its
+  `return True` add `region.decision_log = [e for e in region.decision_log if e[0] != region.round_number]  # GI-10`.
+  Tests, NEW file `tests/test_whatif_replay.py`:
+
+```python
+"""LA-13 / GI-10: the decision log and the What-if replay."""
+
+
+def _buy(game_env, kind, times=1):
+    for _ in range(times):
+        game_env.invest(kind)
+
+
+def test_decisions_are_logged_and_merged_per_round(game_env):
+    region = game_env.region
+    _buy(game_env, "services", 3)
+    _buy(game_env, "housing")
+    game_env.advance_round()
+    _buy(game_env, "services")
+    assert region.decision_log == [[1, "invest", "services", 3], [1, "invest", "housing", 1], [2, "invest", "services", 1]]
+
+
+def test_reset_round_drops_only_this_rounds_decisions(game_env):
+    m = game_env.module
+    _buy(game_env, "services")
+    game_env.advance_round()
+    _buy(game_env, "housing", 2)
+    assert m.reset_round() is True
+    assert game_env.region.decision_log == [[1, "invest", "services", 1]]
+```
+
+- **Saves** (second step). `get_state()`: directly after the `policy_level` line add
+  `**({"decision_log": copy.deepcopy(region.decision_log)} if region.decision_log else {}),  # GI-10`. `load_state`:
+  directly after the GI-4 atlas lines (or after the `crisis_start_enabled` line) add
+  `region.decision_log = clean_decision_log(data.get("decision_log"))  # GI-10`, with this function in
+  `drift_savestate.py` directly above `def load_state` (import `DECISION_LOG_MAX, DECISION_VERBS` from rules):
+
+```python
+def clean_decision_log(raw):
+    """GI-10: the saved decision log, or [] when anything in it is not well formed (that run just cannot be replayed)."""
+    if not isinstance(raw, list) or len(raw) > DECISION_LOG_MAX:
+        return []
+    out, last_round = [], 1
+    for entry in raw:
+        if not (isinstance(entry, list) and len(entry) == 4):
+            return []
+        rnd, verb, arg, count = entry
+        if not (_small_int(rnd, 1) and rnd >= last_round and verb in DECISION_VERBS and _small_int(count, 1)):
+            return []
+        if arg is not None and not isinstance(arg, str):
+            return []
+        out.append([rnd, verb, arg, count])
+        last_round = rnd
+    return out
+```
+
+  Tests (append): `test_the_log_is_saved_only_when_there_is_one` (`"decision_log" not in m.get_state()`; buy one
+  services; round trip through `m.load_state(m.get_state())` keeps `[[1, "invest", "services", 1]]`) and
+  `test_a_bad_log_loads_as_empty` (`m.clean_decision_log([[1, "bribe", None, 1]]) == []`,
+  `m.clean_decision_log([[2, "invest", "housing", 1], [1, "invest", "housing", 1]]) == []`,
+  `m.clean_decision_log("x") == []`).
+- **Replay** (third step), `drift_undo.py` at the end:
+
+```python
+# ---- GI-10: the What-if replay ----
+def _apply_decision(sim, verb, arg):
+    if verb == "invest":
+        return sim.invest(arg)
+    if verb == "policy":
+        return sim.invest_policy(arg)
+    if verb == "realloc":
+        from_type, _, to_type = (arg or "").partition(">")
+        return sim.reallocate(from_type, to_type)
+    if verb == "brace":
+        return sim.brace()
+    if verb == "council":
+        sim.council_picks.append(arg)
+        sim._log_decision("council", arg)
+        return True
+    return False
+
+
+def replay_region(source, log=None):
+    """A fresh region with source's start that makes the logged decisions round by round up to source's current
+    round (including the decisions already made this round). Returns (region, skipped): skipped counts decisions the
+    replay could not afford."""
+    sim = RegionState()
+    sim.learning_active = source.learning_active
+    sim.accelerated_severity_enabled = source.accelerated_severity_enabled
+    sim.calendar_enabled = source.calendar_enabled
+    if source.crisis_start_enabled:
+        sim.set_crisis_start(True)
+    if getattr(source, "atlas_region", None):
+        sim.apply_atlas(source.atlas_region)
+    entries = source.decision_log if log is None else log
+    skipped = pos = 0
+    while True:
+        while pos < len(entries) and entries[pos][0] <= sim.round_number:
+            _round, verb, arg, count = entries[pos]
+            for _ in range(count):
+                if not _apply_decision(sim, verb, arg):
+                    skipped += 1
+            pos += 1
+        if sim.round_number >= source.round_number:
+            return sim, skipped
+        sim.advance_round()
+
+
+def replay_matches(source):
+    """True when replaying the unchanged log gives exactly the real run (so a what-if is honest)."""
+    if not source.decision_log and source.round_number > 1:
+        return False
+    sim, skipped = replay_region(source)
+    same = len(sim.wellbeing_log) == len(source.wellbeing_log) and all(
+        abs(a - b) < 1e-6 for a, b in zip(sim.wellbeing_log, source.wellbeing_log)
+    )
+    return skipped == 0 and same and abs(sim.funds - source.funds) < 1e-6
+
+
+def whatif_log(log, index, swap):
+    """A copy of the log with ONE decision changed: entry `index` loses one of its count; `swap` (a capacity type, for
+    an invest entry) adds one of that instead, or None for "one fewer"."""
+    out = [list(e) for e in log]
+    entry = out[index]
+    entry[3] -= 1
+    new = [[entry[0], "invest", swap, 1]] if swap else []
+    out[index:index + 1] = ([entry] if entry[3] > 0 else []) + new
+    return out
+```
+
+  Tests (append to `tests/test_whatif_replay.py`):
+
+```python
+def _autopilot_run(game_env, rounds):
+    game_env.region.calendar_enabled = True
+    game_env.region.invest_policy("language_access")
+    for _ in range(rounds):
+        if game_env.region.brace_target() is not None:
+            game_env.region.brace()
+        for _ in range(25):
+            total = game_env.region.total_capacity()
+            kind = "services" if total == 0 or game_env.region.capacity["services"] / total < 0.5 else "housing"
+            if game_env.region.funds < 60 or not game_env.region.invest(kind):
+                break
+        game_env.advance_round()
+    game_env.region.reallocate("housing", "infrastructure")
+
+
+def test_an_unchanged_replay_matches_the_real_run(game_env):
+    m = game_env.module
+    _autopilot_run(game_env, 30)
+    assert m.replay_matches(game_env.region) is True
+
+
+def test_a_run_without_a_log_or_with_the_neighbour_cannot_be_replayed(game_env):
+    m = game_env.module
+    game_env.advance_round()
+    game_env.region.decision_log = []
+    assert m.replay_matches(game_env.region) is False
+
+
+def test_one_changed_decision_changes_the_ending(game_env):
+    m = game_env.module
+    _autopilot_run(game_env, 20)
+    region = game_env.region
+    index = next(i for i, e in enumerate(region.decision_log) if e[1] == "invest" and e[2] == "services")
+    changed = m.whatif_log(region.decision_log, index, "housing")
+    assert sum(e[3] for e in changed) == sum(e[3] for e in region.decision_log)
+    policy = next(i for i, e in enumerate(region.decision_log) if e[1] == "policy")
+    sim, _skipped = m.replay_region(region, m.whatif_log(region.decision_log, policy, None))
+    assert sim.round_number == region.round_number
+    assert sim.wellbeing_log != region.wellbeing_log and sim.policy_level["language_access"] == 0
+```
+
+  The neighbour
+  case is pinned in the browser-free fake-DOM test of step 4 (open the neighbour, support it, then
+  `replay_matches` is False).
+- **Panel engine** (fourth step), `drift_undo.py` after the replay code; `drift_runstate.py` gains
+  `whatif = None` and `scrubber_open = False` (both in `LIVE_NAMES`):
+
+```python
+def scrubber_note():
+    """Why the What-if replay is not offered, or "" when it is."""
+    if region.round_number < SCRUBBER_MIN_ROUND:
+        return f"Play to round {SCRUBBER_MIN_ROUND} to try a what-if."
+    if not replay_matches(region):
+        return ("This run cannot be replayed exactly: it began before decisions were recorded, used the neighbouring "
+                "district, or switched Accelerated Severity or the Crisis Calendar after round 1.")
+    return ""
+
+
+def scrubber_choices(round_number):
+    """[(log index, text)] for the decisions made in one round."""
+    labels = {"invest": lambda a: CAPACITY_LABEL.get(a, a), "policy": lambda a: f"policy: {a}",
+              "realloc": lambda a: "move capacity " + (a or "").replace(">", " to "), "brace": lambda a: "brace",
+              "council": lambda a: f"council: {a}"}
+    return [(i, f"{labels[e[1]](e[2])} x{e[3]}") for i, e in enumerate(region.decision_log) if e[0] == round_number]
+
+
+def scrubber_swaps(index):
+    """[(value, text)] for the ways one decision may be changed ("" = one fewer)."""
+    entry = region.decision_log[index]
+    swaps = [("", "One fewer")]
+    if entry[1] == "invest":
+        swaps += [(t, f"One {CAPACITY_LABEL[t]} instead") for t in CAPACITY_TYPES if t != entry[2]]
+    return swaps
+
+
+def run_whatif(index, swap):
+    """Replays the run with one change. Returns the sentence; keeps the curve in runstate.whatif for the graph."""
+    note = scrubber_note()
+    if note:
+        runstate.whatif = None
+        return note
+    sim, skipped = replay_region(region, whatif_log(region.decision_log, index, swap or None))
+    def thr(value):
+        return f"round {value}" if value is not None else "not yet"
+    text = (f"What-if: wellbeing now {sim.wellbeing_score():.0f} instead of {region.wellbeing_score():.0f}; "
+            f"Thriving from {thr(sim.thriving_round)} instead of {thr(region.thriving_round)}")
+    if skipped:
+        text += f"; {skipped} later decision{'s' if skipped != 1 else ''} could not be afforded and {'were' if skipped != 1 else 'was'} skipped"
+    runstate.whatif = {"wellbeing": list(sim.wellbeing_log), "text": text + "."}
+    return runstate.whatif["text"]
+```
+
+  (import `CAPACITY_LABEL, CAPACITY_TYPES, SCRUBBER_MIN_ROUND` from rules). `drift_collection.py`
+  `_collect_after_round`: as its first line `runstate.whatif = None  # GI-10: a what-if belongs to the round it was made in`.
+  Trend graph: `trend_graph_svg` gains the keyword `whatif_history=None` at the end of its parameters; directly after
+  the GI-6 rivals block (or the control block) add: if `whatif_history` has 2+ values, slice it like the control series
+  and draw `<polyline ... class="trend-line trend-line--whatif" />`, and in the hit loop add `what-if {v:.0f}`.
+  `render_trend_graph` passes `whatif_history=runstate.whatif["wellbeing"] if runstate.whatif else None`.
+  Tests: `test_the_note_explains_a_run_that_cannot_be_replayed` (round 1: note starts "Play to round 3"; after
+  `m.open_neighbor()` and `m.support_neighbor()` with 4 rounds played the note starts "This run cannot be replayed");
+  `test_run_whatif_keeps_a_curve_and_a_sentence` (buy services each round for 5 rounds; `run_whatif(0, "housing")`
+  starts with "What-if: wellbeing now"; `m.whatif["wellbeing"]` has 5 values; `game_env.advance_round()` clears it to
+  None); `test_the_whatif_line_is_drawn` (with `runstate.whatif` set, `trend_graph_svg(..., whatif_history=[...])`
+  contains `trend-line--whatif`).
+- **Page** (fifth step). Markup: directly after the `#ledger-toggle-button` line
+  `<button id="scrubber-toggle-button" class="secondary" type="button">⏪ What-if</button>`; directly after the
+  `#ledger-panel` closing tag:
+
+```html
+<div id="scrubber-panel" class="section" hidden><h2>What-if replay</h2><p id="scrubber-note" class="panel-note">Pick a round, change one decision, replay to now.</p><select id="scrubber-round-select" aria-label="Round"></select> <select id="scrubber-decision-select" aria-label="Decision"></select> <select id="scrubber-swap-select" aria-label="Change"></select> <button id="scrubber-run-button" type="button">Replay</button> <button id="scrubber-clear-button" class="secondary" type="button">Clear</button><p id="scrubber-result" role="status"></p></div>
+```
+
+  `drift_undo.py` `render_scrubber()`: toggle text "Hide What-if" / "⏪ What-if"; panel hidden unless
+  `runstate.scrubber_open`; `#scrubber-note` = `scrubber_note()` or the default line; when replayable, fill
+  `#scrubber-round-select` with one `<option value="R">Round R</option>` per distinct logged round (keep its current
+  value if still present), `#scrubber-decision-select` from `scrubber_choices(int(round value))` (option value = log
+  index), `#scrubber-swap-select` from `scrubber_swaps(int(decision value))`; `#scrubber-result` = `runstate.whatif["text"]`
+  or "". Handlers in `drift_handlers.py`: `on_toggle_scrubber` (flip `runstate.scrubber_open`, `render_scrubber()`),
+  `on_scrubber_round_change` and `on_scrubber_decision_change` (just `render_scrubber()`), `on_scrubber_run`
+  (`run_whatif(int(decision value), swap value)`, then `render_trend_graph()`, `render_scrubber()`, `announce(text)`),
+  `on_scrubber_clear` (`runstate.whatif = None`, redraw both). `game.py`: the two buttons in the `(button_id, handler)`
+  list; the round and decision selects get "change" listeners. `render()` calls `render_scrubber()` next to
+  `render_ledger()`. `shortcuts.js` `panels`: add `{ toggle: "scrubber-toggle-button", panel: "scrubber-panel" }`.
+  `tests/conftest.py` `ELEMENT_IDS`: all nine scrubber ids. CSS (`style-2-console.css`, after the rival rules):
+  `.trend-line--whatif { stroke: var(--accent, #7fb8ff); stroke-width: 2; stroke-dasharray: 4 2; fill: none; }`.
+  Browser test NEW `tests/test_whatif_browser.py`: click `#services-invest-button` then `#advance-round-button`, three
+  times (wait for `#round-display` to change); click `#scrubber-toggle-button`; `#scrubber-panel` visible and
+  `#scrubber-round-select option` count is 3; click `#scrubber-run-button`; wait until `#scrubber-result` text starts
+  with "What-if:"; `#trend-graph .trend-line--whatif` count is 1; `page.page_errors == []`.

@@ -62,11 +62,11 @@ def test_a_prestige_moves_into_the_next_era(game_env):
 
 
 def test_page_and_css_wiring_is_static_and_scoped():
-    html = (GAME_DIR / "index.html").read_text()
+    html = (GAME_DIR / "index.html").read_text(encoding="utf-8")
     assert 'id="era-tagline"' in html and 'id="era-look-checkbox"' in html
-    assert '"sol-era-look"' in (GAME_DIR / "settings.js").read_text()
-    css = (GAME_DIR / "style.css").read_text()
+    assert '"sol-era-look"' in (GAME_DIR / "settings.js").read_text(encoding="utf-8")
+    css = (GAME_DIR / "style.css").read_text(encoding="utf-8")
     block = css[css.index("A-21: prestige Eras"):css.index("Y11b light-theme polish (2026-09-27)")]
     assert 'html[data-era-look="on"]' in block
     assert "animation" not in block and "transition" not in block  # nothing moves, so Reduce motion needs no case
-    assert '"#era-tagline"' in (GAME_DIR / "pc-config.json").read_text()
+    assert '"#era-tagline"' in (GAME_DIR / "pc-config.json").read_text(encoding="utf-8")
